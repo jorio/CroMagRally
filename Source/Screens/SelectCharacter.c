@@ -154,7 +154,7 @@ ObjNode	*newObj;
 			/* SETUP VIEW */
 			/**************/
 
-	OGL_NewViewDef(&viewDef, gCoverWindow);
+	OGL_NewViewDef(&viewDef);
 
 	viewDef.camera.fov 				= .3;
 	viewDef.camera.hither 			= 10;

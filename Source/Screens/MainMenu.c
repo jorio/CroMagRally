@@ -240,7 +240,7 @@ OGLVector3D			fillDirection2 = { -1, -.2, -.5 };
 			/* SETUP VIEW */
 			/**************/
 
-	OGL_NewViewDef(&viewDef, gCoverWindow);
+	OGL_NewViewDef(&viewDef);
 
 	viewDef.camera.fov 				= 1.0;
 	viewDef.camera.hither 			= 10;

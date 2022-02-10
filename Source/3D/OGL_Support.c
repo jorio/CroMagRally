@@ -1,6 +1,6 @@
 /****************************/
 /*   OPENGL SUPPORT.C	    */
-/* (c)2000 Pangea Software  */
+/* (c)2001 Pangea Software  */
 /*   By Brian Greenstone    */
 /****************************/
 
@@ -9,7 +9,8 @@
 /*    EXTERNALS             */
 /****************************/
 
-#include <GL/gl.h>
+#include <SDL.h>
+#include <SDL_opengl.h>
 #include <GL/glu.h>
 #include <math.h>
 
@@ -25,6 +26,7 @@
 #include "sound2.h"
 #include <string.h>
 
+extern SDL_Window*		gSDLWindow;
 extern int				gNumObjectNodes,gNumPointers;
 extern	MOMaterialObject	*gMostRecentMaterial;
 extern	GWorldPtr		gTerrainDebugGWorld;
@@ -39,16 +41,21 @@ extern	PrefsType			gGamePrefs;
 extern	int				gGameWindowWidth,gGameWindowHeight;
 extern	CGrafPtr				gDisplayContextGrafPtr;
 //extern	DisplayIDType		gOurDisplayID;
+extern	float 			gGammaFadePercent;
 
 /****************************/
 /*    PROTOTYPES            */
 /****************************/
 
+static void OGL_InitFont(void);
+
 static void OGL_CreateDrawContext(OGLViewDefType *viewDefPtr);
 static void OGL_SetStyles(OGLSetupInputType *setupDefPtr);
 static void OGL_CreateLights(OGLLightDefType *lightDefPtr);
-static void OGL_InitFont(void);
-static void OGL_FreeFont(void);
+
+static void ColorBalanceRGBForAnaglyph(uint32_t *rr, uint32_t *gg, uint32_t *bb);
+static void	ConvertTextureToGrey(void *imageMemory, short width, short height, GLint srcFormat, GLint dataType);
+static void	ConvertTextureToColorAnaglyph(void *imageMemory, short width, short height, GLint srcFormat, GLint dataType);
 
 
 /****************************/
@@ -56,6 +63,8 @@ static void OGL_FreeFont(void);
 /****************************/
 
 #define	STATE_STACK_SIZE	20
+
+
 
 /*********************/
 /*    VARIABLES      */
@@ -65,12 +74,10 @@ Boolean			gSupportsPackedPixels = false;
 Boolean			gOpenGL112 = false;
 Boolean			gCanDo512 = true;
 
-AGLDrawable		gAGLWin;
-AGLContext		gAGLContext = nil;
-
-static GLuint 			gFontList;
+SDL_GLContext	gAGLContext = nil;
 
 
+//OGLMatrix4x4	gViewToFrustumMatrix,gWorldToViewMatrix,gWorldToFrustumMatrix;
 OGLMatrix4x4	gViewToFrustumMatrix,gLocalToViewMatrix,gLocalToFrustumMatrix;
 OGLMatrix4x4	gWorldToWindowMatrix[MAX_SPLITSCREENS],gFrustumToWindowMatrix[MAX_SPLITSCREENS];
 
@@ -78,6 +85,8 @@ int		gCurrentSplitScreenPane = 0, gNumSplitScreenPanes= 0;
 Byte	gActiveSplitScreenMode 	= SPLITSCREEN_MODE_NONE;		// currently active split mode
 
 float	gCurrentAspectRatio = 1;
+float	g2DLogicalWidth		= 640.0f;
+float	g2DLogicalHeight	= 480.0f;
 
 
 Boolean		gStateStack_Lighting[STATE_STACK_SIZE];
@@ -96,9 +105,10 @@ int			gStateStackIndex = 0;
 
 int			gPolysThisFrame;
 int			gVRAMUsedThisFrame = 0;
-static int			gMinRAM = 10000000000000;
 
 Boolean		gMyState_Lighting;
+
+static ObjNode* gDebugText;
 
 
 /******************** OGL BOOT *****************/
@@ -108,23 +118,6 @@ Boolean		gMyState_Lighting;
 
 void OGL_Boot(void)
 {
-#if 0
-NumVersion	version;
-
-
-			/* SEE IF RUNNING THE DREDED OPENGL 1.1.2 */
-
-	gOpenGL112 = false;
-	if (!gOSX)
-	{
-		GetLibVersion("OpenGLEngine", &version);
-		if (version.majorRev == 1)
-		{
-			if (version.minorAndBugRev == 0x12)
-				gOpenGL112 = true;
-		}
-	}
-#endif
 }
 
 
@@ -133,25 +126,21 @@ NumVersion	version;
 // fills a view def structure with default values.
 //
 
-void OGL_NewViewDef(OGLSetupInputType *viewDef, WindowPtr theWindow)
+void OGL_NewViewDef(OGLSetupInputType *viewDef)
 {
-OGLColorRGBA		clearColor = {0,0,0,1};
-OGLPoint3D			cameraFrom = { 0, 0, 100.0 };
-OGLPoint3D			cameraTo = { 0, 0, 0 };
-OGLVector3D			cameraUp = { 0.0, 1.0, 0.0 };
-OGLColorRGBA			ambientColor = { .3, .3, .3, 1 };
-OGLColorRGBA			fillColor = { 1.0, 1.0, 1.0, 1 };
-OGLVector3D			fillDirection1 = { 0, 0, -1 };
-OGLVector3D			fillDirection2 = { -1, -.3, -.3 };
+const OGLColorRGBA		clearColor = {0,0,0,1};
+const OGLPoint3D			cameraFrom = { 0, 0, 0.0 };
+const OGLPoint3D			cameraTo = { 0, 0, -1 };
+const OGLVector3D			cameraUp = { 0.0, 1.0, 0.0 };
+const OGLColorRGBA			ambientColor = { .3, .3, .3, 1 };
+const OGLColorRGBA			fillColor = { 1.0, 1.0, 1.0, 1 };
+static OGLVector3D			fillDirection1 = { 1, 0, -1 };
+static OGLVector3D			fillDirection2 = { -1, -.3, -.3 };
 
 
 	OGLVector3D_Normalize(&fillDirection1, &fillDirection1);
 	OGLVector3D_Normalize(&fillDirection2, &fillDirection2);
 
-	if (gOSX)
-		viewDef->view.displayWindow 	= nil;
-	else
-		viewDef->view.displayWindow 	= theWindow;
 	viewDef->view.clearColor 		= clearColor;
 	viewDef->view.clip.left 	= 0;
 	viewDef->view.clip.right 	= 0;
@@ -160,12 +149,12 @@ OGLVector3D			fillDirection2 = { -1, -.3, -.3 };
 	viewDef->view.numPanes	 	= 1;				// assume only 1 pane
 	viewDef->view.clearBackBuffer = true;
 
-	viewDef->camera.from[0]			= cameraFrom;
-	viewDef->camera.from[1] 		= cameraFrom;
-	viewDef->camera.to[0] 			= cameraTo;
-	viewDef->camera.to[1] 			= cameraTo;
-	viewDef->camera.up[0] 			= cameraUp;
-	viewDef->camera.up[1] 			= cameraUp;
+	for (int i = 0; i < MAX_SPLITSCREENS; i++)
+	{
+		viewDef->camera.from[i]		= cameraFrom;
+		viewDef->camera.to[i]		= cameraTo;
+		viewDef->camera.up[i]		= cameraUp;
+	}
 	viewDef->camera.hither 			= 10;
 	viewDef->camera.yon 			= 4000;
 	viewDef->camera.fov 			= 1.1;
@@ -179,7 +168,7 @@ OGLVector3D			fillDirection2 = { -1, -.3, -.3 };
 	viewDef->styles.fogMode			= GL_LINEAR;
 
 	viewDef->lights.ambientColor 	= ambientColor;
-	viewDef->lights.numFillLights 	= 2;
+	viewDef->lights.numFillLights 	= 1;
 	viewDef->lights.fillDirection[0] = fillDirection1;
 	viewDef->lights.fillDirection[1] = fillDirection2;
 	viewDef->lights.fillColor[0] 	= fillColor;
@@ -191,9 +180,9 @@ OGLVector3D			fillDirection2 = { -1, -.3, -.3 };
 
 void OGL_SetupWindow(OGLSetupInputType *setupDefPtr, OGLSetupOutputType **outputHandle)
 {
-static OGLVector3D	v = {0,0,0};
 OGLSetupOutputType	*outputPtr;
-int					i;
+
+	SDL_ShowCursor(0);	// do this just as a safety precaution to make sure no cursor lingering around
 
 			/* ALLOC MEMORY FOR OUTPUT DATA */
 
@@ -201,36 +190,25 @@ int					i;
 	if (outputPtr == nil)
 		DoFatalAlert("OGL_SetupWindow: AllocPtr failed");
 
-			/* SET SOME PANE INFO */
-
-	gCurrentSplitScreenPane = 0;
-	gNumSplitScreenPanes = setupDefPtr->view.numPanes;
-	switch(setupDefPtr->view.numPanes)
-	{
-		case	1:
-				gActiveSplitScreenMode = SPLITSCREEN_MODE_NONE;
-				break;
-
-		case	2:
-				gActiveSplitScreenMode = gGamePrefs.desiredSplitScreenMode;
-				break;
-
-		default:
-				DoFatalAlert("OGL_SetupWindow: # panes not implemented");
-	}
-
 
 				/* SETUP */
 
 	OGL_CreateDrawContext(&setupDefPtr->view);
+	OGL_CheckError();
+
 	OGL_SetStyles(setupDefPtr);
+	OGL_CheckError();
+
 	OGL_CreateLights(&setupDefPtr->lights);
+	OGL_CheckError();
+
+	SDL_GL_SetSwapInterval(1);//gCommandLine.vsync);
+
 
 
 				/* PASS BACK INFO */
 
 	outputPtr->drawContext 		= gAGLContext;
-	outputPtr->window 			= setupDefPtr->view.displayWindow;		// remember which window
 	outputPtr->clip 			= setupDefPtr->view.clip;
 	outputPtr->hither 			= setupDefPtr->camera.hither;			// remember hither/yon
 	outputPtr->yon 				= setupDefPtr->camera.yon;
@@ -241,13 +219,17 @@ int					i;
 
 	outputPtr->lightList = setupDefPtr->lights;							// copy lights
 
-	for (i = 0; i < MAX_SPLITSCREENS; i++)
+	for (int i = 0; i < MAX_SPLITSCREENS; i++)
 	{
 		outputPtr->fov[i] = setupDefPtr->camera.fov;					// each camera will have its own fov so we can change it for special effects
 		OGL_UpdateCameraFromTo(outputPtr, &setupDefPtr->camera.from[i], &setupDefPtr->camera.to[i], i);
 	}
 
 	*outputHandle = outputPtr;											// return value to caller
+
+
+//	TextMesh_InitMaterial(outputPtr, setupDefPtr->styles.redFont);
+	OGL_InitFont();
 }
 
 
@@ -258,25 +240,19 @@ int					i;
 
 void OGL_DisposeWindowSetup(OGLSetupOutputType **dataHandle)
 {
-	IMPLEMENT_ME();
-#if 0
 OGLSetupOutputType	*data;
-AGLContext agl_ctx = gAGLContext;
 
 	data = *dataHandle;
-	if (data == nil)												// see if this setup exists
-		return;
+	GAME_ASSERT(data);										// see if this setup exists
 
-	glFlush();
-	glFinish();
+			/* KILL FONT MATERIAL */
 
-			/* KILL DEBUG FONT */
+//	TextMesh_DisposeMaterial();
 
-	OGL_FreeFont();
+			/* KILL GL CONTEXT */
 
-  	aglSetCurrentContext(nil);								// make context not current
-   	aglSetDrawable(data->drawContext, nil);
-	aglDestroyContext(data->drawContext);					// nuke the AGL context
+	SDL_GL_MakeCurrent(gSDLWindow, NULL);					// make context not current
+	SDL_GL_DeleteContext(data->drawContext);						// nuke the AGL context
 
 
 		/* FREE MEMORY & NIL POINTER */
@@ -286,7 +262,6 @@ AGLContext agl_ctx = gAGLContext;
 	*dataHandle = nil;
 
 	gAGLContext = nil;
-#endif
 }
 
 
@@ -296,84 +271,39 @@ AGLContext agl_ctx = gAGLContext;
 
 static void OGL_CreateDrawContext(OGLViewDefType *viewDefPtr)
 {
-IMPLEMENT_ME();
-#if 0
-AGLPixelFormat 	fmt;
-GLboolean      mkc,ok;
-GLint          attrib[] 		= {AGL_RGBA, AGL_DOUBLEBUFFER, AGL_DEPTH_SIZE, 16, AGL_ALL_RENDERERS, AGL_ACCELERATED, AGL_NO_RECOVERY, AGL_NONE};
-GLint          attribDeepZ[] 	= {AGL_RGBA, AGL_DOUBLEBUFFER, AGL_DEPTH_SIZE, 32, AGL_ALL_RENDERERS, AGL_ACCELERATED, AGL_NO_RECOVERY, AGL_NONE};
-GLint          attrib2[] 		= {AGL_RGBA, AGL_DOUBLEBUFFER, AGL_DEPTH_SIZE, 16, AGL_ALL_RENDERERS, AGL_NONE};
-AGLContext agl_ctx;
 GLint			maxTexSize;
 static char			*s;
 
-	gAGLWin = (AGLDrawable)gDisplayContextGrafPtr;
-
-
-			/* CHOOSE PIXEL FORMAT */
-
-	if (0)		//gGamePrefs.deepZ)
-		fmt = aglChoosePixelFormat(nil, 0, attribDeepZ);
-	else
-		fmt = aglChoosePixelFormat(nil, 0, attrib);
-
-	if ((fmt == NULL) || (aglGetError() != AGL_NO_ERROR))
-	{
-		fmt = aglChoosePixelFormat(nil, 0, attrib2);							// try being less stringent
-		if ((fmt == NULL) || (aglGetError() != AGL_NO_ERROR))
-		{
-			DoFatalAlert("aglChoosePixelFormat failed!  Check that your 3D accelerator is OpenGL compliant, installed properly, and that you have the latest drivers.");
-		}
-	}
-
-
 			/* CREATE AGL CONTEXT & ATTACH TO WINDOW */
 
-	gAGLContext = aglCreateContext(fmt, nil);
-	if ((gAGLContext == nil) || (aglGetError() != AGL_NO_ERROR))
-		DoFatalAlert("OGL_CreateDrawContext: aglCreateContext failed!");
+	gAGLContext = SDL_GL_CreateContext(gSDLWindow);
 
-	agl_ctx = gAGLContext;
+	if (!gAGLContext)
+		DoFatalAlert(SDL_GetError());
 
-	ok = aglSetDrawable(gAGLContext, gAGLWin);
-	if ((!ok) || (aglGetError() != AGL_NO_ERROR))
-	{
-		if (aglGetError() == AGL_BAD_ALLOC)
-		{
-			gGamePrefs.showScreenModeDialog	= true;
-			SavePrefs();
-			DoFatalAlert("Not enough VRAM for the selected video mode.  Please try again and select a different mode.");
-		}
-		else
-			DoFatalAlert("OGL_CreateDrawContext: aglSetDrawable failed!");
-	}
+	GAME_ASSERT(glGetError() == GL_NO_ERROR);
 
 
 			/* ACTIVATE CONTEXT */
 
-	mkc = aglSetCurrentContext(gAGLContext);
-	if ((mkc == NULL) || (aglGetError() != AGL_NO_ERROR))
-		return;
+	int mkc = SDL_GL_MakeCurrent(gSDLWindow, gAGLContext);
+	GAME_ASSERT_MESSAGE(mkc == 0, SDL_GetError());
 
 
-			/* NO LONGER NEED PIXEL FORMAT */
+#if 0
+			/* GET OPENGL EXTENSIONS */
+			//
+			// On Mac/Linux, we only need to do this once.
+			// But on Windows, we must do it whenever we create a draw context.
+			//
 
-	aglDestroyPixelFormat(fmt);
-
-
-			/* CLEAR ALL BUFFERS TO BLACK */
-
-	glClearColor(0,0,0,1);
-	glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);		// clear buffer
-	aglSwapBuffers(gAGLContext);
-	glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);		// clear buffer
-	aglSwapBuffers(gAGLContext);
+	OGL_InitFunctions();
+#endif
 
 
 				/* SET VARIOUS STATE INFO */
 
 
-	glClearColor(viewDefPtr->clearColor.r, viewDefPtr->clearColor.g, viewDefPtr->clearColor.b, 1.0);
 	glEnable(GL_DEPTH_TEST);								// use z-buffer
 
 	{
@@ -383,8 +313,8 @@ static char			*s;
 
 	glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
 	glEnable(GL_COLOR_MATERIAL);
-  	glEnable(GL_NORMALIZE);
 
+  	glEnable(GL_NORMALIZE);
 
 
 
@@ -392,22 +322,26 @@ static char			*s;
 		/* GET OPENGL CAPABILITIES */
  		/***************************/
 
+	s = (char *)glGetString(GL_EXTENSIONS);					// get extensions list
 
 
 
-			/* INIT DEBUG FONT */
-
-	OGL_InitFont();
-
-
-			/* SEE IF SUPPORT 512X512 */
+			/* SEE IF SUPPORT 1024x1024 TEXTURES */
 
 	glGetIntegerv(GL_MAX_TEXTURE_SIZE, &maxTexSize);
-	if (maxTexSize < 512)
-		gCanDo512 = false;
-	else
-		gCanDo512 = true;
-#endif
+	if (maxTexSize < 1024)
+		DoFatalAlert("Your video card cannot do 1024x1024 textures, so it is below the game's minimum system requirements.");
+
+
+				/* CLEAR BACK BUFFER ENTIRELY */
+
+	glClearColor(0,0,0, 1.0);
+	glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+	glClear(GL_COLOR_BUFFER_BIT);
+	SDL_GL_SwapWindow(gSDLWindow);
+	glClear(GL_COLOR_BUFFER_BIT);
+	glClearColor(viewDefPtr->clearColor.r, viewDefPtr->clearColor.g, viewDefPtr->clearColor.b, 1.0);
+
 }
 
 
@@ -417,21 +351,20 @@ static char			*s;
 static void OGL_SetStyles(OGLSetupInputType *setupDefPtr)
 {
 OGLStyleDefType *styleDefPtr = &setupDefPtr->styles;
-AGLContext agl_ctx = gAGLContext;
 
-//	glPolygonMode(GL_FRONT_AND_BACK ,GL_LINE);		//---------------
 
 	glEnable(GL_CULL_FACE);									// activate culling
 	glCullFace(GL_BACK);
 	glFrontFace(GL_CCW);									// CCW is front face
-	glEnable(GL_DITHER);
 
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);		// set default blend func
 	glDisable(GL_BLEND);									// but turn it off by default
 
-	glHint(GL_TRANSFORM_HINT_APPLE, GL_FASTEST);
+	glDisable(GL_RESCALE_NORMAL);
 
+    glHint(GL_FOG_HINT, GL_NICEST);		// pixel accurate fog?
 
+	OGL_CheckError();
 
 			/* ENABLE ALPHA CHANNELS */
 
@@ -454,6 +387,8 @@ AGLContext agl_ctx = gAGLContext;
 	}
 	else
 		glDisable(GL_FOG);
+
+	OGL_CheckError();
 }
 
 
@@ -468,7 +403,6 @@ static void OGL_CreateLights(OGLLightDefType *lightDefPtr)
 {
 int		i;
 GLfloat	ambient[4];
-AGLContext agl_ctx = gAGLContext;
 
 	OGL_EnableLighting();
 
@@ -527,37 +461,57 @@ AGLContext agl_ctx = gAGLContext;
 
 void OGL_DrawScene(OGLSetupOutputType *setupInfo, void (*drawRoutine)(OGLSetupOutputType *))
 {
-int	x,y,w,h;
-AGLContext agl_ctx = setupInfo->drawContext;
-
-
 	if (setupInfo == nil)										// make sure it's legit
 		DoFatalAlert("OGL_DrawScene setupInfo == nil");
 	if (!setupInfo->isActive)
 		DoFatalAlert("OGL_DrawScene isActive == false");
 
+	int makeCurrentRC = SDL_GL_MakeCurrent(gSDLWindow, setupInfo->drawContext);		// make context active
+	if (makeCurrentRC != 0)
+		DoFatalAlert(SDL_GetError());
+
+
+	if (gGammaFadePercent <= 0)							// if we just finished fading out and haven't started fading in yet, just show black
+	{
+		glClearColor(0, 0, 0, 1);
+		glClear(GL_COLOR_BUFFER_BIT);
+		SDL_GL_SwapWindow(gSDLWindow);					// end render loop
+		return;
+	}
+
+
 			/* INIT SOME STUFF */
 
 	if (gDebugMode)
 	{
-		gVRAMUsedThisFrame = gGameWindowWidth * gGameWindowHeight * (gGamePrefs.depth / 8);				// backbuffer size
-		gVRAMUsedThisFrame += gGameWindowWidth * gGameWindowHeight * 2;										// z-buffer size
-		gVRAMUsedThisFrame += gGamePrefs.screenWidth * gGamePrefs.screenHeight * (gGamePrefs.depth / 8);	// display size
+		int depth = 32;
+		gVRAMUsedThisFrame = gGameWindowWidth * gGameWindowHeight * (depth / 8);	// backbuffer size
+		gVRAMUsedThisFrame += gGameWindowWidth * gGameWindowHeight * 2;				// z-buffer size
+		gVRAMUsedThisFrame += gGameWindowWidth * gGameWindowHeight * (depth / 8);	// display size
 	}
 
 
 	gPolysThisFrame 	= 0;										// init poly counter
 	gMostRecentMaterial = nil;
 	gGlobalMaterialFlags = 0;
+	glColor4f(1,1,1,1);
+	glEnable(GL_COLOR_MATERIAL); //---
 
-				/* CLEAR BUFFER */
+				/*****************/
+				/* CLEAR BUFFERS */
+				/*****************/
 
-	if (setupInfo->clearBackBuffer)
+	if (setupInfo->clearBackBuffer || (gDebugMode == 3))
+	{
 		glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
+	}
 	else
 		glClear(GL_DEPTH_BUFFER_BIT);
 
+
 	glColor4f(1,1,1,1);
+	glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);		// this lets us hot-switch between anaglyph and non-anaglyph in the settings
+
 
 				/**************************************/
 				/* DRAW EACH SPLIT-SCREEN PANE IF ANY */
@@ -565,11 +519,17 @@ AGLContext agl_ctx = setupInfo->drawContext;
 
 	for (gCurrentSplitScreenPane = 0; gCurrentSplitScreenPane < gNumSplitScreenPanes; gCurrentSplitScreenPane++)
 	{
-					/* SET SPLIT-SCREEN VIEWPORT */
-
+		int x, y, w, h;
 		OGL_GetCurrentViewport(setupInfo, &x, &y, &w, &h, gCurrentSplitScreenPane);
-		glViewport(x,y, w, h);
-		gCurrentAspectRatio = (float)w/(float)h;
+		glViewport(x, y, w, h);
+		gCurrentAspectRatio = (float) w / (float) (h == 0? 1: h);
+
+		// Compute logical width & height for 2D elements
+		g2DLogicalHeight = 480.0f;
+		if (gCurrentAspectRatio < 4.0f/3.0f)
+			g2DLogicalWidth = 640.0f;
+		else
+			g2DLogicalWidth = 480.0f * gCurrentAspectRatio;
 
 
 				/* GET UPDATED GLOBAL COPIES OF THE VARIOUS MATRICES */
@@ -588,12 +548,16 @@ AGLContext agl_ctx = setupInfo->drawContext;
 		/* SEE IF SHOW DEBUG INFO */
 		/**************************/
 
-	if (GetNewKeyState_Real(KEY_F8))
+	if (GetNewKeyState(SDL_SCANCODE_F8))
 	{
-		if (++gDebugMode > 2)
+		if (++gDebugMode > 3)
 			gDebugMode = 0;
-	}
 
+		if (gDebugMode == 3)								// see if show wireframe
+			glPolygonMode(GL_FRONT_AND_BACK ,GL_LINE);
+		else
+			glPolygonMode(GL_FRONT_AND_BACK ,GL_FILL);
+	}
 
 				/* SHOW BASIC DEBUG INFO */
 
@@ -663,9 +627,7 @@ AGLContext agl_ctx = setupInfo->drawContext;
 
            /* SWAP THE BUFFS */
 
-IMPLEMENT_ME_SOFT();
-//	aglSwapBuffers(setupInfo->drawContext);					// end render loop
-
+	SDL_GL_SwapWindow(gSDLWindow);					// end render loop
 }
 
 
@@ -679,10 +641,22 @@ void OGL_GetCurrentViewport(const OGLSetupOutputType *setupInfo, int *x, int *y,
 {
 int	t,b,l,r;
 
+	SDL_GetWindowSize(gSDLWindow, &gGameWindowWidth, &gGameWindowHeight);
+
 	t = setupInfo->clip.top;
 	b = setupInfo->clip.bottom;
 	l = setupInfo->clip.left;
 	r = setupInfo->clip.right;
+
+#if 0
+	*x = l;
+	*y = t;
+	*w = gGameWindowWidth-l-r;
+	*h = gGameWindowHeight-t-b;
+
+	if (whichPane != 0)
+		IMPLEMENT_ME_SOFT();
+#endif
 
 	switch(gActiveSplitScreenMode)
 	{
@@ -706,6 +680,9 @@ int	t,b,l,r;
 					case	1:
 							*y = t;
 							break;
+					
+					default:
+							DoFatalAlert("Unsupported pane # (horiz split)");
 				}
 				break;
 
@@ -722,8 +699,14 @@ int	t,b,l,r;
 					case	1:
 							*x = l + (gGameWindowWidth-l-r)/2;
 							break;
+						
+					default:
+							DoFatalAlert("Unsupported pane # (vert split)");
 				}
 				break;
+		
+		default:
+				DoFatalAlert("Unsupported split-screen mode %d", gActiveSplitScreenMode);
 	}
 }
 
@@ -737,18 +720,7 @@ GLuint OGL_TextureMap_Load(void *imageMemory, int width, int height,
 							GLint srcFormat,  GLint destFormat, GLint dataType)
 {
 GLuint	textureName;
-AGLContext agl_ctx = gAGLContext;
 
-			/* HACK TO FIX BUG IN OPENGL 1.1.2 */
-			//
-			// Tell OGL that 64 wide texture are half tall to trick it into working!
-			//
-
-	if (gOpenGL112)
-	{
-		if ((width == 64) || (width == 32))
-			height /= 2;
-	}
 
 			/* GET A UNIQUE TEXTURE NAME & INITIALIZE IT */
 
@@ -760,6 +732,9 @@ AGLContext agl_ctx = gAGLContext;
 	if (OGL_CheckError())
 		DoFatalAlert("OGL_TextureMap_Load: glBindTexture failed!");
 
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
 	glTexImage2D(GL_TEXTURE_2D,
 				0,										// mipmap level
 				destFormat,								// format in OpenGL
@@ -767,7 +742,7 @@ AGLContext agl_ctx = gAGLContext;
 				height,									// height in pixels
 				0,										// border
 				srcFormat,								// what my format is
-				dataType,		//GL_UNSIGNED_BYTE,						// size of each r,g,b
+				dataType,								// size of each r,g,b
 				imageMemory);							// pointer to the actual texture pixels
 
 
@@ -784,6 +759,75 @@ AGLContext agl_ctx = gAGLContext;
 	return(textureName);
 }
 
+/***************** OGL TEXTUREMAP LOAD FROM TGA **********************/
+
+#if 0
+GLuint OGL_TextureMap_LoadTGA(const char* path, int flags, int* outWidth, int* outHeight)
+{
+FSSpec					spec;
+uint8_t*				pixelData = nil;
+TGAHeader				header;
+OSErr					err;
+
+	FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, path, &spec);
+
+			/* LOAD RAW ARGB DATA FROM TGA FILE */
+
+	err = ReadTGA(&spec, &pixelData, &header, true);
+	GAME_ASSERT(err == noErr);
+
+	GAME_ASSERT(header.bpp == 32);
+	GAME_ASSERT(header.imageType == TGA_IMAGETYPE_CONVERTED_ARGB);
+
+			/* PRE-PROCESS IMAGE */
+
+	int internalFormat = GL_RGB;
+
+	if (flags & kLoadTextureFlags_GrayscaleIsAlpha)
+	{
+		for (int p = 0; p < 4 * header.width * header.height; p += 4)
+		{
+			// put Blue into Alpha & leave map white
+			pixelData[p+0] = pixelData[p+3];	// put blue into alpha
+			pixelData[p+1] = 255;
+			pixelData[p+2] = 255;
+			pixelData[p+3] = 255;
+		}
+		internalFormat = GL_RGBA;
+	}
+	else if (flags & kLoadTextureFlags_KeepOriginalAlpha)
+	{
+		internalFormat = GL_RGBA;
+	}
+	else
+	{
+		internalFormat = GL_RGB;
+	}
+
+			/* LOAD TEXTURE */
+
+	GLuint glTextureName = OGL_TextureMap_Load(
+			pixelData,
+			header.width,
+			header.height,
+			GL_BGRA,
+			internalFormat,
+			GL_UNSIGNED_INT_8_8_8_8
+			);
+
+			/* CLEAN UP */
+
+	DisposePtr((Ptr) pixelData);
+
+	if (outWidth)
+		*outWidth = header.width;
+	if (outHeight)
+		*outHeight = header.height;
+
+	return glTextureName;
+}
+#endif
+
 
 /****************** OGL: TEXTURE SET OPENGL TEXTURE **************************/
 //
@@ -792,8 +836,6 @@ AGLContext agl_ctx = gAGLContext;
 
 void OGL_Texture_SetOpenGLTexture(GLuint textureName)
 {
-AGLContext agl_ctx = gAGLContext;
-
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 	if (OGL_CheckError())
 		DoFatalAlert("OGL_Texture_SetOpenGLTexture: glPixelStorei failed!");
@@ -802,9 +844,8 @@ AGLContext agl_ctx = gAGLContext;
 	if (OGL_CheckError())
 		DoFatalAlert("OGL_Texture_SetOpenGLTexture: glBindTexture failed!");
 
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);	// disable mipmaps & turn on filtering
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
+	glGetError();
 
 	glEnable(GL_TEXTURE_2D);
 }
@@ -873,10 +914,8 @@ void OGL_UpdateCameraFromToUp(OGLSetupOutputType *setupInfo, OGLPoint3D *from, O
 void OGL_Camera_SetPlacementAndUpdateMatrices(OGLSetupOutputType *setupInfo, int camNum)
 {
 float	aspect;
-OGLCameraPlacement	*placement;
 int		temp, w, h, i;
 OGLLightDefType	*lights;
-AGLContext agl_ctx = gAGLContext;
 
 	OGL_GetCurrentViewport(setupInfo, &temp, &temp, &w, &h, 0);
 	aspect = (float)w/(float)h;
@@ -884,21 +923,30 @@ AGLContext agl_ctx = gAGLContext;
 			/* INIT PROJECTION MATRIX */
 
 	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-	gluPerspective (OGLMath_RadiansToDegrees(setupInfo->fov[camNum]),	// fov
-					aspect,					// aspect
-					setupInfo->hither,		// hither
-					setupInfo->yon);		// yon
+
+			/* SETUP STANDARD PERSPECTIVE CAMERA */
+
+	OGL_SetGluPerspectiveMatrix(
+			&gViewToFrustumMatrix,
+			setupInfo->fov[camNum],
+			aspect,
+			setupInfo->hither,
+			setupInfo->yon);
+	glLoadMatrixf((const GLfloat*) &gViewToFrustumMatrix.value[0]);
+
 
 
 			/* INIT MODELVIEW MATRIX */
 
 	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
-	placement = &setupInfo->cameraPlacement[camNum];
-	gluLookAt(placement->cameraLocation.x, placement->cameraLocation.y, placement->cameraLocation.z,
-			placement->pointOfInterest.x, placement->pointOfInterest.y, placement->pointOfInterest.z,
-			placement->upVector.x, placement->upVector.y, placement->upVector.z);
+	OGL_SetGluLookAtMatrix(
+			&gLocalToViewMatrix, //&gWorldToViewMatrix,
+			&setupInfo->cameraPlacement[camNum].cameraLocation,
+			&setupInfo->cameraPlacement[camNum].pointOfInterest,
+			&setupInfo->cameraPlacement[camNum].upVector);
+	//glLoadMatrixf((const GLfloat*) &gWorldToViewMatrix.value[0]);
+	glLoadMatrixf((const GLfloat*) &gLocalToViewMatrix.value[0]);
+
 
 
 		/* UPDATE LIGHT POSITIONS */
@@ -918,12 +966,12 @@ AGLContext agl_ctx = gAGLContext;
 
 			/* GET VARIOUS CAMERA MATRICES */
 
-	glGetFloatv(GL_MODELVIEW_MATRIX, (GLfloat *)&gLocalToViewMatrix);
-	glGetFloatv(GL_PROJECTION_MATRIX, (GLfloat *)&gViewToFrustumMatrix);
+	//OGLMatrix4x4_Multiply(&gWorldToViewMatrix, &gViewToFrustumMatrix, &gWorldToFrustumMatrix);
 	OGLMatrix4x4_Multiply(&gLocalToViewMatrix, &gViewToFrustumMatrix, &gLocalToFrustumMatrix);
 
-	OGLMatrix4x4_GetFrustumToWindow(setupInfo, &gFrustumToWindowMatrix[camNum],camNum);
-	OGLMatrix4x4_Multiply(&gLocalToFrustumMatrix, &gFrustumToWindowMatrix[camNum], &gWorldToWindowMatrix[camNum]);
+	OGLMatrix4x4_GetFrustumToWindow(setupInfo, &gFrustumToWindowMatrix[camNum], camNum);
+	//OGLMatrix4x4_Multiply(&gWorldToFrustumMatrix, &gFrustumToWindowMatrix[camNum], &gWorldToWindowMatrix);
+	OGLMatrix4x4_Multiply(&gLocalToFrustumMatrix, &gFrustumToWindowMatrix[camNum], &gWorldToWindowMatrix);
 
 	UpdateListenerLocation(setupInfo);
 }
@@ -933,137 +981,18 @@ AGLContext agl_ctx = gAGLContext;
 #pragma mark -
 
 
-/**************** OGL BUFFER TO GWORLD ***********************/
-
-GWorldPtr OGL_BufferToGWorld(Ptr buffer, int width, int height, int bytesPerPixel)
-{
-	IMPLEMENT_ME_SOFT(); return NULL;
-#if 0
-Rect			r;
-GWorldPtr		gworld;
-PixMapHandle	gworldPixmap;
-long			gworldRowBytes,x,y,pixmapRowbytes;
-Ptr				gworldPixelPtr;
-unsigned long	*pix32Src,*pix32Dest;
-unsigned short	*pix16Src,*pix16Dest;
-OSErr			iErr;
-long			pixelSize;
-
-			/* CREATE GWORLD TO DRAW INTO */
-
-	switch(bytesPerPixel)
-	{
-		case	2:
-				pixelSize = 16;
-				break;
-
-		case	4:
-				pixelSize = 32;
-				break;
-	}
-
-	SetRect(&r,0,0,width,height);
-	iErr = NewGWorld(&gworld,pixelSize, &r, nil, nil, 0);
-	if (iErr)
-		DoFatalAlert("OGL_BufferToGWorld: NewGWorld failed!");
-
-	DoLockPixels(gworld);
-
-	gworldPixmap = GetGWorldPixMap(gworld);
-	LockPixels(gworldPixmap);
-
-	gworldRowBytes = (**gworldPixmap).rowBytes & 0x3fff;					// get GWorld's rowbytes
-	gworldPixelPtr = GetPixBaseAddr(gworldPixmap);							// get ptr to pixels
-
-	pixmapRowbytes = width * bytesPerPixel;
-
-
-			/* WRITE DATA INTO GWORLD */
-
-	switch(pixelSize)
-	{
-		case	32:
-				pix32Src = (unsigned long *)buffer;							// get 32bit pointers
-				pix32Dest = (unsigned long *)gworldPixelPtr;
-				for (y = 0; y <  height; y++)
-				{
-					for (x = 0; x < width; x++)
-						pix32Dest[x] = pix32Src[x];
-
-					pix32Dest += gworldRowBytes/4;							// next dest row
-					pix32Src += pixmapRowbytes/4;
-				}
-				break;
-
-		case	16:
-				pix16Src = (unsigned short *)buffer;						// get 16bit pointers
-				pix16Dest = (unsigned short *)gworldPixelPtr;
-				for (y = 0; y <  height; y++)
-				{
-					for (x = 0; x < width; x++)
-						pix16Dest[x] = pix16Src[x];
-
-					pix16Dest += gworldRowBytes/2;							// next dest row
-					pix16Src += pixmapRowbytes/2;
-				}
-				break;
-
-
-		default:
-				DoFatalAlert("OGL_BufferToGWorld: Only 32/16 bit textures supported right now.");
-
-	}
-
-	return(gworld);
-#endif
-}
-
-
 /******************** OGL: CHECK ERROR ********************/
 
-GLenum OGL_CheckError(void)
+GLenum _OGL_CheckError(const char* file, const int line)
 {
-GLenum	err;
-AGLContext agl_ctx = gAGLContext;
-
-
-	err = glGetError();
-	if (err != GL_NO_ERROR)
+	GLenum error = glGetError();
+	if (error != 0)
 	{
-		switch(err)
-		{
-			case	GL_INVALID_ENUM:
-					DoAlert("OGL_CheckError: GL_INVALID_ENUM");
-					break;
-
-			case	GL_INVALID_VALUE:
-					DoAlert("OGL_CheckError: GL_INVALID_VALUE");
-					break;
-
-			case	GL_INVALID_OPERATION:
-					DoAlert("OGL_CheckError: GL_INVALID_OPERATION");
-					break;
-
-			case	GL_STACK_OVERFLOW:
-					DoAlert("OGL_CheckError: GL_STACK_OVERFLOW");
-					break;
-
-			case	GL_STACK_UNDERFLOW:
-					DoAlert("OGL_CheckError: GL_STACK_UNDERFLOW");
-					break;
-
-			case	GL_OUT_OF_MEMORY:
-					DoAlert("OGL_CheckError: GL_OUT_OF_MEMORY  (increase your Virtual Memory setting!)");
-					break;
-
-			default:
-					DoAlert("OGL_CheckError: some other error");
-					ShowSystemErr_NonFatal(err);
-		}
+		DoFatalAlert("OpenGL error 0x%x in %s:%d", error, file, line);
 	}
-
-	return(err);
+	return error;
 }
+
 
 
 #pragma mark -
@@ -1074,7 +1003,6 @@ AGLContext agl_ctx = gAGLContext;
 void OGL_PushState(void)
 {
 int	i;
-AGLContext agl_ctx = gAGLContext;
 
 		/* PUSH MATRIES WITH OPENGL */
 
@@ -1114,7 +1042,6 @@ AGLContext agl_ctx = gAGLContext;
 void OGL_PopState(void)
 {
 int		i;
-AGLContext agl_ctx = gAGLContext;
 
 		/* RETREIVE OPENGL MATRICES */
 
@@ -1179,8 +1106,6 @@ AGLContext agl_ctx = gAGLContext;
 
 void OGL_EnableLighting(void)
 {
-AGLContext agl_ctx = gAGLContext;
-
 	gMyState_Lighting = true;
 	glEnable(GL_LIGHTING);
 }
@@ -1189,8 +1114,6 @@ AGLContext agl_ctx = gAGLContext;
 
 void OGL_DisableLighting(void)
 {
-AGLContext agl_ctx = gAGLContext;
-
 	gMyState_Lighting = false;
 	glDisable(GL_LIGHTING);
 }
@@ -1204,164 +1127,14 @@ static void OGL_InitFont(void)
 {
 IMPLEMENT_ME_SOFT();
 #if 0
-#if !OEM
-AGLContext agl_ctx = gAGLContext;
-
-	gFontList = glGenLists(256);
-
-    if (!aglUseFont(gAGLContext, kFontIDMonaco, bold, 9, 0, 256, gFontList))
-		DoFatalAlert("OGL_InitFont: aglUseFont failed");
-#endif
-#endif
-}
-
-
-/******************* OGL_FREE FONT ***********************/
-
-static void OGL_FreeFont(void)
-{
-IMPLEMENT_ME_SOFT();
-#if 0
-#if !OEM
-
-AGLContext agl_ctx = gAGLContext;
-	glDeleteLists(gFontList, 256);
-
-#endif
+	NewObjectDefinitionType newObjDef;
+	memset(&newObjDef, 0, sizeof(newObjDef));
+	newObjDef.flags = STATUS_BIT_HIDDEN;
+	newObjDef.slot = DEBUGOVERLAY_SLOT;
+	newObjDef.scale = 0.45f;
+	newObjDef.coord = (OGLPoint3D) { -320, -100, 0 };
+	gDebugText = TextMesh_NewEmpty(2048, &newObjDef);
 #endif
 }
-
-/**************** OGL_DRAW STRING ********************/
-
-void OGL_DrawString(Str255 s, GLint x, GLint y)
-{
-#if !OEM
-
-AGLContext agl_ctx = gAGLContext;
-
-	OGL_PushState();
-
-	glMatrixMode (GL_MODELVIEW);
-	glLoadIdentity();
-	glMatrixMode (GL_PROJECTION);
-	glLoadIdentity();
-	glOrtho(0, 640, 0, 480, -10.0, 10.0);
-
-	glDisable(GL_LIGHTING);
-
-	glRasterPos2i(x, 480-y);
-
-	glListBase(gFontList);
-	glCallLists(s[0], GL_UNSIGNED_BYTE, &s[1]);
-
-	OGL_PopState();
-
-#endif
-}
-
-/**************** OGL_DRAW FLOAT ********************/
-
-void OGL_DrawFloat(float f, GLint x, GLint y)
-{
-#if !OEM
-
-Str255	s;
-
-	FloatToString(f,s);
-	OGL_DrawString(s,x,y);
-
-#endif
-}
-
-
-
-/**************** OGL_DRAW INT ********************/
-
-void OGL_DrawInt(int f, GLint x, GLint y)
-{
-#if !OEM
-
-Str255	s;
-
-	NumToString(f,s);
-	OGL_DrawString(s,x,y);
-
-#endif
-}
-
-#pragma mark -
-
-
-/********************* OGL:  CHECK RENDERER **********************/
-//
-// Returns: true if renderer for the requested device complies, false otherwise
-//
-
-Boolean OGL_CheckRenderer (GDHandle hGD, long* vram)
-{
-IMPLEMENT_ME(); return false;
-#if 0
-AGLRendererInfo info, head_info;
-GLint 			dAccel = 0;
-Boolean			gotit = false;
-
-			/**********************/
-			/* GET FIRST RENDERER */
-			/**********************/
-
-	head_info = aglQueryRendererInfo(&hGD, 1);
-	if(!head_info)
-	{
-		DoAlert("CheckRenderer: aglQueryRendererInfo failed");
-		DoFatalAlert("This is usually a result of installing OS 9.2.1 which has a faulty installer.  Delete all Nvidia extensions, reboot, and then the game will run.");
-	}
-
-
-		/*******************************************/
-		/* SEE IF THERE IS AN ACCELERATED RENDERER */
-		/*******************************************/
-
-	info = head_info;
-
-	while (info)
-	{
-		aglDescribeRenderer(info, AGL_ACCELERATED, &dAccel);
-
-				/* GOT THE ACCELERATED RENDERER */
-
-		if (dAccel)
-		{
-			gotit = true;
-
-					/* GET VRAM */
-
-			aglDescribeRenderer (info, AGL_TEXTURE_MEMORY, vram);
-
-
-
-			break;
-		}
-
-
-				/* TRY NEXT ONE */
-
-		info = aglNextRendererInfo(info);
-	}
-
-
-
-			/***********/
-			/* CLEANUP */
-			/***********/
-
-	aglDestroyRendererInfo(head_info);
-
-	return(gotit);
-#endif
-}
-
-
-
-
 
 

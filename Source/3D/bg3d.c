@@ -754,6 +754,7 @@ void				*pixels;
 			h 			= matData->height;						// get height
 
 
+#if 0
 				/* SEE IF NEED TO SHRINK FOR VOODOO 2 */
 
 			if (gLowMemMode)
@@ -805,6 +806,7 @@ shrink_it:
 					}
 				}
 			}
+#endif
 
 
 				/* LOAD INTO OPENGL */

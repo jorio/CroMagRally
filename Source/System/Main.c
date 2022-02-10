@@ -1268,7 +1268,7 @@ short				numPanes;
 
 			/* SETUP VIEW DEF */
 
-	OGL_NewViewDef(&viewDef, gCoverWindow);
+	OGL_NewViewDef(&viewDef);
 
 	viewDef.camera.hither 			= 50;
 	viewDef.camera.yon 				= (SUPERTILE_ACTIVE_RANGE * SUPERTILE_SIZE * TERRAIN_POLYGON_SIZE);

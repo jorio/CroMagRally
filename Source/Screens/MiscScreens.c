@@ -103,7 +103,7 @@ OGLSetupOutputType	*pictureViewInfoPtr = nil;
 
 			/* SETUP VIEW */
 
-	OGL_NewViewDef(&viewDef, gCoverWindow);
+	OGL_NewViewDef(&viewDef);
 
 	viewDef.camera.hither 			= 10;
 	viewDef.camera.yon 				= 3000;
@@ -379,7 +379,7 @@ static Str31 age[3] = {"STONE AGE", "BRONZE AGE", "IRON AGE"};
 			/* SETUP VIEW */
 			/**************/
 
-	OGL_NewViewDef(&viewDef, gCoverWindow);
+	OGL_NewViewDef(&viewDef);
 
 	viewDef.camera.fov 				= .7;
 	viewDef.camera.hither 			= 10;
@@ -571,7 +571,7 @@ static Str31 age[3] = {"STONE AGE", "BRONZE AGE", "IRON AGE"};
 			/* SETUP VIEW */
 			/**************/
 
-	OGL_NewViewDef(&viewDef, gCoverWindow);
+	OGL_NewViewDef(&viewDef);
 
 	viewDef.camera.fov 				= .7;
 	viewDef.camera.hither 			= 10;
@@ -949,7 +949,7 @@ static const float sizes[] =
 			/* SETUP VIEW */
 			/**************/
 
-	OGL_NewViewDef(&viewDef, gCoverWindow);
+	OGL_NewViewDef(&viewDef);
 
 	viewDef.camera.fov 				= .7;
 	viewDef.camera.hither 			= 10;

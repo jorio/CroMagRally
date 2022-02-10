@@ -89,6 +89,36 @@ float OGLPoint3D_Distance(const OGLPoint3D *p1, const OGLPoint3D *p2);
 float OGLPoint2D_Distance(const OGLPoint2D *p1, const OGLPoint2D *p2);
 
 
+void OGL_SetGluPerspectiveMatrix(OGLMatrix4x4* m, float fov, float aspect, float hither, float yon);
+void OGL_SetGluLookAtMatrix(OGLMatrix4x4* m, const OGLPoint3D* eye, const OGLPoint3D* target, const OGLVector3D* upDir);
+
+
+
+static inline float OGLVector3D_RawDot(const OGLVector3D *v1, const OGLVector3D *v2)
+{
+	return (v1->x * v2->x) + (v1->y * v2->y) + (v1->z * v2->z);
+}
+
+
+static inline void OGLVector3D_RawCross(const OGLVector3D *v1, const OGLVector3D *v2, OGLVector3D *result)
+{
+	float rx = (v1->y * v2->z) - (v1->z * v2->y);
+	float ry = (v1->z * v2->x) - (v1->x * v2->z);
+	float rz = (v1->x * v2->y) - (v1->y * v2->x);
+
+	result->x = rx;
+	result->y = ry;
+	result->z = rz;
+}
+
+static inline void OGLPoint3D_Add(const OGLPoint3D* v1, const OGLPoint3D* v2, OGLPoint3D* result)
+{
+	result->x = v1->x + v2->x;
+	result->y = v1->y + v2->y;
+	result->z = v1->z + v2->z;
+}
+
+
 /*********** INTERSECTION OF Y AND PLANE ********************/
 //
 // INPUT:

@@ -218,7 +218,7 @@ OGLSetupInputType	viewDef;
 			/* SETUP VIEW */
 			/**************/
 
-	OGL_NewViewDef(&viewDef, gCoverWindow);
+	OGL_NewViewDef(&viewDef);
 	OGL_SetupWindow(&viewDef, &gGameViewInfoPtr);
 
 

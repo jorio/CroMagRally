@@ -316,7 +316,7 @@ u_long				n;
 			/* SETUP VIEW */
 			/**************/
 
-	OGL_NewViewDef(&viewDef, gCoverWindow);
+	OGL_NewViewDef(&viewDef);
 
 	viewDef.camera.fov 				= 1.1;
 	viewDef.camera.hither 			= 10;

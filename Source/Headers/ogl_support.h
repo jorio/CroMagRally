@@ -2,8 +2,7 @@
 // ogl_support.h
 //
 
-#ifndef OGL_SUP
-#define OGL_SUP
+#pragma once
 
 typedef void* AGLContext;
 typedef void* AGLDrawable;
@@ -235,7 +234,7 @@ enum
 //=====================================================================
 
 void OGL_Boot(void);
-void OGL_NewViewDef(OGLSetupInputType *viewDef, WindowPtr theWindow);
+void OGL_NewViewDef(OGLSetupInputType *viewDef);
 void OGL_SetupWindow(OGLSetupInputType *setupDefPtr, OGLSetupOutputType **outputHandle);
 void OGL_DisposeWindowSetup(OGLSetupOutputType **dataHandle);
 void OGL_DrawScene(OGLSetupOutputType *setupInfo, void (*drawRoutine)(OGLSetupOutputType *));
@@ -247,8 +246,10 @@ void OGL_UpdateCameraFromTo(OGLSetupOutputType *setupInfo, OGLPoint3D *from, OGL
 void OGL_Texture_SetOpenGLTexture(GLuint textureName);
 GLuint OGL_TextureMap_Load(void *imageMemory, int width, int height,
 							GLint srcFormat,  GLint destFormat, GLint dataType);
-GWorldPtr OGL_BufferToGWorld(Ptr buffer, int width, int height, int bytesPerPixel);
-GLenum OGL_CheckError(void);
+GLuint OGL_TextureMap_LoadTGA(const char* path, int flags, int* width, int* height);
+GLenum _OGL_CheckError(const char* file, int line);
+#define OGL_CheckError() _OGL_CheckError(__FILE__, __LINE__)
+
 void OGL_GetCurrentViewport(const OGLSetupOutputType *setupInfo, int *x, int *y, int *w, int *h, Byte whichPane);
 
 void OGL_PushState(void);
@@ -256,11 +257,3 @@ void OGL_PopState(void);
 
 void OGL_EnableLighting(void);
 void OGL_DisableLighting(void);
-
-void OGL_DrawString(Str255 s, GLint x, GLint y);
-void OGL_DrawFloat(float f, GLint x, GLint y);
-void OGL_DrawInt(int f, GLint x, GLint y);
-
-Boolean OGL_CheckRenderer (GDHandle hGD, long* vram);
-
-#endif

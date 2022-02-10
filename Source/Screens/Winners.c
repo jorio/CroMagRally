@@ -134,7 +134,7 @@ static OGLPoint3D			cameraTo = {0,300,0};
 			/* SETUP VIEW */
 			/**************/
 
-	OGL_NewViewDef(&viewDef, gCoverWindow);
+	OGL_NewViewDef(&viewDef);
 
 	viewDef.camera.from[0]			= cameraFrom;
 	viewDef.camera.to[0] 			= cameraTo;

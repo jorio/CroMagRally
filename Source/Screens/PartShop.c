@@ -192,7 +192,7 @@ short				i;
 
 			/* SETUP VIEW */
 
-	OGL_NewViewDef(&viewDef, gCoverWindow);
+	OGL_NewViewDef(&viewDef);
 
 	viewDef.camera.fov 				= OGLMath_RadiansToDegrees(.8);
 	viewDef.camera.hither 			= 10;
