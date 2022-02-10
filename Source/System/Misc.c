@@ -37,6 +37,8 @@ extern	AGLContext		gAGLContext;
 extern	AGLDrawable		gAGLWin;
 extern	float			gDemoVersionTimer;
 
+extern	SDL_Window* 	gSDLWindow;
+
 
 /****************************/
 /*    CONSTANTS             */
@@ -74,48 +76,21 @@ Boolean	gLowMemMode = false;
 
 
 
-/****************** DO SYSTEM ERROR ***************/
-
-void ShowSystemErr(long err)
-{
-Str255		numStr;
-
-	Enter2D(true);
-
-	snprintf(numStr, sizeof(numStr), "System error: %ld", err);
-	SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Cro-Mag Rally", numStr, NULL);//gSDLWindow);
-
-	Exit2D();
-
-	CleanQuit();
-}
-
-/****************** DO SYSTEM ERROR : NONFATAL ***************/
-//
-// nonfatal
-//
-void ShowSystemErr_NonFatal(long err)
-{
-Str255		numStr;
-
-	Enter2D(true);
-
-	snprintf(numStr, sizeof(numStr), "System error (non-fatal): %ld", err);
-	SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Cro-Mag Rally", numStr, NULL);//gSDLWindow);
-
-	Exit2D();
-}
-
-
 /*********************** DO ALERT *******************/
 
-void DoAlert(Str255 s)
+void DoAlert(const char* format, ...)
 {
 	GammaOn();
 	Enter2D(true);
 
-	printf("CMR Alert: %s\n", s);
-	SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Cro-Mag Rally", s, NULL);//gSDLWindow);
+	char message[1024];
+	va_list args;
+	va_start(args, format);
+	int result = vsnprintf(message, sizeof(message), format, args);
+	va_end(args);
+
+	printf("CMR Alert: %s\n", message);
+	SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Cro-Mag Rally", message, gSDLWindow);
 
 	Exit2D();
 	SDL_ShowCursor(0);
@@ -124,13 +99,19 @@ void DoAlert(Str255 s)
 
 /*********************** DO FATAL ALERT *******************/
 
-void DoFatalAlert(Str255 s)
+void DoFatalAlert(const char* format, ...)
 {
 	GammaOn();
 	Enter2D(true);
 
-	printf("CMR Fatal Alert: %s\n", s);
-	SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Otto Matic", s, NULL);//gSDLWindow);
+	char message[1024];
+	va_list args;
+	va_start(args, format);
+	int result = vsnprintf(message, sizeof(message), format, args);
+	va_end(args);
+
+	printf("CMR Fatal Alert: %s\n", message);
+	SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Cro-Mag Rally", message, NULL);//gSDLWindow);
 
 	Exit2D();
 	CleanQuit();

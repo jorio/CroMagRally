@@ -9,9 +9,8 @@
 #define REG_LENGTH      12
 
 
-extern	void ShowSystemErr(long err);
-extern void	DoAlert(Str255);
-extern void	DoFatalAlert(Str255);
+void	DoAlert(const char* format, ...);
+void	DoFatalAlert(const char* format, ...);
 extern void	Wait(long);
 extern unsigned char	*NumToHex(unsigned short);
 extern unsigned char	*NumToHex2(unsigned long, short);
@@ -47,7 +46,11 @@ void CheckGameRegistration(void);
 
 
 
+#define ShowSystemErr(err) DoAlert("Fatal system error: %d", err)
+#define ShowSystemErr_NonFatal(err) DoFatalAlert("System error: %d", err)
 
+#define IMPLEMENT_ME() DoFatalAlert("IMPLEMENT ME! %s:%d", __func__, __LINE__)
+#define IMPLEMENT_ME_SOFT() printf("IMPLEMENT ME (soft): %s:%d\n", __func__, __LINE__)
 
-#define IMPLEMENT_ME() DoFatalAlert(__func__)
-#define IMPLEMENT_ME_SOFT() puts(__func__)
+#define GAME_ASSERT(condition) do { if (!(condition)) DoFatalAlert("%s:%d: %s", __func__, __LINE__, #condition); } while(0)
+#define GAME_ASSERT_MESSAGE(condition, message) do { if (!(condition)) DoFatalAlert("%s:%d: %s", __func__, __LINE__, message); } while(0)
