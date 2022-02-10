@@ -61,6 +61,7 @@ extern	PrefsType	gGamePrefs;
 extern	Boolean		gAutoPilot;
 extern	Byte		gActiveSplitScreenMode;
 extern	const u_short	gUserKeySettings_Defaults[];
+extern  FSSpec		gDataSpec;
 
 
 /****************************/
@@ -107,7 +108,6 @@ OGLSetupOutputType		*gGameViewInfoPtr = nil;
 
 PrefsType			gGamePrefs;
 
-FSSpec				gDataSpec;
 
 
 OGLVector3D			gWorldSunDirection = { 1, -.2, 1};		// also serves as lense flare vector
@@ -1594,7 +1594,7 @@ short	i,t,winner;
 /************************************************************/
 
 
-void main(void)
+void GameMain(void)
 {
 unsigned long	someLong;
 Boolean			userAbortedBeforeGameStarted;
