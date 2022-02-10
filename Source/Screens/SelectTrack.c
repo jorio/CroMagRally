@@ -114,30 +114,30 @@ static ObjNode	*gTrackImageIcon, *gTrackName = nil;
 
 const Str31	gTrackNames[] =
 {
-	"\pDESERT",
-	"\pJUNGLE",
-	"\pGLACIERS",
+	"DESERT",
+	"JUNGLE",
+	"GLACIERS",
 
-	"\pCRETE",
-	"\pTHE GREAT WALL",
-	"\pGIZA",
+	"CRETE",
+	"THE GREAT WALL",
+	"GIZA",
 
-	"\pMEDIEVAL",
-	"\pVIKING VILLAGE",
-	"\pATLANTIS",
+	"MEDIEVAL",
+	"VIKING VILLAGE",
+	"ATLANTIS",
 };
 
 
 const Str31	gTrackNamesMP[] =
 {
-	"\pSTONEHENGE",
-	"\pAZTEC CITY",
-	"\pCOLISEUM",
-	"\pMAZE",
-	"\pCELTIC",
-	"\pTAR PITS",
-	"\pMOUNT CONGE",
-	"\pRAMPS",
+	"STONEHENGE",
+	"AZTEC CITY",
+	"COLISEUM",
+	"MAZE",
+	"CELTIC",
+	"TAR PITS",
+	"MOUNT CONGE",
+	"RAMPS",
 };
 
 
@@ -229,12 +229,12 @@ OGLSetupInputType	viewDef;
 
 			/* MAKE BACKGROUND PICTURE OBJECT */
 
-	if (FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, "\p:images:TrackSelectScreen", &spec))
-		DoFatalAlert("\pSetupTrackSelectScreen: background pict not found.");
+	if (FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":images:TrackSelectScreen", &spec))
+		DoFatalAlert("SetupTrackSelectScreen: background pict not found.");
 
 	gBackgoundPicture = MO_CreateNewObjectOfType(MO_TYPE_PICTURE, (u_long)gGameViewInfoPtr, &spec);
 	if (!gBackgoundPicture)
-		DoFatalAlert("\pSetupTrackSelectScreen: MO_CreateNewObjectOfType failed");
+		DoFatalAlert("SetupTrackSelectScreen: MO_CreateNewObjectOfType failed");
 
 
 			/* LOAD SPRITES */
@@ -249,7 +249,7 @@ OGLSetupInputType	viewDef;
 				gNumTracksInSelection = NUM_PRACTICE_TRACKS;
 #endif
 				gBaseTrack = 0;
-				FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, "\p:sprites:trackselect.sprites", &spec);
+				FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":sprites:trackselect.sprites", &spec);
 				break;
 
 		default:
@@ -259,12 +259,12 @@ OGLSetupInputType	viewDef;
 				gNumTracksInSelection = NUM_BATTLE_TRACKS;
 #endif
 				gBaseTrack = 9;
-				FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, "\p:sprites:trackselectMP.sprites", &spec);
+				FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":sprites:trackselectMP.sprites", &spec);
 	}
 	LoadSpriteFile(&spec, SPRITE_GROUP_TRACKSELECTSCREEN, gGameViewInfoPtr);
 
 
-	FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, "\p:sprites:wallfont.sprites", &spec);
+	FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":sprites:wallfont.sprites", &spec);
 	LoadSpriteFile(&spec, SPRITE_GROUP_FONT, gGameViewInfoPtr);
 
 

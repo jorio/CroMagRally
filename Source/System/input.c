@@ -82,7 +82,7 @@ static ISpNeed	gControlNeeds[NUM_CONTROL_NEEDS] =
 /*----------------- PLAYER 1 -----------------------*/
 
 	{										// 0
-		"\pPlayer 1: Steering Wheel",
+		"Player 1: Steering Wheel",
 		128,
 		1,
 		0,
@@ -96,7 +96,7 @@ static ISpNeed	gControlNeeds[NUM_CONTROL_NEEDS] =
 
 
 	{										// 1
-		"\pPlayer 1: Forward",
+		"Player 1: Forward",
 		131,
 		1,
 		0,
@@ -109,7 +109,7 @@ static ISpNeed	gControlNeeds[NUM_CONTROL_NEEDS] =
 	},
 
 	{										// 2
-		"\pPlayer 1: Reverse",
+		"Player 1: Reverse",
 		136,
 		1,
 		0,
@@ -122,7 +122,7 @@ static ISpNeed	gControlNeeds[NUM_CONTROL_NEEDS] =
 	},
 
 	{
-		"\pPlayer 1: Brakes",				// 3
+		"Player 1: Brakes",				// 3
 		138,
 		1,
 		0,
@@ -136,7 +136,7 @@ static ISpNeed	gControlNeeds[NUM_CONTROL_NEEDS] =
 
 
 	{
-		"\pPlayer 1: Weapon Forward",			// 4
+		"Player 1: Weapon Forward",			// 4
 		140,
 		1,
 		0,
@@ -149,7 +149,7 @@ static ISpNeed	gControlNeeds[NUM_CONTROL_NEEDS] =
 	},
 
 	{
-		"\pPlayer 1: Weapon Backward",		// 5
+		"Player 1: Weapon Backward",		// 5
 		141,
 		1,
 		0,
@@ -164,7 +164,7 @@ static ISpNeed	gControlNeeds[NUM_CONTROL_NEEDS] =
 
 
 	{
-		"\pPlayer 1:  Camera Mode",			// 6
+		"Player 1:  Camera Mode",			// 6
 		144,
 		1,
 		0,
@@ -181,7 +181,7 @@ static ISpNeed	gControlNeeds[NUM_CONTROL_NEEDS] =
 
 
 	{										// 7
-		"\pPlayer 2: Steering Wheel",
+		"Player 2: Steering Wheel",
 		128,
 		2,
 		0,
@@ -195,7 +195,7 @@ static ISpNeed	gControlNeeds[NUM_CONTROL_NEEDS] =
 
 
 	{										// 8
-		"\pPlayer 2: Forward",
+		"Player 2: Forward",
 		131,
 		2,
 		0,
@@ -208,7 +208,7 @@ static ISpNeed	gControlNeeds[NUM_CONTROL_NEEDS] =
 	},
 
 	{										// 9
-		"\pPlayer 2: Reverse",
+		"Player 2: Reverse",
 		136,
 		2,
 		0,
@@ -221,7 +221,7 @@ static ISpNeed	gControlNeeds[NUM_CONTROL_NEEDS] =
 	},
 
 	{
-		"\pPlayer 2: Brakes",				// 10
+		"Player 2: Brakes",				// 10
 		138,
 		2,
 		0,
@@ -234,7 +234,7 @@ static ISpNeed	gControlNeeds[NUM_CONTROL_NEEDS] =
 	},
 
 	{
-		"\pPlayer 2: Weapon Forward",		// 11
+		"Player 2: Weapon Forward",		// 11
 		140,
 		2,
 		0,
@@ -247,7 +247,7 @@ static ISpNeed	gControlNeeds[NUM_CONTROL_NEEDS] =
 	},
 
 	{										// 12
-		"\pPlayer 2: Weapon Backward",
+		"Player 2: Weapon Backward",
 		141,
 		2,
 		0,
@@ -262,7 +262,7 @@ static ISpNeed	gControlNeeds[NUM_CONTROL_NEEDS] =
 
 
 	{										// 13
-		"\pPlayer 2:  Camera Mode",
+		"Player 2:  Camera Mode",
 		144,
 		2,
 		0,
@@ -372,14 +372,14 @@ int			i;
 		iErr = ISpElement_NewVirtualFromNeeds(NUM_CONTROL_NEEDS, gControlNeeds, gVirtualElements, 0);
 		if (iErr)
 		{
-			DoAlert("\pInitInput: ISpElement_NewVirtualFromNeeds failed!");
+			DoAlert("InitInput: ISpElement_NewVirtualFromNeeds failed!");
 			ShowSystemErr(iErr);
 		}
 
 		iErr = ISpInit(NUM_CONTROL_NEEDS, gControlNeeds, gVirtualElements, 'CavM','Inp8', 0, 1000, 0);
 		if (iErr)
 		{
-			DoAlert("\pInitInput: ISpInit failed!");
+			DoAlert("InitInput: ISpInit failed!");
 			ShowSystemErr(iErr);
 		}
 
@@ -387,10 +387,10 @@ int			i;
 				/* ACTIVATE ALL DEVICES */
 
 		if (ISpDevices_Extract(10,&count,dev) != noErr)
-			DoFatalAlert("\pInitInput: ISpDevices_Extract failed!");
+			DoFatalAlert("InitInput: ISpDevices_Extract failed!");
 
 		if (ISpDevices_Activate(count, dev) != noErr)
-			DoFatalAlert("\pInitInput: ISpDevices_Activate failed!");
+			DoFatalAlert("InitInput: ISpDevices_Activate failed!");
 
 		gISpActive = true;
 
@@ -713,10 +713,10 @@ OSErr		iErr;
 
 		iErr = ISpDevices_Extract(10,&count,dev);
 		if (iErr)
-			DoFatalAlert("\pTurnOnISp: ISpDevices_Extract failed!");
+			DoFatalAlert("TurnOnISp: ISpDevices_Extract failed!");
 		iErr = ISpDevices_Activate(count, dev);
 		if (iErr)
-			DoFatalAlert("\pTurnOnISp: ISpDevices_Activate failed!");
+			DoFatalAlert("TurnOnISp: ISpDevices_Activate failed!");
 
 			/* DEACTIVATE JUST THE MOUSE SINCE WE DONT NEED THAT */
 
@@ -1085,47 +1085,47 @@ short			selectedItem = GetDialogKeyboardFocusItem(dp);	// which text edit item i
 				{
 					case	CHAR_SPACE:
 							GetDialogItem(dp, selectedItem,&itemType,(Handle *)&itemHandle,&itemRect);
-							SetDialogItemText((Handle)itemHandle,"\pSpace");
+							SetDialogItemText((Handle)itemHandle,"Space");
 							break;
 
 					case	CHAR_UP:
 							GetDialogItem(dp, selectedItem,&itemType,(Handle *)&itemHandle,&itemRect);
-							SetDialogItemText((Handle)itemHandle,"\pUp Arrow");
+							SetDialogItemText((Handle)itemHandle,"Up Arrow");
 							break;
 
 					case	CHAR_DOWN:
 							GetDialogItem(dp, selectedItem,&itemType,(Handle *)&itemHandle,&itemRect);
-							SetDialogItemText((Handle)itemHandle,"\pDown Arrow");
+							SetDialogItemText((Handle)itemHandle,"Down Arrow");
 							break;
 
 					case	CHAR_LEFT:
 							GetDialogItem(dp, selectedItem,&itemType,(Handle *)&itemHandle,&itemRect);
-							SetDialogItemText((Handle)itemHandle,"\pLeft Arrow");
+							SetDialogItemText((Handle)itemHandle,"Left Arrow");
 							break;
 
 					case	CHAR_RIGHT:
 							GetDialogItem(dp, selectedItem,&itemType,(Handle *)&itemHandle,&itemRect);
-							SetDialogItemText((Handle)itemHandle,"\pRight Arrow");
+							SetDialogItemText((Handle)itemHandle,"Right Arrow");
 							break;
 
 					case	CHAR_ESC:
 							GetDialogItem(dp, selectedItem,&itemType,(Handle *)&itemHandle,&itemRect);
-							SetDialogItemText((Handle)itemHandle,"\pESC");
+							SetDialogItemText((Handle)itemHandle,"ESC");
 							break;
 
 					case	CHAR_DELETE:
 							GetDialogItem(dp, selectedItem,&itemType,(Handle *)&itemHandle,&itemRect);
-							SetDialogItemText((Handle)itemHandle,"\pDelete");
+							SetDialogItemText((Handle)itemHandle,"Delete");
 							break;
 
 					case	CHAR_RETURN:
 							GetDialogItem(dp, selectedItem,&itemType,(Handle *)&itemHandle,&itemRect);
-							SetDialogItemText((Handle)itemHandle,"\pReturn");
+							SetDialogItemText((Handle)itemHandle,"Return");
 							break;
 
 					case	CHAR_TAB:
 							GetDialogItem(dp, selectedItem,&itemType,(Handle *)&itemHandle,&itemRect);
-							SetDialogItemText((Handle)itemHandle,"\pTab");
+							SetDialogItemText((Handle)itemHandle,"Tab");
 							break;
 
 					default:
@@ -1151,25 +1151,25 @@ short			selectedItem = GetDialogKeyboardFocusItem(dp);	// which text edit item i
 				if(GetNewKeyState_Real(KEY_APPLE))
 				{
 					GetDialogItem(dp, selectedItem,&itemType,(Handle *)&itemHandle,&itemRect);
-					SetDialogItemText((Handle)itemHandle,"\pApple");
+					SetDialogItemText((Handle)itemHandle,"Apple");
 				}
 				else
 				if(GetNewKeyState_Real(KEY_OPTION))
 				{
 					GetDialogItem(dp, selectedItem,&itemType,(Handle *)&itemHandle,&itemRect);
-					SetDialogItemText((Handle)itemHandle,"\pOption");
+					SetDialogItemText((Handle)itemHandle,"Option");
 				}
 				else
 				if(GetNewKeyState_Real(KEY_SHIFT))
 				{
 					GetDialogItem(dp, selectedItem,&itemType,(Handle *)&itemHandle,&itemRect);
-					SetDialogItemText((Handle)itemHandle,"\pShift");
+					SetDialogItemText((Handle)itemHandle,"Shift");
 				}
 				else
 				if(GetNewKeyState_Real(KEY_CTRL))
 				{
 					GetDialogItem(dp, selectedItem,&itemType,(Handle *)&itemHandle,&itemRect);
-					SetDialogItemText((Handle)itemHandle,"\pControl");
+					SetDialogItemText((Handle)itemHandle,"Control");
 				}
 
 	}
@@ -1256,48 +1256,48 @@ UInt32 state;
 				/****************/
 
 		case	KEY_OPTION:
-				CopyPString("\pOption", s);
+				CopyPString("Option", s);
 				break;
 
 		case	KEY_SPACE:
-				CopyPString("\pSpace", s);
+				CopyPString("Space", s);
 				break;
 
 		case	KEY_APPLE:
-				CopyPString("\pApple", s);
+				CopyPString("Apple", s);
 				break;
 
 		case	KEY_SHIFT:
-				CopyPString("\pShift", s);
+				CopyPString("Shift", s);
 				break;
 
 		case	KEY_CTRL:
-				CopyPString("\pControl", s);
+				CopyPString("Control", s);
 				break;
 
 		case	KEY_RETURN:
-				CopyPString("\pReturn", s);
+				CopyPString("Return", s);
 				break;
 
 		case	KEY_DELETE:
-				CopyPString("\pDelete", s);
+				CopyPString("Delete", s);
 				break;
 
 		case	KEY_TAB:
-				CopyPString("\pTab", s);
+				CopyPString("Tab", s);
 				break;
 
 		case	KEY_UP:
-				CopyPString("\pUp Arrow", s);
+				CopyPString("Up Arrow", s);
 				break;
 		case	KEY_DOWN:
-				CopyPString("\pDown Arrow", s);
+				CopyPString("Down Arrow", s);
 				break;
 		case	KEY_LEFT:
-				CopyPString("\pLeft Arrow", s);
+				CopyPString("Left Arrow", s);
 				break;
 		case	KEY_RIGHT:
-				CopyPString("\pRight Arrow", s);
+				CopyPString("Right Arrow", s);
 				break;
 
 
@@ -1320,7 +1320,7 @@ UInt32 state;
 				if (KCHRHdl == nil)
 				{
 					SysBeep(0);
-					DoFatalAlert("\pKeyCodeToChar: GetResource(KCHR) failed");
+					DoFatalAlert("KeyCodeToChar: GetResource(KCHR) failed");
 				}
 
 

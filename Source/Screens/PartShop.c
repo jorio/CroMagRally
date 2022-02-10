@@ -219,16 +219,16 @@ short				i;
 
 			/* CREATE BACKGROUND OBJECT */
 
-	if (FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, "\p:images:PartShopScreen", &spec))
-		DoFatalAlert("\pDoPartShop: background pict not found.");
+	if (FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":images:PartShopScreen", &spec))
+		DoFatalAlert("DoPartShop: background pict not found.");
 	gBackgoundPicture = MO_CreateNewObjectOfType(MO_TYPE_PICTURE, (u_long)gGameViewInfoPtr, &spec);
 	if (!gBackgoundPicture)
-		DoFatalAlert("\pDoPartShop: MO_CreateNewObjectOfType failed");
+		DoFatalAlert("DoPartShop: MO_CreateNewObjectOfType failed");
 
 
 			/* LOAD SPRITES */
 
-	FSMakeFSSpec(0, 0, "\p:data:sprites:partshop.sprites", &spec);
+	FSMakeFSSpec(0, 0, ":data:sprites:partshop.sprites", &spec);
 	LoadSpriteFile(&spec, SPRITE_GROUP_PARTSHOP, gGameViewInfoPtr);
 
 

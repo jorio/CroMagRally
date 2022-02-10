@@ -214,7 +214,7 @@ u_long		seconds, seconds2;
 
 	iErr = Gestalt(gestaltQuickTime,&response);
 	if(iErr != noErr)
-		DoFatalAlert("\pThis application requires Quicktime 4 or newer");
+		DoFatalAlert("This application requires Quicktime 4 or newer");
 
 
 			/* SEE IF HAVE 4 */
@@ -222,7 +222,7 @@ u_long		seconds, seconds2;
 	iErr = Gestalt(gestaltQuickTimeVersion,(long *)&vers);
 	if ((vers.majorRev < 4) ||
 		((vers.majorRev == 4) && (vers.minorAndBugRev < 0x11)))
-			DoFatalAlert("\pThis application requires Quicktime 4.1.1 or newer which you can download from www.apple.com/quicktime");
+			DoFatalAlert("This application requires Quicktime 4.1.1 or newer which you can download from www.apple.com/quicktime");
 
 
 			/* START QUICKTIME */
@@ -236,11 +236,11 @@ u_long		seconds, seconds2;
 	SetDefaultDirectory();							// be sure to get the default directory
 
 #if DEMO
-	iErr = FSMakeFSSpec(0, 0, "\p:DemoData:Images", &gDataSpec);
+	iErr = FSMakeFSSpec(0, 0, ":DemoData:Images", &gDataSpec);
 #elif SHAREWARE
-	iErr = FSMakeFSSpec(0 ,0, "\p:SWData:Images", &gDataSpec);
+	iErr = FSMakeFSSpec(0 ,0, ":SWData:Images", &gDataSpec);
 #else
-	iErr = FSMakeFSSpec(0, 0, "\p:Data:Images", &gDataSpec);
+	iErr = FSMakeFSSpec(0, 0, ":Data:Images", &gDataSpec);
 #endif
 	if (iErr)
 	{
@@ -255,7 +255,7 @@ u_long		seconds, seconds2;
 		switch(response)
 		{
 			case	gestaltCPU601:				// 601 is only that doesnt support it
-					DoFatalAlert("\pSorry, but this app will not run on a PowerPC 601, only on newer Macintoshes.");
+					DoFatalAlert("Sorry, but this app will not run on a PowerPC 601, only on newer Macintoshes.");
 					break;
 		}
 	}
@@ -431,7 +431,7 @@ static Boolean PlayGame(void)
 				break;
 
 		default:
-				DoFatalAlert("\pPlayGame: unknown game mode");
+				DoFatalAlert("PlayGame: unknown game mode");
 
 	}
 
@@ -1043,7 +1043,7 @@ static void PlayArea(void)
 {
 #if __profile__
 	if (ProfilerInit(collectDetailed, bestTimeBase, 2000, 100) != noErr)
-		DoFatalAlert("\pProfilerInit failed!");
+		DoFatalAlert("ProfilerInit failed!");
 #endif
 
 

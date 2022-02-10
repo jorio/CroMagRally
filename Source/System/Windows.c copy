@@ -120,7 +120,7 @@ OSErr		iErr;
 		iErr = DMGetGDeviceByDisplayID(displayID, &phGD, true);				// get GDHandle for ID'd device
 		if (iErr != noErr)
 		{
-			DoFatalAlert("\pInitWindowStuff: DMGetGDeviceByDisplayID failed!");
+			DoFatalAlert("InitWindowStuff: DMGetGDeviceByDisplayID failed!");
 		}
 
 		r.top  		= (short) ((**phGD).gdRect.top + ((**phGD).gdRect.bottom - (**phGD).gdRect.top) / 2);	  	// h center
@@ -167,7 +167,7 @@ OSErr		iErr;
 				/************************************/
 
 		if (OGL_CheckRenderer(phGD, &totalVRAM) == false)
-			DoAlert("\pNo 3D hardware acceleration was found.  Check that the drivers for your 3D accelerator are installed properly");
+			DoAlert("No 3D hardware acceleration was found.  Check that the drivers for your 3D accelerator are installed properly");
 		else
 		{
 #if 0 // this fucked up on AGP Systems like the iBook
@@ -176,7 +176,7 @@ OSErr		iErr;
 
 			if (totalVRAM <= (1024*1024*5))
 			{
-				DoAlert("\pThis application requires at least 6MB of VRAM to function properly.  The game will function limitedly with 4MB, so please install additional VRAM.");
+				DoAlert("This application requires at least 6MB of VRAM to function properly.  The game will function limitedly with 4MB, so please install additional VRAM.");
 			}
 			else
 #endif
@@ -305,7 +305,7 @@ const RGBColor			rgbBlack	= { 0x0000, 0x0000, 0x0000 };
 	theError = DSpStartup();
 	if( theError )
 	{
-		DoFatalAlert("\pDSpStartup failed!");
+		DoFatalAlert("DSpStartup failed!");
 	}
 	gLoadedDrawSprocket = true;
 
@@ -362,8 +362,8 @@ try_again:
 		}
 		else
 		{
-			DoAlert("\pPrepDrawSprockets: DSpFindBestContext failed");
-			DoFatalAlert("\pDraw Sprocket could not set monitor to desired resolution and/or depth");
+			DoAlert("PrepDrawSprockets: DSpFindBestContext failed");
+			DoFatalAlert("Draw Sprocket could not set monitor to desired resolution and/or depth");
 		}
 	}
 
@@ -371,7 +371,7 @@ try_again:
 
 	theError = DSpContext_Reserve( gDisplayContext, &displayConfig );
 	if( theError )
-		DoFatalAlert("\pPrepDrawSprockets: DSpContext_Reserve failed");
+		DoFatalAlert("PrepDrawSprockets: DSpContext_Reserve failed");
 
 	DSpSetBlankingColor(&rgbBlack);
 
@@ -388,7 +388,7 @@ try_again:
 	{
 		DSpContext_Release( gDisplayContext );
 		gDisplayContext = nil;
-		DoFatalAlert("\pPrepDrawSprockets: DSpContext_SetState failed");
+		DoFatalAlert("PrepDrawSprockets: DSpContext_SetState failed");
 		return;
 	}
 
@@ -753,7 +753,7 @@ Rect			r;
 	GetGWorld (&oldGW,&oldGD);
 	pm = GetGWorldPixMap(thisWorld);
 	if ((pm == nil) | (*pm == nil) )
-		DoAlert("\pPixMap Handle or Ptr = Null?!");
+		DoAlert("PixMap Handle or Ptr = Null?!");
 
 	SetPort(GetWindowPort(thisWindow));
 
@@ -779,7 +779,7 @@ PixMapHandle pm;
 
 	pm = GetGWorldPixMap(world);
 	if (LockPixels(pm) == false)
-		DoFatalAlert("\pPixMap Went Bye,Bye?!");
+		DoFatalAlert("PixMap Went Bye,Bye?!");
 }
 
 

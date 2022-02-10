@@ -274,17 +274,17 @@ OGLVector3D			fillDirection2 = { -1, -.2, -.5 };
 
 			/* MAKE BACKGROUND PICTURE OBJECT */
 
-	if (FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, "\p:images:MainMenuBackground", &spec))
-		DoFatalAlert("\pSetupMainMenuScreen: background pict not found.");
+	if (FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":images:MainMenuBackground", &spec))
+		DoFatalAlert("SetupMainMenuScreen: background pict not found.");
 
 	gBackgoundPicture = MO_CreateNewObjectOfType(MO_TYPE_PICTURE, (u_long)gGameViewInfoPtr, &spec);
 	if (!gBackgoundPicture)
-		DoFatalAlert("\pSetupMainMenuScreen: MO_CreateNewObjectOfType failed");
+		DoFatalAlert("SetupMainMenuScreen: MO_CreateNewObjectOfType failed");
 
 
 			/* LOAD SPRITES */
 
-	FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, "\p:sprites:wallfont.sprites", &spec);
+	FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":sprites:wallfont.sprites", &spec);
 	LoadSpriteFile(&spec, SPRITE_GROUP_FONT, gGameViewInfoPtr);
 
 

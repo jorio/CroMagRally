@@ -132,9 +132,9 @@ int             j,p;
 			row = z / TERRAIN_SUPERTILE_UNIT_SIZE;
 
 			if ((col < 0) || (col >= gNumSuperTilesWide))			// see if out of bounds
-				DoFatalAlert("\pAssignPathVectorsToSuperTileGrid: col out of bounds");
+				DoFatalAlert("AssignPathVectorsToSuperTileGrid: col out of bounds");
 			if ((row < 0) || (row >= gNumSuperTilesDeep))
-				DoFatalAlert("\pAssignPathVectorsToSuperTileGrid: row out of bounds");
+				DoFatalAlert("AssignPathVectorsToSuperTileGrid: row out of bounds");
 
 					/* SEE IF NEED TO ALLOC MEMORY FOR THE VECTOR LIST */
 
@@ -143,14 +143,14 @@ int             j,p;
 				gSuperTilePathGrid[row][col].vectors = (PathVectorType *)AllocPtr(sizeof(PathVectorType) * MAX_VECTORS_PER_SUPERTILE);
 
 				if (gSuperTilePathGrid[row][col].vectors == nil)
-					DoFatalAlert("\pAssignPathVectorsToSuperTileGrid: AllocPtr failed");
+					DoFatalAlert("AssignPathVectorsToSuperTileGrid: AllocPtr failed");
 			}
 
 					/* ADD THIS VECTOR TO THE LIST */
 
 			j = gSuperTilePathGrid[row][col].numVectors;		// get # already in list
 			if (j >= MAX_VECTORS_PER_SUPERTILE)					// see if too many
-				DoFatalAlert("\pAssignPathVectorsToSuperTileGrid: numVectors >= MAX_VECTORS_PER_SUPERTILE");
+				DoFatalAlert("AssignPathVectorsToSuperTileGrid: numVectors >= MAX_VECTORS_PER_SUPERTILE");
 
 			gSuperTilePathGrid[row][col].vectors[j].vx = v.x;	// copy coord info into list (normalized vector & origin coord)
 			gSuperTilePathGrid[row][col].vectors[j].vz = v.y;

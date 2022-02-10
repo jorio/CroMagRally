@@ -180,7 +180,7 @@ ObjNode					*obj;
 
 
 	if (gNumFences > MAX_FENCES)
-		DoFatalAlert("\pPrimeFences: gNumFences > MAX_FENCES");
+		DoFatalAlert("PrimeFences: gNumFences > MAX_FENCES");
 
 		/* SET TEXTURE WARPPING MODE ON ALL FENCE SPRITE TEXTURES */
 
@@ -204,10 +204,10 @@ ObjNode					*obj;
 		numNubs 			= fence->numNubs;					// get # nubs in fence
 
 		if (numNubs == 1)
-			DoFatalAlert("\pPrimeFences: numNubs == 1");
+			DoFatalAlert("PrimeFences: numNubs == 1");
 
 		if (numNubs > MAX_NUBS_IN_FENCE)
-			DoFatalAlert("\pPrimeFences: numNubs > MAX_NUBS_IN_FENCE");
+			DoFatalAlert("PrimeFences: numNubs > MAX_NUBS_IN_FENCE");
 
 		for (i = 0; i < numNubs; i++)							// adjust nubs
 		{
@@ -220,7 +220,7 @@ ObjNode					*obj;
 
 		fence->sectionVectors = (OGLVector2D *)AllocPtr(sizeof(OGLVector2D) * (numNubs-1));
 		if (fence->sectionVectors == nil)
-			DoFatalAlert("\pPrimeFences: AllocPtr failed!");
+			DoFatalAlert("PrimeFences: AllocPtr failed!");
 
 		for (i = 0; i < (numNubs-1); i++)
 		{
@@ -280,7 +280,7 @@ float					minX,minY,minZ,maxX,maxY,maxZ;
 		numNubs = fence->numNubs;							// get # nubs in fence
 		type = fence->type;									// get fence type
 		if (type > gNumSpritesInGroupList[SPRITE_GROUP_FENCES])
-			DoFatalAlert("\pMakeFenceGeometry: illegal fence type");
+			DoFatalAlert("MakeFenceGeometry: illegal fence type");
 		height = gFenceHeight[type];						// get fence height
 
 		aspectRatio = gSpriteGroupList[SPRITE_GROUP_FENCES][type].aspectRatio;	// get aspect ratio

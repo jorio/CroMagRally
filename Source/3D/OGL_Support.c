@@ -121,7 +121,7 @@ NumVersion	version;
 	gOpenGL112 = false;
 	if (!gOSX)
 	{
-		GetLibVersion("\pOpenGLEngine", &version);
+		GetLibVersion("OpenGLEngine", &version);
 		if (version.majorRev == 1)
 		{
 			if (version.minorAndBugRev == 0x12)
@@ -202,7 +202,7 @@ int					i;
 
 	outputPtr = (OGLSetupOutputType *)AllocPtr(sizeof(OGLSetupOutputType));
 	if (outputPtr == nil)
-		DoFatalAlert("\pOGL_SetupWindow: AllocPtr failed");
+		DoFatalAlert("OGL_SetupWindow: AllocPtr failed");
 
 			/* SET SOME PANE INFO */
 
@@ -219,7 +219,7 @@ int					i;
 				break;
 
 		default:
-				DoFatalAlert("\pOGL_SetupWindow: # panes not implemented");
+				DoFatalAlert("OGL_SetupWindow: # panes not implemented");
 	}
 
 
@@ -320,7 +320,7 @@ static char			*s;
 		fmt = aglChoosePixelFormat(nil, 0, attrib2);							// try being less stringent
 		if ((fmt == NULL) || (aglGetError() != AGL_NO_ERROR))
 		{
-			DoFatalAlert("\paglChoosePixelFormat failed!  Check that your 3D accelerator is OpenGL compliant, installed properly, and that you have the latest drivers.");
+			DoFatalAlert("aglChoosePixelFormat failed!  Check that your 3D accelerator is OpenGL compliant, installed properly, and that you have the latest drivers.");
 		}
 	}
 
@@ -329,7 +329,7 @@ static char			*s;
 
 	gAGLContext = aglCreateContext(fmt, nil);
 	if ((gAGLContext == nil) || (aglGetError() != AGL_NO_ERROR))
-		DoFatalAlert("\pOGL_CreateDrawContext: aglCreateContext failed!");
+		DoFatalAlert("OGL_CreateDrawContext: aglCreateContext failed!");
 
 	agl_ctx = gAGLContext;
 
@@ -340,10 +340,10 @@ static char			*s;
 		{
 			gGamePrefs.showScreenModeDialog	= true;
 			SavePrefs();
-			DoFatalAlert("\pNot enough VRAM for the selected video mode.  Please try again and select a different mode.");
+			DoFatalAlert("Not enough VRAM for the selected video mode.  Please try again and select a different mode.");
 		}
 		else
-			DoFatalAlert("\pOGL_CreateDrawContext: aglSetDrawable failed!");
+			DoFatalAlert("OGL_CreateDrawContext: aglSetDrawable failed!");
 	}
 
 
@@ -529,9 +529,9 @@ AGLContext agl_ctx = setupInfo->drawContext;
 
 
 	if (setupInfo == nil)										// make sure it's legit
-		DoFatalAlert("\pOGL_DrawScene setupInfo == nil");
+		DoFatalAlert("OGL_DrawScene setupInfo == nil");
 	if (!setupInfo->isActive)
-		DoFatalAlert("\pOGL_DrawScene isActive == false");
+		DoFatalAlert("OGL_DrawScene isActive == false");
 
 			/* INIT SOME STUFF */
 
@@ -602,47 +602,47 @@ AGLContext agl_ctx = setupInfo->drawContext;
 		if (mem < gMinRAM)		// poll for lowest RAM free
 			gMinRAM = mem;
 
-		OGL_DrawString("\pfps:", 20,y);
+		OGL_DrawString("fps:", 20,y);
 		OGL_DrawInt(gFramesPerSecond+.5f, 100,y);
 		y += 15;
 
-		OGL_DrawString("\p#tri:", 20,y);
+		OGL_DrawString("#tri:", 20,y);
 		OGL_DrawInt(gPolysThisFrame, 100,y);
 		y += 15;
 
-		OGL_DrawString("\ptri/sec:", 20,y);
+		OGL_DrawString("tri/sec:", 20,y);
 		OGL_DrawInt((float)gPolysThisFrame * gFramesPerSecond, 100,y);
 		y += 15;
 
-		OGL_DrawString("\p#pgroups:", 20,y);
+		OGL_DrawString("#pgroups:", 20,y);
 		OGL_DrawInt(gNumActiveParticleGroups, 100,y);
 		y += 15;
 
-		OGL_DrawString("\p#objNodes:", 20,y);
+		OGL_DrawString("#objNodes:", 20,y);
 		OGL_DrawInt(gNumObjectNodes, 100,y);
 		y += 15;
 
-//		OGL_DrawString("\p#fences:", 20,y);
+//		OGL_DrawString("#fences:", 20,y);
 //		OGL_DrawInt(gNumFencesDrawn, 100,y);
 //		y += 15;
 
-		OGL_DrawString("\p#free RAM:", 20,y);
+		OGL_DrawString("#free RAM:", 20,y);
 		OGL_DrawInt(mem, 100,y);
 		y += 15;
 
-		OGL_DrawString("\pmin RAM:", 20,y);
+		OGL_DrawString("min RAM:", 20,y);
 		OGL_DrawInt(gMinRAM, 100,y);
 		y += 15;
 
-		OGL_DrawString("\pused VRAM:", 20,y);
+		OGL_DrawString("used VRAM:", 20,y);
 		OGL_DrawInt(gVRAMUsedThisFrame, 100,y);
 		y += 15;
 
-		OGL_DrawString("\pOGL Mem:", 20,y);
+		OGL_DrawString("OGL Mem:", 20,y);
 		OGL_DrawInt(glmGetInteger(GLM_CURRENT_MEMORY), 100,y);
 		y += 15;
 
-//		OGL_DrawString("\p# pointers:", 20,y);
+//		OGL_DrawString("# pointers:", 20,y);
 //		OGL_DrawInt(gNumPointers, 100,y);
 //		y += 15;
 
@@ -748,11 +748,11 @@ AGLContext agl_ctx = gAGLContext;
 
 	glGenTextures(1, &textureName);
 	if (OGL_CheckError())
-		DoFatalAlert("\pOGL_TextureMap_Load: glGenTextures failed!");
+		DoFatalAlert("OGL_TextureMap_Load: glGenTextures failed!");
 
 	glBindTexture(GL_TEXTURE_2D, textureName);				// this is now the currently active texture
 	if (OGL_CheckError())
-		DoFatalAlert("\pOGL_TextureMap_Load: glBindTexture failed!");
+		DoFatalAlert("OGL_TextureMap_Load: glBindTexture failed!");
 
 	glTexImage2D(GL_TEXTURE_2D,
 				0,										// mipmap level
@@ -768,7 +768,7 @@ AGLContext agl_ctx = gAGLContext;
 			/* SEE IF RAN OUT OF MEMORY WHILE COPYING TO OPENGL */
 
 	if (OGL_CheckError())
-		DoFatalAlert("\pOGL_TextureMap_Load: glTexImage2D failed!");
+		DoFatalAlert("OGL_TextureMap_Load: glTexImage2D failed!");
 
 
 				/* SET THIS TEXTURE AS CURRENTLY ACTIVE FOR DRAWING */
@@ -790,11 +790,11 @@ AGLContext agl_ctx = gAGLContext;
 
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 	if (OGL_CheckError())
-		DoFatalAlert("\pOGL_Texture_SetOpenGLTexture: glPixelStorei failed!");
+		DoFatalAlert("OGL_Texture_SetOpenGLTexture: glPixelStorei failed!");
 
 	glBindTexture(GL_TEXTURE_2D, textureName);
 	if (OGL_CheckError())
-		DoFatalAlert("\pOGL_Texture_SetOpenGLTexture: glBindTexture failed!");
+		DoFatalAlert("OGL_Texture_SetOpenGLTexture: glBindTexture failed!");
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);	// disable mipmaps & turn on filtering
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -833,7 +833,7 @@ void OGL_UpdateCameraFromTo(OGLSetupOutputType *setupInfo, OGLPoint3D *from, OGL
 static const OGLVector3D up = {0,1,0};
 
 	if ((camNum < 0) || (camNum >= MAX_SPLITSCREENS))
-		DoFatalAlert("\pOGL_UpdateCameraFromTo: illegal camNum");
+		DoFatalAlert("OGL_UpdateCameraFromTo: illegal camNum");
 
 	setupInfo->cameraPlacement[camNum].upVector 		= up;
 	setupInfo->cameraPlacement[camNum].cameraLocation 	= *from;
@@ -847,7 +847,7 @@ static const OGLVector3D up = {0,1,0};
 void OGL_UpdateCameraFromToUp(OGLSetupOutputType *setupInfo, OGLPoint3D *from, OGLPoint3D *to, OGLVector3D *up, int camNum)
 {
 	if ((camNum < 0) || (camNum >= MAX_SPLITSCREENS))
-		DoFatalAlert("\pOGL_UpdateCameraFromToUp: illegal camNum");
+		DoFatalAlert("OGL_UpdateCameraFromToUp: illegal camNum");
 
 	setupInfo->cameraPlacement[camNum].upVector 		= *up;
 	setupInfo->cameraPlacement[camNum].cameraLocation 	= *from;
@@ -957,7 +957,7 @@ long			pixelSize;
 	SetRect(&r,0,0,width,height);
 	iErr = NewGWorld(&gworld,pixelSize, &r, nil, nil, 0);
 	if (iErr)
-		DoFatalAlert("\pOGL_BufferToGWorld: NewGWorld failed!");
+		DoFatalAlert("OGL_BufferToGWorld: NewGWorld failed!");
 
 	DoLockPixels(gworld);
 
@@ -1002,7 +1002,7 @@ long			pixelSize;
 
 
 		default:
-				DoFatalAlert("\pOGL_BufferToGWorld: Only 32/16 bit textures supported right now.");
+				DoFatalAlert("OGL_BufferToGWorld: Only 32/16 bit textures supported right now.");
 
 	}
 
@@ -1024,31 +1024,31 @@ AGLContext agl_ctx = gAGLContext;
 		switch(err)
 		{
 			case	GL_INVALID_ENUM:
-					DoAlert("\pOGL_CheckError: GL_INVALID_ENUM");
+					DoAlert("OGL_CheckError: GL_INVALID_ENUM");
 					break;
 
 			case	GL_INVALID_VALUE:
-					DoAlert("\pOGL_CheckError: GL_INVALID_VALUE");
+					DoAlert("OGL_CheckError: GL_INVALID_VALUE");
 					break;
 
 			case	GL_INVALID_OPERATION:
-					DoAlert("\pOGL_CheckError: GL_INVALID_OPERATION");
+					DoAlert("OGL_CheckError: GL_INVALID_OPERATION");
 					break;
 
 			case	GL_STACK_OVERFLOW:
-					DoAlert("\pOGL_CheckError: GL_STACK_OVERFLOW");
+					DoAlert("OGL_CheckError: GL_STACK_OVERFLOW");
 					break;
 
 			case	GL_STACK_UNDERFLOW:
-					DoAlert("\pOGL_CheckError: GL_STACK_UNDERFLOW");
+					DoAlert("OGL_CheckError: GL_STACK_UNDERFLOW");
 					break;
 
 			case	GL_OUT_OF_MEMORY:
-					DoAlert("\pOGL_CheckError: GL_OUT_OF_MEMORY  (increase your Virtual Memory setting!)");
+					DoAlert("OGL_CheckError: GL_OUT_OF_MEMORY  (increase your Virtual Memory setting!)");
 					break;
 
 			default:
-					DoAlert("\pOGL_CheckError: some other error");
+					DoAlert("OGL_CheckError: some other error");
 					ShowSystemErr_NonFatal(err);
 		}
 	}
@@ -1082,7 +1082,7 @@ AGLContext agl_ctx = gAGLContext;
 	i = gStateStackIndex++;											// get stack index and increment
 
 	if (i >= STATE_STACK_SIZE)
-		DoFatalAlert("\pOGL_PushState: stack overflow");
+		DoFatalAlert("OGL_PushState: stack overflow");
 
 	gStateStack_Lighting[i] = gMyState_Lighting;
 	gStateStack_CullFace[i] = glIsEnabled(GL_CULL_FACE);
@@ -1119,7 +1119,7 @@ AGLContext agl_ctx = gAGLContext;
 	i = --gStateStackIndex;												// dec stack index
 
 	if (i < 0)
-		DoFatalAlert("\pOGL_PopState: stack underflow!");
+		DoFatalAlert("OGL_PopState: stack underflow!");
 
 	if (gStateStack_Lighting[i])
 		OGL_EnableLighting();
@@ -1199,7 +1199,7 @@ AGLContext agl_ctx = gAGLContext;
 	gFontList = glGenLists(256);
 
     if (!aglUseFont(gAGLContext, kFontIDMonaco, bold, 9, 0, 256, gFontList))
-		DoFatalAlert("\pOGL_InitFont: aglUseFont failed");
+		DoFatalAlert("OGL_InitFont: aglUseFont failed");
 #endif
 }
 
@@ -1295,8 +1295,8 @@ Boolean			gotit = false;
 	head_info = aglQueryRendererInfo(&hGD, 1);
 	if(!head_info)
 	{
-		DoAlert("\pCheckRenderer: aglQueryRendererInfo failed");
-		DoFatalAlert("\pThis is usually a result of installing OS 9.2.1 which has a faulty installer.  Delete all Nvidia extensions, reboot, and then the game will run.");
+		DoAlert("CheckRenderer: aglQueryRendererInfo failed");
+		DoFatalAlert("This is usually a result of installing OS 9.2.1 which has a faulty installer.  Delete all Nvidia extensions, reboot, and then the game will run.");
 	}
 
 

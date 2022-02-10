@@ -195,7 +195,7 @@ short		powType;
 				break;
 
 		default:
-				DoFatalAlert("\pVehicleActivatePOW: unknown powType");
+				DoFatalAlert("VehicleActivatePOW: unknown powType");
 	}
 }
 
@@ -755,7 +755,7 @@ short		p,bestP;
 	gNewObjectDefinition.scale 	    = 1.0;
 	newObj = MakeNewSkeletonObject(&gNewObjectDefinition);
 	if (newObj == nil)
-		DoFatalAlert("\pThrowBirdBomb: MakeNewSkeletonObject failed!");
+		DoFatalAlert("ThrowBirdBomb: MakeNewSkeletonObject failed!");
 
 	newObj->Skeleton->AnimSpeed = 2.0f;
 	newObj->Delta.y = car->Delta.y + 600.0f;

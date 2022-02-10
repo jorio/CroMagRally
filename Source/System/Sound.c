@@ -321,7 +321,7 @@ FSSpec			spec;
 		mySndCmd.param2 = (long)&sndHdr;
 		if ((iErr = SndDoImmediate(gSndChannel[gMaxChannels], &mySndCmd)) != noErr)
 		{
-			DoAlert("\pInitSoundTools: SndDoImmediate failed!");
+			DoAlert("InitSoundTools: SndDoImmediate failed!");
 			ShowSystemErr_NonFatal(iErr);
 		}
 
@@ -331,7 +331,7 @@ FSSpec			spec;
 		mySndCmd.param2 = initNoInterp|initStereo;
 		if ((iErr = SndDoImmediate(gSndChannel[gMaxChannels], &mySndCmd)) != noErr)
 		{
-			DoAlert("\pInitSoundTools: SndDoImmediate failed 2!");
+			DoAlert("InitSoundTools: SndDoImmediate failed 2!");
 			ShowSystemErr_NonFatal(iErr);
 		}
 
@@ -341,7 +341,7 @@ FSSpec			spec;
 
 		/* LOAD DEFAULT SOUNDS */
 
-	FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, "\p:Audio:Main.sounds", &spec);
+	FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":Audio:Main.sounds", &spec);
 	LoadSoundBank(&spec, SOUND_BANK_MAIN);
 }
 
@@ -377,13 +377,13 @@ int	i;
 void LoadSoundBank(FSSpec *spec, long bankNum)
 {
 short			srcFile1,numSoundsInBank,i;
-Str255			error = "\pCouldnt Open Sound Resource File.";
+Str255			error = "Couldnt Open Sound Resource File.";
 OSErr			iErr;
 
 	StopAllEffectChannels();
 
 	if (bankNum >= MAX_SOUND_BANKS)
-		DoFatalAlert("\pLoadSoundBank: bankNum >= MAX_SOUND_BANKS");
+		DoFatalAlert("LoadSoundBank: bankNum >= MAX_SOUND_BANKS");
 
 			/* DISPOSE OF EXISTING BANK */
 
@@ -394,7 +394,7 @@ OSErr			iErr;
 
 	srcFile1 = FSpOpenResFile(spec, fsRdPerm);
 	if (srcFile1 == -1)
-		DoFatalAlert("\pLoadSoundBank: OpenResFile failed!");
+		DoFatalAlert("LoadSoundBank: OpenResFile failed!");
 
 			/****************************/
 			/* LOAD ALL EFFECTS IN BANK */
@@ -403,7 +403,7 @@ OSErr			iErr;
 	UseResFile( srcFile1 );												// open sound resource fork
 	numSoundsInBank = Count1Resources('snd ');							// count # snd's in this bank
 	if (numSoundsInBank > MAX_EFFECTS)
-		DoFatalAlert("\pLoadSoundBank: numSoundsInBank > MAX_EFFECTS");
+		DoFatalAlert("LoadSoundBank: numSoundsInBank > MAX_EFFECTS");
 
 	for (i=0; i < numSoundsInBank; i++)
 	{
@@ -413,9 +413,9 @@ OSErr			iErr;
 		if (gSndHandles[bankNum][i] == nil)
 		{
 			iErr = ResError();
-			DoAlert("\pLoadSoundBank: GetResource failed!");
+			DoAlert("LoadSoundBank: GetResource failed!");
 			if (iErr == memFullErr)
-				DoFatalAlert("\pLoadSoundBank: Out of Memory");
+				DoFatalAlert("LoadSoundBank: Out of Memory");
 			else
 				ShowSystemErr(iErr);
 		}
@@ -580,7 +580,7 @@ SCStatus				theStatus;
 void PlaySong(short songNum, Boolean loopFlag)
 {
 OSErr 	iErr;
-Str255	errStr = "\pPlaySong: Couldnt Open Music AIFF File.";
+Str255	errStr = "PlaySong: Couldnt Open Music AIFF File.";
 static	SndCommand 		mySndCmd;
 FSSpec	spec;
 short	myRefNum;
@@ -605,70 +605,70 @@ GrafPtr	oldPort;
 	switch(songNum)
 	{
 		case	SONG_WIN:
-				iErr = FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, "\p:audio:WinSong.aiff", &spec);
+				iErr = FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":audio:WinSong.aiff", &spec);
 				volumeTweak = 1.9;
 				break;
 
 		case	SONG_DESERT:
-				iErr = FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, "\p:audio:DesertSong.aiff", &spec);
+				iErr = FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":audio:DesertSong.aiff", &spec);
 				volumeTweak = 1.0;
 				break;
 
 		case	SONG_JUNGLE:
-				iErr = FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, "\p:audio:JungleSong.aiff", &spec);
+				iErr = FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":audio:JungleSong.aiff", &spec);
 				volumeTweak = 1.5;
 				break;
 
 		case	SONG_THEME:
-				iErr = FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, "\p:audio:ThemeSong.aiff", &spec);
+				iErr = FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":audio:ThemeSong.aiff", &spec);
 				volumeTweak = 1.5;
 				break;
 
 		case	SONG_ATLANTIS:
-				iErr = FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, "\p:audio:AtlantisSong.aiff", &spec);
+				iErr = FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":audio:AtlantisSong.aiff", &spec);
 				volumeTweak = 1.5;
 				break;
 
 		case	SONG_CHINA:
-				iErr = FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, "\p:audio:ChinaSong.aiff", &spec);
+				iErr = FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":audio:ChinaSong.aiff", &spec);
 				volumeTweak = 1.5;
 				break;
 
 		case	SONG_CRETE:
-				iErr = FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, "\p:audio:CreteSong.aiff", &spec);
+				iErr = FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":audio:CreteSong.aiff", &spec);
 				volumeTweak = 1.5;
 				break;
 
 		case	SONG_EUROPE:
-				iErr = FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, "\p:audio:EuroSong.aiff", &spec);
+				iErr = FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":audio:EuroSong.aiff", &spec);
 				volumeTweak = 1.5;
 				break;
 
 		case	SONG_ICE:
-				iErr = FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, "\p:audio:IceSong.aiff", &spec);
+				iErr = FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":audio:IceSong.aiff", &spec);
 				volumeTweak = 1.5;
 				break;
 
 		case	SONG_EGYPT:
-				iErr = FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, "\p:audio:EgyptSong.aiff", &spec);
+				iErr = FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":audio:EgyptSong.aiff", &spec);
 				volumeTweak = 1.5;
 				break;
 
 		case	SONG_VIKING:
-				iErr = FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, "\p:audio:VikingSong.aiff", &spec);
+				iErr = FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":audio:VikingSong.aiff", &spec);
 				volumeTweak = 1.5;
 				break;
 
 		default:
-				DoFatalAlert("\pPlaySong: unknown song #");
+				DoFatalAlert("PlaySong: unknown song #");
 	}
 
 
 	if (iErr)
 	{
-		iErr = FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, "\p:audio:ThemeSong.mp3", &spec);		// if song not found, try MP3 version of theme
+		iErr = FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":audio:ThemeSong.mp3", &spec);		// if song not found, try MP3 version of theme
 		if (iErr)
-			DoFatalAlert("\pPlaySong: song file not found");
+			DoFatalAlert("PlaySong: song file not found");
 	}
 
 	gCurrentSong = songNum;
@@ -780,7 +780,7 @@ u_long					leftVol, rightVol;
 
 	if (soundNum >= gNumSndsInBank[bankNum])					// see if illegal sound #
 	{
-		DoAlert("\pIllegal sound number!");
+		DoAlert("Illegal sound number!");
 		ShowSystemErr(effectNum);
 	}
 
@@ -821,7 +821,7 @@ u_long			leftVol, rightVol;
 
 	if (soundNum >= gNumSndsInBank[bankNum])					// see if illegal sound #
 	{
-		DoAlert("\pIllegal sound number!");
+		DoAlert("Illegal sound number!");
 		ShowSystemErr(effectNum);
 	}
 
@@ -1086,7 +1086,7 @@ SoundHeaderPtr   sndPtr;
 
 	if (soundNum >= gNumSndsInBank[bankNum])					// see if illegal sound #
 	{
-		DoAlert("\pIllegal sound number!");
+		DoAlert("Illegal sound number!");
 		ShowSystemErr(effectNum);
 	}
 

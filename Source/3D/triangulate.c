@@ -72,7 +72,7 @@ int		vi0,vi1,vi2;
 
 #if DEBUG_TRIANGULATE
 Rect	 	rect = {0,0,600,700};
-WindowPtr 	window = NewCWindow(nil, &rect, "\p", true, plainDBox, MOVE_TO_FRONT, false, 0);
+WindowPtr 	window = NewCWindow(nil, &rect, "", true, plainDBox, MOVE_TO_FRONT, false, 0);
 
 		SetPort(window);
 		ForeColor(yellowColor);
@@ -219,7 +219,7 @@ WindowPtr 	window = NewCWindow(nil, &rect, "\p", true, plainDBox, MOVE_TO_FRONT,
         	if (inside)													// if new point is inside the circumcircle, then add edges of triangle
             {
           		if ((numEdges+3) > EMAX)								// Check that we haven't exceeded the edge list size
-            		DoFatalAlert("\pTriangulate: Internal edge list exceeded");
+            		DoFatalAlert("Triangulate: Internal edge list exceeded");
 
                	edges[numEdges].p1 		= tri[j].vertexIndices[0];		// add 3 edges to edge list
                	edges[numEdges++].p2 	= tri[j].vertexIndices[1];
@@ -236,7 +236,7 @@ WindowPtr 	window = NewCWindow(nil, &rect, "\p", true, plainDBox, MOVE_TO_FRONT,
 		}while(j < *numTris);
 
 		if (numEdges < 1)
-			DoFatalAlert("\pTriangulate:  numEdges < 1");	//----------
+			DoFatalAlert("Triangulate:  numEdges < 1");	//----------
 
     	//   Tag multiple edges
      	//   Note: if all triangles are specified anticlockwise then all
@@ -278,7 +278,7 @@ WindowPtr 	window = NewCWindow(nil, &rect, "\p", true, plainDBox, MOVE_TO_FRONT,
         	if ((edges[j].p1 != -1) && (edges[j].p2 != -1))
         	{
             	if (*numTris > triangeListSize)
-	           		DoFatalAlert("\pTriangulate: triangles exceeds maximum");
+	           		DoFatalAlert("Triangulate: triangles exceeds maximum");
 
             	tri[*numTris].vertexIndices[0] 	= edges[j].p1;					// use edge points
             	tri[*numTris].vertexIndices[1] 	= edges[j].p2;
@@ -363,7 +363,7 @@ float 	m1,m2,mx1,mx2,mz1,mz2,xc,zc;
 float 	dx,dz,rsqr,drsqr;
 
 	if ((fabs(z1-z2) < EPS) && (fabs(z2-z3) < EPS))
- 		DoFatalAlert("\pcircumcircle - Coincident points");
+ 		DoFatalAlert("circumcircle - Coincident points");
 
 	if (fabs(z2-z1) < EPS)
 	{

@@ -109,11 +109,11 @@ static ObjNode	*gVehicleName;
 
 static int		gNumVehiclesToChooseFrom;
 
-static Str31 	gParmStr[NUM_VEHICLE_PARAMETERS] = {"\pSPEED", "\pACCELERATION", "\pTRACTION", "\pSUSPENSION"};
+static Str31 	gParmStr[NUM_VEHICLE_PARAMETERS] = {"SPEED", "ACCELERATION", "TRACTION", "SUSPENSION"};
 
-static Str31	gCarNames[MAX_CAR_TYPES] = {"\pMAMMOTH MOBILE", "\pBONE BUGGY", "\pGEODE CRUISER", "\pLOGMOBILE", "\pTURTLE TANK", "\pHOT ROCK",
-											"\pTROJAN HORSE", "\pOBELISK",
-											"\pCATAPULT", "\pCHARIOT"};
+static Str31	gCarNames[MAX_CAR_TYPES] = {"MAMMOTH MOBILE", "BONE BUGGY", "GEODE CRUISER", "LOGMOBILE", "TURTLE TANK", "HOT ROCK",
+											"TROJAN HORSE", "OBELISK",
+											"CATAPULT", "CHARIOT"};
 
 int		gVehicleParameters[MAX_CAR_TYPES+1][NUM_VEHICLE_PARAMETERS];					// parameter values 0..7
 int		gDefaultVehicleParameters[MAX_CAR_TYPES+1][NUM_VEHICLE_PARAMETERS] =					// parameter values 0..7
@@ -348,26 +348,26 @@ u_long				n;
 
 			/* MAKE BACKGROUND PICTURE OBJECT */
 
-	if (FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, "\p:images:VehicleSelectScreen", &spec))
-		DoFatalAlert("\pSetupVehicleSelectScreen: background pict not found.");
+	if (FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":images:VehicleSelectScreen", &spec))
+		DoFatalAlert("SetupVehicleSelectScreen: background pict not found.");
 
 	gBackgoundPicture = MO_CreateNewObjectOfType(MO_TYPE_PICTURE, (u_long)gGameViewInfoPtr, &spec);
 	if (!gBackgoundPicture)
-		DoFatalAlert("\pSetupVehicleSelectScreen: MO_CreateNewObjectOfType failed");
+		DoFatalAlert("SetupVehicleSelectScreen: MO_CreateNewObjectOfType failed");
 
 
 			/* LOAD SPRITES */
 
-	FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, "\p:sprites:vehicleselect.sprites", &spec);
+	FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":sprites:vehicleselect.sprites", &spec);
 	LoadSpriteFile(&spec, SPRITE_GROUP_VEHICLESELECTSCREEN, gGameViewInfoPtr);
 
-	FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, "\p:sprites:wallfont.sprites", &spec);
+	FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":sprites:wallfont.sprites", &spec);
 	LoadSpriteFile(&spec, SPRITE_GROUP_FONT, gGameViewInfoPtr);
 
 
 			/* LOAD MODELS */
 
-	FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, "\p:models:carselect.bg3d", &spec);
+	FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":models:carselect.bg3d", &spec);
 	ImportBG3D(&spec, MODEL_GROUP_CARSELECT, gGameViewInfoPtr);
 
 			/*****************/
@@ -441,7 +441,7 @@ u_long				n;
 
 	if (gNumLocalPlayers > 1)
 	{
-		static Str31 playerStr[2] = {"\pPLAYER 1", "\pPLAYER 2"};
+		static Str31 playerStr[2] = {"PLAYER 1", "PLAYER 2"};
 		ObjNode	*newObj;
 
 		gNewObjectDefinition.coord.x 	= 0;

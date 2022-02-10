@@ -119,7 +119,7 @@ OGLSetupOutputType	*pictureViewInfoPtr = nil;
 
 	gBackgoundPicture = MO_CreateNewObjectOfType(MO_TYPE_PICTURE, (u_long)pictureViewInfoPtr, spec);
 	if (!gBackgoundPicture)
-		DoFatalAlert("\pDisplayPicture: MO_CreateNewObjectOfType failed");
+		DoFatalAlert("DisplayPicture: MO_CreateNewObjectOfType failed");
 
 
 			/* CREATE TEXT */
@@ -129,7 +129,7 @@ OGLSetupOutputType	*pictureViewInfoPtr = nil;
 		FSSpec	spec2;
 		Str255	s;
 
-		FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, "\p:sprites:rockfont.sprites", &spec2);
+		FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":sprites:rockfont.sprites", &spec2);
 		LoadSpriteFile(&spec2, SPRITE_GROUP_FONT, pictureViewInfoPtr);
 
 		gNewObjectDefinition.coord.x 	= 0;
@@ -231,9 +231,9 @@ void ShowAgePicture(int age)
 FSSpec	spec;
 Str31	names[NUM_AGES] =
 {
-	"\p:images:Ages:StoneAgeIntro",
-	"\p:images:Ages:BronzeAgeIntro",
-	"\p:images:Ages:IronAgeIntro"
+	":images:Ages:StoneAgeIntro",
+	":images:Ages:BronzeAgeIntro",
+	":images:Ages:IronAgeIntro"
 };
 
 
@@ -256,7 +256,7 @@ FSSpec	spec;
 	}
 	else
 	{
-		FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, "\p:images:Loading1", &spec);
+		FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":images:Loading1", &spec);
 		DisplayPicture(&spec, true, false);
 	}
 }
@@ -275,9 +275,9 @@ FSSpec	spec;
 			/* DO PANGEA LOGO */
 
 #if SHAREWARE
-	FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, "\p:images:PSLogo", &spec);
+	FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":images:PSLogo", &spec);
 #else
-	FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, "\p:images:PangeaLogo", &spec);
+	FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":images:PangeaLogo", &spec);
 #endif
 
 
@@ -287,8 +287,8 @@ FSSpec	spec;
 
 			/* DO TITLE SCREEN */
 
-	if (FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, "\p:images:TitleScreen", &spec))
-		DoFatalAlert("\pDoTitleScreen: TitleScreen pict not found.");
+	if (FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":images:TitleScreen", &spec))
+		DoFatalAlert("DoTitleScreen: TitleScreen pict not found.");
 
 	DisplayPicture(&spec, false, false);
 //	GammaFadeOut();
@@ -366,12 +366,12 @@ FSSpec				spec;
 OGLSetupInputType	viewDef;
 static const Str255	names[] =
 {
-	"\p:images:Conquered:StoneAge_Conquered",
-	"\p:images:Conquered:BronzeAge_Conquered",
-	"\p:images:Conquered:IronAge_Conquered"
+	":images:Conquered:StoneAge_Conquered",
+	":images:Conquered:BronzeAge_Conquered",
+	":images:Conquered:IronAge_Conquered"
 };
 
-static Str31 age[3] = {"\pSTONE AGE", "\pBRONZE AGE", "\pIRON AGE"};
+static Str31 age[3] = {"STONE AGE", "BRONZE AGE", "IRON AGE"};
 
 
 	PlaySong(SONG_THEME, true);
@@ -400,22 +400,22 @@ static Str31 age[3] = {"\pSTONE AGE", "\pBRONZE AGE", "\pIRON AGE"};
 
 
 	if (FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID,  names[gTheAge], &spec))
-		DoFatalAlert("\pSetupConqueredScreen: background pict not found.");
+		DoFatalAlert("SetupConqueredScreen: background pict not found.");
 
 	gBackgoundPicture = MO_CreateNewObjectOfType(MO_TYPE_PICTURE, (u_long)gGameViewInfoPtr, &spec);
 	if (!gBackgoundPicture)
-		DoFatalAlert("\pSetupTrackSelectScreen: MO_CreateNewObjectOfType failed");
+		DoFatalAlert("SetupTrackSelectScreen: MO_CreateNewObjectOfType failed");
 
 
 			/* LOAD MODELS */
 
-	FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, "\p:models:winners.bg3d", &spec);
+	FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":models:winners.bg3d", &spec);
 	ImportBG3D(&spec, MODEL_GROUP_WINNERS, gGameViewInfoPtr);
 
 
 			/* LOAD SPRITES */
 
-	FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, "\p:sprites:wallfont.sprites", &spec);
+	FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":sprites:wallfont.sprites", &spec);
 	LoadSpriteFile(&spec, SPRITE_GROUP_FONT, gGameViewInfoPtr);
 
 	InitParticleSystem(gGameViewInfoPtr);
@@ -453,7 +453,7 @@ static Str31 age[3] = {"\pSTONE AGE", "\pBRONZE AGE", "\pIRON AGE"};
 	MakeFontStringObject(age[gTheAge], &gNewObjectDefinition, gGameViewInfoPtr, true);
 
 	gNewObjectDefinition.coord.y 	= .6;
-	MakeFontStringObject("\pCOMPLETE", &gNewObjectDefinition, gGameViewInfoPtr, true);
+	MakeFontStringObject("COMPLETE", &gNewObjectDefinition, gGameViewInfoPtr, true);
 
 }
 
@@ -563,7 +563,7 @@ ObjNode				*newObj,*signObj;
 FSSpec				spec;
 OGLSetupInputType	viewDef;
 
-static Str31 age[3] = {"\pSTONE AGE", "\pBRONZE AGE", "\pIRON AGE"};
+static Str31 age[3] = {"STONE AGE", "BRONZE AGE", "IRON AGE"};
 
 
 	PlaySong(SONG_WIN, false);
@@ -590,12 +590,12 @@ static Str31 age[3] = {"\pSTONE AGE", "\pBRONZE AGE", "\pIRON AGE"};
 
 			/* MAKE BACKGROUND PICTURE OBJECT */
 
-	if (FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, "\p:images:Conquered:GameCompleted",&spec))
-		DoFatalAlert("\pSetupWinScreen: background pict not found.");
+	if (FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":images:Conquered:GameCompleted",&spec))
+		DoFatalAlert("SetupWinScreen: background pict not found.");
 
 	gBackgoundPicture = MO_CreateNewObjectOfType(MO_TYPE_PICTURE, (u_long)gGameViewInfoPtr, &spec);
 	if (!gBackgoundPicture)
-		DoFatalAlert("\pSetupTrackSelectScreen: MO_CreateNewObjectOfType failed");
+		DoFatalAlert("SetupTrackSelectScreen: MO_CreateNewObjectOfType failed");
 
 
 	LoadASkeleton(SKELETON_TYPE_MALESTANDING, gGameViewInfoPtr);
@@ -604,13 +604,13 @@ static Str31 age[3] = {"\pSTONE AGE", "\pBRONZE AGE", "\pIRON AGE"};
 
 			/* LOAD MODELS */
 
-	FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, "\p:models:winners.bg3d", &spec);
+	FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":models:winners.bg3d", &spec);
 	ImportBG3D(&spec, MODEL_GROUP_WINNERS, gGameViewInfoPtr);
 
 
 			/* LOAD SPRITES */
 
-	FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, "\p:sprites:wallfont.sprites", &spec);
+	FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":sprites:wallfont.sprites", &spec);
 	LoadSpriteFile(&spec, SPRITE_GROUP_FONT, gGameViewInfoPtr);
 
 	InitParticleSystem(gGameViewInfoPtr);
@@ -864,68 +864,68 @@ float				y,scale;
 
 static CreditLine lines[] =
 {
-	0,2,"\pPROGRAMMING AND CONCEPT",
-	1,0,"\pBRIAN GREENSTONE",
+	0,2,"PROGRAMMING AND CONCEPT",
+	1,0,"BRIAN GREENSTONE",
 #if OEM
-	2,1,"\pBRIAN@BRIANGREENSTONE.COM",
+	2,1,"BRIAN@BRIANGREENSTONE.COM",
 #else
-	2,1,"\pBRIAN@BRIANGREENSTONE.COM",
-	2,1,"\pWWW.BRIANGREENSTONE.COM",
+	2,1,"BRIAN@BRIANGREENSTONE.COM",
+	2,1,"WWW.BRIANGREENSTONE.COM",
 #endif
-	1,0,"\p ",
-	1,0,"\p ",
+	1,0," ",
+	1,0," ",
 
-	0,2,"\pART",
-	1,0,"\pJOSH MARUSKA",
-	2,1,"\pMARUSKAJ@MAC.COM",
-	1,0,"\p ",
-	1,0,"\pMARCUS CONGE",
-	2,1,"\pMCONGE@DIGITALMANIPULATION.COM",
-	2,1,"\pWWW.DIGITALMANIPULATION.COM",
-	1,0,"\p ",
-	1,0,"\pDANIEL MARCOUX",
-	2,1,"\pDAN@BEENOX.COM",
-	1,0,"\p ",
-	1,0,"\pCARL LOISELLE",
-	2,1,"\pCLOISELLE@BEENOX.COM",
-	1,0,"\p ",
-	1,0,"\pBRIAN GREENSTONE",
-	2,1,"\pBRIAN@BRIANGREENSTONE.COM",
-	1,0,"\p ",
-	1,0,"\p ",
+	0,2,"ART",
+	1,0,"JOSH MARUSKA",
+	2,1,"MARUSKAJ@MAC.COM",
+	1,0," ",
+	1,0,"MARCUS CONGE",
+	2,1,"MCONGE@DIGITALMANIPULATION.COM",
+	2,1,"WWW.DIGITALMANIPULATION.COM",
+	1,0," ",
+	1,0,"DANIEL MARCOUX",
+	2,1,"DAN@BEENOX.COM",
+	1,0," ",
+	1,0,"CARL LOISELLE",
+	2,1,"CLOISELLE@BEENOX.COM",
+	1,0," ",
+	1,0,"BRIAN GREENSTONE",
+	2,1,"BRIAN@BRIANGREENSTONE.COM",
+	1,0," ",
+	1,0," ",
 
-	0,2,"\pMUSIC",
-	1,0,"\pMIKE BECKETT",
-	2,1,"\pINFO@NUCLEARKANGAROOMUSIC.COM",
-	2,1,"\pWWW.NUCLEARKANGAROOMUSIC.COM",
-	1,0,"\p ",
-	1,0,"\p ",
+	0,2,"MUSIC",
+	1,0,"MIKE BECKETT",
+	2,1,"INFO@NUCLEARKANGAROOMUSIC.COM",
+	2,1,"WWW.NUCLEARKANGAROOMUSIC.COM",
+	1,0," ",
+	1,0," ",
 
-	0,2,"\pADDITIONAL WORK",
-	1,0,"\pDEE BROWN",
-	2,1,"\pDEEBROWN@BEENOX.COM",
-	2,1,"\pWWW.BEENOX.COM",
-	1,0,"\p ",
-	1,0,"\pPASCAL BRULOTTE",
-	1,0,"\p ",
-	1,0,"\p ",
+	0,2,"ADDITIONAL WORK",
+	1,0,"DEE BROWN",
+	2,1,"DEEBROWN@BEENOX.COM",
+	2,1,"WWW.BEENOX.COM",
+	1,0," ",
+	1,0,"PASCAL BRULOTTE",
+	1,0," ",
+	1,0," ",
 
-	0,2,"\pSPECIAL THANKS",
-	1,0,"\pTUNCER DENIZ",
-	1,0,"\pZOE BENTLEY",
-	1,0,"\pCHRIS BENTLEY",
-	1,0,"\pGEOFF STAHL",
-	1,0,"\pJOHN STAUFFER",
-	1,0,"\pMIGUEL CORNEJO",
-	1,0,"\pFELIX SEGEBRECHT",
-	1,0,"\p ",
-	1,0,"\p ",
+	0,2,"SPECIAL THANKS",
+	1,0,"TUNCER DENIZ",
+	1,0,"ZOE BENTLEY",
+	1,0,"CHRIS BENTLEY",
+	1,0,"GEOFF STAHL",
+	1,0,"JOHN STAUFFER",
+	1,0,"MIGUEL CORNEJO",
+	1,0,"FELIX SEGEBRECHT",
+	1,0," ",
+	1,0," ",
 
-	1,1,"\pCOPYRIGHT 2000",
-	1,1,"\pPANGEA SOFTWARE INC.",
-	1,1,"\pALL RIGHTS RESERVED",
-	1,1,"\pWWW.PANGEASOFT.NET",
-	-1,0,"\p ",
+	1,1,"COPYRIGHT 2000",
+	1,1,"PANGEA SOFTWARE INC.",
+	1,1,"ALL RIGHTS RESERVED",
+	1,1,"WWW.PANGEASOFT.NET",
+	-1,0," ",
 };
 
 
@@ -969,17 +969,17 @@ static const float sizes[] =
 			/* MAKE BACKGROUND PICTURE OBJECT */
 
 
-	if (FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID,  	"\p:images:Credits",&spec))
-		DoFatalAlert("\pSetupCreditsScreen: background pict not found.");
+	if (FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID,  	":images:Credits",&spec))
+		DoFatalAlert("SetupCreditsScreen: background pict not found.");
 
 	gBackgoundPicture = MO_CreateNewObjectOfType(MO_TYPE_PICTURE, (u_long)gGameViewInfoPtr, &spec);
 	if (!gBackgoundPicture)
-		DoFatalAlert("\pSetupCreditsScreen: MO_CreateNewObjectOfType failed");
+		DoFatalAlert("SetupCreditsScreen: MO_CreateNewObjectOfType failed");
 
 
 			/* LOAD SPRITES */
 
-	FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, "\p:sprites:rockfont.sprites", &spec);
+	FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":sprites:rockfont.sprites", &spec);
 	LoadSpriteFile(&spec, SPRITE_GROUP_FONT, gGameViewInfoPtr);
 
 
@@ -1054,7 +1054,7 @@ void DoHelpScreen(void)
 {
 FSSpec	spec;
 
-	FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, "\p:images:Help", &spec);
+	FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":images:Help", &spec);
 
 	DisplayPicture(&spec, false, false);
 
@@ -1071,7 +1071,7 @@ void DoDemoExpiredScreen(void)
 {
 FSSpec	spec;
 
-	FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, "\p:images:DemoExpired", &spec);
+	FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":images:DemoExpired", &spec);
 	DisplayPicture(&spec, false, false);
 	CleanQuit();
 }
@@ -1085,7 +1085,7 @@ FSSpec	spec;
 
 	SaveDemoTimer();						// make sure to save this before we bail
 
-	FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, "\p:images:DemoQuit", &spec);
+	FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":images:DemoQuit", &spec);
 	DisplayPicture(&spec, false, false);
 
 }
@@ -1105,7 +1105,7 @@ FSSpec	spec;
 
 	SaveDemoTimer();						// make sure to save this before we bail
 
-	FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, "\p:images:swexit", &spec);
+	FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":images:swexit", &spec);
 	DisplayPicture(&spec, false, false);
 }
 #endif

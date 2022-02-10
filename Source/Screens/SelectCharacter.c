@@ -182,20 +182,20 @@ ObjNode	*newObj;
 
 			/* MAKE BACKGROUND PICTURE OBJECT */
 
-	if (FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, "\p:images:CharSelectScreen", &spec))
-		DoFatalAlert("\pSetupCharacterSelectScreen: background pict not found.");
+	if (FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":images:CharSelectScreen", &spec))
+		DoFatalAlert("SetupCharacterSelectScreen: background pict not found.");
 
 	gBackgoundPicture = MO_CreateNewObjectOfType(MO_TYPE_PICTURE, (u_long)gGameViewInfoPtr, &spec);
 	if (!gBackgoundPicture)
-		DoFatalAlert("\pSetupCharacterSelectScreen: MO_CreateNewObjectOfType failed");
+		DoFatalAlert("SetupCharacterSelectScreen: MO_CreateNewObjectOfType failed");
 
 
 			/* LOAD SPRITES */
 
-	FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, "\p:sprites:charselect.sprites", &spec);
+	FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":sprites:charselect.sprites", &spec);
 	LoadSpriteFile(&spec, SPRITE_GROUP_CHARACTERSELECTSCREEN, gGameViewInfoPtr);
 
-	FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, "\p:sprites:wallfont.sprites", &spec);
+	FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":sprites:wallfont.sprites", &spec);
 	LoadSpriteFile(&spec, SPRITE_GROUP_FONT, gGameViewInfoPtr);
 
 
@@ -215,7 +215,7 @@ ObjNode	*newObj;
 
 	if (gNumLocalPlayers > 1)
 	{
-		static Str31 playerStr[2] = {"\pPLAYER 1", "\pPLAYER 2"};
+		static Str31 playerStr[2] = {"PLAYER 1", "PLAYER 2"};
 
 		gNewObjectDefinition.coord.x 	= 0;
 		gNewObjectDefinition.coord.y 	= -.85;
@@ -260,11 +260,11 @@ ObjNode	*newObj;
 	gNewObjectDefinition.coord.y 	= .8;
 	gNewObjectDefinition.scale 	    = .6;
 	gNewObjectDefinition.slot 		= 0;
-	MakeFontStringObject("\pBROG", &gNewObjectDefinition, gGameViewInfoPtr, true);
+	MakeFontStringObject("BROG", &gNewObjectDefinition, gGameViewInfoPtr, true);
 
 	gNewObjectDefinition.coord.x 	= .43;
 	gNewObjectDefinition.coord.y 	= .8;
-	MakeFontStringObject("\pGRAG", &gNewObjectDefinition, gGameViewInfoPtr, true);
+	MakeFontStringObject("GRAG", &gNewObjectDefinition, gGameViewInfoPtr, true);
 
 }
 

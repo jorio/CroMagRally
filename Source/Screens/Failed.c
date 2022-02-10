@@ -68,8 +68,8 @@ static ObjNode	*gFailedIcons[2];
 
 static Str31	gMenuStrings[2] =
 {
-	"\pTRY AGAIN",
-	"\pRETIRE",
+	"TRY AGAIN",
+	"RETIRE",
 };
 
 

@@ -119,7 +119,7 @@ MOMaterialData	matData;
 		/* OPEN THE FILE */
 
 	if (FSpOpenDF(spec, fsRdPerm, &refNum) != noErr)
-		DoFatalAlert("\pLoadSpriteFile: FSpOpenDF failed");
+		DoFatalAlert("LoadSpriteFile: FSpOpenDF failed");
 
 		/* READ # SPRITES IN THIS FILE */
 
@@ -131,7 +131,7 @@ MOMaterialData	matData;
 
 	gSpriteGroupList[groupNum] = (SpriteType *)AllocPtr(sizeof(SpriteType) * gNumSpritesInGroupList[groupNum]);
 	if (gSpriteGroupList[groupNum] == nil)
-		DoFatalAlert("\pLoadSpriteFile: AllocPtr failed");
+		DoFatalAlert("LoadSpriteFile: AllocPtr failed");
 
 
 			/********************/
@@ -172,7 +172,7 @@ MOMaterialData	matData;
 
 		buffer = AllocPtr(bufferSize);							// alloc memory for buffer
 		if (buffer == nil)
-			DoFatalAlert("\pLoadSpriteFile: AllocPtr failed");
+			DoFatalAlert("LoadSpriteFile: AllocPtr failed");
 
 
 			/* READ THE SPRITE PIXEL BUFFER */
@@ -281,7 +281,7 @@ shrink_it:
 		gSpriteGroupList[groupNum][i].materialObject = MO_CreateNewObjectOfType(MO_TYPE_MATERIAL, 0, &matData);
 
 		if (gSpriteGroupList[groupNum][i].materialObject == nil)
-			DoFatalAlert("\pLoadSpriteFile: MO_CreateNewObjectOfType failed");
+			DoFatalAlert("LoadSpriteFile: MO_CreateNewObjectOfType failed");
 
 
 		SafeDisposePtr((Ptr)buffer);														// free the buffer
@@ -315,7 +315,7 @@ MOSpriteSetupData	spriteData;
 			/* ERROR CHECK */
 
 	if (newObjDef->type >= gNumSpritesInGroupList[newObjDef->group])
-		DoFatalAlert("\pMakeSpriteObject: illegal type");
+		DoFatalAlert("MakeSpriteObject: illegal type");
 
 
 			/* MAKE OBJNODE */
@@ -336,7 +336,7 @@ MOSpriteSetupData	spriteData;
 
 	spriteMO = MO_CreateNewObjectOfType(MO_TYPE_SPRITE, (u_long)setupInfo, &spriteData);
 	if (!spriteMO)
-		DoFatalAlert("\pMakeSpriteObject: MO_CreateNewObjectOfType failed!");
+		DoFatalAlert("MakeSpriteObject: MO_CreateNewObjectOfType failed!");
 
 
 			/* SET SPRITE MO INFO */
@@ -378,7 +378,7 @@ MOSpriteObject		*spriteMO;
 
 	spriteMO = MO_CreateNewObjectOfType(MO_TYPE_SPRITE, (u_long)setupInfo, &spriteData);
 	if (!spriteMO)
-		DoFatalAlert("\pModifySpriteObjectFrame: MO_CreateNewObjectOfType failed!");
+		DoFatalAlert("ModifySpriteObjectFrame: MO_CreateNewObjectOfType failed!");
 
 
 			/* SET SPRITE MO INFO */
@@ -409,7 +409,7 @@ MOMaterialObject	*m;
 
 	n = gNumSpritesInGroupList[group];								// get # sprites in this group
 	if ((n == 0) || (gSpriteGroupList[group] == nil))
-		DoFatalAlert("\pBlendAllSpritesInGroup: this group is empty");
+		DoFatalAlert("BlendAllSpritesInGroup: this group is empty");
 
 
 			/* DISPOSE OF ALL LOADED OPENGL TEXTURENAMES */
@@ -418,7 +418,7 @@ MOMaterialObject	*m;
 	{
 		m = gSpriteGroupList[group][i].materialObject; 				// get material object ptr
 		if (m == nil)
-			DoFatalAlert("\pBlendAllSpritesInGroup: material == nil");
+			DoFatalAlert("BlendAllSpritesInGroup: material == nil");
 
 		m->objectData.flags |= 	BG3D_MATERIALFLAG_ALWAYSBLEND;		// set flag
 	}
@@ -435,14 +435,14 @@ void BlendASprite(int group, int type)
 MOMaterialObject	*m;
 
 	if (type >= gNumSpritesInGroupList[group])
-		DoFatalAlert("\pBlendASprite: illegal type");
+		DoFatalAlert("BlendASprite: illegal type");
 
 
 			/* DISPOSE OF ALL LOADED OPENGL TEXTURENAMES */
 
 	m = gSpriteGroupList[group][type].materialObject; 				// get material object ptr
 	if (m == nil)
-		DoFatalAlert("\pBlendASprite: material == nil");
+		DoFatalAlert("BlendASprite: material == nil");
 
 	m->objectData.flags |= 	BG3D_MATERIALFLAG_ALWAYSBLEND;		// set flag
 }
@@ -540,7 +540,7 @@ float				scale,x,letterOffset;
 
 	len = s[0];										// get length of string
 	if (len > 31)
-		DoFatalAlert("\pMakeFontStringObject: string > 31 characters!");
+		DoFatalAlert("MakeFontStringObject: string > 31 characters!");
 
 
 	scale = newObj->Scale.x;												// get scale factor
@@ -584,7 +584,7 @@ float				scale,x,letterOffset;
 
 		spriteMO = MO_CreateNewObjectOfType(MO_TYPE_SPRITE, (u_long)setupInfo, &spriteData);
 		if (!spriteMO)
-			DoFatalAlert("\pMakeFontStringObject: MO_CreateNewObjectOfType failed!");
+			DoFatalAlert("MakeFontStringObject: MO_CreateNewObjectOfType failed!");
 
 
 				/* SET SPRITE MO INFO */

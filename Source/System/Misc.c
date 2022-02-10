@@ -80,7 +80,7 @@ Boolean     gGameIsRegistered = false;
 
 unsigned char	gRegInfo[64];
 
-Str255  gRegFileName = "\p:CroMag:Info";
+Str255  gRegFileName = ":CroMag:Info";
 
 
 /**********************/
@@ -109,7 +109,7 @@ Str255		numStr;
 	NumToString(err, numStr);
 	DoAlert (numStr);
 
-//	DebugStr("\pShowSystemErr has been called");
+//	DebugStr("ShowSystemErr has been called");
 
 	CleanQuit();
 }
@@ -157,7 +157,7 @@ Boolean	oldISpFlag = gISpActive;
 	ParamText(s,NIL_STRING,NIL_STRING,NIL_STRING);
 	NoteAlert(ERROR_ALERT_ID,nil);
 
-//	DebugStr("\pDoAlert has been called");
+//	DebugStr("DoAlert has been called");
 
 	if (oldISpFlag)
 		TurnOnISp();									// resume input sprockets if needed
@@ -215,7 +215,7 @@ OSErr	iErr;
 	ParamText(s,NIL_STRING,NIL_STRING,NIL_STRING);
 	iErr = NoteAlert(ERROR_ALERT_ID,nil);
 
-//	DebugStr("\pDoFatalAlert has been called");
+//	DebugStr("DoFatalAlert has been called");
 
 	CleanQuit();
 }
@@ -502,11 +502,11 @@ OSErr	err;
 	hand = NewHandle(size);							// alloc in APPL
 	if (hand == nil)
 	{
-		DoAlert("\pAllocHandle: using temp mem");
+		DoAlert("AllocHandle: using temp mem");
 		hand = TempNewHandle(size,&err);			// try TEMP mem
 		if (hand == nil)
 		{
-			DoAlert("\pAllocHandle: failed!");
+			DoAlert("AllocHandle: failed!");
 			return(nil);
 		}
 		else
@@ -529,7 +529,7 @@ u_long	*cookiePtr;
 
 	pr = NewPtr(size);						// alloc in Application
 	if (pr == nil)
-		DoFatalAlert("\pAllocPtr: NewPtr failed");
+		DoFatalAlert("AllocPtr: NewPtr failed");
 
 	cookiePtr = (u_long *)pr;
 
@@ -554,7 +554,7 @@ u_long	*cookiePtr;
 
 	pr = NewPtrClear(size);						// alloc in Application
 	if (pr == nil)
-		DoFatalAlert("\pAllocPtr: NewPtr failed");
+		DoFatalAlert("AllocPtr: NewPtr failed");
 
 	cookiePtr = (u_long *)pr;
 
@@ -579,7 +579,7 @@ u_long	*cookiePtr;
 	cookiePtr = (u_long *)ptr;
 
 	if (*cookiePtr != 'FACE')
-		DoFatalAlert("\pSafeSafeDisposePtr: invalid cookie!");
+		DoFatalAlert("SafeSafeDisposePtr: invalid cookie!");
 
 	*cookiePtr = 0;
 
@@ -660,7 +660,7 @@ NumVersion	vers;
 	{
 		if ((vers.minorAndBugRev == 0) && (vers.nonRelRev < 4))
 		{
-			DoFatalAlert("\pThis application requires CarbonLib 1.0.4 or newer.  Run Software Update, or download the latest CarbonLib from www.apple.com");
+			DoFatalAlert("This application requires CarbonLib 1.0.4 or newer.  Run Software Update, or download the latest CarbonLib from www.apple.com");
 		}
 	}
 
@@ -678,7 +678,7 @@ NumVersion	vers;
 		if ((d.year > 2000) ||
 			((d.year == 2000) && (d.month > 10)))
 		{
-			DoFatalAlert("\pSorry, but this beta has expired");
+			DoFatalAlert("Sorry, but this beta has expired");
 		}
 	}
 #endif
@@ -689,15 +689,15 @@ NumVersion	vers;
 	iErr = FindFolder(kOnSystemDisk,kPreferencesFolderType,kDontCreateFolder,		// locate the folder
 					&gPrefsFolderVRefNum,&gPrefsFolderDirID);
 	if (iErr != noErr)
-		DoAlert("\pWarning: Cannot locate the Preferences folder.");
+		DoAlert("Warning: Cannot locate the Preferences folder.");
 
-	iErr = DirCreate(gPrefsFolderVRefNum,gPrefsFolderDirID,"\pCroMag",&createdDirID);		// make folder in there
+	iErr = DirCreate(gPrefsFolderVRefNum,gPrefsFolderDirID,"CroMag",&createdDirID);		// make folder in there
 
 
 			/* CHECK OPENGL */
 
 	if ((Ptr) kUnresolvedCFragSymbolAddress == (Ptr) aglChoosePixelFormat) // check for existance of OpenGL
-		DoFatalAlert("\pThis application needs OpenGL to function.  Please install OpenGL and try again.");
+		DoFatalAlert("This application needs OpenGL to function.  Please install OpenGL and try again.");
 
 
 		/* CHECK SPROCKETS */
@@ -705,13 +705,13 @@ NumVersion	vers;
 	if (!gOSX)
 	{
 		if ((Ptr) kUnresolvedCFragSymbolAddress == (Ptr) ISpStartup) 							// check for existance of Input Sprocket
-			DoFatalAlert("\pThis application needs Input Sprocket to function.  Please install Game Sprockets and try again.");
+			DoFatalAlert("This application needs Input Sprocket to function.  Please install Game Sprockets and try again.");
 
 		if ((Ptr) kUnresolvedCFragSymbolAddress == (Ptr) DSpStartup) 							// check for existance of Draw Sprocket
-			DoFatalAlert("\pThis application needs Draw Sprocket to function.  Please install Game Sprockets and try again.");
+			DoFatalAlert("This application needs Draw Sprocket to function.  Please install Game Sprockets and try again.");
 
 		if ((Ptr) kUnresolvedCFragSymbolAddress == (Ptr) NSpInitialize) 						// check for existance of Net Sprocket
-			DoFatalAlert("\pThis application needs Net Sprocket to function.  Please install Game Sprockets and try again.");
+			DoFatalAlert("This application needs Net Sprocket to function.  Please install Game Sprockets and try again.");
 	}
 	else
 	{
@@ -723,7 +723,7 @@ NumVersion	vers;
 		if (OSX_PACKAGE)
 		{
 			if ((Ptr) kUnresolvedCFragSymbolAddress == (Ptr) NSpInitialize) 						// check for existance of Net Sprocket
-				DoFatalAlert("\pThis application needs Net Sprocket to function.  Please install the Net Sprocket libraries in your Cro-Mag Rally folder.");
+				DoFatalAlert("This application needs Net Sprocket to function.  Please install the Net Sprocket libraries in your Cro-Mag Rally folder.");
 		}
 	}
 
@@ -747,7 +747,7 @@ NumVersion	vers;
 				Gestalt(gestaltVMAttr,(long *)&vmAttr);	// get VM attribs to see if its ON
 				if (!(vmAttr & (1 << gestaltVMPresent)))
 				{
-					DoFatalAlert("\pPlease turn on Virtual Memory, reboot your computer, and try again");
+					DoFatalAlert("Please turn on Virtual Memory, reboot your computer, and try again");
 				}
 				gLowMemMode = true;
 			}
@@ -1072,7 +1072,7 @@ Rect			itemRect;
                     }
                     else
                     {
-                        DoAlert("\pSorry, that registration code is not valid.  Please try again.");
+                        DoAlert("Sorry, that registration code is not valid.  Please try again.");
 						InitCursor();
                     }
 					break;

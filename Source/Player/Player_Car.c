@@ -2710,15 +2710,15 @@ short			i, carType, sex;
 ObjNode			*wheel,*link;
 
 	if (playerNum >= MAX_PLAYERS)
-		DoFatalAlert("\pCreateCarWheelsAndHead: playerNum >= MAX_PLAYERS");
+		DoFatalAlert("CreateCarWheelsAndHead: playerNum >= MAX_PLAYERS");
 
 	sex = gPlayerInfo[playerNum].sex;							// get player sex
 	if (sex > 1)
-		DoFatalAlert("\pCreateCarWheelsAndHead: sx > 1");
+		DoFatalAlert("CreateCarWheelsAndHead: sx > 1");
 
 	carType = gPlayerInfo[playerNum].vehicleType;				// get car type
 	if (carType >= MAX_CAR_TYPES)
-		DoFatalAlert("\pCreateCarWheelsAndHead: carType >= MAX_CAR_TYPES");
+		DoFatalAlert("CreateCarWheelsAndHead: carType >= MAX_CAR_TYPES");
 
 	link = theCar;
 
@@ -2742,7 +2742,7 @@ ObjNode			*wheel,*link;
 		gNewObjectDefinition.scale 		= theCar->Scale.x;
 		wheel = MakeNewDisplayGroupObject(&gNewObjectDefinition);
 		if (wheel == nil)
-			DoFatalAlert("\pCreateCarWheelsAndHead: MakeNewDisplayGroupObject failed!");
+			DoFatalAlert("CreateCarWheelsAndHead: MakeNewDisplayGroupObject failed!");
 
 		wheel->WheelSpinRot = 0;
 		wheel->PlayerNum = playerNum;						// set playernum in this obj
@@ -2766,7 +2766,7 @@ ObjNode			*wheel,*link;
 
 	wheel = MakeNewSkeletonObject(&gNewObjectDefinition);
 	if (wheel == nil)
-		DoFatalAlert("\pCreateCarWheelsAndHead: MakeNewSkeletonObject failed!");
+		DoFatalAlert("CreateCarWheelsAndHead: MakeNewSkeletonObject failed!");
 
 	wheel->PlayerNum = playerNum;						// set playernum in this obj
 
@@ -3400,7 +3400,7 @@ static const OGLPoint3D	headOffsets[MAX_CAR_TYPES] =
 
 
 	if (playerNum >= gNumTotalPlayers)
-		DoFatalAlert("\pAlignWheelsAndHeadOnCar: playerNum >= gNumTotalPlayers");
+		DoFatalAlert("AlignWheelsAndHeadOnCar: playerNum >= gNumTotalPlayers");
 
 	carType = gPlayerInfo[playerNum].vehicleType;				// get car type
 	onWater = gPlayerInfo[playerNum].onWater;
@@ -3408,7 +3408,7 @@ static const OGLPoint3D	headOffsets[MAX_CAR_TYPES] =
 	carMatrix = &theCar->BaseTransformMatrix;					// point to car's transform matrix
 
 	if (carType >= MAX_CAR_TYPES)
-		DoFatalAlert("\pAlignWheelsAndHeadOnCar: carType >= MAX_CAR_TYPES");
+		DoFatalAlert("AlignWheelsAndHeadOnCar: carType >= MAX_CAR_TYPES");
 
 
 			/* GET OBJ NODES OF ALL OF THE WHEELS */
@@ -3544,7 +3544,7 @@ static const OGLPoint3D	headOffsets[MAX_CAR_TYPES] =
 	return;
 
 err:
-	DoFatalAlert("\pAlignWheelsAndHeadOnCar:  chain node is nil");
+	DoFatalAlert("AlignWheelsAndHeadOnCar:  chain node is nil");
 }
 
 

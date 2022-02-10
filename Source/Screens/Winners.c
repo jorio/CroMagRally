@@ -162,16 +162,16 @@ static OGLPoint3D			cameraTo = {0,300,0};
 
 			/* LOAD SPRITES */
 
-//	FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, "\p:sprites:trackselect.sprites", &spec);
+//	FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":sprites:trackselect.sprites", &spec);
 //	LoadSpriteFile(&spec, SPRITE_GROUP_TRACKSELECTSCREEN, gGameViewInfoPtr);
 
 
 			/* LOAD BG3D GEOMETRY */
 
-	FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, "\p:models:winners.bg3d", &spec);
+	FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":models:winners.bg3d", &spec);
 	ImportBG3D(&spec, MODEL_GROUP_WINNERS, gGameViewInfoPtr);
 
-	FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, "\p:models:carparts.bg3d", &spec);
+	FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":models:carparts.bg3d", &spec);
 	ImportBG3D(&spec, MODEL_GROUP_CARPARTS, gGameViewInfoPtr);
 
 

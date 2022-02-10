@@ -56,9 +56,9 @@ static Boolean PlayerReceiveVehicleTypeFromOthers(short *playerNum, short *charT
 #define	DATA_TIMEOUT	2						// # seconds for data to timeout
 
 #if DEMO
-#define	kNBPType		"\pCMD5"
+#define	kNBPType		"CMD5"
 #else
-#define	kNBPType		"\pCMR5"
+#define	kNBPType		"CMR5"
 #endif
 
 /**********************/
@@ -78,7 +78,7 @@ NSpGameReference	gNetGame = nil;
 static Str31				gameName;
 static Str31				gNetPlayerName;
 static Str31				password;
-static Str31				kJoinDialogLabel = "\pChoose a Game:";
+static Str31				kJoinDialogLabel = "Choose a Game:";
 
 ListHandle		gTheList;
 short			gNumRowsInList;
@@ -109,7 +109,7 @@ OSStatus    iErr;
 
 		iErr = NSpInitialize(sizeof(NetHostControlInfoMessageType), kBufferSize, kQElements, kGameID, kTimeout);
 	    if (iErr)
-	        DoFatalAlert("\pInitNetworkManager: NSpInitialize failed!");
+	        DoFatalAlert("InitNetworkManager: NSpInitialize failed!");
 
 		gNetSprocketInitialized = true;
 	}
@@ -135,7 +135,7 @@ OSErr	iErr;
 		Wait(40);						// do this pause to let clients sync up so they don't get the terminate message prematurely
 		iErr = NSpGame_Dispose(gNetGame, kNSpGameFlag_ForceTerminateGame);	// do not renegotiate a new host
 		if (iErr)
-			DoFatalAlert("\pEndNetworkGame: NSpGame_Dispose failed!");
+			DoFatalAlert("EndNetworkGame: NSpGame_Dispose failed!");
 	}
 
 			/* CLIENTS CAN JUST BAIL NORMALLY */
@@ -143,7 +143,7 @@ OSErr	iErr;
 	{
 		iErr = NSpGame_Dispose(gNetGame, 0);
 		if (iErr)
-			DoFatalAlert("\pEndNetworkGame: NSpGame_Dispose failed!");
+			DoFatalAlert("EndNetworkGame: NSpGame_Dispose failed!");
 	}
 
 
@@ -195,7 +195,7 @@ NSpProtocolReference 		atRef;
 
 	status = NSpProtocolList_New(NULL, &theList);
 	if (status)
-		DoFatalAlert("\pSetupNetworkHosting: NSpProtocolList_New failed!");
+		DoFatalAlert("SetupNetworkHosting: NSpProtocolList_New failed!");
 
 	if (!gOSX)
 	{
@@ -223,7 +223,7 @@ NSpProtocolReference 		atRef;
 				password, gNetPlayerName, 0, kNSpClientServer, 0);
 	if (status || (gNetGame==nil))
 	{
-		DoAlert("\pSetupNetworkHosting: NSpGame_Host failed!");
+		DoAlert("SetupNetworkHosting: NSpGame_Host failed!");
 		ShowSystemErr_NonFatal(status);	//----------
 		goto failure;
 	}
@@ -622,7 +622,7 @@ NSpPlayerInfoPtr		playerInfoPtr;
 			status = NSpMessage_Send(gNetGame, &message.h, kNSpSendFlag_Registered);	// send message
 			if (status)
 			{
-				DoAlert("\pHostSendGameConfigInfo: NSpMessage_Send failed!");
+				DoAlert("HostSendGameConfigInfo: NSpMessage_Send failed!");
 				break;
 			}
 		}
@@ -771,7 +771,7 @@ Boolean handled = false;
 					break;
 
 			case	kNSpError:
-					DoFatalAlert("\pClient_WaitForGameConfigInfoDialogCallback: message == kNSpError");
+					DoFatalAlert("Client_WaitForGameConfigInfoDialogCallback: message == kNSpError");
 					break;
 
 			default:
@@ -881,7 +881,7 @@ int						startTick = TickCount();
 						break;
 
 				case	kNSpError:
-						DoFatalAlert("\pHostWaitForPlayersToPrepareLevel: message == kNSpError");
+						DoFatalAlert("HostWaitForPlayersToPrepareLevel: message == kNSpError");
 						break;
 
 				default:
@@ -895,7 +895,7 @@ int						startTick = TickCount();
 
 		if ((TickCount() - startTick) > (60 * 60 * 2))			// if no response for 2 minutes, then time out
 		{
-			DoFatalAlert("\pNo Response from other player(s), something has gone wrong.");
+			DoFatalAlert("No Response from other player(s), something has gone wrong.");
 		}
 	}
 
@@ -912,7 +912,7 @@ int						startTick = TickCount();
 	outMess.playerNum 		= 0;									// (not used this time)
 	status = NSpMessage_Send(gNetGame, &outMess.h, kNSpSendFlag_Registered);	// send message
 	if (status)
-		DoFatalAlert("\pHostWaitForPlayersToPrepareLevel: NSpMessage_Send failed!");
+		DoFatalAlert("HostWaitForPlayersToPrepareLevel: NSpMessage_Send failed!");
 }
 
 
@@ -941,7 +941,7 @@ NSpMessageHeader 		*inMess;
 	outMess.playerNum 		= gMyNetworkPlayerNum;										// set player num
 	status = NSpMessage_Send(gNetGame, &outMess.h, kNSpSendFlag_Registered);	// send message
 	if (status)
-		DoFatalAlert("\pClientTellHostLevelIsPrepared: NSpMessage_Send failed!");
+		DoFatalAlert("ClientTellHostLevelIsPrepared: NSpMessage_Send failed!");
 
 
 		/**************************/
@@ -960,7 +960,7 @@ NSpMessageHeader 		*inMess;
 						break;
 
 				case	kNSpError:
-						DoFatalAlert("\pHostWaitForPlayersToPrepareLevel: message == kNSpError");
+						DoFatalAlert("HostWaitForPlayersToPrepareLevel: message == kNSpError");
 						break;
 
 				default:
@@ -1015,7 +1015,7 @@ short							i;
 
 	status = NSpMessage_Send(gNetGame, &gHostOutMess.h, kNSpSendFlag_Registered);
 	if (status)
-		DoFatalAlert("\pHostSend_ControlInfoToClients: NSpMessage_Send failed!");
+		DoFatalAlert("HostSend_ControlInfoToClients: NSpMessage_Send failed!");
 }
 
 
@@ -1049,7 +1049,7 @@ Boolean								gotIt = false;
 						if (mess->frameCounter < gHostSendCounter)			// see if this is an old packet, possibly a duplicate.  If so, skip it
 							break;
 						if (mess->frameCounter > gHostSendCounter)			// see if we skipped a packet; one must have gotten lost
-							DoFatalAlert("\pClientReceive_ControlInfoFromHost: It seems Net Sprocket has lost a packet");
+							DoFatalAlert("ClientReceive_ControlInfoFromHost: It seems Net Sprocket has lost a packet");
 						gHostSendCounter++;									// inc host counter since the next packet we get will be +1
 
 						gFramesPerSecond 		= mess->fps;
@@ -1057,7 +1057,7 @@ Boolean								gotIt = false;
 
 						if (MyRandomLong() != mess->randomSeed)				// verify that host's random # is in sync with ours!
 						{
-							DoFatalAlert("\pClientReceive_ControlInfoFromHost: Not in sync!  Net Sprocket must have lost some data.");
+							DoFatalAlert("ClientReceive_ControlInfoFromHost: Not in sync!  Net Sprocket must have lost some data.");
 						}
 
 						for (i = 0; i < MAX_PLAYERS; i++)					// control bits
@@ -1071,7 +1071,7 @@ Boolean								gotIt = false;
 						break;
 
 				case	kNSpError:
-						DoFatalAlert("\pClientReceive_ControlInfoFromHost: message == kNSpError");
+						DoFatalAlert("ClientReceive_ControlInfoFromHost: message == kNSpError");
 						break;
 
 				default:
@@ -1091,7 +1091,7 @@ Boolean								gotIt = false;
 		{
 			gTimeoutCounter++;								// keep track of how often this happens
 			if (gTimeoutCounter > 3)
-				DoFatalAlert("\pClientReceive_ControlInfoFromHost: the network is losing too much data, must abort.");
+				DoFatalAlert("ClientReceive_ControlInfoFromHost: the network is losing too much data, must abort.");
 
 			NSpMessage_Send(gNetGame, &gClientOutMess.h, kNSpSendFlag_Registered);	// resend the last message
 			tick = TickCount();														// reset tick
@@ -1134,7 +1134,7 @@ OSStatus						status;
 
 	status = NSpMessage_Send(gNetGame, &gClientOutMess.h, kNSpSendFlag_Registered);
 //	if (status)
-//		DoFatalAlert("\pClientSend_ControlInfoToHost: NSpMessage_Send failed!");
+//		DoFatalAlert("ClientSend_ControlInfoToHost: NSpMessage_Send failed!");
 }
 
 
@@ -1168,7 +1168,7 @@ short								n,i;
 						if (mess->frameCounter < gClientSendCounter[i])			// see if this is an old packet, possibly a duplicate.  If so, skip it
 							break;
 						if (mess->frameCounter > gClientSendCounter[i])			// see if we skipped a packet; one must have gotten lost
-							DoFatalAlert("\pHostReceive_ControlInfoFromClients: It seems Net Sprocket has lost a packet");
+							DoFatalAlert("HostReceive_ControlInfoFromClients: It seems Net Sprocket has lost a packet");
 						gClientSendCounter[i]++;								// inc counter since the next packet we get will be +1
 
 
@@ -1180,7 +1180,7 @@ short								n,i;
 						break;
 
 				case	kNSpError:
-						DoFatalAlert("\pHostReceive_ControlInfoFromClients: message == kNSpError");
+						DoFatalAlert("HostReceive_ControlInfoFromClients: message == kNSpError");
 						break;
 
 				default:
@@ -1195,7 +1195,7 @@ short								n,i;
 		{
 			gTimeoutCounter++;								// keep track of how often this happens
 			if (gTimeoutCounter > 3)
-				DoFatalAlert("\pHostReceive_ControlInfoFromClients: the network is losing too much data, must abort.");
+				DoFatalAlert("HostReceive_ControlInfoFromClients: the network is losing too much data, must abort.");
 
 			NSpMessage_Send(gNetGame, &gHostOutMess.h, kNSpSendFlag_Registered);
 			tick = TickCount();														// reset tick
@@ -1235,7 +1235,7 @@ NetPlayerCharTypeMessage	outMess;
 
 	status = NSpMessage_Send(gNetGame, &outMess.h, kNSpSendFlag_Registered);
 	if (status)
-		DoFatalAlert("\pPlayerBroadcastVehicleType: NSpMessage_Send failed!");
+		DoFatalAlert("PlayerBroadcastVehicleType: NSpMessage_Send failed!");
 }
 
 /***************** GET VEHICLE SELECTION FROM NET PLAYERS ***********************/
@@ -1293,7 +1293,7 @@ Boolean							gotType = false;
 					break;
 
 			case	kNSpError:
-					DoFatalAlert("\pPlayerReceiveVehicleTypeFromOthers: message == kNSpError");
+					DoFatalAlert("PlayerReceiveVehicleTypeFromOthers: message == kNSpError");
 					break;
 
 			default:
@@ -1323,7 +1323,7 @@ static Boolean HandleOtherNetMessage(NSpMessageHeader	*message)
 					/* AN ERROR MESSAGE */
 
 		case	kNSpError:
-				DoFatalAlert("\pHandleOtherNetMessage: kNSpError");
+				DoFatalAlert("HandleOtherNetMessage: kNSpError");
 
 
 					/* A PLAYER UNEXPECTEDLY HAS LEFT THE GAME */
@@ -1335,7 +1335,7 @@ static Boolean HandleOtherNetMessage(NSpMessageHeader	*message)
 					/* THE HOST HAS UNEXPECTEDLY LEFT THE GAME */
 
 		case	kNSpGameTerminated:
-				DoAlert("\pGame Terminated: The Host has unexpectedly quit the game.");
+				DoAlert("Game Terminated: The Host has unexpectedly quit the game.");
 				EndNetworkGame();
 				gGameOver = true;
 				break;
@@ -1346,37 +1346,37 @@ static Boolean HandleOtherNetMessage(NSpMessageHeader	*message)
 				break;
 
 		case	kNSpJoinRequest:
-				DoFatalAlert("\pHandleOtherNetMessage: kNSpJoinRequest");
+				DoFatalAlert("HandleOtherNetMessage: kNSpJoinRequest");
 
 		case	kNSpJoinApproved:
-				DoFatalAlert("\pHandleOtherNetMessage: kNSpJoinApproved");
+				DoFatalAlert("HandleOtherNetMessage: kNSpJoinApproved");
 
 		case	kNSpJoinDenied:
-				DoFatalAlert("\pHandleOtherNetMessage: kNSpJoinDenied");
+				DoFatalAlert("HandleOtherNetMessage: kNSpJoinDenied");
 
 		case	kNSpPlayerJoined:
-				DoFatalAlert("\pHandleOtherNetMessage: kNSpPlayerJoined");
+				DoFatalAlert("HandleOtherNetMessage: kNSpPlayerJoined");
 
 		case	kNSpHostChanged:
-				DoFatalAlert("\pHandleOtherNetMessage: kNSpHostChanged");
+				DoFatalAlert("HandleOtherNetMessage: kNSpHostChanged");
 
 		case	kNSpGroupCreated:
-				DoFatalAlert("\pHandleOtherNetMessage: kNSpGroupCreated");
+				DoFatalAlert("HandleOtherNetMessage: kNSpGroupCreated");
 
 		case	kNSpGroupDeleted:
-				DoFatalAlert("\pHandleOtherNetMessage: kNSpGroupDeleted");
+				DoFatalAlert("HandleOtherNetMessage: kNSpGroupDeleted");
 
 		case	kNSpPlayerAddedToGroup:
-				DoFatalAlert("\pHandleOtherNetMessage: kNSpPlayerAddedToGroup");
+				DoFatalAlert("HandleOtherNetMessage: kNSpPlayerAddedToGroup");
 
 		case	kNSpPlayerRemovedFromGroup:
-				DoFatalAlert("\pHandleOtherNetMessage: kNSpPlayerAddedToGroup");
+				DoFatalAlert("HandleOtherNetMessage: kNSpPlayerAddedToGroup");
 
 		case	kNSpPlayerTypeChanged:
-				DoFatalAlert("\pHandleOtherNetMessage: kNSpPlayerAddedToGroup");
+				DoFatalAlert("HandleOtherNetMessage: kNSpPlayerAddedToGroup");
 
 		default:
-				DoFatalAlert("\pHandleOtherNetMessage: unknown");
+				DoFatalAlert("HandleOtherNetMessage: unknown");
 	}
 
 	return(gGameOver);
@@ -1405,7 +1405,7 @@ NSpPlayerID	playerID = mess->playerID;
 				 goto matched_id;
 		}
 	}
-	DoFatalAlert("\pPlayerUnexpectedlyLeavesGame: cannot find matching player id#");
+	DoFatalAlert("PlayerUnexpectedlyLeavesGame: cannot find matching player id#");
 
 
 matched_id:
@@ -1457,7 +1457,7 @@ NSpMessageHeader			outMess;
 
 	status = NSpMessage_Send(gNetGame, &outMess, kNSpSendFlag_Registered);
 	if (status)
-		DoFatalAlert("\pPlayerBroadcastNullPacket: NSpMessage_Send failed!");
+		DoFatalAlert("PlayerBroadcastNullPacket: NSpMessage_Send failed!");
 }
 
 

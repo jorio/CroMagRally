@@ -313,7 +313,7 @@ Handle	hand;
 		{
 			hand = AllocHandle(REG_LENGTH);								// alloc handle
 			BlockMove(&s[1], *hand, REG_LENGTH);						// copy code into handle
-			AddResource(hand, 'BseR', 128+count, "\p");					// write rez to file
+			AddResource(hand, 'BseR', 128+count, "");					// write rez to file
 		}
 		WriteResource(hand);
 		ReleaseResource(hand);
@@ -334,7 +334,7 @@ Handle	hand;
 	    if (iErr == noErr)
 		{
 			FSpDelete(&spec);											// delete the registration file
-			DoAlert("\pThe serial number being used has been reported as a pirated number.  Please enter a valid registration code to continue playing.");
+			DoAlert("The serial number being used has been reported as a pirated number.  Please enter a valid registration code to continue playing.");
 		}
 		gGamePrefs.lastVersCheckDate.year = 0;							// reset date so will check again next launch
 		SavePrefs();
@@ -445,7 +445,7 @@ OSStatus 	err;
 
 	if (gHTTPDataHandle == nil)
 	{
-		DoFatalAlert("\pDownloadURL: gHTTPDataHandle == nil");
+		DoFatalAlert("DownloadURL: gHTTPDataHandle == nil");
 
 	}
 

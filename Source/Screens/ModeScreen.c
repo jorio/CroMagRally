@@ -253,16 +253,16 @@ short				i;
 
 			/* CREATE BACKGROUND OBJECT */
 
-	if (FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, "\p:images:GameModeScreen", &spec))
-		DoFatalAlert("\pDoGameMode: background pict not found.");
+	if (FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":images:GameModeScreen", &spec))
+		DoFatalAlert("DoGameMode: background pict not found.");
 	gBackgoundPicture = MO_CreateNewObjectOfType(MO_TYPE_PICTURE, (u_long)gGameViewInfoPtr, &spec);
 	if (!gBackgoundPicture)
-		DoFatalAlert("\pDoGameMode: MO_CreateNewObjectOfType failed");
+		DoFatalAlert("DoGameMode: MO_CreateNewObjectOfType failed");
 
 
 			/* LOAD SPRITES */
 
-	FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, "\p:sprites:gamemode.sprites", &spec);
+	FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":sprites:gamemode.sprites", &spec);
 	LoadSpriteFile(&spec, SPRITE_GROUP_MODESCREEN, gGameViewInfoPtr);
 
 

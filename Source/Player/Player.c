@@ -634,7 +634,7 @@ short	i,j;
 		if (i >= gNumTotalPlayers)			// wrap around
 			i = 0;
 		if (i == j)							// error check
-			DoFatalAlert("\pChooseTaggedPlayer: all players have been eliminated");
+			DoFatalAlert("ChooseTaggedPlayer: all players have been eliminated");
 	}
 
 	gPlayerInfo[i].isIt = true;

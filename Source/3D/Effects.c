@@ -199,7 +199,7 @@ ObjNode	*obj;
 
 			/* LOAD SPRITES */
 
-	FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, "\p:sprites:particle.sprites", &spec);
+	FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":sprites:particle.sprites", &spec);
 	LoadSpriteFile(&spec, SPRITE_GROUP_PARTICLES, setupInfo);
 
 	BlendAllSpritesInGroup(SPRITE_GROUP_PARTICLES);
@@ -378,7 +378,7 @@ MOTriangleIndecies		*t;
 
 			/* NOTHING FREE */
 
-//	DoFatalAlert("\pNewParticleGroup: no free groups!");
+//	DoFatalAlert("NewParticleGroup: no free groups!");
 	return(-1);
 }
 
@@ -395,7 +395,7 @@ short	p,group;
 	group = def->groupNum;
 
 	if ((group < 0) || (group >= MAX_PARTICLE_GROUPS))
-		DoFatalAlert("\pAddParticleToGroup: illegal group #");
+		DoFatalAlert("AddParticleToGroup: illegal group #");
 
 	if (gParticleGroups[group] == nil)
 	{

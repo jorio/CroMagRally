@@ -210,26 +210,26 @@ short	i;
 MOSpriteSetupData	spriteData;
 Str255	maps[] =
 {
-	"\p:sprites:maps:DesertMap",
-	"\p:sprites:maps:JungleMap",
-	"\p:sprites:maps:IceMap",
+	":sprites:maps:DesertMap",
+	":sprites:maps:JungleMap",
+	":sprites:maps:IceMap",
 
-	"\p:sprites:maps:CreteMap",
-	"\p:sprites:maps:ChinaMap",
-	"\p:sprites:maps:EgyptMap",
+	":sprites:maps:CreteMap",
+	":sprites:maps:ChinaMap",
+	":sprites:maps:EgyptMap",
 
-	"\p:sprites:maps:EuropeMap",
-	"\p:sprites:maps:ScandinaviaMap",
-	"\p:sprites:maps:AtlantisMap",
+	":sprites:maps:EuropeMap",
+	":sprites:maps:ScandinaviaMap",
+	":sprites:maps:AtlantisMap",
 
-	"\p:sprites:maps:StoneHengeMap",
-	"\p:sprites:maps:AztecMap",
-	"\p:sprites:maps:ColiseumMap",
-	"\p:sprites:maps:MazeMap",
-	"\p:sprites:maps:CelticMap",
-	"\p:sprites:maps:TarPitsMap",
-	"\p:sprites:maps:SpiralMap",
-	"\p:sprites:maps:RampsMap",
+	":sprites:maps:StoneHengeMap",
+	":sprites:maps:AztecMap",
+	":sprites:maps:ColiseumMap",
+	":sprites:maps:MazeMap",
+	":sprites:maps:CelticMap",
+	":sprites:maps:TarPitsMap",
+	":sprites:maps:SpiralMap",
+	":sprites:maps:RampsMap",
 };
 
 
@@ -249,7 +249,7 @@ Str255	maps[] =
 
 	gMapSprite = MO_CreateNewObjectOfType(MO_TYPE_SPRITE, (u_long)setupInfo, &spriteData);
 	if (!gMapSprite)
-		DoFatalAlert("\pInitInfobar: cant find map sprite");
+		DoFatalAlert("InitInfobar: cant find map sprite");
 
 	gMapSprite->objectData.scaleBasis = 1.0;							// don't use the scale basis since we're putting the dots on the map and we need this to be easy
 
@@ -1336,11 +1336,11 @@ static const float scale[3] =
 	switch(mode)
 	{
 		case	0:
-				gWinLoseString[playerNum] = MakeFontStringObject("\pELIMINATED", &gNewObjectDefinition, gGameViewInfoPtr, true);
+				gWinLoseString[playerNum] = MakeFontStringObject("ELIMINATED", &gNewObjectDefinition, gGameViewInfoPtr, true);
 				break;
 
 		case	1:
-				gWinLoseString[playerNum] = MakeFontStringObject("\pYOU WIN", &gNewObjectDefinition, gGameViewInfoPtr, true);
+				gWinLoseString[playerNum] = MakeFontStringObject("YOU WIN", &gNewObjectDefinition, gGameViewInfoPtr, true);
 				break;
 
 		case	2:
@@ -1369,7 +1369,7 @@ static const float scale[3] =
 					gWinLoseString[playerNum] = MakeFontStringObject(s, &gNewObjectDefinition, gGameViewInfoPtr, true);
 				}
 				else
-					gWinLoseString[playerNum] = MakeFontStringObject("\pYOU LOSE", &gNewObjectDefinition, gGameViewInfoPtr, true);
+					gWinLoseString[playerNum] = MakeFontStringObject("YOU LOSE", &gNewObjectDefinition, gGameViewInfoPtr, true);
 				break;
 
 	}

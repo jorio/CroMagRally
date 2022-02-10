@@ -65,7 +65,7 @@ void SetSkeletonAnim(SkeletonObjDataType *skeleton, long animNum)
 
 	if (animNum >= skeleton->skeletonDefinition->NumAnims)
 	{
-		DoFatalAlert("\pSetSkeletonAnim: illegal animNum");
+		DoFatalAlert("SetSkeletonAnim: illegal animNum");
 	}
 
 	skeleton->LoopBackTime = 0;								// assume no SetMarker & it loops or zigzags to time 0:00
@@ -98,7 +98,7 @@ SkeletonDefType	*skeletonDef;
 		return;
 
 	if (animNum >= skeleton->skeletonDefinition->NumAnims)
-		DoFatalAlert("\pMorphToSkeletonAnim: bad anim #");
+		DoFatalAlert("MorphToSkeletonAnim: bad anim #");
 
 	SetSkeletonAnim(skeleton,animNum);
 
@@ -246,14 +246,14 @@ float	fps;
 
 			case	ANIMEVENT_TYPE_SETFLAG:
 					if (eventValue >= MAX_FLAGS_IN_OBJNODE)
-						DoFatalAlert("\pError: ANIMEVENT_TYPE_SETFLAG > MAX_FLAGS_IN_OBJNODE!");
+						DoFatalAlert("Error: ANIMEVENT_TYPE_SETFLAG > MAX_FLAGS_IN_OBJNODE!");
 					theNode->Flag[eventValue] = true;
 					animEventIndex++;
 					break;
 
 			case	ANIMEVENT_TYPE_CLEARFLAG:
 					if (eventValue >= MAX_FLAGS_IN_OBJNODE)
-						DoFatalAlert("\pError: ANIMEVENT_TYPE_SETFLAG > MAX_FLAGS_IN_OBJNODE!");
+						DoFatalAlert("Error: ANIMEVENT_TYPE_SETFLAG > MAX_FLAGS_IN_OBJNODE!");
 					theNode->Flag[eventValue] = false;
 					animEventIndex++;
 					break;
@@ -596,16 +596,16 @@ long	i;
 
 	i = (long)((CURVE_SIZE-1)*percent);
 	if (gAccelerationCurve[i] > 1.0f)
-		DoFatalAlert("\p gAccelerationCurve > 1.0");
+		DoFatalAlert(" gAccelerationCurve > 1.0");
 	else
 	if (gAccelerationCurve[i] < 0.0f)
-		DoFatalAlert("\p gAccelerationCurve < 0");
+		DoFatalAlert(" gAccelerationCurve < 0");
 
 	if (percent > 1.0f)
-		DoFatalAlert("\p AccelerationPercent > 1.0");
+		DoFatalAlert(" AccelerationPercent > 1.0");
 	else
 	if (percent < 0.0f)
-		DoFatalAlert("\p AccelerationPercent < 0");
+		DoFatalAlert(" AccelerationPercent < 0");
 
 	return(gAccelerationCurve[i]);
 }

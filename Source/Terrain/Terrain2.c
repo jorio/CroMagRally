@@ -167,14 +167,14 @@ int						total;
 	Alloc_2d_array(SuperTileItemIndexType, gSuperTileItemIndexGrid, gNumSuperTilesDeep, gNumSuperTilesWide);
 
 	if (gNumTerrainItems == 0)
-		DoFatalAlert("\pBuildTerrainItemList: there must be at least 1 terrain item!");
+		DoFatalAlert("BuildTerrainItemList: there must be at least 1 terrain item!");
 
 
 			/* ALLOC MEMORY FOR NEW LIST */
 
 	tempItemList = (TerrainItemEntryType **)AllocHandle(sizeof(TerrainItemEntryType) * gNumTerrainItems);
 	if (tempItemList == nil)
-		DoFatalAlert("\pBuildTerrainItemList: AllocPtr failed!");
+		DoFatalAlert("BuildTerrainItemList: AllocPtr failed!");
 
 	HLock((Handle)gMasterItemList);
 	HLock((Handle)tempItemList);
@@ -287,7 +287,7 @@ Boolean                 flags[MAX_PLAYERS];
 			gPlayerInfo[p].startRotY = PI2 * ((float)itemPtr[i].parm[1] * (1.0f/16.0f));	// calc starting rotation aim
 
 			if (flags[p])                      								// if we already got a coord for this player then err
-                DoFatalAlert("\pFindPlayerStartCoordItems:  duplicate start item for player #n");
+                DoFatalAlert("FindPlayerStartCoordItems:  duplicate start item for player #n");
 	        flags[p] = true;
 		}
 	}
@@ -335,7 +335,7 @@ Boolean			flag;
 		type = itemPtr[i].type;									// get item #
 		if (type > MAX_ITEM_NUM)								// error check!
 		{
-			DoAlert("\pIllegal Map Item Type!");
+			DoAlert("Illegal Map Item Type!");
 			ShowSystemErr(type);
 		}
 
@@ -531,7 +531,7 @@ float				x,z,t;
 long				row,col;
 
 	if (gMasterItemList == nil)
-		DoFatalAlert("\pDoItemShadowCasting: gMasterItemList = nil");
+		DoFatalAlert("DoItemShadowCasting: gMasterItemList = nil");
 
 
 			/* INIT SHADOW FLAGS TEMP BUFFER */

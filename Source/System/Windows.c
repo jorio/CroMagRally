@@ -142,7 +142,7 @@ float		w,h;
 	iErr = DMGetGDeviceByDisplayID(displayID, &phGD, true);				// get GDHandle for ID'd device
 	if (iErr != noErr)
 	{
-		DoFatalAlert("\pInitWindowStuff: DMGetGDeviceByDisplayID failed!");
+		DoFatalAlert("InitWindowStuff: DMGetGDeviceByDisplayID failed!");
 	}
 
 	r.top  		= (short) ((**phGD).gdRect.top + ((**phGD).gdRect.bottom - (**phGD).gdRect.top) / 2);	  	// h center
@@ -156,7 +156,7 @@ float		w,h;
 			/* GET SOME INFO ABOUT THIS GDEVICE */
 
 //	if (OGL_CheckRenderer(phGD, &totalVRAM) == false)
-//		DoAlert("\pNo 3D hardware acceleration was found.  Check that the drivers for your 3D accelerator are installed properly");
+//		DoAlert("No 3D hardware acceleration was found.  Check that the drivers for your 3D accelerator are installed properly");
 
 
 #else
@@ -168,7 +168,7 @@ float		w,h;
 
 		SetRect(&r, 100,100,1024,768);
 
-		window = NewCWindow(nil, &r, "\p", true, plainDBox, (void *)-1, false, nil);
+		window = NewCWindow(nil, &r, "", true, plainDBox, (void *)-1, false, nil);
 		gDisplayContextGrafPtr = GetWindowPort(window);
 	}
 
@@ -286,7 +286,7 @@ const RGBColor			rgbBlack	= { 0x0000, 0x0000, 0x0000 };
 	theError = DSpStartup();
 	if( theError )
 	{
-		DoFatalAlert("\pDSpStartup failed!");
+		DoFatalAlert("DSpStartup failed!");
 	}
 	gLoadedDrawSprocket = true;
 
@@ -333,14 +333,14 @@ try_again:
 	{
 		gGamePrefs.showScreenModeDialog = true;		// show the settings dialog next time
 		SavePrefs();
-		DoFatalAlert("\pDraw Sprocket could not set monitor to desired resolution and/or depth.  Please try again and select a different video mode.");
+		DoFatalAlert("Draw Sprocket could not set monitor to desired resolution and/or depth.  Please try again and select a different video mode.");
 	}
 
 				/* RESERVE IT */
 
 	theError = DSpContext_Reserve( gDisplayContext, &displayConfig );
 	if( theError )
-		DoFatalAlert("\pPrepDrawSprockets: DSpContext_Reserve failed");
+		DoFatalAlert("PrepDrawSprockets: DSpContext_Reserve failed");
 
 	DSpSetBlankingColor(&rgbBlack);
 
@@ -357,7 +357,7 @@ try_again:
 	{
 		DSpContext_Release( gDisplayContext );
 		gDisplayContext = nil;
-		DoFatalAlert("\pPrepDrawSprockets: DSpContext_SetState failed");
+		DoFatalAlert("PrepDrawSprockets: DSpContext_SetState failed");
 		return;
 	}
 
@@ -365,7 +365,7 @@ try_again:
 
 	theError = DSpContext_GetFrontBuffer(gDisplayContext, &gDisplayContextGrafPtr);
 	if (theError || (gDisplayContextGrafPtr == nil))
-		DoFatalAlert("\pPrepDrawSprockets: DSpContext_GetFrontBuffer failed");
+		DoFatalAlert("PrepDrawSprockets: DSpContext_GetFrontBuffer failed");
 
 	gGammaFadePercent = 100.0f;
 #if ALLOW_FADE
@@ -660,7 +660,7 @@ AGLContext agl_ctx = gAGLContext;
 		{
 			GLboolean      ok = aglSetDrawable(gAGLContext, gAGLWin);					// reenable gl
 			if ((!ok) || (aglGetError() != AGL_NO_ERROR))
-				DoFatalAlert("\pExit2D: aglSetDrawable failed!");
+				DoFatalAlert("Exit2D: aglSetDrawable failed!");
 
 		}
 	}
@@ -687,7 +687,7 @@ Rect			r;
 	GetGWorld (&oldGW,&oldGD);
 	pm = GetGWorldPixMap(thisWorld);
 	if ((pm == nil) | (*pm == nil) )
-		DoAlert("\pPixMap Handle or Ptr = Null?!");
+		DoAlert("PixMap Handle or Ptr = Null?!");
 
 	SetPort(GetWindowPort(thisWindow));
 
@@ -713,7 +713,7 @@ PixMapHandle pm;
 
 	pm = GetGWorldPixMap(world);
 	if (LockPixels(pm) == false)
-		DoFatalAlert("\pPixMap Went Bye,Bye?!");
+		DoFatalAlert("PixMap Went Bye,Bye?!");
 }
 
 
@@ -990,7 +990,7 @@ Str255	s,t;
 
 	GetMouse(&pt);
 
-	aMenu = NewMenu(100, "\pVideo Modes");
+	aMenu = NewMenu(100, "Video Modes");
 
 	for (i=0; i < gNumVideoModes; i++)
 	{
