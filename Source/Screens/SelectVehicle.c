@@ -347,7 +347,7 @@ u_long				n;
 
 			/* MAKE BACKGROUND PICTURE OBJECT */
 
-	if (FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":images:VehicleSelectScreen", &spec))
+	if (FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":images:VehicleSelectScreen.jpg", &spec))
 		DoFatalAlert("SetupVehicleSelectScreen: background pict not found.");
 
 	gBackgoundPicture = MO_CreateNewObjectOfType(MO_TYPE_PICTURE, (u_long)gGameViewInfoPtr, &spec);

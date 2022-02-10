@@ -229,7 +229,7 @@ OGLSetupInputType	viewDef;
 
 			/* MAKE BACKGROUND PICTURE OBJECT */
 
-	if (FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":images:TrackSelectScreen", &spec))
+	if (FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":images:TrackSelectScreen.jpg", &spec))
 		DoFatalAlert("SetupTrackSelectScreen: background pict not found.");
 
 	gBackgoundPicture = MO_CreateNewObjectOfType(MO_TYPE_PICTURE, (u_long)gGameViewInfoPtr, &spec);

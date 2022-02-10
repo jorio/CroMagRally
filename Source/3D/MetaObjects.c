@@ -25,6 +25,8 @@
 #include "file.h"
 #include "sprites.h"
 
+#include "stb_image.h"
+
 extern	float			gCurrentAspectRatio;
 extern	SpriteType		*gSpriteGroupList[];
 extern	long			gNumSpritesInGroupList[];
@@ -169,7 +171,7 @@ int					i;
 //
 
 
-MetaObjectPtr	MO_CreateNewObjectOfType(u_long type, u_long subType, void *data)
+MetaObjectPtr	MO_CreateNewObjectOfType(u_long type, uint64_t subType, void *data)
 {
 MetaObjectPtr	mo;
 
@@ -420,43 +422,38 @@ static void SetMetaObjectToMatrix(MOMatrixObject *matObj, OGLMatrix4x4 *inData)
 
 static void SetMetaObjectToPicture(MOPictureObject *pictObj, OGLSetupOutputType *setupInfo, FSSpec *inData, int destPixelFormat)
 {
-IMPLEMENT_ME_SOFT();
-#if 0
-GWorldPtr	gworld;
 int			width,height,depth,cellNum,numCells;
 int			horizCellSize, vertCellSize,segRow,segCol;
 int			numHorizCells, numVertCells;
-PixMapHandle 	hPixMap;
 int			bytesPerPixel;
 MOPictureData	*picData = &pictObj->objectData;
 Ptr			buffer,pictMapAddr;
 u_long		bufferRowBytes,pictRowBytes;
 MOMaterialData	matData;
-Rect		r;
+short		refNum;
 
-		/* LOAD PICTURE INTO GWORLD */
+			/* LOAD PICTURE FILE */
 
-	if (DrawPictureIntoGWorld(inData , &gworld, 32))
-		DoFatalAlert("SetMetaObjectToPicture: DrawPictureIntoGWorld failed!");
+	{
+		long imageLength = 0;
+		Ptr imageData = LoadFileData(inData, &imageLength);
 
+		pictMapAddr = stbi_load_from_memory(imageData, imageLength, &width, &height, NULL, 4);
 
-			/* GET GWORLD INFO */
+		SafeDisposePtr(imageData);
+		imageData = NULL;
+	}
 
-	GetPortBounds(gworld, &r);
-
-
-	width = r.right - r.left;		// get width/height
-	height = r.bottom - r.top;
-
-	hPixMap = GetGWorldPixMap(gworld);							// get gworld's pixmap
-	pictMapAddr = GetPixBaseAddr(hPixMap);
-	pictRowBytes = (u_long)(**hPixMap).rowBytes & 0x3fff;
-
+	/*
 	depth = (*hPixMap)->pixelSize;								// get pixel bitdepth
 	if (depth == 32)
 		bytesPerPixel = 4;
 	else
 		bytesPerPixel = 2;
+	*/
+	depth = 32;
+	bytesPerPixel = 4;
+	pictRowBytes = bytesPerPixel*width;
 
 
 		/***********************************/
@@ -569,11 +566,14 @@ Rect		r;
 
 			if (depth == 32)
 			{
-				u_long	r,g,b,a,x,y;
-				u_long	pixels, *dest = (u_long *)destPtr, *src = (u_long *)srcPtr;
+				uint32_t	r,g,b,a,x,y;
+				uint32_t	pixels;
+				uint32_t *dest = (uint32_t *)destPtr;
+				uint32_t *src = (uint32_t *)srcPtr;
 
 				for (y = 0; y < vertCellSize; y++)
 				{
+#if 0
 					for (x = 0; x < horizCellSize; x++)							// copy & convert a line of pixels
 					{
 						pixels = src[x];										// get pixel
@@ -589,6 +589,9 @@ Rect		r;
 
 						dest[x] = (r << 24) | (g << 16) | (b << 8) | a;			// save pixel
 					}
+#else
+					BlockMove(src, dest, horizCellSize*4);
+#endif
 					dest -= bufferRowBytes/4;
 					src += pictRowBytes/4;
 				}
@@ -644,9 +647,8 @@ Rect		r;
 
 			/* CLEANUP */
 
-	DisposeGWorld (gworld);
+	stbi_image_free(pictMapAddr);
 	SafeDisposePtr(buffer);
-#endif
 }
 
 

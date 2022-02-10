@@ -9,6 +9,7 @@
 /* EXTERNALS   */
 /***************/
 
+#include	<string.h>
 #include	"globals.h"
 #include 	"objects.h"
 #include	"misc.h"
@@ -1968,4 +1969,40 @@ u_short	*dest;
 		textureBuffer += width;
 		bottom -= width;
 	}
+}
+
+
+/*********************** LOAD FILE INTO MEMORY ***********************************/
+
+Ptr LoadFileData(const FSSpec* spec, long* outLength)
+{
+	OSErr err;
+	short refNum;
+	long fileLength = 0;
+	long readBytes = 0;
+
+	puts(spec->cName);
+	err = FSpOpenDF(spec, fsRdPerm, &refNum);
+	GAME_ASSERT(!err);
+
+	// Get number of bytes until EOF
+	GetEOF(refNum, &fileLength);
+
+	// Prep data buffer
+	Ptr data = AllocPtrClear(fileLength);
+
+	// Read file into data buffer
+	readBytes = fileLength;
+	err = FSRead(refNum, &readBytes, data);
+	GAME_ASSERT(err == noErr);
+	FSClose(refNum);
+
+	GAME_ASSERT(fileLength == readBytes);
+
+	if (outLength)
+	{
+		*outLength = fileLength;
+	}
+
+	return data;
 }

@@ -578,7 +578,10 @@ short	dataLen = inSourceStr[0] + 1;
 
 void CalcFramesPerSecond(void)
 {
-	IMPLEMENT_ME();
+	IMPLEMENT_ME_SOFT();
+	gFramesPerSecond = 60;
+	gFramesPerSecondFrac = 1.0f/gFramesPerSecond;
+
 #if 0
 AbsoluteTime currTime,deltaTime;
 static AbsoluteTime time = {0,0};

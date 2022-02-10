@@ -114,3 +114,5 @@ void SetDefaultDirectory(void);
 void SetDefaultPlayerSaveData(void);
 void DoSavedPlayerDialog(void);
 void SavePlayerFile(void);
+
+Ptr LoadFileData(const FSSpec* spec, long* outLength);

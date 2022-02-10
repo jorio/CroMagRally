@@ -229,9 +229,9 @@ void ShowAgePicture(int age)
 FSSpec	spec;
 Str31	names[NUM_AGES] =
 {
-	":images:Ages:StoneAgeIntro",
-	":images:Ages:BronzeAgeIntro",
-	":images:Ages:IronAgeIntro"
+	":images:Ages:StoneAgeIntro.jpg",
+	":images:Ages:BronzeAgeIntro.jpg",
+	":images:Ages:IronAgeIntro.jpg"
 };
 
 
@@ -254,7 +254,7 @@ FSSpec	spec;
 	}
 	else
 	{
-		FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":images:Loading1", &spec);
+		FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":images:Loading1.jpg", &spec);
 		DisplayPicture(&spec, true, false);
 	}
 }
@@ -272,11 +272,7 @@ FSSpec	spec;
 
 			/* DO PANGEA LOGO */
 
-#if SHAREWARE
-	FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":images:PSLogo", &spec);
-#else
-	FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":images:PangeaLogo", &spec);
-#endif
+	FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":images:PangeaLogo.jpg", &spec);
 
 
 	DisplayPicture(&spec, false, false);
@@ -285,16 +281,11 @@ FSSpec	spec;
 
 			/* DO TITLE SCREEN */
 
-	if (FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":images:TitleScreen", &spec))
+	if (FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":images:TitleScreen.jpg", &spec))
 		DoFatalAlert("DoTitleScreen: TitleScreen pict not found.");
 
 	DisplayPicture(&spec, false, false);
 //	GammaFadeOut();
-
-
-
-
-
 }
 
 
@@ -364,9 +355,9 @@ FSSpec				spec;
 OGLSetupInputType	viewDef;
 static const Str255	names[] =
 {
-	":images:Conquered:StoneAge_Conquered",
-	":images:Conquered:BronzeAge_Conquered",
-	":images:Conquered:IronAge_Conquered"
+	":images:Conquered:StoneAge_Conquered.jpg",
+	":images:Conquered:BronzeAge_Conquered.jpg",
+	":images:Conquered:IronAge_Conquered.jpg"
 };
 
 static Str31 age[3] = {"STONE AGE", "BRONZE AGE", "IRON AGE"};
@@ -588,7 +579,7 @@ static Str31 age[3] = {"STONE AGE", "BRONZE AGE", "IRON AGE"};
 
 			/* MAKE BACKGROUND PICTURE OBJECT */
 
-	if (FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":images:Conquered:GameCompleted",&spec))
+	if (FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":images:Conquered:GameCompleted.jpg",&spec))
 		DoFatalAlert("SetupWinScreen: background pict not found.");
 
 	gBackgoundPicture = MO_CreateNewObjectOfType(MO_TYPE_PICTURE, (u_long)gGameViewInfoPtr, &spec);
@@ -967,7 +958,7 @@ static const float sizes[] =
 			/* MAKE BACKGROUND PICTURE OBJECT */
 
 
-	if (FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID,  	":images:Credits",&spec))
+	if (FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":images:Credits.jpg",&spec))
 		DoFatalAlert("SetupCreditsScreen: background pict not found.");
 
 	gBackgoundPicture = MO_CreateNewObjectOfType(MO_TYPE_PICTURE, (u_long)gGameViewInfoPtr, &spec);
@@ -1052,67 +1043,9 @@ void DoHelpScreen(void)
 {
 FSSpec	spec;
 
-	FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":images:Help", &spec);
+	FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":images:Help.jpg", &spec);
 
 	DisplayPicture(&spec, false, false);
 
 }
-
-
-#pragma mark -
-
-#if DEMO
-
-/****************** DO DEMO EXPIRED SCREEN **************************/
-
-void DoDemoExpiredScreen(void)
-{
-FSSpec	spec;
-
-	FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":images:DemoExpired", &spec);
-	DisplayPicture(&spec, false, false);
-	CleanQuit();
-}
-
-
-/*************** SHOW DEMO QUIT SCREEN **********************/
-
-void ShowDemoQuitScreen(void)
-{
-FSSpec	spec;
-
-	SaveDemoTimer();						// make sure to save this before we bail
-
-	FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":images:DemoQuit", &spec);
-	DisplayPicture(&spec, false, false);
-
-}
-
-
-#endif
-
-
-#if SHAREWARE
-
-
-/***************** DO DEMO EXIT SCREEN ********************/
-
-void DoSharewareExitScreen(void)
-{
-FSSpec	spec;
-
-	SaveDemoTimer();						// make sure to save this before we bail
-
-	FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":images:swexit", &spec);
-	DisplayPicture(&spec, false, false);
-}
-#endif
-
-
-
-
-
-
-
-
 
