@@ -13,7 +13,18 @@ enum
 
 typedef struct
 {
-	int				width,height;
+	int32_t 		width;
+	int32_t 		height;
+	float 			aspectRatio;  // h/w
+	int32_t 		srcFormat;
+	int32_t 		destFormat;
+	int32_t 		bufferSize;
+}File_SpriteType;
+
+
+typedef struct
+{
+	int32_t			width,height;
 	float			aspectRatio;			// h/w
 	GLint			srcFormat, destFormat;
 	MetaObjectPtr	materialObject;
@@ -30,4 +41,4 @@ void ModifySpriteObjectFrame(ObjNode *theNode, short type, OGLSetupOutputType *s
 void DrawSprite(int	group, int type, float x, float y, float scale, float rot, u_long flags, const OGLSetupOutputType *setupInfo);
 void BlendASprite(int group, int type);
 
-ObjNode *MakeFontStringObject(const Str31 s, NewObjectDefinitionType *newObjDef, OGLSetupOutputType *setupInfo, Boolean center);
+ObjNode *MakeFontStringObject(const char* s, NewObjectDefinitionType *newObjDef, OGLSetupOutputType *setupInfo, Boolean center);

@@ -9,6 +9,7 @@
 /*    EXTERNALS             */
 /****************************/
 
+#include <string.h>
 #include "globals.h"
 #include "misc.h"
 #include "sprites.h"
@@ -41,7 +42,7 @@ extern	Boolean			gSongPlayingFlag,gSupportsPackedPixels,gCanDo512,gLowMemMode;
 /*********************/
 
 SpriteType	*gSpriteGroupList[MAX_SPRITE_GROUPS];
-long		gNumSpritesInGroupList[MAX_SPRITE_GROUPS];		// note:  this must be long's since that's what we read from the sprite file!
+long		gNumSpritesInGroupList[MAX_SPRITE_GROUPS];
 
 
 
@@ -120,8 +121,10 @@ MOMaterialData	matData;
 
 		/* READ # SPRITES IN THIS FILE */
 
-	count = sizeof(long);
-	FSRead(refNum, &count, &gNumSpritesInGroupList[groupNum]);
+	int32_t numSprites = 0;
+	count = sizeof(numSprites);
+	FSRead(refNum, &count, &numSprites);
+	gNumSpritesInGroupList[groupNum] = Byteswap32(&numSprites);
 
 
 		/* ALLOCATE MEMORY FOR SPRITE RECORDS */
@@ -137,44 +140,32 @@ MOMaterialData	matData;
 
 	for (i = 0; i < gNumSpritesInGroupList[groupNum]; i++)
 	{
-		int		bufferSize;
-		u_char *buffer;
+		uint8_t *buffer;
 
 			/* READ WIDTH/HEIGHT, ASPECT RATIO */
 
-		count = sizeof(int);
-		FSRead(refNum, &count, &gSpriteGroupList[groupNum][i].width);
-		count = sizeof(int);
-		FSRead(refNum, &count, &gSpriteGroupList[groupNum][i].height);
-		count = sizeof(float);
-		FSRead(refNum, &count, &gSpriteGroupList[groupNum][i].aspectRatio);
+		File_SpriteType fileSprite;
+		count = sizeof(fileSprite);
+		FSRead(refNum, &count, &fileSprite);
+		ByteswapStructs("iifiii", sizeof(fileSprite), 1, &fileSprite);
 
-
-			/* READ SRC FORMAT */
-
-		count = sizeof(GLint);
-		FSRead(refNum, &count, &gSpriteGroupList[groupNum][i].srcFormat);
-
-
-			/* READ DEST FORMAT */
-
-		count = sizeof(GLint);
-		FSRead(refNum, &count, &gSpriteGroupList[groupNum][i].destFormat);
+		gSpriteGroupList[groupNum][i].width = fileSprite.width;
+		gSpriteGroupList[groupNum][i].height = fileSprite.height;
+		gSpriteGroupList[groupNum][i].aspectRatio = fileSprite.aspectRatio;
+		gSpriteGroupList[groupNum][i].srcFormat = fileSprite.srcFormat;
+		gSpriteGroupList[groupNum][i].destFormat = fileSprite.destFormat;
 
 
 			/* READ BUFFER SIZE */
 
-		count = sizeof(int);
-		FSRead(refNum, &count, &bufferSize);
-
-		buffer = AllocPtr(bufferSize);							// alloc memory for buffer
+		buffer = AllocPtr(fileSprite.bufferSize);							// alloc memory for buffer
 		if (buffer == nil)
 			DoFatalAlert("LoadSpriteFile: AllocPtr failed");
 
 
 			/* READ THE SPRITE PIXEL BUFFER */
 
-		count = bufferSize;
+		count = fileSprite.bufferSize;
 		FSRead(refNum, &count, buffer);
 
 
@@ -199,6 +190,7 @@ MOMaterialData	matData;
 
 		matData.texturePixels[0]= nil;											// we're going to preload
 
+#if 0
 			/* SEE IF NEED TO SHRINK FOR VOODOO 2 */
 
 		if (gLowMemMode)
@@ -250,6 +242,7 @@ shrink_it:
 				}
 			}
 		}
+#endif
 
 
 
@@ -513,7 +506,7 @@ AGLContext agl_ctx = setupInfo->drawContext;
 
 /************* MAKE FONT STRING OBJECT *************/
 
-ObjNode *MakeFontStringObject(const Str31 s, NewObjectDefinitionType *newObjDef, OGLSetupOutputType *setupInfo, Boolean center)
+ObjNode *MakeFontStringObject(const char* s, NewObjectDefinitionType *newObjDef, OGLSetupOutputType *setupInfo, Boolean center)
 {
 ObjNode				*newObj;
 MOSpriteObject		*spriteMO;
@@ -535,11 +528,9 @@ float				scale,x,letterOffset;
 
 	newObj->NumStringSprites = 0;											// no sprites in there yet
 
-	puts("rewrite this so it works with C strings!");
-#if 0
-	len = s[0];										// get length of string
-	if (len > 31)
-		DoFatalAlert("MakeFontStringObject: string > 31 characters!");
+	len = strlen(s);														// get length of string
+//	if (len > 31)
+//		DoFatalAlert("MakeFontStringObject: string > 31 characters!");
 
 
 	scale = newObj->Scale.x;												// get scale factor
@@ -556,7 +547,7 @@ float				scale,x,letterOffset;
 
 	for (i = 0; i < len; i++)
 	{
-		letter = s[i+1];													// get letter
+		letter = s[i];														// get letter
 
 		if (((letter < '0') || (letter > '9')) && ((letter < 'A') || (letter > 'Z')) &&
 			(letter != '.') && (letter != '@'))
@@ -601,7 +592,6 @@ float				scale,x,letterOffset;
 
 		x += letterOffset;													// next letter x coord
 	}
-#endif
 
 	return(newObj);
 }
