@@ -353,6 +353,7 @@ SkeletonFile_AnimHeader_Type	*animHeaderPtr;
 	if (hand == nil)
 		DoFatalAlert("ReadDataFromSkeletonFile: Error reading header resource!");
 	headerPtr = (SkeletonFile_Header_Type *)*hand;
+	ByteswapStructs("4h", sizeof(*headerPtr), 1, headerPtr);
 	version = headerPtr->version;
 	if (version != SKELETON_FILE_VERS_NUM)
 		DoFatalAlert("Skeleton file has wrong version #");
@@ -396,7 +397,7 @@ SkeletonFile_AnimHeader_Type	*animHeaderPtr;
 	for (i=0; i < numJoints; i++)
 	{
 		File_BoneDefinitionType	*bonePtr;
-		u_short					*indexPtr;
+		uint16_t				*indexPtr;
 
 			/* READ BONE DATA */
 
@@ -405,6 +406,7 @@ SkeletonFile_AnimHeader_Type	*animHeaderPtr;
 			DoFatalAlert("Error reading Bone resource!");
 		HLock(hand);
 		bonePtr = (File_BoneDefinitionType *)*hand;
+		ByteswapStructs("i32b3fHH8L", sizeof(*bonePtr), 1, bonePtr);
 
 			/* COPY BONE DATA INTO ARRAY */
 
@@ -416,11 +418,11 @@ SkeletonFile_AnimHeader_Type	*animHeaderPtr;
 
 			/* ALLOC THE POINT & NORMALS SUB-ARRAYS */
 
-		skeleton->Bones[i].pointList = (u_short *)AllocPtr(sizeof(u_short) * (int)skeleton->Bones[i].numPointsAttachedToBone);
+		skeleton->Bones[i].pointList = (uint16_t *)AllocPtr(sizeof(uint16_t) * (int)skeleton->Bones[i].numPointsAttachedToBone);
 		if (skeleton->Bones[i].pointList == nil)
 			DoFatalAlert("ReadDataFromSkeletonFile: AllocPtr/pointList failed!");
 
-		skeleton->Bones[i].normalList = (u_short *)AllocPtr(sizeof(u_short) * (int)skeleton->Bones[i].numNormalsAttachedToBone);
+		skeleton->Bones[i].normalList = (uint16_t *)AllocPtr(sizeof(uint16_t) * (int)skeleton->Bones[i].numNormalsAttachedToBone);
 		if (skeleton->Bones[i].normalList == nil)
 			DoFatalAlert("ReadDataFromSkeletonFile: AllocPtr/normalList failed!");
 
@@ -430,12 +432,12 @@ SkeletonFile_AnimHeader_Type	*animHeaderPtr;
 		if (hand == nil)
 			DoFatalAlert("Error reading BonP resource!");
 		HLock(hand);
-		indexPtr = (u_short *)(*hand);
+		indexPtr = (uint16_t *)(*hand);
 
 			/* COPY POINT INDEX ARRAY INTO BONE STRUCT */
 
 		for (j=0; j < skeleton->Bones[i].numPointsAttachedToBone; j++)
-			skeleton->Bones[i].pointList[j] = indexPtr[j];
+			skeleton->Bones[i].pointList[j] = Byteswap16(&indexPtr[j]);
 		ReleaseResource(hand);
 
 
@@ -445,12 +447,12 @@ SkeletonFile_AnimHeader_Type	*animHeaderPtr;
 		if (hand == nil)
 			DoFatalAlert("Error reading BonN resource!");
 		HLock(hand);
-		indexPtr = (u_short *)(*hand);
+		indexPtr = (uint16_t *)(*hand);
 
 			/* COPY NORMAL INDEX ARRAY INTO BONE STRUCT */
 
 		for (j=0; j < skeleton->Bones[i].numNormalsAttachedToBone; j++)
-			skeleton->Bones[i].normalList[j] = indexPtr[j];
+			skeleton->Bones[i].normalList[j] = Byteswap16(&indexPtr[j]);
 		ReleaseResource(hand);
 
 	}
@@ -474,8 +476,12 @@ SkeletonFile_AnimHeader_Type	*animHeaderPtr;
 	if (i != skeleton->numDecomposedPoints)
 		DoFatalAlert("# of points in Reference Model has changed!");
 	else
+	{
+		ByteswapStructs("fff", sizeof(OGLPoint3D), skeleton->numDecomposedPoints, pointPtr);
+
 		for (i = 0; i < skeleton->numDecomposedPoints; i++)
 			skeleton->decomposedPointList[i].boneRelPoint = pointPtr[i];
+	}
 
 	ReleaseResource(hand);
 
@@ -493,6 +499,7 @@ SkeletonFile_AnimHeader_Type	*animHeaderPtr;
 			DoFatalAlert("Error getting anim header resource");
 		HLock(hand);
 		animHeaderPtr = (SkeletonFile_AnimHeader_Type *)*hand;
+		ByteswapStructs("b32bxh", sizeof(*animHeaderPtr), 1, animHeaderPtr);
 
 		skeleton->NumAnimEvents[i] = animHeaderPtr->numAnimEvents;			// copy # anim events in anim
 		ReleaseResource(hand);
@@ -503,6 +510,7 @@ SkeletonFile_AnimHeader_Type	*animHeaderPtr;
 		if (hand == nil)
 			DoFatalAlert("Error reading anim-event data resource!");
 		animEventPtr = (AnimEventType *)*hand;
+		ByteswapStructs("hbb", sizeof(*animEventPtr), skeleton->NumAnimEvents[i], animEventPtr);
 		for (j=0;  j < skeleton->NumAnimEvents[i]; j++)
 			skeleton->AnimEventsList[i][j] = *animEventPtr++;
 		ReleaseResource(hand);
@@ -542,6 +550,7 @@ SkeletonFile_AnimHeader_Type	*animHeaderPtr;
 			if (hand == nil)
 				DoFatalAlert("Error reading joint keyframes resource!");
 			keyFramePtr = (JointKeyframeType *)*hand;
+			ByteswapStructs("ii3f3f3f", sizeof(*keyFramePtr), numKeyframes, keyFramePtr);
 			for (k = 0; k < numKeyframes; k++)												// copy this joint's keyframes for this anim
 				skeleton->JointKeyframes[j].keyFrames[i][k] = *keyFramePtr++;
 			ReleaseResource(hand);

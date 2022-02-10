@@ -132,8 +132,8 @@ typedef struct
 
 typedef struct
 {
-	long		tick;					// time at which this state exists
-	long		accelerationMode;		// mode of in/out acceleration
+	int32_t		tick;					// time at which this state exists
+	int32_t		accelerationMode;		// mode of in/out acceleration
 	OGLPoint3D	coord;					// current 3D coords of joint (relative to link)
 	OGLVector3D	rotation;				// current rotation values of joint (relative to link)
 	OGLVector3D	scale;					// current scale values of joint mesh
@@ -144,7 +144,7 @@ typedef struct
 
 typedef struct
 {
-	signed char			numKeyFrames[MAX_ANIMS];				// # keyframes
+	int8_t				numKeyFrames[MAX_ANIMS];				// # keyframes
 	JointKeyframeType 	**keyFrames;							// 2D array of keyframe data keyFrames[anim#][keyframe#]
 }JointKeyFrameHeader;
 
@@ -152,7 +152,7 @@ typedef struct
 
 typedef struct
 {
-	short	time;
+	int16_t	time;
 	Byte	type;
 	Byte	value;
 }AnimEventType;
