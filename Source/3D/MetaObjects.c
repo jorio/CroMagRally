@@ -9,19 +9,18 @@
 /*    EXTERNALS             */
 /****************************/
 
-#include <pictutils.h>
-#include <gl.h>
-#include <glu.h>
-#include <agl.h>
+#include <GL/gl.h>
+#include <GL/glu.h>
+//#include <agl.h>
 #include <math.h>
-#include <aglmacro.h>
-#include <Movies.h>
+//#include <aglmacro.h>
+//#include <Movies.h>
 
 #include "globals.h"
 #include "misc.h"
 #include "ogl_support.h"
 #include "metaobjects.h"
-#include "windows.h"
+#include "window.h"
 #include "bg3d.h"
 #include "file.h"
 #include "sprites.h"
@@ -35,7 +34,7 @@ extern	AGLContext		gAGLContext;
 extern	Byte			gDebugMode;
 extern	PrefsType			gGamePrefs;
 extern	Boolean			gSongPlayingFlag;
-extern	Movie				gSongMovie;
+//extern	Movie				gSongMovie;
 
 /****************************/
 /*    PROTOTYPES            */
@@ -635,8 +634,8 @@ Rect		r;
 
 				/* KEEP MUSIC PLAYING */
 
-			if (gSongPlayingFlag)
-				MoviesTask(gSongMovie, 0);
+//			if (gSongPlayingFlag)
+//				MoviesTask(gSongMovie, 0);
 		}
 	}
 

@@ -20,7 +20,7 @@
 #include "sound2.h"
 #include "skeletonobj.h"
 #include "skeletonanim.h"
-#include "skeletonJoints.h"
+#include "skeletonjoints.h"
 #include "terrain.h"
 #include "player.h"
 #include "main.h"

@@ -9,21 +9,18 @@
 /*    EXTERNALS             */
 /****************************/
 
-#include <SoundSprocket.h>
-
 #include "globals.h"
 #include "objects.h"
 #include "camera.h"
 #include "ogl_support.h"
-#include "3DMath.h"
+#include "3dmath.h"
 #include "misc.h"
 #include "input.h"
 #include "mobjtypes.h"
 #include "collision.h"
-#include "skeletonJoints.h"
+#include "skeletonjoints.h"
 #include "player.h"
-#include "gl.h"
-#include "windows.h"
+#include "window.h"
 #include "main.h"
 #include "terrain.h"
 #include "sprites.h"

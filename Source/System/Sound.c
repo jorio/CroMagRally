@@ -8,11 +8,8 @@
 /***************/
 /* EXTERNALS   */
 /***************/
-#include <Components.h>
-#include 	<TextUtils.h>
+#include <Pomme.h>
 #include "globals.h"
-#include <sound.h>
-#include 	<Movies.h>
 #include "misc.h"
 #include "sound2.h"
 #include "file.h"
@@ -21,9 +18,8 @@
 #include "3dmath.h"
 #include "ogl_support.h"
 #include "main.h"
-#include "windows.h"
+#include "window.h"
 #include "mainmenu.h"
-#include <fp.h>
 
 extern	short		gMainAppRezFile;
 extern	OGLSetupOutputType		*gGameViewInfoPtr;
@@ -41,7 +37,6 @@ static short FindSilentChannel(void);
 static short EmergencyFreeChannel(void);
 static void Calc3DEffectVolume(short effectNum, OGLPoint3D *where, float volAdjust, u_long *leftVolOut, u_long *rightVolOut);
 static void UpdateGlobalVolume(void);
-static pascal void CallBackFn (SndChannelPtr chan, SndCommand *cmd);
 
 
 /****************************/
@@ -114,8 +109,6 @@ Boolean						gLoopSongFlag = true;
 static short				gMusicFileRefNum = 0x0ded;
 Boolean				gMuteMusicFlag = false;
 static short				gCurrentSong = -1;
-
-Movie				gSongMovie;
 
 
 		/*****************/
@@ -212,7 +205,8 @@ static EffectType	gEffectsTable[] =
 
 static void   TurnOffHighQualityRateConverter (void)
 {
-#if 1
+	IMPLEMENT_ME_SOFT();
+#if 0
     Component               rateConverter;
     long                    numConverters;
     ComponentDescription    looking;
@@ -232,7 +226,8 @@ static void   TurnOffHighQualityRateConverter (void)
 
 void   TurnOnHighQualityRateConverter (void)
 {
-#if 1
+	IMPLEMENT_ME_SOFT();
+#if 0
     Component               rateConverter;
     long                    numConverters;
     ComponentDescription    looking;
@@ -254,6 +249,8 @@ void   TurnOnHighQualityRateConverter (void)
 
 void InitSoundTools(void)
 {
+	IMPLEMENT_ME_SOFT();
+#if 0
 OSErr			iErr;
 short			i;
 ExtSoundHeader	sndHdr;
@@ -343,6 +340,7 @@ FSSpec			spec;
 
 	FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":Audio:Main.sounds", &spec);
 	LoadSoundBank(&spec, SOUND_BANK_MAIN);
+#endif
 }
 
 
@@ -690,6 +688,8 @@ GrafPtr	oldPort;
 	iErr = OpenMovieFile(&spec, &myRefNum, fsRdPerm);
 	if (myRefNum && (iErr == noErr))
 	{
+		IMPLEMENT_ME_SOFT();
+#if 0
 		iErr = NewMovieFromFile(&gSongMovie, myRefNum, 0, nil, newMovieActive, nil);
 		CloseMovieFile(myRefNum);
 
@@ -705,6 +705,7 @@ GrafPtr	oldPort;
 
 			gSongPlayingFlag = true;
 		}
+#endif
 	}
 
 	SetPort(oldPort);
@@ -715,9 +716,11 @@ GrafPtr	oldPort;
 
 	if (gMuteMusicFlag)
 	{
+		IMPLEMENT_ME_SOFT();
+#if 0
 		if (gSongMovie)
 			StopMovie(gSongMovie);
-
+#endif
 	}
 }
 
@@ -735,8 +738,11 @@ void KillSong(void)
 
 	gSongPlayingFlag = false;											// tell callback to do nothing
 
+	IMPLEMENT_ME_SOFT();
+#if 0
 	StopMovie(gSongMovie);
 	DisposeMovie(gSongMovie);
+#endif
 
 	gMusicFileRefNum = 0x0ded;
 }
@@ -747,6 +753,8 @@ void ToggleMusic(void)
 {
 	gMuteMusicFlag = !gMuteMusicFlag;
 
+	IMPLEMENT_ME_SOFT();
+#if 0
 	if (gSongMovie)
 	{
 		if (gMuteMusicFlag)
@@ -754,6 +762,7 @@ void ToggleMusic(void)
 		else
 			StartMovie(gSongMovie);
 	}
+#endif
 }
 
 
@@ -1046,6 +1055,7 @@ short PlayEffect(short effectNum)
 // the sound is done playing.
 //
 
+#if 0
 static pascal void CallBackFn (SndChannelPtr chan, SndCommand *cmd) {
 SndCommand      theCmd;
 
@@ -1059,6 +1069,7 @@ SndCommand      theCmd;
     // Just reuse the callBackCmd that got us here in the first place
     (void)SndDoCommand (chan, cmd, true);
 }
+#endif
 
 /***************************** PLAY EFFECT PARMS ***************************/
 //
@@ -1069,6 +1080,8 @@ SndCommand      theCmd;
 
 short  PlayEffect_Parms(short effectNum, u_long leftVolume, u_long rightVolume, unsigned long rateMultiplier)
 {
+	IMPLEMENT_ME_SOFT(); return 0;
+#if 0
 SndCommand 		mySndCmd;
 SndChannelPtr	chanPtr;
 short			theChan;
@@ -1157,6 +1170,7 @@ SoundHeaderPtr   sndPtr;
 	gChannelInfo[theChan].leftVolume 	= leftVolume;		// remember requested volume (not the adjusted volume!)
 	gChannelInfo[theChan].rightVolume 	= rightVolume;
 	return(theChan);										// return channel #
+#endif
 }
 
 
@@ -1183,8 +1197,11 @@ int		c;
 
 			/* UPDATE SONG VOLUME */
 
+	IMPLEMENT_ME_SOFT();
+#if 0
 	if (gSongPlayingFlag)
 		SetMovieVolume(gSongMovie, FloatToFixed16(gGlobalVolume) * SONG_VOLUME);
+#endif
 
 }
 
@@ -1285,6 +1302,8 @@ void DoSoundMaintenance(void)
 
 	if (gSongPlayingFlag)
 	{
+		IMPLEMENT_ME_SOFT();
+#if 0
 		if (IsMovieDone(gSongMovie))				// see if the song has completed
 		{
 			if (gLoopSongFlag)						// see if repeat it
@@ -1304,6 +1323,7 @@ void DoSoundMaintenance(void)
 				gMoviesTaskTimer += .15f;
 			}
 		}
+#endif
 	}
 
 
@@ -1457,20 +1477,3 @@ void PlayAnnouncerSound(short effectNum, Boolean override, float delay)
 	}
 
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

@@ -1,3 +1,5 @@
+#if 0
+
 /****************************/
 /*   	  NETWORK.C	   	    */
 /* (c)2000 Pangea Software  */
@@ -9,14 +11,11 @@
 /* EXTERNALS   */
 /***************/
 
-#include 	<Movies.h>
-#include <Lists.h>
 #include <stdlib.h>
-#include <TextUtils.h>
 #include "globals.h"
 #include "misc.h"
 #include "network.h"
-#include	"windows.h"
+#include	"window.h"
 #include	"main.h"
 #include	"player.h"
 #include	"file.h"
@@ -30,7 +29,6 @@ extern	Boolean	gGameOver,gOSX,gSavedPlayerIsLoaded;
 extern	int		gGameMode,gTheAge,gTrackNum;
 extern	SavePlayerType	gPlayerSaveData;
 extern	Boolean						gSongPlayingFlag;
-extern	Movie				gSongMovie;
 extern	PrefsType			gGamePrefs;
 
 /**********************/
@@ -1461,3 +1459,4 @@ NSpMessageHeader			outMess;
 }
 
 
+#endif

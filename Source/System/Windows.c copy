@@ -14,7 +14,7 @@
 #include 	<stdlib.h>
 #include 	<CodeFragments.h>
 #include	"globals.h"
-#include	"windows.h"
+#include	"window.h"
 #include	"misc.h"
 #include "objects.h"
 #include "file.h"

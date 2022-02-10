@@ -1,5 +1,5 @@
 //
-// skeletonJoints.h
+// skeletonjoints.h
 //
 
 enum

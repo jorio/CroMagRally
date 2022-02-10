@@ -2,7 +2,7 @@
 // network.h
 //
 
-#include <NetSprocket.h>
+//#include <NetSprocket.h>
 #include "main.h"
 
 enum
@@ -33,7 +33,7 @@ enum
 
 typedef struct
 {
-	NSpMessageHeader	h;
+//	NSpMessageHeader	h;
 	int					gameMode;							// game mode (tag, race, etc.)
 	int					age;								// which age to play for race mode
 	int					trackNum;							// which track to play for battle modes
@@ -48,7 +48,7 @@ typedef struct
 
 typedef struct
 {
-	NSpMessageHeader	h;
+//	NSpMessageHeader	h;
 	long				playerNum;							// this player's index
 }NetSyncMessageType;
 
@@ -57,7 +57,7 @@ typedef struct
 
 typedef struct
 {
-	NSpMessageHeader	h;
+//	NSpMessageHeader	h;
 	float				fps, fpsFrac;
 	u_long				randomSeed;					// simply used for error checking (all machines should have same seed!)
 	u_long				controlBits[MAX_PLAYERS];
@@ -71,7 +71,7 @@ typedef struct
 
 typedef struct
 {
-	NSpMessageHeader	h;
+//	NSpMessageHeader	h;
 	short				playerNum;
 	u_long				controlBits;
 	u_long				controlBitsNew;
@@ -84,7 +84,7 @@ typedef struct
 
 typedef struct
 {
-	NSpMessageHeader	h;
+//	NSpMessageHeader	h;
 	short				playerNum;
 	short				vehicleType;
 	short				sex;				// 0 = male, 1 = female
@@ -113,12 +113,3 @@ void GetVehicleSelectionFromNetPlayers(void);
 
 void EndNetworkGame(void);
 void PlayerBroadcastNullPacket(void);
-
-
-
-
-
-
-
-
-

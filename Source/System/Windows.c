@@ -9,24 +9,14 @@
 /* EXTERNALS   */
 /***************/
 
-#include 	<Folders.h>
-#include 	<DrawSprocket.h>
 #include 	<stdlib.h>
-#include 	<CodeFragments.h>
 #include	"globals.h"
-#include	"windows.h"
+#include	"window.h"
 #include	"misc.h"
 #include "objects.h"
 #include "file.h"
 #include "input.h"
-#include <TextUtils.h>
-#include <FixMath.h>
-#include <ToolUtils.h>
-#include <Movies.h>
-#include <gl.h>
-#include <agl.h>
 #include "sound2.h"
-#include <appearance.h>
 
 
 extern	NewObjectDefinitionType	gNewObjectDefinition;
@@ -37,7 +27,6 @@ extern	long	gPrefsFolderDirID;
 extern	Boolean				gOSX, gISpActive;
 extern	PrefsType			gGamePrefs;
 extern	Boolean			gSongPlayingFlag,gMuteMusicFlag;
-extern	Movie				gSongMovie;
 extern	AGLContext		gAGLContext;
 extern	AGLDrawable		gAGLWin;
 
@@ -45,16 +34,7 @@ extern	AGLDrawable		gAGLWin;
 /*    PROTOTYPES            */
 /****************************/
 
-static void PrepDrawSprockets(void);
 static void MoveFadeEvent(ObjNode *theNode);
-static Boolean SetupEventProc(EventRecord *event);
-static pascal Boolean VideoModeTimeOut (DialogRef dp,EventRecord *event, short *item);
-static void DoVideoConfirmDialog(void);
-
-static void CreateDisplayModeList(void);
-pascal void ModeListCallback(void *userData, DMListIndexType, DMDisplayModeListEntryPtr displaymodeInfo);
-static void DoVideoModeSelectPopUpMenu(void);
-pascal void ShowVideoMenuSelection (DialogRef dlogPtr, short item);
 
 /****************************/
 /*    CONSTANTS             */
@@ -88,7 +68,6 @@ static	Boolean	gOldISpFlag;
 static	Boolean			gOldMuteMusic;
 
 static GDHandle				gOurDevice = nil;
-DisplayIDType		gOurDisplayID;
 
 
 static short				gNumVideoModes = 0;
@@ -96,7 +75,7 @@ static VideoModeType		gVideoModeList[MAX_VIDEO_MODES];
 
 long					gScreenXOffset,gScreenYOffset;
 WindowPtr				gCoverWindow = nil;
-DSpContextReference 	gDisplayContext = nil;
+void* /*DSpContextReference*/ 	gDisplayContext = nil;
 Boolean					gLoadedDrawSprocket = false;
 
 static unsigned long	gVideoModeTimoutCounter;
@@ -121,7 +100,6 @@ short			g2DStackDepth = 0;
 void InitWindowStuff(void)
 {
 GDHandle 		phGD;
-DisplayIDType displayID;
 OSErr		iErr;
 Rect			r;
 float		w,h;
@@ -163,6 +141,8 @@ float		w,h;
 				/********************/
 				/* INIT SOME WINDOW */
 				/********************/
+	
+#if 0
 	{
 		WindowPtr	window;
 
@@ -171,6 +151,7 @@ float		w,h;
 		window = NewCWindow(nil, &r, "", true, plainDBox, (void *)-1, false, nil);
 		gDisplayContextGrafPtr = GetWindowPort(window);
 	}
+#endif
 
 #endif
 
@@ -188,6 +169,8 @@ float		w,h;
 
 void ChangeWindowScale(void)
 {
+	IMPLEMENT_ME_SOFT();
+#if 0
 Rect			r;
 GDHandle 		phGD;
 DisplayIDType displayID;
@@ -223,158 +206,12 @@ float		w,h;
 	MoveWindow(gCoverWindow, r.left, r.top, true);
 	SizeWindow(gCoverWindow, gGameWindowWidth, gGameWindowHeight, false);
 	ShowWindow(gCoverWindow);
-}
-
-
-
-/*==============================================================================
-* Dobold ()
-* this is the user item procedure to make the thick outline around the default
-* button (assumed to be item 1)
-*=============================================================================*/
-
-pascal void DoBold (DialogRef dlogPtr, short item)
-{
-short		itype;
-Handle		ihandle;
-Rect		irect;
-
-	item;
-
-	if (!gOSX)
-	{
-
-		GetDialogItem (dlogPtr, 1, &itype, &ihandle, &irect);	/* get the buttons rect */
-		PenSize (3, 3);											/* make thick lines	*/
-		InsetRect (&irect, -4, -4);							/* grow rect a little   */
-		FrameRoundRect (&irect, 16, 16);						/* frame the button now */
-		PenNormal ();
-	}
-}
-
-/*==============================================================================
-* DoOutline ()
-* this is the user item procedure to make the thin outline around the given useritem
-*=============================================================================*/
-
-pascal void DoOutline (DialogRef dlogPtr, short item)
-{
-short		itype;
-Handle		ihandle;
-Rect		irect;
-
-	GetDialogItem (dlogPtr, item, &itype, (Handle *)&ihandle, &irect);	// get the user item's rect
-	FrameRect (&irect);						// frame the button now
-	PenNormal();
-}
-
-
-#pragma mark -
-
-/****************** PREP DRAW SPROCKETS *********************/
-
-static void PrepDrawSprockets(void)
-{
-DSpContextAttributes 	displayConfig;
-OSStatus 				theError;
-Boolean					confirmIt = false;
-const RGBColor			rgbBlack	= { 0x0000, 0x0000, 0x0000 };
-
-
-		/* startup DrawSprocket */
-
-	theError = DSpStartup();
-	if( theError )
-	{
-		DoFatalAlert("DSpStartup failed!");
-	}
-	gLoadedDrawSprocket = true;
-
-
-				/*************************/
-				/* SETUP A REQUEST BLOCK */
-				/*************************/
-
-try_again:
-
-	displayConfig.frequency					= 0;
-	displayConfig.displayWidth				= gGamePrefs.screenWidth;
-	displayConfig.displayHeight				= gGamePrefs.screenHeight;
-	displayConfig.reserved1					= 0;
-	displayConfig.reserved2					= 0;
-	displayConfig.colorNeeds				= kDSpColorNeeds_Request;
-	displayConfig.colorTable				= NULL;
-	displayConfig.contextOptions			= 0;
-	displayConfig.backBufferDepthMask		= kDSpDepthMask_1;
-
-	if (gGamePrefs.depth == 32)
-		displayConfig.displayDepthMask			= kDSpDepthMask_32;
-	else
-		displayConfig.displayDepthMask			= kDSpDepthMask_16;
-
-	displayConfig.backBufferBestDepth		= 1;
-	displayConfig.displayBestDepth			= gGamePrefs.depth;
-	displayConfig.pageCount					= 1;
-	displayConfig.filler[0]                 = 0;
-	displayConfig.filler[1]                 = 0;
-	displayConfig.filler[2]                 = 0;
-	displayConfig.gameMustConfirmSwitch		= false;
-	displayConfig.reserved3[0]				= 0;
-	displayConfig.reserved3[1]				= 0;
-	displayConfig.reserved3[2]				= 0;
-	displayConfig.reserved3[3]				= 0;
-
-
-
-			/* FIND A MATCH */
-
-	theError = DSpFindBestContextOnDisplayID( &displayConfig, &gDisplayContext, gOurDisplayID);
-	if (theError)
-	{
-		gGamePrefs.showScreenModeDialog = true;		// show the settings dialog next time
-		SavePrefs();
-		DoFatalAlert("Draw Sprocket could not set monitor to desired resolution and/or depth.  Please try again and select a different video mode.");
-	}
-
-				/* RESERVE IT */
-
-	theError = DSpContext_Reserve( gDisplayContext, &displayConfig );
-	if( theError )
-		DoFatalAlert("PrepDrawSprockets: DSpContext_Reserve failed");
-
-	DSpSetBlankingColor(&rgbBlack);
-
-
-			/* MAKE STATE ACTIVE */
-
-	theError = DSpContext_SetState( gDisplayContext, kDSpContextState_Active );
-	if (theError == kDSpConfirmSwitchWarning)
-	{
-		confirmIt = true;
-	}
-	else
-	if (theError)
-	{
-		DSpContext_Release( gDisplayContext );
-		gDisplayContext = nil;
-		DoFatalAlert("PrepDrawSprockets: DSpContext_SetState failed");
-		return;
-	}
-
-				/* GET GRAFPTR */
-
-	theError = DSpContext_GetFrontBuffer(gDisplayContext, &gDisplayContextGrafPtr);
-	if (theError || (gDisplayContextGrafPtr == nil))
-		DoFatalAlert("PrepDrawSprockets: DSpContext_GetFrontBuffer failed");
-
-	gGammaFadePercent = 100.0f;
-#if ALLOW_FADE
-	DSpContext_FadeGamma(MONITORS_TO_FADE,100,nil);
-#else
-	DSpContext_FadeGamma(gDisplayContext,100,nil);
 #endif
 }
 
+
+
+#pragma mark -
 
 
 /**************** GAMMA FADE IN *************************/
@@ -440,19 +277,12 @@ void GammaOn(void)
 }
 
 
-/***************** SETUP EVENT PROC ******************/
-
-static Boolean SetupEventProc(EventRecord *event)
-{
-	event;
-	return(false);
-}
-
-
 /****************** CLEANUP DISPLAY *************************/
 
 void CleanupDisplay(void)
 {
+	IMPLEMENT_ME_SOFT();
+#if 0
 OSStatus 		theError;
 
 	if(gDisplayContext != nil)
@@ -483,6 +313,7 @@ OSStatus 		theError;
 	}
 
 	gDisplayContextGrafPtr = nil;
+#endif
 }
 
 /******************** MAKE FADE EVENT *********************/
@@ -585,6 +416,8 @@ Rect	r;
 
 void Enter2D(Boolean pauseDSp)
 {
+	IMPLEMENT_ME_SOFT();
+#if 0
 	InitCursor();
 	MyFlushEvents();
 
@@ -616,7 +449,7 @@ void Enter2D(Boolean pauseDSp)
 		DSpContext_SetState(gDisplayContext, kDSpContextState_Paused);
 		gDisplayContextGrafPtr = nil;
 	}
-
+#endif
 }
 
 
@@ -627,6 +460,8 @@ void Enter2D(Boolean pauseDSp)
 
 void Exit2D(void)
 {
+	IMPLEMENT_ME_SOFT();
+#if 0
 AGLContext agl_ctx = gAGLContext;
 
 	g2DStackDepth--;
@@ -664,7 +499,7 @@ AGLContext agl_ctx = gAGLContext;
 
 		}
 	}
-
+#endif
 }
 
 
@@ -677,6 +512,8 @@ AGLContext agl_ctx = gAGLContext;
 
 void DumpGWorld2(GWorldPtr thisWorld, WindowPtr thisWindow,Rect *destRect)
 {
+	IMPLEMENT_ME_SOFT();
+#if 0
 PixMapHandle pm;
 GDHandle		oldGD;
 GWorldPtr		oldGW;
@@ -702,6 +539,7 @@ Rect			r;
 			 srcCopy, 0);
 
 	SetGWorld(oldGW,oldGD);								// restore gworld
+#endif
 }
 
 
@@ -728,450 +566,4 @@ long	start;
 	while (TickCount()-start < ticks);
 
 }
-
-
-#pragma mark -
-
-/********************* DO SCREEN MODE DIALOG *************************/
-
-
-void DoScreenModeDialog(void)
-{
-DialogRef 		myDialog;
-DialogItemType			itemType,itemHit;
-int				i;
-ControlHandle	itemHandle;
-Rect			itemRect;
-Boolean			dialogDone;
-
-
-
-try_again:
-				/* GET LIST OF VIDEO MODES FOR USER TO CHOOSE FROM */
-
-	CreateDisplayModeList();
-
-#if OEM
-	return;	//--------
-#endif
-
-
-	if (gNumVideoModes == 0)						// if none found, then just set default rez and bail
-	{
-		gVideoModeList[0].rezH = 640;
-		gVideoModeList[0].rezV = 480;
-		gVideoModeList[0].lowestHz = 0;
-		gNumVideoModes = 1;
-
-		gGamePrefs.screenWidth = 800;
-		gGamePrefs.screenHeight = 600;
-		gGamePrefs.videoHz = 0;
-		gGamePrefs.depth = 32;
-		return;
-	}
-
-
-
-				/**********************************************/
-				/* DETERMINE IF NEED TO DO THIS DIALOG OR NOT */
-				/**********************************************/
-
-
-	ReadKeyboard_Real();
-	ReadKeyboard_Real();
-	ReadKeyboard_Real();
-	if (GetKeyState_Real(KEY_OPTION) || gGamePrefs.showScreenModeDialog)			// see if force it
-		goto do_it;
-
-					/* VERIFY THAT PREFERENCE MODE IS ALLOWED */
-
-	for (i=0; i < gNumVideoModes; i++)
-	{
-		if ((gVideoModeList[i].rezH == gGamePrefs.screenWidth) &&					// if its a match then bail
-			(gVideoModeList[i].rezV == gGamePrefs.screenHeight) &&
-			(gVideoModeList[i].lowestHz == gGamePrefs.videoHz))
-				return;
-	}
-
-				/* BAD MODE, SO RESET TO SOMETHING LEGAL AS DEFAULT */
-
-	gGamePrefs.screenWidth = gVideoModeList[0].rezH;
-	gGamePrefs.screenHeight = gVideoModeList[0].rezV;
-	gGamePrefs.videoHz = gVideoModeList[0].lowestHz;
-
-
-					/*****************/
-					/* DO THE DIALOG */
-					/*****************/
-do_it:
-	InitCursor();
-	myDialog = GetNewDialog(2000+gGamePrefs.language,nil,MOVE_TO_FRONT);
-
-
-				/* SET CONTROL VALUES */
-
-	GetDialogItem(myDialog,3,&itemType,(Handle *)&itemHandle,&itemRect);		// dont show again
-	SetControlValue((ControlHandle)itemHandle,!gGamePrefs.showScreenModeDialog);
-
-
-	GetDialogItem(myDialog,4,&itemType,(Handle *)&itemHandle,&itemRect);		// depth
-	SetControlValue((ControlHandle)itemHandle,gGamePrefs.depth == 16);
-	GetDialogItem(myDialog,5,&itemType,(Handle *)&itemHandle,&itemRect);
-	SetControlValue((ControlHandle)itemHandle,gGamePrefs.depth == 32);
-
-	GetDialogItem(myDialog,10,&itemType,(Handle *)&itemHandle,&itemRect);		// monitor #
-	SetControlValue((ControlHandle)itemHandle,gGamePrefs.monitorNum == 0);
-	GetDialogItem(myDialog,11,&itemType,(Handle *)&itemHandle,&itemRect);
-	SetControlValue((ControlHandle)itemHandle,gGamePrefs.monitorNum == 1);
-
-
-			/* SET OUTLINE FOR USERITEMS */
-
-	GetDialogItem(myDialog,1,&itemType,(Handle *)&itemHandle,&itemRect);
-	SetDialogItem(myDialog, 2, userItem, (Handle)NewUserItemUPP(DoBold), &itemRect);
-	GetDialogItem(myDialog,8,&itemType,(Handle *)&itemHandle,&itemRect);
-	SetDialogItem(myDialog, 8, userItem, (Handle)NewUserItemUPP(ShowVideoMenuSelection), &itemRect);
-
-	AutoSizeDialog(myDialog);
-
-				/* DO IT */
-
-	dialogDone = false;
-	while(dialogDone == false)
-	{
-		ModalDialog(nil, &itemHit);
-		switch (itemHit)
-		{
-			case 	1:									// hit ok
-					dialogDone = true;
-					break;
-
-			case	3:									// dont show again
-					gGamePrefs.showScreenModeDialog = !gGamePrefs.showScreenModeDialog;
-					GetDialogItem(myDialog,itemHit,&itemType,(Handle *)&itemHandle,&itemRect);
-					SetControlValue((ControlHandle)itemHandle,!gGamePrefs.showScreenModeDialog);
-					break;
-
-			case	4:
-					gGamePrefs.depth = 16;
-					GetDialogItem(myDialog,4,&itemType,(Handle *)&itemHandle,&itemRect);
-					SetControlValue((ControlHandle)itemHandle,gGamePrefs.depth == 16);
-					GetDialogItem(myDialog,5,&itemType,(Handle *)&itemHandle,&itemRect);
-					SetControlValue((ControlHandle)itemHandle,gGamePrefs.depth == 32);
-					break;
-
-			case	5:
-					gGamePrefs.depth = 32;
-					GetDialogItem(myDialog,4,&itemType,(Handle *)&itemHandle,&itemRect);
-					SetControlValue((ControlHandle)itemHandle,gGamePrefs.depth == 16);
-					GetDialogItem(myDialog,5,&itemType,(Handle *)&itemHandle,&itemRect);
-					SetControlValue((ControlHandle)itemHandle,gGamePrefs.depth == 32);
-					break;
-
-			case	8:
-					DoVideoModeSelectPopUpMenu();
-					ShowVideoMenuSelection (myDialog, itemHit);
-					break;
-
-			case	10:
-					gGamePrefs.monitorNum = 0;
-					GetDialogItem(myDialog,10,&itemType,(Handle *)&itemHandle,&itemRect);
-					SetControlValue((ControlHandle)itemHandle,gGamePrefs.monitorNum == 0);
-					GetDialogItem(myDialog,11,&itemType,(Handle *)&itemHandle,&itemRect);
-					SetControlValue((ControlHandle)itemHandle,gGamePrefs.monitorNum == 1);
-					CreateDisplayModeList();
-					gGamePrefs.screenWidth = gVideoModeList[0].rezH;
-					gGamePrefs.screenHeight = gVideoModeList[0].rezV;
-					gGamePrefs.videoHz = gVideoModeList[0].lowestHz;
-					ShowVideoMenuSelection (myDialog, 8);
-					break;
-
-			case	11:
-					gGamePrefs.monitorNum = 1;
-					GetDialogItem(myDialog,10,&itemType,(Handle *)&itemHandle,&itemRect);
-					SetControlValue((ControlHandle)itemHandle,gGamePrefs.monitorNum == 0);
-					GetDialogItem(myDialog,11,&itemType,(Handle *)&itemHandle,&itemRect);
-					SetControlValue((ControlHandle)itemHandle,gGamePrefs.monitorNum == 1);
-					CreateDisplayModeList();
-					gGamePrefs.screenWidth = gVideoModeList[0].rezH;
-					gGamePrefs.screenHeight = gVideoModeList[0].rezV;
-					gGamePrefs.videoHz = gVideoModeList[0].lowestHz;
-					ShowVideoMenuSelection (myDialog, 8);
-					break;
-
-		}
-	}
-	DisposeDialog(myDialog);
-
-
-	SavePrefs();
-
-}
-
-
-Str255	themeS;
-
-/********************* MY THEME BUTTON DRAW PROC *********************/
-
-static pascal void MyThemeButtonDrawProc(const Rect *bounds, ThemeButtonKind kind, ThemeButtonDrawInfo *info,
-										UInt32 userData, SInt16 depth, Boolean isColorDev)
-{
-#pragma unused (kind,info,userData,depth,isColorDev)
-
-int			w,y;
-FontInfo	finfo;
-
-	GetFontInfo(&finfo);
-
-	if (gOSX)												// center vertically (for some reason gotta tweak this for 9 or X
-		y =  bounds->top + (finfo.ascent + finfo.leading);
-	else
-		y =  bounds->bottom -2;
-
-	w = StringWidth(themeS) / 2;
-	MoveTo((bounds->right + bounds->left) /2 - w, y);		// center it in the rect
-
-	DrawString(themeS);
-
-}
-
-/****************** SHOW VIDEO MODE SELECTION ********************/
-
-pascal void ShowVideoMenuSelection (DialogRef dlogPtr, short item)
-{
-short		itype;
-Handle		ihandle;
-Rect		irect;
-Str255		t;
-GDHandle		oldGD;
-GWorldPtr		oldGW;
-
-ThemeButtonDrawInfo	inNewInfo = {kThemeStateActive, kThemeButtonOff,kThemeAdornmentDefault};
-ThemeButtonDrawInfo	inPrevInfo = {kThemeStateActive, kThemeButtonOff,kThemeAdornmentDefault};
-ThemeButtonDrawUPP	drawUPP;
-
-			/* BUILD MENU ITEM STRING */
-
-	NumToString(gGamePrefs.screenWidth, themeS);
-	themeS[themeS[0]+1] = 'x';
-	themeS[0]++;
-	NumToString(gGamePrefs.screenHeight, t);
-	BlockMove(&t[1], &themeS[themeS[0]+1], t[0]);
-	themeS[0] += t[0];
-
-
-			/* DRAW THEME BUTTON POP-UP THEME */
-
-	drawUPP = NewThemeButtonDrawUPP((void *)MyThemeButtonDrawProc);
-
-	GetGWorld (&oldGW,&oldGD);
-	SetPort(GetDialogPort(dlogPtr));
-
-	GetDialogItem (dlogPtr, item, &itype, (Handle *)&ihandle, &irect);	// get the rect
-
-//	GetThemeButtonBackgroundBounds (&irect,kThemePopupButton,&inNewInfo,&irect);
-	DrawThemeButton(&irect,kThemePopupButton,&inNewInfo,&inPrevInfo,nil,drawUPP,0);
-
-	SetGWorld(oldGW,oldGD);								// restore gworld
-
-	DisposeThemeButtonDrawUPP(drawUPP);
-}
-
-
-/****************** DO VIDEO MODE SELECT POPUP MENU *************************/
-
-static void DoVideoModeSelectPopUpMenu(void)
-{
-long	menuChoice;
-MenuHandle	aMenu;
-short	i,theItem;
-Point	pt;
-Str255	s,t;
-
-	GetMouse(&pt);
-
-	aMenu = NewMenu(100, "Video Modes");
-
-	for (i=0; i < gNumVideoModes; i++)
-	{
-				/* BUILD MENU ITEM STRING */
-
-		NumToString(gVideoModeList[i].rezH, s);
-		s[s[0]+1] = 'x';
-		s[0]++;
-		NumToString(gVideoModeList[i].rezV, t);
-		BlockMove(&t[1], &s[s[0]+1], t[0]);
-		s[0] += t[0];
-		AppendMenu(aMenu, s);
-	}
-
-	InsertMenu(aMenu,hierMenu);
-
-	menuChoice = PopUpMenuSelect(aMenu, pt.v, pt.h, 1);
-	theItem	= LoWord(menuChoice);
-	if (theItem > 0)
-	{
-		gGamePrefs.screenWidth = gVideoModeList[theItem-1].rezH;
-		gGamePrefs.screenHeight = gVideoModeList[theItem-1].rezV;
-		gGamePrefs.videoHz = gVideoModeList[theItem-1].lowestHz;
-	}
-
-	DeleteMenu(100);
-	DisposeMenu(aMenu);
-
-}
-
-
-
-/********************* CREATE DISPLAY MODE LIST *************************/
-
-static void CreateDisplayModeList(void)
-{
-DMDisplayModeListIteratorUPP	myModeIteratorProc = nil;
-DMListIndexType					numModesInList;
-DMListType						theDisplayModeList;
-int								i;
-
-	gOurDevice = nil;
-	gNumVideoModes = 0;
-
-					/* CREATE A CALLBACK PROC */
-
-	myModeIteratorProc = NewDMDisplayModeListIteratorUPP(ModeListCallback);
-
-
-					/* GET SCREEN DEVICE */
-
-	gOurDevice = DMGetFirstScreenDevice (dmOnlyActiveDisplays);			// get 1st screen device
-	for (i = 0; i < gGamePrefs.monitorNum; i++)							// scan for Nth device to use
-	{
-		GDHandle	nextDevice;
-
-		nextDevice = DMGetNextScreenDevice(gOurDevice, true);
-		if (nextDevice)
-			gOurDevice = nextDevice;
-		else
-		{
-			gGamePrefs.monitorNum = 0;
-			SavePrefs();
-			break;
-		}
-	}
-
-					/*****************************/
-					/* EXTRACT INFO ABOUT DEVICE */
-					/*****************************/
-
-	if (gOurDevice && myModeIteratorProc)
-	{
-		if (DMGetDisplayIDByGDevice(gOurDevice, &gOurDisplayID, false) == noErr)								// get Display ID
-		{
-						/* GET MODE LIST */
-
-			numModesInList = 0;
-			if (DMNewDisplayModeList(gOurDisplayID, 0, 0, &numModesInList, &theDisplayModeList) == noErr)		// get mode list for the Display
-			{
-						/* EXTRACT INFO FOR EACH MODE */
-
-				for (i = 0; i < numModesInList; i++)
-					DMGetIndexedDisplayModeFromList(theDisplayModeList, i, 0, myModeIteratorProc, nil);
-
-				DMDisposeList(theDisplayModeList);																// dispose of mode list
-			}
-		}
-	}
-
-			/* CLEANUP */
-
-	if (myModeIteratorProc)
-		DisposeDMDisplayModeListIteratorUPP(myModeIteratorProc);
-
-
-}
-
-/****************** MODE LIST CALLBACK ***********************/
-
-pascal void ModeListCallback(void *userData, DMListIndexType a, DMDisplayModeListEntryPtr displaymodeInfo)
-{
-double					refreshRate;
-u_short					i,depth,sizeH,sizeV,j;
-//Boolean				modeOk;
-Boolean					skip;
-//OSErr					error;
-//u_long					switchFlags;
-u_long					timingFlags;
-
-#pragma unused (userData, a)
-
-	timingFlags = displaymodeInfo->displayModeTimingInfo->csTimingFlags;
-	if	((timingFlags & (1 << kModeShowNow)) || (timingFlags & (1<<kModeSafe)) || (timingFlags & (1<<kModeValid)))
-	{
-				/* GET REFRESH RATE (Hz) */
-
-		refreshRate = Fix2X(displaymodeInfo->displayModeResolutionInfo->csRefreshRate);
-
-
-#if 0
-				/* VALIDATE THIS MODE */
-
-		error = DMCheckDisplayMode(gOurDevice, displaymodeInfo->displayModeSwitchInfo->csData,
-												displaymodeInfo->displayModeSwitchInfo->csMode,
-												&switchFlags, 0, &modeOk);
-		if ((error == noErr) && modeOk)
-		{
-			if (!(switchFlags & (1<<kShowModeBit)))			// see if should show it
-				return;
-		}
-		else
-			return;
-#endif
-
-				/****************************************/
-				/* GET RESOLUTIONS & DEPTHS FOR THIS Hz */
-				/****************************************/
-
-		for (i = 0; i < displaymodeInfo->displayModeDepthBlockInfo->depthBlockCount; i++)
-		{
-			depth = displaymodeInfo->displayModeDepthBlockInfo->depthVPBlock[i].depthVPBlock->vpPixelSize;
-			sizeH = displaymodeInfo->displayModeDepthBlockInfo->depthVPBlock[i].depthVPBlock->vpBounds.right;
-			sizeV = displaymodeInfo->displayModeDepthBlockInfo->depthVPBlock[i].depthVPBlock->vpBounds.bottom;
-
-			if (							//(depth == 32) &&								// skip any modes which are not 32-bit
-				(sizeV <= sizeH) &&															// skip vertical oriented modes
-				(sizeH <= 1940))															// skip any crazy modes
-			{
-
-							/* SEE IF ADD TO MODE LIST */
-
-				skip = false;
-				for (j = 0; j < gNumVideoModes; j++)
-				{
-					if ((gVideoModeList[j].rezH == sizeH) && (gVideoModeList[j].rezV == sizeV))	// see if this rez already in list
-					{
-						skip = true;
-						if (refreshRate < gVideoModeList[j].lowestHz)							// see if this Hz is lower
-							gVideoModeList[j].lowestHz = refreshRate;							// update Hz
-					}
-				}
-
-						/* THIS REZ NOT IN LIST YET, SO ADD */
-
-				if (!skip)
-				{
-					if (gNumVideoModes < MAX_VIDEO_MODES)
-					{
-						gVideoModeList[gNumVideoModes].rezH = sizeH;
-						gVideoModeList[gNumVideoModes].rezV = sizeV;
-						gVideoModeList[gNumVideoModes].lowestHz = refreshRate;
-						gNumVideoModes++;
-					}
-				}
-			}
-		}
-	}
-}
-
-
-
-
 

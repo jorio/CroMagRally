@@ -17,7 +17,7 @@
 #include "skeletonobj.h"
 #include 	"input.h"
 #include "skeletonanim.h"
-#include "skeletonJoints.h"
+#include "skeletonjoints.h"
 #include "collision.h"
 #include "effects.h"
 #include "camera.h"

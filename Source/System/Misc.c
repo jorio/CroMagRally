@@ -9,21 +9,11 @@
 /* EXTERNALS   */
 /***************/
 
-#include <Gestalt.h>
-#include <TextUtils.h>
 #include <math.h>
-#include <sound.h>
-#include <folders.h>
-#include <palettes.h>
-#include <osutils.h>
-#include <timer.h>
-#include 	<DrawSprocket.h>
-#include <InputSprocket.h>
-#include <DriverServices.h>
 
 #include	"globals.h"
 #include	"misc.h"
-#include	"windows.h"
+#include	"window.h"
 #include "file.h"
 #include "objects.h"
 #include "input.h"
@@ -39,7 +29,7 @@ extern	unsigned long gOriginalSystemVolume;
 extern	short		gMainAppRezFile;
 extern	Boolean		gISPInitialized,gOSX;
 extern	Boolean		gISpActive,gHasFixedDSpForX;
-extern	DSpContextReference 	gDisplayContext;
+extern	/*DSpContextReference*/ void* 	gDisplayContext;
 extern	OGLSetupOutputType		*gGameViewInfoPtr;
 extern	int			gPolysThisFrame;
 extern	AGLContext		gAGLContext;
@@ -76,19 +66,10 @@ int		gNumPointers = 0;
 
 Boolean	gLowMemMode = false;
 
-Boolean     gGameIsRegistered = false;
-
-unsigned char	gRegInfo[64];
-
-Str255  gRegFileName = ":CroMag:Info";
-
 
 /**********************/
 /*     PROTOTYPES     */
 /**********************/
-
-static void DoRegistrationDialog(unsigned char *out);
-static Boolean ValidateRegistrationNumber(unsigned char *regInfo);
 
 
 
@@ -634,55 +615,8 @@ void DrawCString(char *string)
 
 void VerifySystem(void)
 {
-OSErr	iErr;
-NumVersion				;
-long		createdDirID;
-NumVersion	vers;
-
-
-		/* DETERMINE IF RUNNING ON OS X */
-
-	iErr = Gestalt(gestaltSystemVersion,(long *)&vers);
-	if (vers.stage >= 0x10)
-	{
-		gOSX = true;
-	}
-	else
-	{
-		gOSX = false;
-	}
-
-
-		/* REQUIRE CARBONLIB 1.0.4 */
-
-	iErr = Gestalt(gestaltCarbonVersion,(long *)&vers);
-	if (vers.stage == 1)
-	{
-		if ((vers.minorAndBugRev == 0) && (vers.nonRelRev < 4))
-		{
-			DoFatalAlert("This application requires CarbonLib 1.0.4 or newer.  Run Software Update, or download the latest CarbonLib from www.apple.com");
-		}
-	}
-
-
-
-#if 0
-			/* CHECK TIME-BOMB */
-	{
-		unsigned long secs;
-		DateTimeRec	d;
-
-		GetDateTime(&secs);
-		SecondsToDate(secs, &d);
-
-		if ((d.year > 2000) ||
-			((d.year == 2000) && (d.month > 10)))
-		{
-			DoFatalAlert("Sorry, but this beta has expired");
-		}
-	}
-#endif
-
+OSErr iErr;
+long createdDirID;
 
 			/* CHECK PREFERENCES FOLDER */
 
@@ -692,67 +626,6 @@ NumVersion	vers;
 		DoAlert("Warning: Cannot locate the Preferences folder.");
 
 	iErr = DirCreate(gPrefsFolderVRefNum,gPrefsFolderDirID,"CroMag",&createdDirID);		// make folder in there
-
-
-			/* CHECK OPENGL */
-
-	if ((Ptr) kUnresolvedCFragSymbolAddress == (Ptr) aglChoosePixelFormat) // check for existance of OpenGL
-		DoFatalAlert("This application needs OpenGL to function.  Please install OpenGL and try again.");
-
-
-		/* CHECK SPROCKETS */
-
-	if (!gOSX)
-	{
-		if ((Ptr) kUnresolvedCFragSymbolAddress == (Ptr) ISpStartup) 							// check for existance of Input Sprocket
-			DoFatalAlert("This application needs Input Sprocket to function.  Please install Game Sprockets and try again.");
-
-		if ((Ptr) kUnresolvedCFragSymbolAddress == (Ptr) DSpStartup) 							// check for existance of Draw Sprocket
-			DoFatalAlert("This application needs Draw Sprocket to function.  Please install Game Sprockets and try again.");
-
-		if ((Ptr) kUnresolvedCFragSymbolAddress == (Ptr) NSpInitialize) 						// check for existance of Net Sprocket
-			DoFatalAlert("This application needs Net Sprocket to function.  Please install Game Sprockets and try again.");
-	}
-	else
-	{
-		if ((Ptr)kUnresolvedCFragSymbolAddress == (Ptr)DSpSetWindowToFront) 		// check for special OS X DSp hacks
-			gHasFixedDSpForX = false;
-		else
-			gHasFixedDSpForX = true;
-
-		if (OSX_PACKAGE)
-		{
-			if ((Ptr) kUnresolvedCFragSymbolAddress == (Ptr) NSpInitialize) 						// check for existance of Net Sprocket
-				DoFatalAlert("This application needs Net Sprocket to function.  Please install the Net Sprocket libraries in your Cro-Mag Rally folder.");
-		}
-	}
-
-
-		/* CHECK MEMORY */
-	{
-		u_long	mem;
-		iErr = Gestalt(gestaltPhysicalRAMSize,(long *)&mem);
-		if (iErr == noErr)
-		{
-					/* CHECK FOR LOW-MEMORY SITUATIONS */
-
-			mem /= 1024;
-			mem /= 1024;
-			if (mem <= 64)						// see if have only 64 MB of real RAM or less installed
-			{
-				u_long	vmAttr;
-
-						/* MUST HAVE VM ON */
-
-				Gestalt(gestaltVMAttr,(long *)&vmAttr);	// get VM attribs to see if its ON
-				if (!(vmAttr & (1 << gestaltVMPresent)))
-				{
-					DoFatalAlert("Please turn on Virtual Memory, reboot your computer, and try again");
-				}
-				gLowMemMode = true;
-			}
-		}
-	}
 }
 
 
@@ -794,6 +667,8 @@ short	dataLen = inSourceStr[0] + 1;
 
 void CalcFramesPerSecond(void)
 {
+	IMPLEMENT_ME();
+#if 0
 AbsoluteTime currTime,deltaTime;
 static AbsoluteTime time = {0,0};
 Nanoseconds	nano;
@@ -812,6 +687,7 @@ Nanoseconds	nano;
 
 
 	time = currTime;	// reset for next time interval
+#endif
 }
 
 
@@ -842,6 +718,7 @@ int		i;
 
 void MyFlushEvents(void)
 {
+#if 0 //IJ
 EventRecord 	theEvent;
 
 	FlushEvents (everyEvent, REMOVE_ALL_EVENTS);
@@ -854,246 +731,5 @@ EventRecord 	theEvent;
 
 	FlushEvents (everyEvent, REMOVE_ALL_EVENTS);
 	FlushEventQueue(GetMainEventQueue());
+#endif
 }
-
-
-#pragma mark -
-
-
-/********************** CHECK GAME REGISTRATION *************************/
-
-void CheckGameRegistration(void)
-{
-OSErr   iErr;
-FSSpec  spec;
-short		fRefNum;
-long        	numBytes = REG_LENGTH;
-
-            /* GET SPEC TO REG FILE */
-
-	iErr = FSMakeFSSpec(gPrefsFolderVRefNum, gPrefsFolderDirID, gRegFileName, &spec);
-    if (iErr)
-        goto game_not_registered;
-
-
-            /*************************/
-            /* VALIDATE THE REG FILE */
-            /*************************/
-
-            /* READ REG DATA */
-
-    if (FSpOpenDF(&spec,fsCurPerm,&fRefNum) != noErr)
-        goto game_not_registered;
-
-	FSRead(fRefNum,&numBytes,gRegInfo);
-
-    FSClose(fRefNum);
-
-            /* VALIDATE IT */
-
-    if (!ValidateRegistrationNumber(&gRegInfo[0]))
-        goto game_not_registered;
-
-    gGameIsRegistered = true;
-    return;
-
-        /* GAME IS NOT REGISTERED YET, SO DO DIALOG */
-
-game_not_registered:
-
-    DoRegistrationDialog(&gRegInfo[0]);
-
-    if (gGameIsRegistered)                                  // see if write out reg file
-    {
-	    FSpDelete(&spec);	                                // delete existing file if any
-	    iErr = FSpCreate(&spec,kGameID,'xxxx',-1);
-        if (iErr == noErr)
-        {
-        	numBytes = REG_LENGTH;
-			FSpOpenDF(&spec,fsCurPerm,&fRefNum);
-			FSWrite(fRefNum,&numBytes,gRegInfo);
-		    FSClose(fRefNum);
-     	}
-    }
-
-            /* DEMO MODE */
-    else
-    {
-		/* SEE IF TIMER HAS EXPIRED */
-
-        GetDemoTimer();
-    	if (gDemoVersionTimer > (60 * 90))		// let play for n minutes
-    	{
-			DoAlertNum(136);
-    		ExitToShell();
-    	}
-    }
-
-}
-
-
-/********************* VALIDATE REGISTRATION NUMBER ******************/
-
-static Boolean ValidateRegistrationNumber(unsigned char *regInfo)
-{
-Handle	hand;
-int	   i,j, c;
-unsigned char pirateNumbers[17][REG_LENGTH] =
-{
-	"AAAAAAMMMMMM",
-	"CENDRMHCQGPR",
-	"AJADGEIGJMDM",
-	"AKAJHMAFDMCM",
-	"MMMMMMAAAAAA",
-
-	"MMMMMMHHHHHH",
-	"HHHHHHMMMMMM",
-	"MHMHMHMHMHMH",
-	"HMHMHMHMHMHM",
-	"AMAMAMAMAMAM",
-
-	"MAMAMAMAMAMA",
-	"ALADGIEGJMBM",
-	"AAMMAAMMAAMM",
-	"MMAAMMAAMMAA",
-	"AHBIAIEMELFM",
-
-	"AJBLAIEMBLDM",
-	"ADBFAHFMHLJM",
-};
-
-			/*************************/
-            /* VALIDATE ENTERED CODE */
-            /*************************/
-
-    for (i = 0, j = REG_LENGTH-1; i < REG_LENGTH; i += 2, j -= 2)     // get checksum
-    {
-        Byte    value,c,d;
-
-		if ((regInfo[i] >= 'a') && (regInfo[i] <= 'z'))	// convert to upper case
-			regInfo[i] = 'A' + (regInfo[i] - 'a');
-
-		if ((regInfo[j] >= 'a') && (regInfo[j] <= 'z'))	// convert to upper case
-			regInfo[j] = 'A' + (regInfo[j] - 'a');
-
-        value = regInfo[i] - 'A';           // convert letter to digit 0..9
-        c = ('M' - regInfo[j]);             // convert character to number
-
-        d = c - value;                      // the difference should be == i
-
-        if (d != 0)
-            return(false);
-    }
-
-			/**********************************/
-			/* CHECK FOR KNOWN PIRATE NUMBERS */
-			/**********************************/
-
-	for (j = 0; j < 17; j++)
-	{
-		for (i = 0; i < REG_LENGTH; i++)
-		{
-			if (regInfo[i] != pirateNumbers[j][i])					// see if doesn't match
-				goto next_code;
-		}
-
-				/* THIS CODE IS PIRATED */
-
-		return(false);
-
-next_code:;
-	}
-
-
-			/*******************************/
-			/* SECONDARY CHECK IN REZ FILE */
-			/*******************************/
-
-	c = CountResources('BseR');						// count how many we've got stored
-	for (j = 0; j < c; j++)
-	{
-		hand = GetResource('BseR',128+j);			// read the #
-
-		for (i = 0; i < REG_LENGTH; i++)
-		{
-			if (regInfo[i] != (*hand)[i])			// see if doesn't match
-				goto next2;
-		}
-
-				/* THIS CODE IS PIRATED */
-
-		return(false);
-
-next2:
-		ReleaseResource(hand);
-	}
-
-
-    return(true);
-}
-
-
-
-/****************** DO REGISTRATION DIALOG *************************/
-
-static void DoRegistrationDialog(unsigned char *out)
-{
-DialogPtr 		myDialog;
-Boolean			dialogDone = false, isValid;
-short			itemType,itemHit;
-ControlHandle	itemHandle;
-Rect			itemRect;
-
-	TurnOffISp();
-	InitCursor();
-
-	FlushEvents ( everyEvent, REMOVE_ALL_EVENTS);
-	myDialog = GetNewDialog(128,nil,MOVE_TO_FRONT);
-
-				/* DO IT */
-
-	while(dialogDone == false)
-	{
-		ModalDialog(nil, &itemHit);
-		switch (itemHit)
-		{
-			case	1:									        // Register
-					GetDialogItem(myDialog,4,&itemType,(Handle *)&itemHandle,&itemRect);
-					GetDialogItemText((Handle)itemHandle,gRegInfo);
-                    BlockMove(&gRegInfo[1], &gRegInfo[0], REG_LENGTH);         // shift out length byte
-
-                    isValid = ValidateRegistrationNumber(gRegInfo);    // validate the number
-
-                    if (isValid == true)
-                    {
-                        gGameIsRegistered = true;
-                        dialogDone = true;
-                        BlockMove(gRegInfo, out, REG_LENGTH);		// copy to output
-                    }
-                    else
-                    {
-                        DoAlert("Sorry, that registration code is not valid.  Please try again.");
-						InitCursor();
-                    }
-					break;
-
-            case    2:                                  // Demo
-                    dialogDone = true;
-                    break;
-
-			case 	3:									// QUIT
-                    ExitToShell();
-					break;
-		}
-	}
-	DisposeDialog(myDialog);
-	HideCursor();
-	TurnOnISp();
-}
-
-
-
-
-
-
-

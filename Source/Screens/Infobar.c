@@ -12,7 +12,7 @@
 #include "globals.h"
 #include "misc.h"
 #include "objects.h"
-#include "windows.h"
+#include "window.h"
 #include "input.h"
 #include	"file.h"
 #include	"ogl_support.h"

@@ -13,7 +13,7 @@
 #include "misc.h"
 #include "miscscreens.h"
 #include "objects.h"
-#include "windows.h"
+#include "window.h"
 #include "input.h"
 #include	"file.h"
 #include	"ogl_support.h"
@@ -29,7 +29,7 @@
 #include "sobjtypes.h"
 #include "effects.h"
 #include "skeletonanim.h"
-#include "skeletonJoints.h"
+#include "skeletonjoints.h"
 #include "sound2.h"
 
 extern	float				gFramesPerSecondFrac,gFramesPerSecond;

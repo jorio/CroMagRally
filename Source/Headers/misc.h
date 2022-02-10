@@ -2,6 +2,10 @@
 // misc.h
 //
 
+#pragma once
+
+#include <stdio.h>
+
 #define REG_LENGTH      12
 
 
@@ -46,3 +50,5 @@ void CheckGameRegistration(void);
 
 
 
+#define IMPLEMENT_ME() DoFatalAlert(__func__)
+#define IMPLEMENT_ME_SOFT() puts(__func__)

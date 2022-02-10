@@ -78,8 +78,8 @@ typedef struct
 	double	videoHz;
 	Byte	monitorNum;
 	u_short	keySettings[NUM_CONTROL_NEEDS];
-	DateTimeRec	lastVersCheckDate;
-	Byte	didThisNote[MAX_HTTP_NOTES];
+//	DateTimeRec	lastVersCheckDate;
+//	Byte	didThisNote[MAX_HTTP_NOTES];
 	Byte	reserved[8];
 }PrefsType;
 
@@ -114,20 +114,3 @@ void SetDefaultDirectory(void);
 void SetDefaultPlayerSaveData(void);
 void DoSavedPlayerDialog(void);
 void SavePlayerFile(void);
-
-void GetLibVersion(ConstStrFileNameParam libName, NumVersion *version);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

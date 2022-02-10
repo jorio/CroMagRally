@@ -10,16 +10,10 @@
 /***************/
 
 #include <stdlib.h>
-#include <DrawSprocket.h>
-#include <InputSprocket.h>
-#include <CursorDevices.h>
-#include <Traps.h>
-#include <TextUtils.h>
-#include <FixMath.h>
 #include "globals.h"
 #include "misc.h"
 #include "input.h"
-#include "windows.h"
+#include "window.h"
 #include "ogl_support.h"
 #include "miscscreens.h"
 #include "main.h"
@@ -27,7 +21,6 @@
 #include "file.h"
 
 extern	short				gMainAppRezFile,gMyNetworkPlayerNum,gNumLocalPlayers;
-extern	DSpContextReference gDisplayContext;
 extern	Byte				gActiveSplitScreenMode;
 extern	PlayerInfoType		gPlayerInfo[];
 extern	Boolean				gOSX,gQuitting;
@@ -44,7 +37,6 @@ static void MyGetKeys(KeyMap *keyMap);
 static void GetLocalKeyStateForPlayer(short playerNum, Boolean secondaryControls);
 
 static void DoMyKeyboardEdit(void);
-static pascal Boolean DialogCallback (DialogRef dp,EventRecord *event, short *item);
 static void SetKeyControl(short item, u_short keyCode);
 static void SetMyKeyEditDefaults(void);
 static short GetFirstRealKeyPressed(void);
@@ -76,6 +68,7 @@ float	gAnalogSteeringTimer[MAX_PLAYERS] = {0,0,0,0,0,0};
 		/* CONTORL NEEDS */
 
 
+#if 0
 
 static ISpNeed	gControlNeeds[NUM_CONTROL_NEEDS] =
 {
@@ -282,6 +275,8 @@ static ISpNeed	gControlNeeds[NUM_CONTROL_NEEDS] =
 
 ISpElementReference	gVirtualElements[NUM_CONTROL_NEEDS];
 
+#endif
+
 
 static const u_short	gNeedToKey[NUM_CONTROL_NEEDS] =				// table to convert need # into key equate value
 {
@@ -345,7 +340,7 @@ static const gControlBitToKey[NUM_CONTROL_BITS][2] = {						// remember to updat
 void InitInput(void)
 {
 OSErr				iErr;
-ISpDeviceReference	dev[10];
+//ISpDeviceReference	dev[10];
 UInt32				count = 0;
 int			i;
 
@@ -364,6 +359,7 @@ int			i;
 				/* OS 9 */
 	else
 	{
+#if 0
 		ISpStartup();
 		gISPInitialized = true;
 
@@ -398,6 +394,7 @@ int			i;
 
 		ISpDevices_ExtractByClass(kISpDeviceClass_Mouse,10,&count,dev);
 		ISpDevices_Deactivate(count, dev);
+#endif
 	}
 }
 
@@ -431,8 +428,10 @@ void ReadKeyboard(void)
 
 	if (!gQuitting)
 	{
+#if 0
 		if (GetKeyState_Real(KEY_Q) && GetKeyState_Real(KEY_APPLE))			// see if real key quit
 			CleanQuit();
+#endif
 	}
 
 
@@ -441,6 +440,8 @@ void ReadKeyboard(void)
 
 	if (GetNewKeyState_Real(KEY_F12))
 	{
+		IMPLEMENT_ME_SOFT();
+#if 0
 		Boolean o = gISpActive;
 		TurnOffISp();
 
@@ -458,6 +459,7 @@ void ReadKeyboard(void)
 
 		if (gAGLContext)
 			aglSetDrawable(gAGLContext, gAGLWin);		// reenable gl
+#endif
 
 		CalcFramesPerSecond();
 		CalcFramesPerSecond();
@@ -619,6 +621,7 @@ unsigned char *keyBytes;
 	else
 	{
 
+#if 0
 			/***********************************/
 			/* POLL NEEDS FROM INPUT SPROCKETS */
 			/***********************************/
@@ -686,6 +689,7 @@ unsigned char *keyBytes;
 			}
 
 		}
+#endif
 	}
 }
 
@@ -697,54 +701,13 @@ unsigned char *keyBytes;
 
 void TurnOnISp(void)
 {
-ISpDeviceReference	dev[10];
-UInt32		count = 0;
-OSErr		iErr;
 
-	if (!gISPInitialized)
-		return;
-
-	if (!gISpActive)
-	{
-		ISpResume();
-		gISpActive = true;
-
-				/* ACTIVATE ALL DEVICES */
-
-		iErr = ISpDevices_Extract(10,&count,dev);
-		if (iErr)
-			DoFatalAlert("TurnOnISp: ISpDevices_Extract failed!");
-		iErr = ISpDevices_Activate(count, dev);
-		if (iErr)
-			DoFatalAlert("TurnOnISp: ISpDevices_Activate failed!");
-
-			/* DEACTIVATE JUST THE MOUSE SINCE WE DONT NEED THAT */
-
-		ISpDevices_ExtractByClass(kISpDeviceClass_Mouse,10,&count,dev);
-		ISpDevices_Deactivate(count, dev);
-	}
 }
 
 /******************** TURN OFF ISP *********************/
 
 void TurnOffISp(void)
 {
-ISpDeviceReference	dev[10];
-UInt32		count = 0;
-
-	if (!gISPInitialized)
-		return;
-
-	if (gISpActive)
-	{
-				/* DEACTIVATE ALL DEVICES */
-
-		ISpDevices_Extract(10,&count,dev);
-		ISpDevices_Deactivate(count, dev);
-		ISpSuspend();
-
-		gISpActive = false;
-	}
 }
 
 
@@ -756,6 +719,8 @@ UInt32		count = 0;
 
 void DoKeyConfigDialog(void)
 {
+	IMPLEMENT_ME_SOFT();
+#if 0
 	Enter2D(true);
 
 	FlushEvents (everyEvent, REMOVE_ALL_EVENTS);
@@ -779,6 +744,7 @@ void DoKeyConfigDialog(void)
 	}
 
 	Exit2D();
+#endif
 }
 
 
@@ -953,231 +919,6 @@ int		i;
 }
 
 
-
-/*********************** DO MY KEYBOARD EDIT ****************************/
-
-static void DoMyKeyboardEdit(void)
-{
-DialogRef 		myDialog;
-DialogItemType	itemType,itemHit;
-ControlHandle	itemHandle;
-Rect			itemRect;
-Boolean			dialogDone;
-ModalFilterUPP	myProc;
-short			i,j;
-Str32			s;
-
-	myDialog = GetNewDialog(4000,nil,MOVE_TO_FRONT);
-
-
-				/* SET CONTROL VALUES */
-reset_it:
-	for (j = 2; j <= 17; j++)
-	{
-		i = j-2;
-		switch(j)
-		{
-			case	2:							// turn left p1
-					KeyCodeToChar((gUserKeySettings[0] & 0xff00) >> 8, s);
-					break;
-
-			case	3:							// turn right p1
-					KeyCodeToChar(gUserKeySettings[0] & 0xff, s);
-					break;
-
-			case	10:							// turn left p2
-					KeyCodeToChar((gUserKeySettings[7] & 0xff00) >> 8, s);
-					break;
-
-			case	11:							// turn right p2
-					KeyCodeToChar(gUserKeySettings[7] & 0xff, s);
-					break;
-
-					/* P1 */
-			case	4:
-			case	5:
-			case	6:
-			case	7:
-			case	8:
-			case	9:
-					KeyCodeToChar(gUserKeySettings[j-3], s);
-					break;
-
-					/* P2 */
-			case	12:
-			case	13:
-			case	14:
-			case	15:
-			case	16:
-			case	17:
-					KeyCodeToChar(gUserKeySettings[j-11+7], s);
-					break;
-
-		}
-
-		GetDialogItem(myDialog,j,&itemType,(Handle *)&itemHandle,&itemRect);
-		SetDialogItemText((Handle)itemHandle,s);
-	}
-
-
-
-			/* SET OUTLINE FOR USERITEM */
-
-	GetDialogItem(myDialog,1,&itemType,(Handle *)&itemHandle,&itemRect);
-	SetDialogItem(myDialog,37, userItem, (Handle)NewUserItemUPP(DoOutline), &itemRect);
-
-
-				/* DO IT */
-
-	myProc = NewModalFilterUPP(DialogCallback);
-
-	dialogDone = false;
-	while(!dialogDone)
-	{
-		ModalDialog(myProc, &itemHit);
-		switch (itemHit)
-		{
-			case 	1:									// hit ok
-					dialogDone = true;
-					break;
-
-			case	38:									// reset defaults
-					SetMyKeyEditDefaults();
-					goto reset_it;
-					break;
-
-		}
-	}
-	DisposeDialog(myDialog);
-
-
-		/* UPDATE IN PREFS */
-
-	for (i = 0; i < NUM_CONTROL_NEEDS; i++)			// copy key settings from prefs
-		gGamePrefs.keySettings[i] = gUserKeySettings[i];
-	SavePrefs();
-}
-
-
-/*********************** DIALOG CALLBACK ***************************/
-
-static pascal Boolean DialogCallback (DialogRef dp,EventRecord *event, short *item)
-{
-char 			c;
-DialogItemType	itemType;
-ControlHandle	itemHandle;
-Rect			itemRect;
-Str15			s;
-short			selectedItem = GetDialogKeyboardFocusItem(dp);	// which text edit item is selected?
-
-#pragma unused(item)
-
-	ReadKeyboard_Real();
-
-	switch(event->what)
-	{
-				/* CHECK SOLID KEYS */
-
-		case	keyDown:								// we have a key press
-				c = event->message & 0x00FF;			// what character is it?
-
-				switch(c)
-				{
-					case	CHAR_SPACE:
-							GetDialogItem(dp, selectedItem,&itemType,(Handle *)&itemHandle,&itemRect);
-							SetDialogItemText((Handle)itemHandle,"Space");
-							break;
-
-					case	CHAR_UP:
-							GetDialogItem(dp, selectedItem,&itemType,(Handle *)&itemHandle,&itemRect);
-							SetDialogItemText((Handle)itemHandle,"Up Arrow");
-							break;
-
-					case	CHAR_DOWN:
-							GetDialogItem(dp, selectedItem,&itemType,(Handle *)&itemHandle,&itemRect);
-							SetDialogItemText((Handle)itemHandle,"Down Arrow");
-							break;
-
-					case	CHAR_LEFT:
-							GetDialogItem(dp, selectedItem,&itemType,(Handle *)&itemHandle,&itemRect);
-							SetDialogItemText((Handle)itemHandle,"Left Arrow");
-							break;
-
-					case	CHAR_RIGHT:
-							GetDialogItem(dp, selectedItem,&itemType,(Handle *)&itemHandle,&itemRect);
-							SetDialogItemText((Handle)itemHandle,"Right Arrow");
-							break;
-
-					case	CHAR_ESC:
-							GetDialogItem(dp, selectedItem,&itemType,(Handle *)&itemHandle,&itemRect);
-							SetDialogItemText((Handle)itemHandle,"ESC");
-							break;
-
-					case	CHAR_DELETE:
-							GetDialogItem(dp, selectedItem,&itemType,(Handle *)&itemHandle,&itemRect);
-							SetDialogItemText((Handle)itemHandle,"Delete");
-							break;
-
-					case	CHAR_RETURN:
-							GetDialogItem(dp, selectedItem,&itemType,(Handle *)&itemHandle,&itemRect);
-							SetDialogItemText((Handle)itemHandle,"Return");
-							break;
-
-					case	CHAR_TAB:
-							GetDialogItem(dp, selectedItem,&itemType,(Handle *)&itemHandle,&itemRect);
-							SetDialogItemText((Handle)itemHandle,"Tab");
-							break;
-
-					default:
-							if (c >= 'a')							// convert lower to upper case
-								c = c - 'a' + 'A';
-
-							s[0] = 1;
-							s[1] = c;
-
-							GetDialogItem(dp, selectedItem,&itemType,(Handle *)&itemHandle,&itemRect);
-							SetDialogItemText((Handle)itemHandle,s);
-							break;
-				}
-
-				SetKeyControl(selectedItem, GetFirstRealKeyPressed());
-
-				return(true);							// dont want anyone else to handle this key press
-
-
-				/* CHECK MODIFIERS */
-
-		default:
-				if(GetNewKeyState_Real(KEY_APPLE))
-				{
-					GetDialogItem(dp, selectedItem,&itemType,(Handle *)&itemHandle,&itemRect);
-					SetDialogItemText((Handle)itemHandle,"Apple");
-				}
-				else
-				if(GetNewKeyState_Real(KEY_OPTION))
-				{
-					GetDialogItem(dp, selectedItem,&itemType,(Handle *)&itemHandle,&itemRect);
-					SetDialogItemText((Handle)itemHandle,"Option");
-				}
-				else
-				if(GetNewKeyState_Real(KEY_SHIFT))
-				{
-					GetDialogItem(dp, selectedItem,&itemType,(Handle *)&itemHandle,&itemRect);
-					SetDialogItemText((Handle)itemHandle,"Shift");
-				}
-				else
-				if(GetNewKeyState_Real(KEY_CTRL))
-				{
-					GetDialogItem(dp, selectedItem,&itemType,(Handle *)&itemHandle,&itemRect);
-					SetDialogItemText((Handle)itemHandle,"Control");
-				}
-
-	}
-
-
-	return(false);
-}
-
 /********************** GET FIRST REAL KEY PRESSED ************/
 //
 // returns the char code of the first key found in the keymap
@@ -1239,117 +980,3 @@ static void SetKeyControl(short item, u_short keyCode)
 				break;
 	}
 }
-
-
-/****************** KEY CODE TO CHAR ******************/
-
-static void KeyCodeToChar(UInt16 code, Str32 s)
-{
-long    keyScript, KCHRID;
-Handle  KCHRHdl;
-UInt32 state;
-
-	switch(code)
-	{
-				/****************/
-				/* SPECIAL KEYS */
-				/****************/
-
-		case	KEY_OPTION:
-				CopyPString("Option", s);
-				break;
-
-		case	KEY_SPACE:
-				CopyPString("Space", s);
-				break;
-
-		case	KEY_APPLE:
-				CopyPString("Apple", s);
-				break;
-
-		case	KEY_SHIFT:
-				CopyPString("Shift", s);
-				break;
-
-		case	KEY_CTRL:
-				CopyPString("Control", s);
-				break;
-
-		case	KEY_RETURN:
-				CopyPString("Return", s);
-				break;
-
-		case	KEY_DELETE:
-				CopyPString("Delete", s);
-				break;
-
-		case	KEY_TAB:
-				CopyPString("Tab", s);
-				break;
-
-		case	KEY_UP:
-				CopyPString("Up Arrow", s);
-				break;
-		case	KEY_DOWN:
-				CopyPString("Down Arrow", s);
-				break;
-		case	KEY_LEFT:
-				CopyPString("Left Arrow", s);
-				break;
-		case	KEY_RIGHT:
-				CopyPString("Right Arrow", s);
-				break;
-
-
-				/**************/
-				/* OTHER KEYS */
-				/**************/
-
-		default:
-
-			 			/* GET KCHR RESOURCE */
-
-				UseResFile(0);			// use system rez
-
-				keyScript = GetScriptManagerVariable(smKeyScript);	//  First get the current keyboard script.
-				KCHRID = GetScriptVariable(keyScript, smScriptKeys);	//  Now get the KCHR resource ID for that script.
-				KCHRHdl = GetResource('KCHR',KCHRID);					// Finally, get your own copy of this KCHR. Now you can pass a proper KCHR pointer to KeyTrans. */
-				HLock(KCHRHdl);
-				UseResFile(gMainAppRezFile);
-
-				if (KCHRHdl == nil)
-				{
-					SysBeep(0);
-					DoFatalAlert("KeyCodeToChar: GetResource(KCHR) failed");
-				}
-
-
-			  		/* TRANSLATE CODE */
-
-			  state = 0;
-			  state = KeyTranslate (*KCHRHdl, code, &state);
-
-
-			  			/* CLEANUP */
-
-			  ReleaseResource(KCHRHdl);
-
-			  s[0] = 1;								// set string to single char
-			  s[1] = state & 0xff;
-	}
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

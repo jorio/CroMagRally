@@ -12,7 +12,7 @@
 #include "globals.h"
 #include "misc.h"
 #include "objects.h"
-#include "windows.h"
+#include "window.h"
 #include "input.h"
 #include "sound2.h"
 #include	"file.h"
@@ -726,6 +726,8 @@ short	max;
 
 void DoGameSettingsDialog(void)
 {
+	IMPLEMENT_ME();
+#if 0
 DialogRef 		myDialog;
 DialogItemType			itemType,itemHit;
 Handle			itemHandle;
@@ -889,7 +891,7 @@ Boolean			dialogDone;
 
 	CalcFramesPerSecond();				// reset this so things dont go crazy when we return
 	CalcFramesPerSecond();
-
+#endif
 }
 
 
@@ -901,6 +903,8 @@ Boolean			dialogDone;
 
 static void DoPhysicsEditor(void)
 {
+	IMPLEMENT_ME();
+#if 0
 DialogRef 		myDialog;
 DialogItemType	itemType,itemHit;
 ControlHandle	itemHandle;
@@ -1067,19 +1071,5 @@ reset:
 	DisposeDialog(myDialog);
 
 	Exit2D();
+#endif
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

@@ -13,19 +13,16 @@
 #include "misc.h"
 #include "sprites.h"
 #include "metaobjects.h"
-#include "windows.h"
+#include "window.h"
 #include "bg3d.h"
 #include "sobjtypes.h"
 #include "objects.h"
 #include "3dmath.h"
-#include <aglmacro.h>
-#include <Movies.h>
 
 
 extern	float	gCurrentAspectRatio,gGlobalTransparency;
 extern	int		gPolysThisFrame;
 extern	Boolean			gSongPlayingFlag,gSupportsPackedPixels,gCanDo512,gLowMemMode;
-extern	Movie				gSongMovie;
 
 
 /****************************/
@@ -288,8 +285,8 @@ shrink_it:
 
 			/* KEEP MUSIC PLAYING */
 
-		if (gSongPlayingFlag)
-			MoviesTask(gSongMovie, 0);
+//		if (gSongPlayingFlag)
+//			MoviesTask(gSongMovie, 0);
 	}
 
 

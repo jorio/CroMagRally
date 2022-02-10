@@ -1,5 +1,5 @@
 //
-// Terrain.h
+// terrain.h
 //
 
 #ifndef TERRAIN_H

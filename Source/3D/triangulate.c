@@ -13,7 +13,6 @@
 #include "metaobjects.h"
 #include "triangulate.h"
 #include "input.h"
-#include <textutils.h>
 
 
 /****************************/

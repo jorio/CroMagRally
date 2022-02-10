@@ -9,8 +9,6 @@
 /*    EXTERNALS             */
 /****************************/
 
-#include <textutils.h>
-
 #include "globals.h"
 #include "3dmath.h"
 #include "objects.h"
@@ -24,7 +22,7 @@
 #include "player.h"
 #include "effects.h"
 #include "mobjtypes.h"
-#include "skeletonObj.h"
+#include "skeletonobj.h"
 #include "terrain.h"
 #include "camera.h"
 #include "bones.h"

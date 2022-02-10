@@ -5,9 +5,11 @@
 #ifndef OGL_SUP
 #define OGL_SUP
 
-#include <gl.h>
-#include <glu.h>
-#include <agl.h>
+typedef void* AGLContext;
+typedef void* AGLDrawable;
+
+#include <GL/gl.h>
+#include <GL/glu.h>
 
 #define MAX_SPLITSCREENS	2
 

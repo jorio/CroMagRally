@@ -13,13 +13,11 @@
 #include "misc.h"
 #include "bg3d.h"
 #include "metaobjects.h"
-#include	"windows.h"
+#include "window.h"
 #include "skeletonobj.h"
 #include "mobjtypes.h"
-#include <Movies.h>
 
 extern	Boolean			gSongPlayingFlag,gSupportsPackedPixels,gCanDo512,gLowMemMode;
-extern	Movie				gSongMovie;
 
 
 /****************************/
@@ -835,8 +833,8 @@ shrink_it:
 
 				/* KEEP MUSIC PLAYING */
 
-		if (gSongPlayingFlag)
-			MoviesTask(gSongMovie, 0);
+//		if (gSongPlayingFlag)
+//			MoviesTask(gSongMovie, 0);
 
 	}
 }

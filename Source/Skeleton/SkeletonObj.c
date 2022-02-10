@@ -11,7 +11,7 @@
 
 #include "globals.h"
 #include "objects.h"
-#include "windows.h"
+#include "window.h"
 #include "misc.h"
 #include "skeletonanim.h"
 #include "skeletonobj.h"
@@ -22,7 +22,6 @@
 #include "bones.h"
 #include "metaobjects.h"
 
-extern	EventRecord			gTheEvent;
 extern	NewObjectDefinitionType	gNewObjectDefinition;
 extern	ObjNode				*gPlayerNode[];
 extern	OGLSetupOutputType		*gGameViewInfoPtr;

@@ -9,17 +9,13 @@
 /*    EXTERNALS             */
 /****************************/
 
-#include <gl.h>
-#include <glu.h>
-#include <glm.h>
-#include <agl.h>
-#include <aglRenderers.h>
+#include <GL/gl.h>
+#include <GL/glu.h>
 #include <math.h>
-#include <aglmacro.h>
 
 #include "globals.h"
 #include "misc.h"
-#include "windows.h"
+#include "window.h"
 #include "ogl_support.h"
 #include "3dmath.h"
 #include "main.h"
@@ -28,7 +24,6 @@
 #include "file.h"
 #include "sound2.h"
 #include <string.h>
-#include <displays.h>
 
 extern int				gNumObjectNodes,gNumPointers;
 extern	MOMaterialObject	*gMostRecentMaterial;
@@ -43,7 +38,7 @@ extern	u_long			gGlobalMaterialFlags;
 extern	PrefsType			gGamePrefs;
 extern	int				gGameWindowWidth,gGameWindowHeight;
 extern	CGrafPtr				gDisplayContextGrafPtr;
-extern	DisplayIDType		gOurDisplayID;
+//extern	DisplayIDType		gOurDisplayID;
 
 /****************************/
 /*    PROTOTYPES            */
@@ -296,6 +291,8 @@ AGLContext agl_ctx = gAGLContext;
 
 static void OGL_CreateDrawContext(OGLViewDefType *viewDefPtr)
 {
+IMPLEMENT_ME();
+#if 0
 AGLPixelFormat 	fmt;
 GLboolean      mkc,ok;
 GLint          attrib[] 		= {AGL_RGBA, AGL_DOUBLEBUFFER, AGL_DEPTH_SIZE, 16, AGL_ALL_RENDERERS, AGL_ACCELERATED, AGL_NO_RECOVERY, AGL_NONE};
@@ -405,6 +402,7 @@ static char			*s;
 		gCanDo512 = false;
 	else
 		gCanDo512 = true;
+#endif
 }
 
 
@@ -596,6 +594,8 @@ AGLContext agl_ctx = setupInfo->drawContext;
 
 	if (gDebugMode > 0)
 	{
+		IMPLEMENT_ME_SOFT();
+#if 0
 		int		y = 200;
 		int		mem = FreeMem();
 
@@ -647,7 +647,7 @@ AGLContext agl_ctx = setupInfo->drawContext;
 //		y += 15;
 
 
-
+#endif
 	}
 
 
@@ -1193,6 +1193,8 @@ AGLContext agl_ctx = gAGLContext;
 
 static void OGL_InitFont(void)
 {
+IMPLEMENT_ME_SOFT();
+#if 0
 #if !OEM
 AGLContext agl_ctx = gAGLContext;
 
@@ -1201,6 +1203,7 @@ AGLContext agl_ctx = gAGLContext;
     if (!aglUseFont(gAGLContext, kFontIDMonaco, bold, 9, 0, 256, gFontList))
 		DoFatalAlert("OGL_InitFont: aglUseFont failed");
 #endif
+#endif
 }
 
 
@@ -1208,11 +1211,14 @@ AGLContext agl_ctx = gAGLContext;
 
 static void OGL_FreeFont(void)
 {
+IMPLEMENT_ME_SOFT();
+#if 0
 #if !OEM
 
 AGLContext agl_ctx = gAGLContext;
 	glDeleteLists(gFontList, 256);
 
+#endif
 #endif
 }
 
@@ -1284,6 +1290,8 @@ Str255	s;
 
 Boolean OGL_CheckRenderer (GDHandle hGD, long* vram)
 {
+IMPLEMENT_ME(); return false;
+#if 0
 AGLRendererInfo info, head_info;
 GLint 			dAccel = 0;
 Boolean			gotit = false;
@@ -1340,6 +1348,7 @@ Boolean			gotit = false;
 	aglDestroyRendererInfo(head_info);
 
 	return(gotit);
+#endif
 }
 
 

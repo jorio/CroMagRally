@@ -13,7 +13,7 @@
 #include "misc.h"
 #include "miscscreens.h"
 #include "objects.h"
-#include "windows.h"
+#include "window.h"
 #include "input.h"
 #include "sound2.h"
 #include	"file.h"
@@ -54,7 +54,6 @@ static void SetupVehicleSelectScreen(short whichPlayer);
 static Boolean DoVehicleSelectControls(short whichPlayer, Boolean allowAborting);
 static void DrawVehicleSelectCallback(OGLSetupOutputType *info);
 static void FreeVehicleSelectArt(void);
-static void GetVehicleSelectionFromNetPlayers(void);
 static void MoveCarModel(ObjNode *theNode);
 static void MakeVehicleName(void);
 

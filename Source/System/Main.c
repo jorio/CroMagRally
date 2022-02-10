@@ -9,18 +9,10 @@
 /*    EXTERNALS             */
 /****************************/
 
-#include <Script.h>
-#include <Fonts.h>
-#include <TextUtils.h>
-#include <Power.h>
-#include <Gestalt.h>
-#include	<Movies.h>
-#include <Components.h>
-#include <QuicktimeComponents.h>
 #include "globals.h"
 #include "mobjtypes.h"
 #include "objects.h"
-#include "windows.h"
+#include "window.h"
 #include "main.h"
 #include "misc.h"
 #include "skeletonobj.h"
@@ -66,7 +58,7 @@ extern	int			gMaxItemsAllocatedInAPass,gNumObjectNodes;
 extern	PlayerInfoType	gPlayerInfo[];
 extern	SavePlayerType	gPlayerSaveData;
 extern	PrefsType	gGamePrefs;
-extern	Boolean		gAutoPilot,gGameIsRegistered;
+extern	Boolean		gAutoPilot;
 extern	Byte		gActiveSplitScreenMode;
 extern	const u_short	gUserKeySettings_Defaults[];
 
@@ -169,30 +161,7 @@ void ToolBoxInit(void)
 long		response;
 OSErr		iErr;
 NumVersion	vers;
-DateTimeRec	dateTime;
 u_long		seconds, seconds2;
-
-#if !TARGET_API_MAC_CARBON
- 	MaxApplZone();
-#endif
- 	MoreMasters(); 	MoreMasters(); 	MoreMasters(); MoreMasters(); 	MoreMasters(); 	MoreMasters();
-#if !TARGET_API_MAC_CARBON
-	InitGraf(&qd.thePort);
-	InitFonts();
-	InitWindows();
-	InitDialogs(nil);
-	InitCursor();
-	InitMenus();
-	TEInit();
-
-	CompactMem(maxSize);								// just do this to be clean
-	PurgeMem(maxSize);
-#endif
-
-	FlushEvents ( everyEvent, REMOVE_ALL_EVENTS);
-	FlushEventQueue(GetMainEventQueue());
-
-	AutoSleepControl(false);							// don't let system sleep (mainly for OS X)
 
 	gMainAppRezFile = CurResFile();
 
@@ -204,31 +173,6 @@ u_long		seconds, seconds2;
 			/* BOOT OGL */
 
 	OGL_Boot();
-
-
-			/******************/
-			/* INIT QUICKTIME */
-			/******************/
-
-			/* SEE IF QT INSTALLED */
-
-	iErr = Gestalt(gestaltQuickTime,&response);
-	if(iErr != noErr)
-		DoFatalAlert("This application requires Quicktime 4 or newer");
-
-
-			/* SEE IF HAVE 4 */
-
-	iErr = Gestalt(gestaltQuickTimeVersion,(long *)&vers);
-	if ((vers.majorRev < 4) ||
-		((vers.majorRev == 4) && (vers.minorAndBugRev < 0x11)))
-			DoFatalAlert("This application requires Quicktime 4.1.1 or newer which you can download from www.apple.com/quicktime");
-
-
-			/* START QUICKTIME */
-
-	EnterMovies();
-
 
 
 			/* MAKE FSSPEC FOR DATA FOLDER */
@@ -248,55 +192,12 @@ u_long		seconds, seconds2;
 		CleanQuit();
 	}
 
-		/* SEE IF PROCESSOR SUPPORTS frsqrte */
-
-	if (!Gestalt(gestaltNativeCPUtype, &response))
-	{
-		switch(response)
-		{
-			case	gestaltCPU601:				// 601 is only that doesnt support it
-					DoFatalAlert("Sorry, but this app will not run on a PowerPC 601, only on newer Macintoshes.");
-					break;
-		}
-	}
-
 			/********************/
 			/* INIT PREFERENCES */
 			/********************/
 
 	InitDefaultPrefs();
 	LoadPrefs(&gGamePrefs);							// attempt to read from prefs file
-
-
-			/************************************/
-            /* SEE IF GAME IS REGISTERED OR NOT */
-			/************************************/
-
-#if SHAREWARE
-    CheckGameRegistration();
-#else
-    gGameIsRegistered = true;
-#endif
-
-
-		/**********************************/
-		/* SEE IF SHOULD DO VERSION CHECK */
-		/**********************************/
-
-	GetTime(&dateTime);								// get date time
-	DateToSeconds(&dateTime, &seconds);
-
-	DateToSeconds(&gGamePrefs.lastVersCheckDate, &seconds2);
-
-	if ((seconds - seconds2) > 604000)				// see if a week has passed since last check
-	{
-		MyFlushEvents();
-		gGamePrefs.lastVersCheckDate = dateTime;	// update time
-		SavePrefs();
-
-		ReadHTTPData_VersionInfo();					// do version check (also checks serial #'s)
-	}
-
 
 			/* DO BOOT CHECK FOR SCREEN MODE */
 
@@ -320,8 +221,9 @@ int		i;
 
 		/* DETERMINE WHAT LANGUAGE IS ON THIS MACHINE */
 
-	keyboardScript = GetScriptManagerVariable(smKeyScript);
-	languageCode = GetScriptVariable(keyboardScript, smScriptLang);
+//	keyboardScript = GetScriptManagerVariable(smKeyScript);
+//	languageCode = GetScriptVariable(keyboardScript, smScriptLang);
+	languageCode = langEnglish;
 
 	switch(languageCode)
 	{
@@ -362,13 +264,8 @@ int		i;
 	gGamePrefs.screenCrop 			= 0;
 	gGamePrefs.tagDuration 			= 3;
 
-	gGamePrefs.lastVersCheckDate.year = 0;
-
 	for (i = 0; i < NUM_CONTROL_NEEDS; i++)			// set OS X keyboard defaults
 		gGamePrefs.keySettings[i] = gUserKeySettings_Defaults[i];
-
-	for (i = 0; i < MAX_HTTP_NOTES; i++)
-		gGamePrefs.didThisNote[i] = false;
 
 	gGamePrefs.reserved[0] 			= 0;
 	gGamePrefs.reserved[1] 			= 0;

@@ -17,9 +17,7 @@
 #include "bones.h"
 #include "3dmath.h"
 
-extern	EventRecord			gTheEvent;
 extern	float				gFramesPerSecondFrac;
-extern	WindowPtr			gNetworkMessageWindow;
 
 
 /****************************/

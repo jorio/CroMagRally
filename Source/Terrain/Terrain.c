@@ -11,24 +11,22 @@
 #include "globals.h"
 #include "objects.h"
 #include "main.h"
-#include "Terrain.h"
+#include "terrain.h"
 #include "misc.h"
 #include "file.h"
 #include "3dmath.h"
 #include "camera.h"
 #include "mobjtypes.h"
 #include <stdlib.h>
-#include <Rave.h>
 #include "effects.h"
 #include "fences.h"
 #include "player.h"
 #include "paths.h"
 #include "items.h"
-#include "windows.h"
+#include "window.h"
 #include "triangulate.h"
 #include "checkpoints.h"
 #include	"infobar.h"
-#include <aglmacro.h>
 #include	"bg3d.h"
 
 extern	ObjNode					*gCycloramaObj;

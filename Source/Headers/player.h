@@ -6,7 +6,6 @@
 #define __PLAYER_H__
 
 
-#include <NetSprocket.h>
 #include "checkpoints.h"
 
 #define	MAX_SUBMARINE_SPEED		4000.0f
@@ -216,7 +215,7 @@ typedef struct
 			// 			that would wipe out stuff already set.
 			//
 
-	NSpPlayerID			nspPlayerID;			// this player's net sprocket id#
+	int /*NSpPlayerID*/			nspPlayerID;			// this player's net sprocket id#
 
 
 

@@ -9,13 +9,6 @@
 /* EXTERNALS   */
 /***************/
 
-#include <Lists.h>
-#include 	<Folders.h>
-#include 	<Movies.h>
-#include 	<Navigation.h>
-#include 	<TextUtils.h>
-#include 	<Aliases.h>
-#include 	<script.h>
 #include	"globals.h"
 #include 	"objects.h"
 #include	"misc.h"
@@ -24,7 +17,7 @@
 #include	"skeletonjoints.h"
 #include 	"mobjtypes.h"
 #include	"file.h"
-#include 	"windows.h"
+#include 	"window.h"
 #include 	"main.h"
 #include 	"bones.h"
 #include 	"sound2.h"
@@ -67,9 +60,6 @@ extern	PrefsType			gGamePrefs;
 extern	AGLContext		gAGLContext;
 extern	AGLDrawable		gAGLWin;
 extern	Boolean			gSongPlayingFlag,gSupportsPackedPixels,gLowMemMode,gOSX;
-extern	Movie				gSongMovie;
-extern	short			gNumRowsInList;
-extern	ListHandle		gTheList;
 
 /****************************/
 /*    PROTOTYPES            */
@@ -80,15 +70,9 @@ static void ReadDataFromPlayfieldFile(FSSpec *specPtr);
 static void	ConvertTexture16To24(u_short *textureBuffer2, u_char *textureBuffer3, int width, int height);
 static void	ConvertTexture16To16(u_short *textureBuffer, int width, int height);
 
-static void GetChooserName(Str255 name);
-
-static Boolean FindSharedLib(ConstStrFileNameParam libName, FSSpec *spec);
-static UInt32	GetFileVersion(FSSpec *spec);
-
 static short InitSavedGamesListBox(Rect *r, WindowPtr myDialog);
 static short UpdateSavedGamesList(void);
 static short AddNewGameToFile(Str255 name);
-static pascal Boolean DialogCallback (DialogRef dp,EventRecord *event, short *item);
 static void DeleteSelectedGame(void);
 static void LoadSelectedGame(void);
 
@@ -168,6 +152,8 @@ short			gSavedPlayerRezNum = 0;
 
 void SetDefaultDirectory(void)
 {
+	IMPLEMENT_ME_SOFT();
+#if 0
 ProcessSerialNumber serial;
 ProcessInfoRec info;
 FSSpec	app_spec;
@@ -189,6 +175,7 @@ OSErr	iErr;
 	wpb.ioNamePtr = NULL;
 
 	iErr = PBHSetVolSync(&wpb);
+#endif
 }
 
 
@@ -696,6 +683,8 @@ Str255	chooserName;
 
 void DoSavedPlayerDialog(void)
 {
+	IMPLEMENT_ME();
+#if 0
 DialogRef 		myDialog;
 DialogItemType			itemType,itemHit;
 ControlHandle	itemHandle;
@@ -794,41 +783,15 @@ short			numGamesInList;
 	HideCursor();
 	Exit2D();
 	TurnOnISp();
+#endif
 }
-
-/*********************** DIALOG CALLBACK ***************************/
-
-static pascal Boolean DialogCallback (DialogRef dp,EventRecord *event, short *item)
-{
-Point			eventPoint;
-
-	dp; item;
-
-				/* HANDLE DIALOG EVENTS */
-
-	SetPort(GetDialogPort(dp));										// make sure we're drawing to this dialog
-
-	switch(event->what)
-	{
-		case	keyDown:								// we have a key press
-				break;
-
-		case	mouseDown:								// mouse was clicked
-				eventPoint = event->where;				// get the location of click
-				GlobalToLocal (&eventPoint);			// got to make it local
-				LClick(eventPoint, event->modifiers, gTheList);
-				break;
-	}
-
-
-	return(false);
-}
-
 
 /*********************** ADD NEW GAME TO FILE ***************************/
 
 static short AddNewGameToFile(Str255 name)
 {
+	IMPLEMENT_ME(); return 0;
+#if 0
 int		i;
 SavePlayerType	**rez;
 FSSpec		spec;
@@ -869,6 +832,7 @@ Cell	cell;
 	LAutoScroll(gTheList);										// scroll to it
 
 	return(numGames);
+#endif
 }
 
 
@@ -877,6 +841,8 @@ Cell	cell;
 
 static void LoadSelectedGame(void)
 {
+	IMPLEMENT_ME();
+#if 0
 Cell	cell = {0,0};
 SavePlayerType	**rez;
 FSSpec	spec;
@@ -910,7 +876,7 @@ short	fRefNum;
 	}
 	else
 		gSavedPlayerIsLoaded = true;								// nothing was selected
-
+#endif
 }
 
 
@@ -918,6 +884,8 @@ short	fRefNum;
 
 static void DeleteSelectedGame(void)
 {
+	IMPLEMENT_ME();
+#if 0
 Cell	cell = {0,0};
 int		num,i;
 Handle	rez;
@@ -960,6 +928,7 @@ short	fRefNum;
 
 		UpdateSavedGamesList();
 	}
+#endif
 }
 
 
@@ -968,6 +937,8 @@ short	fRefNum;
 
 static short InitSavedGamesListBox(Rect *r, WindowPtr myDialog)
 {
+	IMPLEMENT_ME(); return 0;
+#if 0
 Rect	dataBounds;
 Point	cSize;
 
@@ -984,6 +955,7 @@ Point	cSize;
 	(**gTheList).selFlags |= lOnlyOne;
 
 	return (UpdateSavedGamesList());
+#endif
 }
 
 
@@ -992,6 +964,8 @@ Point	cSize;
 
 static short UpdateSavedGamesList(void)
 {
+	IMPLEMENT_ME(); return 0;
+#if 0
 short	i,numGames;
 Cell	theCell;
 short		fRefNum,theID;
@@ -1062,6 +1036,7 @@ Str255		name;
 	}
 
 	return(numGames);
+#endif
 }
 
 
@@ -1123,6 +1098,8 @@ short	fRefNum;
 
 OSErr DrawPictureIntoGWorld(FSSpec *myFSSpec, GWorldPtr *theGWorld, short depth)
 {
+	IMPLEMENT_ME(); return noErr;
+#if 0
 OSErr						iErr;
 GraphicsImportComponent		gi;
 Rect						r;
@@ -1209,6 +1186,7 @@ FInfo						fndrInfo;
 		return(result);
 	}
 	return(noErr);
+#endif
 }
 
 
@@ -2051,8 +2029,8 @@ Ptr						tempBuffer16 = nil,tempBuffer24 = nil;
 
 				/* KEEP MUSIC PLAYING */
 
-		if (gSongPlayingFlag)
-			MoviesTask(gSongMovie, 0);
+//		if (gSongPlayingFlag)
+//			MoviesTask(gSongMovie, 0);
 	}
 
 			/* CLOSE THE FILE */
@@ -2127,204 +2105,3 @@ u_short	*dest;
 		bottom -= width;
 	}
 }
-
-
-#pragma mark -
-
-
-
-
-/****************** GET CHOOSER NAME *********************/
-
-static void GetChooserName(Str255 name)
-{
-StringHandle	userName;
-
-	userName = GetString(-16096);
-	if (userName == nil)
-	{
-		name[0] = 0;
-	}
-	else
-	{
-		CopyPString(*userName, name);
-		ReleaseResource ((Handle) userName);
-	}
-}
-
-
-
-/******************** GET LIBRARY VERSION *******************/
-//
-// Returns the version # of the input extension/library (used to get OpenGL version #)
-//
-
-void GetLibVersion(ConstStrFileNameParam libName, NumVersion *version)
-{
-	FSSpec				spec;
-	UInt32				versCode;
-//	char				versStr[32];
-
-	if (FindSharedLib(libName, &spec))
-	{
-		versCode = GetFileVersion(&spec);
-//		VersionCodeToText(versCode, versStr);
-
-//		printf("Shared lib '%#s' found!\n", libName);
-//		printf("    Filename is '%#s'\n", spec.name);
-//		printf("    Version code is: 0x%08X\n", versCode);
-//		printf("    Version str  is: %s\n", versStr);
-	}
-	else
-	{
-		DoAlert("GetLibVersion: lib not found");
-	}
-
-	version->majorRev 		= (versCode & 0xff000000) >> 24;
-	version->minorAndBugRev = (versCode & 0x00ff0000) >> 16;
-	version->stage 			= 0;
-	version->nonRelRev 		= 0;
-}
-
-
-static UInt32	GetFileVersion(FSSpec *spec)
-{
-	SInt16						fRefNum, saveRefNum;
-	Handle						versH;
-	UInt32						versCode;
-
-	saveRefNum = CurResFile();
-	fRefNum = FSpOpenResFile(spec, fsRdPerm);
-	if (fRefNum == -1)
-		return 0;
-
-	if ((versH = Get1Resource('vers', 1)) == NULL)
-		versH = Get1Resource('vers', 2);
-
-	if (versH)
-		versCode = *(UInt32 *) (*versH);
-	else
-		versCode = 0;
-
-	CloseResFile(fRefNum);
-	UseResFile(saveRefNum);
-
-	return versCode;
-}
-
-#if 0
-static void VersionCodeToText(UInt32 versCode, char *versStr)
-{
-	char			temp[128];
-
-	if (!versCode) {
-		versStr[0] = '?';
-		versStr[1] = 0;
-	}
-	else {
-		sprintf(versStr, "%d.%d", (versCode & 0x0F000000) >> 24, (versCode & 0x00F00000) >> 20);
-		if (versCode & 0x000F0000) {
-			sprintf(temp, ".%d", (versCode & 0x000F0000) >> 16);
-			strcat(versStr, temp);
-		}
-		if ((versCode & 0x0000FFFF) != 0x8000) {
-			char		c;
-
-			switch (versCode & 0xFF00) {
-				case 0x8000:
-					c = 'f';
-					break;
-				case 0x6000:
-					c = 'b';
-					break;
-				case 0x4000:
-					c = 'a';
-					break;
-				default:
-					c = 'd';
-					break;
-			}
-			sprintf(temp, "%c%d", c, (versCode & 0xFF));
-			strcat(versStr, temp);
-		}
-	}
-}
-#endif
-
-static Boolean MatchSharedLib(ConstStrFileNameParam libName, FSSpec *spec)
-{
-	SInt16						fRefNum, saveRefNum, i;
-	Boolean						result;
-	CFragResourcePtr			*cfrg;
-	CFragResourceMemberPtr		member;
-
-	saveRefNum = CurResFile();
-	fRefNum = FSpOpenResFile(spec, fsRdPerm);
-	if (fRefNum == -1)
-		return false;
-
-	result = false;
-	cfrg = (CFragResourcePtr *) Get1Resource(kCFragResourceType, kCFragResourceID);
-	if (cfrg && (**cfrg).memberCount) {
-		member = &(**cfrg).firstMember;
-		for (i=0; i<(**cfrg).memberCount; i++) {
-			if (EqualString(libName, member->name, false, true)) {
-				result = true;
-				break;
-			}
-			member = (CFragResourceMemberPtr) (((char *) member) + member->memberSize);
-		}
-	}
-
-	CloseResFile(fRefNum);
-	UseResFile(saveRefNum);
-	return result;
-}
-
-
-static Boolean FindSharedLib(ConstStrFileNameParam libName, FSSpec *spec)
-{
-	SInt16						extVRefNum;
-	SInt32						extDirID;
-	StrFileName					fName;
-	SInt32						fIndex;
-	OSErr						err;
-	CInfoPBRec					cpb;
-	HFileInfo					*fpb = (HFileInfo *) &cpb;
-
-	if (FindFolder(kOnSystemDisk, kExtensionFolderType, kDontCreateFolder, &extVRefNum, &extDirID) != noErr)
-		return false;
-
-	if (FSMakeFSSpec(extVRefNum, extDirID, libName, spec) == noErr)
-		return true;
-
-	fpb->ioVRefNum = extVRefNum;
-	fpb->ioNamePtr = fName;
-	fIndex = 1;
-	do {
-		fpb->ioDirID = extDirID;
-		fpb->ioFDirIndex = fIndex;
-
-		err = PBGetCatInfoSync(&cpb);
-		if (err == noErr) {
-			if (!(fpb->ioFlAttrib & 16) && fpb->ioFlFndrInfo.fdType == kCFragLibraryFileType) {
-				FSMakeFSSpec(extVRefNum, extDirID, fName, spec);
-				if (MatchSharedLib(libName, spec))
-					return true;
-			}
-			fIndex ++;
-		}
-	} while (err == noErr);
-
-	return false;
-}
-
-
-
-
-
-
-
-
-
-

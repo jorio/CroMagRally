@@ -4,15 +4,11 @@
 /* By Brian Greenstone      */
 /****************************/
 
-#ifndef MYGLOBALS_H
-#define MYGLOBALS_H
+#pragma once
 
-
-
+#include <Pomme.h>
 #include <math.h>
-#include <gl.h>
-#include <textutils.h>
-#include <qdoffscreen.h>
+#include <GL/gl.h>
 
 #define	kGameID 		'CavM'
 
@@ -205,15 +201,4 @@ enum
 
 
 #define	GetPlayerNum(noNet)	(gNetGameInProgress ? gMyNetworkPlayerNum : (noNet))
-
-#endif
-
-
-
-
-
-
-
-
-
 

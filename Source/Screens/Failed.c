@@ -12,7 +12,7 @@
 #include "globals.h"
 #include "misc.h"
 #include "objects.h"
-#include "windows.h"
+#include "window.h"
 #include "input.h"
 #include "sound2.h"
 #include	"file.h"
@@ -155,7 +155,7 @@ ObjNode	*obj;
 	{
 		Str255	s;
 
-		GetIndString(s, 3000 + gGamePrefs.language, i + 1);
+		GetIndStringC(s, 3000 + gGamePrefs.language, i + 1);
 
 		gFailedIcons[i] = MakeFontStringObject(s, &gNewObjectDefinition, gGameViewInfoPtr, true);
 		gFailedIcons[i]->ColorFilter.a = 0;

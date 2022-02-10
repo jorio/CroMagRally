@@ -13,7 +13,7 @@
 #include "objects.h"
 #include "misc.h"
 #include "skeletonanim.h"
-#include "skeletonJoints.h"
+#include "skeletonjoints.h"
 #include "main.h"
 #include "3dmath.h"
 

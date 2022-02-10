@@ -10,10 +10,6 @@
 /***************/
 
 #include "globals.h"
-
-#include <gl.h>
-#include <textutils.h>
-
 #include "objects.h"
 #include "misc.h"
 #include "skeletonobj.h"

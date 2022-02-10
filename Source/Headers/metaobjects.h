@@ -6,7 +6,7 @@
 #define __METAOBJECTS_H_
 
 #include "ogl_support.h"
-#include <gl.h>
+#include <GL/gl.h>
 
 #define	MO_COOKIE				0xfeedface		// set at head of every object for validation
 #define	MAX_MATERIAL_LAYERS		4				// max multitexture layers

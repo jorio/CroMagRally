@@ -2,12 +2,17 @@
 // window.h
 //
 
-//#define	USE_DSP			1
-#define	USE_DSP			0
+#define	USE_DSP			1
 #define	ALLOW_FADE		(1 && USE_DSP)
+
+extern	OSStatus DSpSetWindowToFront(WindowRef pWindow);		// DSp hack not in headers
+
 
 extern void	InitWindowStuff(void);
 extern void	DumpGWorld2(GWorldPtr, WindowPtr, Rect *);
+extern void	DoLockPixels(GWorldPtr);
+pascal void DoBold (DialogPtr dlogPtr, short item);
+pascal void DoOutline (DialogPtr dlogPtr, short item);
 extern	void MakeFadeEvent(Boolean	fadeIn);
 void Enter2D(Boolean pauseDSp);
 void Exit2D(void);

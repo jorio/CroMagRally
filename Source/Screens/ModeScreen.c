@@ -13,7 +13,7 @@
 #include "misc.h"
 #include "miscscreens.h"
 #include "objects.h"
-#include "windows.h"
+#include "window.h"
 #include "input.h"
 #include "sound2.h"
 #include	"file.h"

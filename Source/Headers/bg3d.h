@@ -5,7 +5,7 @@
 #ifndef __BG3D
 #define __BG3D
 
-#include <gl.h>
+#include <GL/gl.h>
 #include "metaobjects.h"
 #include "skeletonobj.h"
 
