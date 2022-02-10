@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Version=1.0
+Name=Cro-Mag Rally
+Comment=Cro-Mag Rally
+Icon=cromagrally-desktopicon
+Exec=CroMagRally
+Terminal=false
+Categories=Game;
