@@ -31,7 +31,6 @@ extern	Boolean				gOSX;
 extern	PrefsType			gGamePrefs;
 extern	Boolean			gSongPlayingFlag;
 extern	Movie				gSongMovie;
-extern	WindowPtr			g1PixelWindow;
 
 /****************************/
 /*    PROTOTYPES            */
@@ -557,13 +556,6 @@ void GammaFadeOut(void)
 		}
 	}
 #endif
-
-	if (g1PixelWindow)
-	{
-		DisposeWindow(g1PixelWindow);
-		g1PixelWindow = nil;
-	}
-
 }
 
 /********************** GAMMA ON *********************/

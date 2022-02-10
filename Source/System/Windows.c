@@ -86,8 +86,6 @@ float		gGammaFadePercent;
 
 int				gGameWindowWidth, gGameWindowHeight;
 
-WindowPtr			g1PixelWindow = nil;
-
 CGrafPtr				gDisplayContextGrafPtr = nil;
 
 Boolean				gHasFixedDSpForX = false;
@@ -396,6 +394,8 @@ float	fps = gFramesPerSecondFrac;
 
 void GameScreenToBlack(void)
 {
+	IMPLEMENT_ME_SOFT();
+#if 0
 Rect	r;
 
 	if (!gDisplayContextGrafPtr)
@@ -406,6 +406,7 @@ Rect	r;
 
 	GetPortBounds(gDisplayContextGrafPtr, &r);
 	EraseRect(&r);
+#endif
 }
 
 
@@ -547,11 +548,14 @@ Rect			r;
 
 void DoLockPixels(GWorldPtr world)
 {
+	IMPLEMENT_ME_SOFT();
+#if 0
 PixMapHandle pm;
 
 	pm = GetGWorldPixMap(world);
 	if (LockPixels(pm) == false)
 		DoFatalAlert("PixMap Went Bye,Bye?!");
+#endif
 }
 
 

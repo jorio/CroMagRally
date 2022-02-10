@@ -1,3 +1,5 @@
+#if 0 // Unused in game??
+
 /****************************/
 /*   	GAMEMODE.C 	    */
 /* (c)2000 Pangea Software  */
@@ -160,6 +162,8 @@ Boolean	cancel = false;
 						break;
 
 				case	2:								// network play mode
+						IMPLEMENT_ME();
+#if 0
 						gNumRealPlayers = 1;
 						switch(gSelectedOption)
 						{
@@ -175,6 +179,7 @@ Boolean	cancel = false;
 									done = true;
 									break;
 						}
+#endif
 						break;
 
 
@@ -473,3 +478,5 @@ static void SelectOption(void)
 
 
 
+
+#endif

@@ -49,7 +49,6 @@ extern	SavePlayerType	gPlayerSaveData;
 extern	const short gNumTracksUnlocked[];
 extern	int		gVehicleParameters[MAX_CAR_TYPES+1][NUM_VEHICLE_PARAMETERS];
 extern	float	gSteeringResponsiveness,gCarMaxTightTurn,gCarTurningRadius,gTireTractionConstant,gTireFrictionConstant,gCarGravity,gSlopeRatioAdjuster;
-extern	WindowPtr	g1PixelWindow;
 
 
 /****************************/
@@ -264,9 +263,6 @@ OGLVector3D			fillDirection2 = { -1, -.2, -.5 };
 	OGL_SetupWindow(&viewDef, &gGameViewInfoPtr);
 
 
-	g1PixelWindow = GetNewCWindow(129, nil, MOVE_TO_FRONT);			// create 1 pixel dummy window to cover the corner of the screen to prevent full-screen mode from kicking in.
-
-
 				/************/
 				/* LOAD ART */
 				/************/
@@ -314,12 +310,6 @@ static void FreeMainMenuArt(void)
 	MO_DisposeObjectReference(gBackgoundPicture);
 	DisposeAllSpriteGroups();
 	OGL_DisposeWindowSetup(&gGameViewInfoPtr);
-
-	if (g1PixelWindow)
-	{
-		DisposeWindow(g1PixelWindow);
-		g1PixelWindow = nil;
-	}
 }
 
 
@@ -352,7 +342,7 @@ short	i;
 	{
 		Str255	s;
 
-		GetIndString(s, 1000 + gGamePrefs.language, menuNum * MAX_LINES + i + 1);
+		GetIndStringC(s, 1000 + gGamePrefs.language, menuNum * MAX_LINES + i + 1);
 		gIcons[i] = MakeFontStringObject(s, &gNewObjectDefinition, gGameViewInfoPtr, true);
 		gNewObjectDefinition.coord.y 	-= LINE_SPACING;
 

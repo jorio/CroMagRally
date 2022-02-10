@@ -276,7 +276,7 @@ Str255	maps[] =
 		gNewObjectDefinition.scale 	    = .3;
 		gNewObjectDefinition.slot 		= SPRITE_SLOT;
 
-		GetIndString(s, 4000 + gGamePrefs.language, 1);				// get "PRESS ANY KEY" string
+		GetIndStringC(s, 4000 + gGamePrefs.language, 1);				// get "PRESS ANY KEY" string
 		MakeFontStringObject(s, &gNewObjectDefinition, gGameViewInfoPtr, true);
 
 
@@ -1194,12 +1194,12 @@ Str255	s;
 
 		if (lapNum == 1)
 		{
-			GetIndString(s, 6000 + gGamePrefs.language, 1);				// get "LAP 2" string
+			GetIndStringC(s, 6000 + gGamePrefs.language, 1);				// get "LAP 2" string
 			MakeFontStringObject(s, &gNewObjectDefinition, gGameViewInfoPtr, true);
 		}
 		else
 		{
-			GetIndString(s, 6000 + gGamePrefs.language, 2);				// get "FINAL LAP" string
+			GetIndStringC(s, 6000 + gGamePrefs.language, 2);				// get "FINAL LAP" string
 			MakeFontStringObject(s, &gNewObjectDefinition, gGameViewInfoPtr, true);
 		}
 	}

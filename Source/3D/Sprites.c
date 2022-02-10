@@ -535,6 +535,8 @@ float				scale,x,letterOffset;
 
 	newObj->NumStringSprites = 0;											// no sprites in there yet
 
+	puts("rewrite this so it works with C strings!");
+#if 0
 	len = s[0];										// get length of string
 	if (len > 31)
 		DoFatalAlert("MakeFontStringObject: string > 31 characters!");
@@ -599,7 +601,7 @@ float				scale,x,letterOffset;
 
 		x += letterOffset;													// next letter x coord
 	}
-
+#endif
 
 	return(newObj);
 }

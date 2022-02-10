@@ -188,7 +188,7 @@ u_long		seconds, seconds2;
 #endif
 	if (iErr)
 	{
-		DoAlertNum(133);
+		DoFatalAlert("Cannot find Data folder.");
 		CleanQuit();
 	}
 
@@ -201,14 +201,14 @@ u_long		seconds, seconds2;
 
 			/* DO BOOT CHECK FOR SCREEN MODE */
 
-	DoScreenModeDialog();
+//	DoScreenModeDialog();
 
 	SetDefaultPlayerSaveData();							// set default player info
 
 	SetDefaultPhysics();								// set all physics to defaults
 
 	FlushEvents ( everyEvent, REMOVE_ALL_EVENTS);
-	FlushEventQueue(GetMainEventQueue());
+//	FlushEventQueue(GetMainEventQueue());
 }
 
 
@@ -437,7 +437,7 @@ select_sex:
 		ShowLoadingPicture();									// show track intro screen
 
 	FlushEvents (everyEvent, REMOVE_ALL_EVENTS);
-	FlushEventQueue(GetMainEventQueue());
+	// FlushEventQueue(GetMainEventQueue());
 	InitArea();
 
 
@@ -450,7 +450,7 @@ select_sex:
 		/* CLEANUP LEVEL */
 
 	FlushEvents (everyEvent, REMOVE_ALL_EVENTS);
-	FlushEventQueue(GetMainEventQueue());
+	// FlushEventQueue(GetMainEventQueue());
 	GammaFadeOut();
 	CleanupLevel();
 	GameScreenToBlack();
@@ -551,7 +551,7 @@ short	placeToWin,startStage;
 				{
 					Str255	s;
 
-					GetIndString(s, 5000 + gGamePrefs.language, gNumRetriesRemaining);	// get "NUM RETRIES REMAINING" string
+					GetIndStringC(s, 5000 + gGamePrefs.language, gNumRetriesRemaining);	// get "NUM RETRIES REMAINING" string
 
 					if (DoFailedMenu(s))												// returns true if want to retry
 					{
@@ -1647,7 +1647,7 @@ Boolean			userAbortedBeforeGameStarted;
 	while(true)
 	{
 		FlushEvents (everyEvent, REMOVE_ALL_EVENTS);
-		FlushEventQueue(GetMainEventQueue());
+		// FlushEventQueue(GetMainEventQueue());
 		PlaySong(SONG_THEME, true);
 		DoMainMenuScreen();
 

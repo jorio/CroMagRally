@@ -420,6 +420,8 @@ static void SetMetaObjectToMatrix(MOMatrixObject *matObj, OGLMatrix4x4 *inData)
 
 static void SetMetaObjectToPicture(MOPictureObject *pictObj, OGLSetupOutputType *setupInfo, FSSpec *inData, int destPixelFormat)
 {
+IMPLEMENT_ME_SOFT();
+#if 0
 GWorldPtr	gworld;
 int			width,height,depth,cellNum,numCells;
 int			horizCellSize, vertCellSize,segRow,segCol;
@@ -644,7 +646,7 @@ Rect		r;
 
 	DisposeGWorld (gworld);
 	SafeDisposePtr(buffer);
-
+#endif
 }
 
 
@@ -720,7 +722,7 @@ MOPictureData	*picData = &obj->objectData;				//  point to pic obj's data
 Point			pt;
 int				x,y,w,h;
 
-	SetPort(GetWindowPort(info->window));
+//	SetPort(GetWindowPort(info->window));
 	GetMouse(&pt);										// get mouse screen coords
 
 			/* CONVERT SCREEN COORD TO OPENGL COORD */
@@ -1012,11 +1014,11 @@ use_current:
 			/***********/
 
 
-	glLockArraysEXT(0, data->numPoints);
+//	glLockArraysEXT(0, data->numPoints);
 	glDrawElements(GL_TRIANGLES,data->numTriangles*3,GL_UNSIGNED_INT,&data->triangles[0]);
 	if (OGL_CheckError())
 		DoFatalAlert("MO_DrawGeometry_VertexArray: glDrawElements");
-	glUnlockArraysEXT();
+//	glUnlockArraysEXT();
 
 	gPolysThisFrame += data->numPoints;					// inc poly counter
 }
@@ -1821,6 +1823,8 @@ int					numChildren,i;
 
 MOMaterialObject *MO_GetTextureFromFile(FSSpec *spec, OGLSetupOutputType *setupInfo, int destPixelFormat)
 {
+	IMPLEMENT_ME_SOFT(); return NULL;
+#if 0
 MetaObjectPtr	obj;
 MOMaterialData	matData;
 int				width,height,depth,destDepth;
@@ -1968,6 +1972,7 @@ Rect			r;
 	SafeDisposePtr(buffer);									// dispose of our copy of the buffer
 
 	return(obj);
+#endif
 }
 
 

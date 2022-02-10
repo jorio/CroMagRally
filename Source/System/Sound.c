@@ -676,6 +676,8 @@ GrafPtr	oldPort;
 				/* START PLAYING */
 				/*****************/
 
+	IMPLEMENT_ME_SOFT();
+#if 0
 			/* GOT TO SET A DUMMY PORT OR QT MAY FREAK */
 
 	if (gQTDummyPort == nil)						// create a blank graf port
@@ -688,8 +690,6 @@ GrafPtr	oldPort;
 	iErr = OpenMovieFile(&spec, &myRefNum, fsRdPerm);
 	if (myRefNum && (iErr == noErr))
 	{
-		IMPLEMENT_ME_SOFT();
-#if 0
 		iErr = NewMovieFromFile(&gSongMovie, myRefNum, 0, nil, newMovieActive, nil);
 		CloseMovieFile(myRefNum);
 
@@ -705,10 +705,10 @@ GrafPtr	oldPort;
 
 			gSongPlayingFlag = true;
 		}
-#endif
 	}
 
 	SetPort(oldPort);
+#endif
 
 
 

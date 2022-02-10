@@ -33,7 +33,7 @@
 #include "sound2.h"
 
 extern	float				gFramesPerSecondFrac,gFramesPerSecond;
-extern	WindowPtr			gCoverWindow,g1PixelWindow;
+extern	WindowPtr			gCoverWindow;
 extern	FSSpec		gDataSpec;
 extern	KeyMap gKeyMap,gNewKeys;
 extern	short		gNumRealPlayers;
@@ -141,7 +141,7 @@ OGLSetupOutputType	*pictureViewInfoPtr = nil;
 		gNewObjectDefinition.scale 	    = .3;
 		gNewObjectDefinition.slot 		= SPRITE_SLOT;
 
-		GetIndString(s, 4000 + gGamePrefs.language, 1);				// get "PRESS ANY KEY" string
+		GetIndStringC(s, 4000 + gGamePrefs.language, 1);				// get "PRESS ANY KEY" string
 		MakeFontStringObject(s, &gNewObjectDefinition, pictureViewInfoPtr, true);
 	}
 
@@ -155,8 +155,6 @@ OGLSetupOutputType	*pictureViewInfoPtr = nil;
 	if (showAndBail)
 	{
 		int	i;
-
-		g1PixelWindow = GetNewCWindow(129, nil, MOVE_TO_FRONT);			// create 1 pixel dummy window to cover the corner of the screen to prevent full-screen mode from kicking in.
 
 		for (i = 0; i < 10; i++)
 			OGL_DrawScene(pictureViewInfoPtr, DisplayPicture_Draw);
@@ -463,7 +461,7 @@ static Str31 age[3] = {"STONE AGE", "BRONZE AGE", "IRON AGE"};
 static void FreeConqueredScreen(void)
 {
 	FlushEvents (everyEvent, REMOVE_ALL_EVENTS);
-	FlushEventQueue(GetMainEventQueue());
+//	FlushEventQueue(GetMainEventQueue());
 	DeleteAllObjects();
 	DisposeParticleSystem();
 	MO_DisposeObjectReference(gBackgoundPicture);
@@ -689,7 +687,7 @@ static Str31 age[3] = {"STONE AGE", "BRONZE AGE", "IRON AGE"};
 static void FreeWinScreen(void)
 {
 	FlushEvents (everyEvent, REMOVE_ALL_EVENTS);
-	FlushEventQueue(GetMainEventQueue());
+//	FlushEventQueue(GetMainEventQueue());
 	DeleteAllObjects();
 	DisposeParticleSystem();
 	MO_DisposeObjectReference(gBackgoundPicture);
@@ -1036,7 +1034,7 @@ MOSpriteObject		*spriteMO;
 static void FreeCreditsScreen(void)
 {
 	FlushEvents (everyEvent, REMOVE_ALL_EVENTS);
-	FlushEventQueue(GetMainEventQueue());
+//	FlushEventQueue(GetMainEventQueue());
 	DeleteAllObjects();
 	MO_DisposeObjectReference(gBackgoundPicture);
 	DisposeAllSpriteGroups();

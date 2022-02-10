@@ -169,7 +169,7 @@ short	i;
 	{
 		Str255	s;
 
-		GetIndString(s, 2000 + gGamePrefs.language, i + 1);
+		GetIndStringC(s, 2000 + gGamePrefs.language, i + 1);
 
 		gPausedIcons[i] = MakeFontStringObject(s, &gNewObjectDefinition, gGameViewInfoPtr, true);
 		gPausedIcons[i]->ColorFilter.a = 0;

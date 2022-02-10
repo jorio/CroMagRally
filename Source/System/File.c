@@ -670,7 +670,9 @@ Str255	chooserName;
 	gPlayerSaveData.numAgesCompleted = 0;					// no ages completed yet
 
 
-	GetChooserName(chooserName);							// assign machine name to player name
+//	GetChooserName(chooserName);							// assign machine name to player name
+	strcpy(chooserName, "localhost"); //---TODO: use real hostname
+
 	CopyPString(chooserName, gPlayerSaveData.playerName);
 
 }
@@ -1098,7 +1100,7 @@ short	fRefNum;
 
 OSErr DrawPictureIntoGWorld(FSSpec *myFSSpec, GWorldPtr *theGWorld, short depth)
 {
-	IMPLEMENT_ME(); return noErr;
+	IMPLEMENT_ME(); return unimpErr;
 #if 0
 OSErr						iErr;
 GraphicsImportComponent		gi;
@@ -1403,144 +1405,6 @@ static const Str255	levelModelFiles[NUM_TRACKS] =
 
 }
 
-#if SHAREWARE
-
-
-/******************* GET DEMO TIMER *************************/
-
-void GetDemoTimer(void)
-{
-OSErr				iErr;
-short				refNum;
-FSSpec				file;
-long				count;
-
-				/* READ TIMER FROM FILE */
-
-	FSMakeFSSpec(gPrefsFolderVRefNum, gPrefsFolderDirID, "Lo12", &file);
-	iErr = FSpOpenDF(&file, fsRdPerm, &refNum);
-	if (iErr)
-		gDemoVersionTimer = 0;
-	else
-	{
-		count = sizeof(gDemoVersionTimer);
-		iErr = FSRead(refNum, &count,  &gDemoVersionTimer);			// read data from file
-		if (iErr)
-		{
-			FSClose(refNum);
-			FSpDelete(&file);										// file is corrupt, so delete
-			gDemoVersionTimer = 0;
-			return;
-		}
-		FSClose(refNum);
-	}
-
-}
-
-
-/************************ SAVE DEMO TIMER ******************************/
-
-void SaveDemoTimer(void)
-{
-FSSpec				file;
-OSErr				iErr;
-short				refNum;
-long				count;
-
-				/* CREATE BLANK FILE */
-
-	FSMakeFSSpec(gPrefsFolderVRefNum, gPrefsFolderDirID, "Lo12", &file);
-	FSpDelete(&file);															// delete any existing file
-	iErr = FSpCreate(&file, '????', 'xxxx', smSystemScript);					// create blank file
-	if (iErr)
-		return;
-
-
-				/* OPEN FILE */
-
-	FSMakeFSSpec(gPrefsFolderVRefNum, gPrefsFolderDirID, "Lo12", &file);
-	iErr = FSpOpenDF(&file, fsRdWrPerm, &refNum);
-	if (iErr)
-		return;
-
-				/* WRITE DATA */
-
-	count = sizeof(gDemoVersionTimer);
-	FSWrite(refNum, &count, &gDemoVersionTimer);
-	FSClose(refNum);
-}
-
-#else
-
-/******************* GET DEMO TIMER *************************/
-
-void GetDemoTimer(void)
-{
-	OSErr				iErr;
-	short				refNum;
-	FSSpec				file;
-	long				count;
-
-				/* READ TIMER FROM FILE */
-
-	FSMakeFSSpec(gPrefsFolderVRefNum, gPrefsFolderDirID, "MSysOp421", &file);
-	iErr = FSpOpenDF(&file, fsRdPerm, &refNum);
-	if (iErr)
-		gDemoVersionTimer = 0;
-	else
-	{
-		count = sizeof(float);
-		iErr = FSRead(refNum, &count,  &gDemoVersionTimer);			// read data from file
-		if (iErr)
-		{
-			FSClose(refNum);
-			FSpDelete(&file);										// file is corrupt, so delete
-			gDemoVersionTimer = 0;
-			return;
-		}
-		FSClose(refNum);
-	}
-
-		/* SEE IF TIMER HAS EXPIRED */
-
-	if (gDemoVersionTimer > (60*120))		// let play for n minutes
-	{
-		DoDemoExpiredScreen();
-	}
-}
-
-
-/************************ SAVE DEMO TIMER ******************************/
-
-void SaveDemoTimer(void)
-{
-FSSpec				file;
-OSErr				iErr;
-short				refNum;
-long				count;
-
-				/* CREATE BLANK FILE */
-
-	FSMakeFSSpec(gPrefsFolderVRefNum, gPrefsFolderDirID, "MSysOp421", &file);
-	FSpDelete(&file);															// delete any existing file
-	iErr = FSpCreate(&file, '????', 'xxxx', smSystemScript);					// create blank file
-	if (iErr)
-		return;
-
-
-				/* OPEN FILE */
-
-	iErr = FSpOpenDF(&file, fsRdWrPerm, &refNum);
-	if (iErr)
-		return;
-
-				/* WRITE DATA */
-
-	count = sizeof(float);
-	FSWrite(refNum, &count, &gDemoVersionTimer);
-	FSClose(refNum);
-}
-#endif
 
 #pragma mark -
 

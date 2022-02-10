@@ -493,7 +493,7 @@ static void MakeVehicleName(void)
 static void FreeVehicleSelectArt(void)
 {
 	FlushEvents (everyEvent, REMOVE_ALL_EVENTS);
-	FlushEventQueue(GetMainEventQueue());
+//	FlushEventQueue(GetMainEventQueue());
 	DeleteAllObjects();
 	MO_DisposeObjectReference(gBackgoundPicture);
 	DisposeAllSpriteGroups();

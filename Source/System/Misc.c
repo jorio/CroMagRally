@@ -9,6 +9,7 @@
 /* EXTERNALS   */
 /***************/
 
+#include <SDL.h>
 #include <math.h>
 
 #include	"globals.h"
@@ -81,16 +82,10 @@ Str255		numStr;
 
 	Enter2D(true);
 
-	if (gDisplayContext)
-		GammaOn();
-	FlushEvents ( everyEvent, REMOVE_ALL_EVENTS);
-	FlushEventQueue(GetMainEventQueue());
-	TurnOffISp();										// MUST TURN OFF INPUT SPROK TO GET KEYBOARD EVENTS!!!
-	UseResFile(gMainAppRezFile);
-	NumToString(err, numStr);
-	DoAlert (numStr);
+	snprintf(numStr, sizeof(numStr), "System error: %ld", err);
+	SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Cro-Mag Rally", numStr, NULL);//gSDLWindow);
 
-//	DebugStr("ShowSystemErr has been called");
+	Exit2D();
 
 	CleanQuit();
 }
@@ -105,15 +100,10 @@ Str255		numStr;
 
 	Enter2D(true);
 
-	if (gDisplayContext)
-		GammaOn();
-	FlushEvents ( everyEvent, REMOVE_ALL_EVENTS);
-	FlushEventQueue(GetMainEventQueue());
-	NumToString(err, numStr);
-	DoAlert (numStr);
+	snprintf(numStr, sizeof(numStr), "System error (non-fatal): %ld", err);
+	SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Cro-Mag Rally", numStr, NULL);//gSDLWindow);
 
 	Exit2D();
-
 }
 
 
@@ -121,83 +111,28 @@ Str255		numStr;
 
 void DoAlert(Str255 s)
 {
-Boolean	oldISpFlag = gISpActive;
-
-	if (gDisplayContext)
-		GammaOn();
-
+	GammaOn();
 	Enter2D(true);
 
-	FlushEvents ( everyEvent, REMOVE_ALL_EVENTS);
-	FlushEventQueue(GetMainEventQueue());
-	TurnOffISp();										// MUST TURN OFF INPUT SPROK TO GET KEYBOARD EVENTS!!!
-	UseResFile(gMainAppRezFile);
-	InitCursor();
-	FlushEvents (everyEvent, REMOVE_ALL_EVENTS);
-	FlushEventQueue(GetMainEventQueue());
-	ParamText(s,NIL_STRING,NIL_STRING,NIL_STRING);
-	NoteAlert(ERROR_ALERT_ID,nil);
-
-//	DebugStr("DoAlert has been called");
-
-	if (oldISpFlag)
-		TurnOnISp();									// resume input sprockets if needed
+	printf("CMR Alert: %s\n", s);
+	SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Cro-Mag Rally", s, NULL);//gSDLWindow);
 
 	Exit2D();
-
-
-	HideCursor();
+	SDL_ShowCursor(0);
 }
-
-
-/*********************** DO ALERT NUM *******************/
-
-void DoAlertNum(int n)
-{
-Boolean	oldISpFlag = gISpActive;
-
-	if (gDisplayContext)
-		GammaOn();
-
-	Enter2D(true);
-
-	FlushEvents ( everyEvent, REMOVE_ALL_EVENTS);
-	FlushEventQueue(GetMainEventQueue());
-	TurnOffISp();										// MUST TURN OFF INPUT SPROK TO GET KEYBOARD EVENTS!!!
-	InitCursor();
-	NoteAlert(n,nil);
-
-	if (oldISpFlag)
-		TurnOnISp();									// resume input sprockets if needed
-
-	Exit2D();
-
-}
-
 
 
 /*********************** DO FATAL ALERT *******************/
 
 void DoFatalAlert(Str255 s)
 {
-OSErr	iErr;
-
-	if (gDisplayContext)
-		GammaOn();
-
+	GammaOn();
 	Enter2D(true);
 
-	FlushEvents ( everyEvent, REMOVE_ALL_EVENTS);
-	FlushEventQueue(GetMainEventQueue());
-	UseResFile(gMainAppRezFile);
-	TurnOffISp();										// MUST TURN OFF INPUT SPROK TO GET KEYBOARD EVENTS!!!
+	printf("CMR Fatal Alert: %s\n", s);
+	SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Otto Matic", s, NULL);//gSDLWindow);
 
-	InitCursor();
-	ParamText(s,NIL_STRING,NIL_STRING,NIL_STRING);
-	iErr = NoteAlert(ERROR_ALERT_ID,nil);
-
-//	DebugStr("DoFatalAlert has been called");
-
+	Exit2D();
 	CleanQuit();
 }
 
@@ -247,14 +182,18 @@ static Boolean	beenHere = false;
 	CleanupDisplay();								// unloads Draw Sprocket
     TurnOnHighQualityRateConverter ();
 
+#if 0
 	if (gISPInitialized)							// unload ISp
 		ISpShutdown();
+#endif
 
 	UseResFile(gMainAppRezFile);
 
+#if 0
 	InitCursor();
 	FlushEvents ( everyEvent, REMOVE_ALL_EVENTS);
 	FlushEventQueue(GetMainEventQueue());
+#endif
 
 
 	SavePrefs();							// save prefs before bailing
@@ -599,15 +538,6 @@ Byte	pLength,i;
 		cString[i] = pString[i+1];
 
 	cString[pLength] = 0x00;					// add null character to end of c string
-}
-
-
-/***************** DRAW C STRING ********************/
-
-void DrawCString(char *string)
-{
-	while(*string != 0x00)
-		DrawChar(*string++);
 }
 
 

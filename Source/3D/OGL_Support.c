@@ -108,6 +108,7 @@ Boolean		gMyState_Lighting;
 
 void OGL_Boot(void)
 {
+#if 0
 NumVersion	version;
 
 
@@ -123,6 +124,7 @@ NumVersion	version;
 				gOpenGL112 = true;
 		}
 	}
+#endif
 }
 
 
@@ -256,6 +258,8 @@ int					i;
 
 void OGL_DisposeWindowSetup(OGLSetupOutputType **dataHandle)
 {
+	IMPLEMENT_ME();
+#if 0
 OGLSetupOutputType	*data;
 AGLContext agl_ctx = gAGLContext;
 
@@ -282,6 +286,7 @@ AGLContext agl_ctx = gAGLContext;
 	*dataHandle = nil;
 
 	gAGLContext = nil;
+#endif
 }
 
 
@@ -658,7 +663,8 @@ AGLContext agl_ctx = setupInfo->drawContext;
 
            /* SWAP THE BUFFS */
 
-	aglSwapBuffers(setupInfo->drawContext);					// end render loop
+IMPLEMENT_ME_SOFT();
+//	aglSwapBuffers(setupInfo->drawContext);					// end render loop
 
 }
 
@@ -931,6 +937,8 @@ AGLContext agl_ctx = gAGLContext;
 
 GWorldPtr OGL_BufferToGWorld(Ptr buffer, int width, int height, int bytesPerPixel)
 {
+	IMPLEMENT_ME_SOFT(); return NULL;
+#if 0
 Rect			r;
 GWorldPtr		gworld;
 PixMapHandle	gworldPixmap;
@@ -1007,6 +1015,7 @@ long			pixelSize;
 	}
 
 	return(gworld);
+#endif
 }
 
 

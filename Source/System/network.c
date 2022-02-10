@@ -1,10 +1,11 @@
-#if 0
-
 /****************************/
 /*   	  NETWORK.C	   	    */
 /* (c)2000 Pangea Software  */
 /* By Brian Greenstone      */
 /****************************/
+
+typedef void* NSpMessageHeader;
+typedef void* NSpPlayerLeftMessage;
 
 
 /***************/
@@ -36,14 +37,14 @@ extern	PrefsType			gGamePrefs;
 /**********************/
 
 static void InitPlayerNamesListBox(Rect *r, WindowPtr myDialog);
-static pascal Boolean GatherGameDialogCallback (DialogRef dp,EventRecord *event, short *item);
+//static pascal Boolean GatherGameDialogCallback (DialogRef dp,EventRecord *event, short *item);
 static void ShowNamesOfJoinedPlayers(void);
 static OSErr Client_WaitForGameConfigInfo(void);
-static pascal Boolean Client_WaitForGameConfigInfoDialogCallback (DialogRef dp,EventRecord *event, short *item);
+//static pascal Boolean Client_WaitForGameConfigInfoDialogCallback (DialogRef dp,EventRecord *event, short *item);
 static OSErr HostSendGameConfigInfo(void);
 static void HandleGameConfigMessage(NetConfigMessageType *inMessage);
-static Boolean HandleOtherNetMessage(NSpMessageHeader	*message);
-static void PlayerUnexpectedlyLeavesGame(NSpPlayerLeftMessage *mess);
+//static Boolean HandleOtherNetMessage(NSpMessageHeader	*message);
+//static void PlayerUnexpectedlyLeavesGame(NSpPlayerLeftMessage *mess);
 static OSErr  Host_DoGatherPlayersDialog(void);
 static Boolean PlayerReceiveVehicleTypeFromOthers(short *playerNum, short *charType, short *sex);
 
@@ -71,23 +72,26 @@ Boolean		gIsNetworkHost = false;
 Boolean		gIsNetworkClient = false;
 Boolean		gNetGameInProgress = false;
 
-NSpGameReference	gNetGame = nil;
+void* /*NSpGameReference*/	gNetGame = nil;
 
 static Str31				gameName;
 static Str31				gNetPlayerName;
 static Str31				password;
 static Str31				kJoinDialogLabel = "Choose a Game:";
 
-ListHandle		gTheList;
-short			gNumRowsInList;
+//ListHandle		gTheList;
+//short			gNumRowsInList;
 Str32			gPlayerNameStrings[MAX_PLAYERS];
 
 u_long			gClientSendCounter[MAX_PLAYERS];
 u_long			gHostSendCounter;
 int				gTimeoutCounter;
 
-NetHostControlInfoMessageType	gHostOutMess;
-NetClientControlInfoMessageType	gClientOutMess;
+//NetHostControlInfoMessageType	gHostOutMess;
+//NetClientControlInfoMessageType	gClientOutMess;
+
+Boolean		gHostNetworkGame = false;
+Boolean		gJoinNetworkGame = false;
 
 
 /******************* INIT NETWORK MANAGER *********************/
@@ -97,6 +101,8 @@ NetClientControlInfoMessageType	gClientOutMess;
 
 void InitNetworkManager(void)
 {
+	IMPLEMENT_ME_SOFT();
+#if 0
 OSStatus    iErr;
 
 	if ((!gOSX) || OSX_PACKAGE)
@@ -111,6 +117,7 @@ OSStatus    iErr;
 
 		gNetSprocketInitialized = true;
 	}
+#endif
 }
 
 
@@ -121,6 +128,8 @@ OSStatus    iErr;
 
 void EndNetworkGame(void)
 {
+	IMPLEMENT_ME_SOFT();
+#if 0
 OSErr	iErr;
 
 	if ((!gNetGameInProgress) || (!gNetGame))								// only if we're running a net game
@@ -143,6 +152,7 @@ OSErr	iErr;
 		if (iErr)
 			DoFatalAlert("EndNetworkGame: NSpGame_Dispose failed!");
 	}
+#endif
 
 
 	gNetGameInProgress 	= false;
@@ -166,6 +176,9 @@ OSErr	iErr;
 
 Boolean SetupNetworkHosting(void)
 {
+	IMPLEMENT_ME_SOFT();
+	return true;
+#if 0
 OSStatus 					status;
 Boolean 					okHit;
 NSpProtocolListReference	theList = NULL;
@@ -184,7 +197,7 @@ NSpProtocolReference 		atRef;
 			/* GET SOME NAMES */
 
 	CopyPString(gPlayerSaveData.playerName, gNetPlayerName);
-	GetIndString(gameName, 1000 + gGamePrefs.language, 16 + (gGameMode - GAME_MODE_MULTIPLAYERRACE));	// name of game is game mode string
+	GetIndStringC(gameName, 1000 + gGamePrefs.language, 16 + (gGameMode - GAME_MODE_MULTIPLAYERRACE));	// name of game is game mode string
 
 	password[0] = 0;
 
@@ -262,6 +275,7 @@ failure:
 
 	Exit2D();
 	return(true);
+#endif
 }
 
 
@@ -273,6 +287,9 @@ failure:
 
 Boolean SetupNetworkJoin(void)
 {
+	IMPLEMENT_ME_SOFT();
+	return true;
+#if 0
 NSpAddressReference	theAddress;
 OSStatus			status;
 int					i;
@@ -337,6 +354,7 @@ int					i;
 	HideCursor();
 	Exit2D();
 	return status;
+#endif
 }
 
 
@@ -351,6 +369,9 @@ int					i;
 
 static OSErr  Host_DoGatherPlayersDialog(void)
 {
+ 	IMPLEMENT_ME_SOFT();
+	return unimpErr;
+#if 0
 DialogRef 		myDialog;
 DialogItemType			itemType,itemHit;
 ControlHandle	itemHandle;
@@ -413,6 +434,7 @@ ModalFilterUPP	myProc;
 
 	GameScreenToBlack();
 	return(cancelled);
+#endif
 }
 
 
@@ -421,6 +443,7 @@ ModalFilterUPP	myProc;
 // Creates the List Manager list box which will contain a list of all the joiners in this game.
 //
 
+#if 0
 static void InitPlayerNamesListBox(Rect *r, WindowPtr myDialog)
 {
 Rect	dataBounds;
@@ -438,13 +461,18 @@ Point	cSize;
 
 	ShowNamesOfJoinedPlayers();
 }
+#endif
 
 
 
 /**************** GATHER GAME DIALOG CALLBACK *************************/
 
-static pascal Boolean GatherGameDialogCallback (DialogRef dp,EventRecord *event, short *item)
+#if 0
+static Boolean GatherGameDialogCallback (DialogRef dp,EventRecord *event, short *item)
 {
+	IMPLEMENT_ME_SOFT();
+	return true;
+#if 0
 char 			c;
 Point			eventPoint;
 static	long	tick = 0;
@@ -497,7 +525,9 @@ NSpMessageHeader	*message;
 		MoviesTask(gSongMovie, 0);
 
 	return(false);
+#endif
 }
+#endif
 
 
 /***************** SHOW NAMES OF JOINED PLAYERS ************************/
@@ -508,6 +538,8 @@ NSpMessageHeader	*message;
 
 static void ShowNamesOfJoinedPlayers(void)
 {
+	IMPLEMENT_ME_SOFT();
+#if 0
 short	i;
 Cell	theCell;
 NSpPlayerEnumerationPtr	players;
@@ -554,6 +586,7 @@ OSStatus	status;
 		LSetCell(&gPlayerNameStrings[i][1], gPlayerNameStrings[i][0], theCell, gTheList);
 		gNumRowsInList++;
 	}
+#endif
 }
 
 
@@ -568,6 +601,9 @@ OSStatus	status;
 
 static OSErr HostSendGameConfigInfo(void)
 {
+	IMPLEMENT_ME_SOFT();
+	return unimpErr;
+#if 0
 OSStatus				status;
 NetConfigMessageType			message;
 NSpPlayerEnumerationPtr	playerList;
@@ -633,6 +669,7 @@ NSpPlayerInfoPtr		playerInfoPtr;
 	NSpPlayer_ReleaseEnumeration(gNetGame,playerList);					// dispose of player list
 
 	return(status);
+#endif
 }
 
 
@@ -647,6 +684,9 @@ NSpPlayerInfoPtr		playerInfoPtr;
 
 static OSErr Client_WaitForGameConfigInfo(void)
 {
+	IMPLEMENT_ME_SOFT();
+	return unimpErr;
+#if 0
 DialogRef	myDialog;
 Boolean		dialogDone,cancelled;
 DialogItemType			itemType,itemHit,i;
@@ -723,6 +763,7 @@ NSpPlayerInfoPtr		playerInfoPtr;
 	DisposeModalFilterUPP(myProc);
 	DisposeDialog(myDialog);
 	return(cancelled);
+#endif
 }
 
 
@@ -731,8 +772,12 @@ NSpPlayerInfoPtr		playerInfoPtr;
 // Returns TRUE if game start info was received.  Upon return, "item" will be set to 100.
 //
 
-static pascal Boolean Client_WaitForGameConfigInfoDialogCallback (DialogRef dp,EventRecord *event, short *item)
+#if 0
+static Boolean Client_WaitForGameConfigInfoDialogCallback (DialogRef dp,EventRecord *event, short *item)
 {
+	IMPLEMENT_ME_SOFT();
+	return false;
+#if 0
 NSpMessageHeader *message;
 Boolean handled = false;
 
@@ -816,7 +861,9 @@ got_config:
 
 
 	return(handled);
+#endif
 }
+#endif
 
 
 
@@ -853,6 +900,8 @@ static void HandleGameConfigMessage(NetConfigMessageType *inMessage)
 
 void HostWaitForPlayersToPrepareLevel(void)
 {
+	IMPLEMENT_ME_SOFT();
+#if 0
 OSStatus				status;
 NetSyncMessageType		outMess;
 NSpMessageHeader 		*inMess;
@@ -911,6 +960,7 @@ int						startTick = TickCount();
 	status = NSpMessage_Send(gNetGame, &outMess.h, kNSpSendFlag_Registered);	// send message
 	if (status)
 		DoFatalAlert("HostWaitForPlayersToPrepareLevel: NSpMessage_Send failed!");
+#endif
 }
 
 
@@ -923,6 +973,8 @@ int						startTick = TickCount();
 
 void ClientTellHostLevelIsPrepared(void)
 {
+	IMPLEMENT_ME_SOFT();
+#if 0
 OSStatus				status;
 NetSyncMessageType		outMess;
 Boolean 				sync = false;
@@ -971,6 +1023,7 @@ NSpMessageHeader 		*inMess;
 			MoviesTask(gSongMovie, 0);
 
 	}
+#endif
 }
 
 
@@ -985,6 +1038,9 @@ NSpMessageHeader 		*inMess;
 
 void HostSend_ControlInfoToClients(void)
 {
+	IMPLEMENT_ME_SOFT();
+#if 0
+
 OSStatus						status;
 short							i;
 
@@ -1014,6 +1070,7 @@ short							i;
 	status = NSpMessage_Send(gNetGame, &gHostOutMess.h, kNSpSendFlag_Registered);
 	if (status)
 		DoFatalAlert("HostSend_ControlInfoToClients: NSpMessage_Send failed!");
+#endif
 }
 
 
@@ -1025,6 +1082,9 @@ short							i;
 
 void ClientReceive_ControlInfoFromHost(void)
 {
+	IMPLEMENT_ME_SOFT();
+#if 0
+
 NetHostControlInfoMessageType		*mess;
 NSpMessageHeader 					*inMess;
 u_long								tick,i;
@@ -1098,6 +1158,7 @@ Boolean								gotIt = false;
 	}while(!gotIt);
 
 	gTimeoutCounter = 0;
+#endif
 }
 
 
@@ -1110,6 +1171,8 @@ Boolean								gotIt = false;
 
 void ClientSend_ControlInfoToHost(void)
 {
+	IMPLEMENT_ME_SOFT();
+#if 0
 OSStatus						status;
 
 
@@ -1133,6 +1196,7 @@ OSStatus						status;
 	status = NSpMessage_Send(gNetGame, &gClientOutMess.h, kNSpSendFlag_Registered);
 //	if (status)
 //		DoFatalAlert("ClientSend_ControlInfoToHost: NSpMessage_Send failed!");
+#endif
 }
 
 
@@ -1140,6 +1204,8 @@ OSStatus						status;
 
 void HostReceive_ControlInfoFromClients(void)
 {
+	IMPLEMENT_ME_SOFT();
+#if 0
 NetClientControlInfoMessageType		*mess;
 NSpMessageHeader 					*inMess;
 u_long								tick;
@@ -1200,6 +1266,7 @@ short								n,i;
 		}
 
 	}
+#endif
 }
 
 
@@ -1213,6 +1280,8 @@ short								n,i;
 
 void PlayerBroadcastVehicleType(void)
 {
+	IMPLEMENT_ME_SOFT();
+#if 0
 OSStatus					status;
 NetPlayerCharTypeMessage	outMess;
 
@@ -1234,12 +1303,15 @@ NetPlayerCharTypeMessage	outMess;
 	status = NSpMessage_Send(gNetGame, &outMess.h, kNSpSendFlag_Registered);
 	if (status)
 		DoFatalAlert("PlayerBroadcastVehicleType: NSpMessage_Send failed!");
+#endif
 }
 
 /***************** GET VEHICLE SELECTION FROM NET PLAYERS ***********************/
 
 void GetVehicleSelectionFromNetPlayers(void)
 {
+	IMPLEMENT_ME_SOFT();
+#if 0
 short	playerNum, charType, count, sex;
 
 	ShowLoadingPicture();													// show something while we wait
@@ -1259,6 +1331,7 @@ short	playerNum, charType, count, sex;
 			MoviesTask(gSongMovie, 0);
 
 	}while(count < gNumRealPlayers);
+#endif
 }
 
 
@@ -1272,6 +1345,8 @@ short	playerNum, charType, count, sex;
 
 static Boolean PlayerReceiveVehicleTypeFromOthers(short *playerNum, short *charType, short *sex)
 {
+	IMPLEMENT_ME_SOFT(); return false;
+#if 0
 NetPlayerCharTypeMessage		*mess;
 NSpMessageHeader 				*inMess;
 Boolean							gotType = false;
@@ -1302,6 +1377,7 @@ Boolean							gotType = false;
 	}
 
 	return(gotType);
+#endif
 }
 
 
@@ -1314,6 +1390,8 @@ Boolean							gotType = false;
 
 static Boolean HandleOtherNetMessage(NSpMessageHeader	*message)
 {
+	IMPLEMENT_ME_SOFT(); return true;
+#if 0
 
 	switch(message->what)
 	{
@@ -1378,6 +1456,7 @@ static Boolean HandleOtherNetMessage(NSpMessageHeader	*message)
 	}
 
 	return(gGameOver);
+#endif
 }
 
 
@@ -1390,6 +1469,8 @@ static Boolean HandleOtherNetMessage(NSpMessageHeader	*message)
 
 static void PlayerUnexpectedlyLeavesGame(NSpPlayerLeftMessage *mess)
 {
+	IMPLEMENT_ME_SOFT();
+#if 0
 int			i;
 NSpPlayerID	playerID = mess->playerID;
 
@@ -1425,6 +1506,7 @@ matched_id:
 					ChooseTaggedPlayer();
 				break;
 	}
+#endif
 }
 
 
@@ -1438,6 +1520,8 @@ matched_id:
 
 void PlayerBroadcastNullPacket(void)
 {
+	IMPLEMENT_ME_SOFT();
+#if 0
 OSStatus					status;
 NSpMessageHeader			outMess;
 
@@ -1456,7 +1540,6 @@ NSpMessageHeader			outMess;
 	status = NSpMessage_Send(gNetGame, &outMess, kNSpSendFlag_Registered);
 	if (status)
 		DoFatalAlert("PlayerBroadcastNullPacket: NSpMessage_Send failed!");
+#endif
 }
 
-
-#endif

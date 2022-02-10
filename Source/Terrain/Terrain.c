@@ -69,14 +69,16 @@ static void ReleaseAllSuperTiles(void);
 #define	OUTER_SIZE		0 //0.6f						// size of border out of add window for delete window (can be float)
 
 
+#undef TERRAIN_DEBUG_GWORLD
 
 
 /**********************/
 /*     VARIABLES      */
 /**********************/
 
-
+#if TERRAIN_DEBUG_GWORLD
 GWorldPtr		gTerrainDebugGWorld = nil;
+#endif
 
 short			gNumSuperTilesDrawn;
 static	Byte	gHiccupTimer;
@@ -227,11 +229,13 @@ void DisposeTerrain(void)
 int	i;
 AGLContext agl_ctx = gAGLContext;
 
+#if TERRAIN_DEBUG_GWORLD
 	if (gTerrainDebugGWorld)
 	{
 		DisposeGWorld(gTerrainDebugGWorld);
 		gTerrainDebugGWorld = nil;
 	}
+#endif
 
 
 			/* FREE ALL TEXTURE NAMES */
@@ -865,6 +869,7 @@ AGLContext agl_ctx = setupInfo->drawContext;
 
 
 
+#if TERRAIN_DEBUG_GWORLD
 			/* CREATE DEBUG GWORLD */
 
 	if (gDebugMode == 2)
@@ -890,6 +895,7 @@ AGLContext agl_ctx = setupInfo->drawContext;
 
 		GetGWorld (&oldGW,&oldGD);
 	}
+#endif
 
 
 
@@ -929,6 +935,7 @@ AGLContext agl_ctx = setupInfo->drawContext;
 	{
 		for (c = 0; c < gNumSuperTilesWide; c++)
 		{
+#if TERRAIN_DEBUG_GWORLD
 			if (gDebugMode == 2)
 			{
 				SetGWorld(gTerrainDebugGWorld,nil);
@@ -937,9 +944,11 @@ AGLContext agl_ctx = setupInfo->drawContext;
 				LineTo(c,r);
 				SetGWorld(oldGW,oldGD);								// restore gworld
 			}
+#endif
 
 			if (gSuperTileStatusGrid[r][c].statusFlags & SUPERTILE_IS_USED_THIS_FRAME)			// see if used
 			{
+#if TERRAIN_DEBUG_GWORLD
 				if (gDebugMode == 2)
 				{
 					SetGWorld(gTerrainDebugGWorld,nil);
@@ -948,6 +957,7 @@ AGLContext agl_ctx = setupInfo->drawContext;
 					LineTo(c,r);
 					SetGWorld(oldGW,oldGD);								// restore gworld
 				}
+#endif
 
 				i = gSuperTileStatusGrid[r][c].supertileIndex;			// extract supertile #
 
@@ -973,6 +983,7 @@ AGLContext agl_ctx = setupInfo->drawContext;
 					continue;
 				}
 
+#if TERRAIN_DEBUG_GWORLD
 				if (gDebugMode == 2)
 				{
 					SetGWorld(gTerrainDebugGWorld,nil);
@@ -981,6 +992,7 @@ AGLContext agl_ctx = setupInfo->drawContext;
 					LineTo(c,r);
 					SetGWorld(oldGW,oldGD);								// restore gworld
 				}
+#endif
 
 
 						/***********************************/
