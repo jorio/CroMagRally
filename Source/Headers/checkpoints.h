@@ -10,8 +10,8 @@
 
 typedef struct
 {
-	short	unused;
-	short	infoBits;
+	uint16_t	unused;
+	uint16_t	infoBits;
 
 	float	x[2],z[2];			// the two endpoints
 }CheckpointDefType;

@@ -102,3 +102,13 @@ void DoSavedPlayerDialog(void);
 void SavePlayerFile(void);
 
 Ptr LoadFileData(const FSSpec* spec, long* outLength);
+
+#define BYTESWAP_HANDLE(format, type, n, handle)                                  \
+{                                                                                 \
+	if ((n) * sizeof(type) > (unsigned long) GetHandleSize((Handle) (handle)))   \
+		DoFatalAlert("BYTESWAP_HANDLE: size mismatch!\nHdl=%ld Exp=%ld\nWhen swapping %dx %s in %s:%d", \
+			GetHandleSize((Handle) (handle)), \
+			(n) * sizeof(type), \
+			n, #type, __func__, __LINE__); \
+	ByteswapStructs((format), sizeof(type), (n), *(handle));                      \
+}

@@ -149,13 +149,14 @@ float		w,h;
 		window = NewCWindow(nil, &r, "", true, plainDBox, (void *)-1, false, nil);
 		gDisplayContextGrafPtr = GetWindowPort(window);
 	}
-#endif
-
-#endif
-
 
 	gGameWindowWidth = r.right - r.left;
 	gGameWindowHeight = r.bottom - r.top;
+#endif
+#endif
+
+	gGameWindowWidth = 640;
+	gGameWindowHeight = 480;  // TODO read this from gSDLWindow
 }
 
 
