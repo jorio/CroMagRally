@@ -203,69 +203,17 @@ static EffectType	gEffectsTable[] =
 };
 
 
-static void   TurnOffHighQualityRateConverter (void)
-{
-	IMPLEMENT_ME_SOFT();
-#if 0
-    Component               rateConverter;
-    long                    numConverters;
-    ComponentDescription    looking;
-
-    looking.componentType 			= 'sift';
-    looking.componentSubType 		= 'ratb';
-    looking.componentManufacturer 	= 'appl';
-    looking.componentFlags 			= 0;
-    looking.componentFlagsMask 		= 0;
-
-    rateConverter = FindNextComponent (0, &looking);
-    numConverters = GetComponentRefcon (rateConverter);
-    numConverters += kNumBogusConverters;
-    SetComponentRefcon (rateConverter, numConverters);
-#endif
-}
-
-void   TurnOnHighQualityRateConverter (void)
-{
-	IMPLEMENT_ME_SOFT();
-#if 0
-    Component               rateConverter;
-    long                    numConverters;
-    ComponentDescription    looking;
-
-    looking.componentType 			= 'sift';
-    looking.componentSubType 		= 'ratb';
-    looking.componentManufacturer 	= 'appl';
-    looking.componentFlags		 	= 0;
-    looking.componentFlagsMask 		= 0;
-
-    rateConverter = FindNextComponent (0, &looking);
-    numConverters = GetComponentRefcon (rateConverter);
-    numConverters -= kNumBogusConverters;
-    SetComponentRefcon (rateConverter, numConverters);
-#endif
-}
-
 /********************* INIT SOUND TOOLS ********************/
 
 void InitSoundTools(void)
 {
-	IMPLEMENT_ME_SOFT();
-#if 0
 OSErr			iErr;
 short			i;
-ExtSoundHeader	sndHdr;
-double			crap = rate44khz;
 FSSpec			spec;
 
 	gRecentAnnouncerEffect = -1;
 	gRecentAnnouncerChannel = -1;
 	gAnnouncerDelay = 0;
-
-
-			/* SET SYSTEM VOLUME INFO */
-
-    TurnOffHighQualityRateConverter ();
-
 
 	gMaxChannels = 0;
 
@@ -278,61 +226,15 @@ FSSpec			spec;
 			/* ALLOC CHANNELS */
 			/******************/
 
-				/* MAKE DUMMY SOUND HEADER */
-
-	sndHdr.samplePtr 		= nil;
-    sndHdr.sampleRate		= rate44khz;
-    sndHdr.loopStart		= 0;
-    sndHdr.loopEnd			= 0;
-    sndHdr.encode			= extSH;
-    sndHdr.baseFrequency 	= 0;
-    sndHdr.numFrames		= 0;
-    sndHdr.numChannels		= 2;
-   	dtox80(&crap, &sndHdr.AIFFSampleRate);
-    sndHdr.markerChunk		= 0;
-    sndHdr.instrumentChunks	= 0;
-    sndHdr.AESRecording		= 0;
-    sndHdr.sampleSize		= 16;
-    sndHdr.futureUse1		= 0;
-    sndHdr.futureUse2		= 0;
-    sndHdr.futureUse3		= 0;
-    sndHdr.futureUse4		= 0;
-    sndHdr.sampleArea[0]		= 0;
-
-
 			/* ALL OTHER CHANNELS */
 
 	for (gMaxChannels = 0; gMaxChannels < MAX_CHANNELS; gMaxChannels++)
 	{
 			/* NEW SOUND CHANNEL */
 
-		iErr = SndNewChannel(&gSndChannel[gMaxChannels],sampledSynth,initMono+initNoInterp,NewSndCallBackUPP(CallBackFn));
+		iErr = SndNewChannel(&gSndChannel[gMaxChannels],sampledSynth,0,nil);
 		if (iErr)												// if err, stop allocating channels
 			break;
-
-
-			/* FOR POST- SM 3.6.5 DO THIS! */
-#if 0
-		mySndCmd.cmd = soundCmd;
-		mySndCmd.param1 = 0;
-		mySndCmd.param2 = (long)&sndHdr;
-		if ((iErr = SndDoImmediate(gSndChannel[gMaxChannels], &mySndCmd)) != noErr)
-		{
-			DoAlert("InitSoundTools: SndDoImmediate failed!");
-			ShowSystemErr_NonFatal(iErr);
-		}
-
-
-		mySndCmd.cmd = reInitCmd;
-		mySndCmd.param1 = 0;
-		mySndCmd.param2 = initNoInterp|initStereo;
-		if ((iErr = SndDoImmediate(gSndChannel[gMaxChannels], &mySndCmd)) != noErr)
-		{
-			DoAlert("InitSoundTools: SndDoImmediate failed 2!");
-			ShowSystemErr_NonFatal(iErr);
-		}
-
-#endif
 	}
 
 
@@ -340,7 +242,6 @@ FSSpec			spec;
 
 	FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":Audio:Main.sounds", &spec);
 	LoadSoundBank(&spec, SOUND_BANK_MAIN);
-#endif
 }
 
 
@@ -1049,28 +950,6 @@ short PlayEffect(short effectNum)
 
 }
 
-/***************************** CALLBACKFN ***************************/
-//
-// Called by the Sound Manager at interrupt time to let us know that
-// the sound is done playing.
-//
-
-#if 0
-static pascal void CallBackFn (SndChannelPtr chan, SndCommand *cmd) {
-SndCommand      theCmd;
-
-    theCmd.cmd = bufferCmd;
-    theCmd.param1 = 0;
-    theCmd.param2 = cmd->param2;
-
-    // Play the sound again (loop it)
-    (void)SndDoCommand (chan, &theCmd, true);
-
-    // Just reuse the callBackCmd that got us here in the first place
-    (void)SndDoCommand (chan, cmd, true);
-}
-#endif
-
 /***************************** PLAY EFFECT PARMS ***************************/
 //
 // Plays an effect with parameters
@@ -1080,8 +959,6 @@ SndCommand      theCmd;
 
 short  PlayEffect_Parms(short effectNum, u_long leftVolume, u_long rightVolume, unsigned long rateMultiplier)
 {
-	IMPLEMENT_ME_SOFT(); return 0;
-#if 0
 SndCommand 		mySndCmd;
 SndChannelPtr	chanPtr;
 short			theChan;
@@ -1089,7 +966,6 @@ Byte			bankNum,soundNum;
 OSErr			myErr;
 u_long			lv2,rv2;
 static UInt32          loopStart, loopEnd;
-SoundHeaderPtr   sndPtr;
 
 
 			/* GET BANK & SOUND #'S FROM TABLE */
@@ -1142,7 +1018,7 @@ SoundHeaderPtr   sndPtr;
 	mySndCmd.cmd = bufferCmd;										// make it play
 	mySndCmd.param1 = 0;
 	mySndCmd.param2 = ((long)*gSndHandles[bankNum][soundNum])+gSndOffsets[bankNum][soundNum];	// pointer to SoundHeader
-    SndDoCommand(chanPtr, &mySndCmd, true);
+    SndDoImmediate(chanPtr, &mySndCmd);
 	if (myErr)
 		return(-1);
 
@@ -1152,6 +1028,7 @@ SoundHeaderPtr   sndPtr;
 	SndDoImmediate(chanPtr, &mySndCmd);
 
     // If the loop start point is before the loop end, then there is a loop
+	/*
     sndPtr = (SoundHeaderPtr)(((long)*gSndHandles[bankNum][soundNum])+gSndOffsets[bankNum][soundNum]);
     loopStart = sndPtr->loopStart;
     loopEnd = sndPtr->loopEnd;
@@ -1162,6 +1039,7 @@ SoundHeaderPtr   sndPtr;
     	mySndCmd.param2 = ((long)*gSndHandles[bankNum][soundNum])+gSndOffsets[bankNum][soundNum];	// pointer to SoundHeader
     	SndDoCommand(chanPtr, &mySndCmd, true);
 	}
+	*/
 
 
 			/* SET MY INFO */
@@ -1170,7 +1048,6 @@ SoundHeaderPtr   sndPtr;
 	gChannelInfo[theChan].leftVolume 	= leftVolume;		// remember requested volume (not the adjusted volume!)
 	gChannelInfo[theChan].rightVolume 	= rightVolume;
 	return(theChan);										// return channel #
-#endif
 }
 
 

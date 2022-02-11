@@ -299,8 +299,7 @@ enum
 //===================== PROTOTYPES ===================================
 
 
-extern void	InitSoundTools(void);
-void   TurnOnHighQualityRateConverter (void);
+void	InitSoundTools(void);
 void ShutdownSound(void);
 
 void StopAChannel(short *channelNum);

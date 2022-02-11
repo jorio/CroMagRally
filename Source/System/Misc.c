@@ -42,12 +42,6 @@ extern	SDL_Window* 	gSDLWindow;
 /*    CONSTANTS             */
 /****************************/
 
-
-
-
-
-#define		ERROR_ALERT_ID		401
-
 #define	DEFAULT_FPS			9
 
 /**********************/
@@ -159,7 +153,6 @@ static Boolean	beenHere = false;
 
 	GameScreenToBlack();
 	CleanupDisplay();								// unloads Draw Sprocket
-    TurnOnHighQualityRateConverter ();
 
 #if 0
 	if (gISPInitialized)							// unload ISp
