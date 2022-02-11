@@ -81,7 +81,8 @@ SDL_GLContext	gAGLContext = nil;
 OGLMatrix4x4	gViewToFrustumMatrix,gLocalToViewMatrix,gLocalToFrustumMatrix;
 OGLMatrix4x4	gWorldToWindowMatrix[MAX_SPLITSCREENS],gFrustumToWindowMatrix[MAX_SPLITSCREENS];
 
-int		gCurrentSplitScreenPane = 0, gNumSplitScreenPanes= 0;
+int		gCurrentSplitScreenPane = 0;
+int		gNumSplitScreenPanes = 1;
 Byte	gActiveSplitScreenMode 	= SPLITSCREEN_MODE_NONE;		// currently active split mode
 
 float	gCurrentAspectRatio = 1;
