@@ -11,7 +11,6 @@
 
 #include <SDL.h>
 #include <SDL_opengl.h>
-#include <GL/glu.h>
 #include <math.h>
 
 #include "globals.h"
@@ -209,7 +208,7 @@ OGLSetupOutputType	*outputPtr;
 
 				/* PASS BACK INFO */
 
-	outputPtr->drawContext 		= gAGLContext;
+//	outputPtr->drawContext 		= gAGLContext;
 	outputPtr->clip 			= setupDefPtr->view.clip;
 	outputPtr->hither 			= setupDefPtr->camera.hither;			// remember hither/yon
 	outputPtr->yon 				= setupDefPtr->camera.yon;
@@ -253,7 +252,7 @@ OGLSetupOutputType	*data;
 			/* KILL GL CONTEXT */
 
 	SDL_GL_MakeCurrent(gSDLWindow, NULL);					// make context not current
-	SDL_GL_DeleteContext(data->drawContext);						// nuke the AGL context
+	SDL_GL_DeleteContext(gAGLContext);						// nuke the AGL context
 
 
 		/* FREE MEMORY & NIL POINTER */
@@ -467,7 +466,7 @@ void OGL_DrawScene(OGLSetupOutputType *setupInfo, void (*drawRoutine)(OGLSetupOu
 	if (!setupInfo->isActive)
 		DoFatalAlert("OGL_DrawScene isActive == false");
 
-	int makeCurrentRC = SDL_GL_MakeCurrent(gSDLWindow, setupInfo->drawContext);		// make context active
+	int makeCurrentRC = SDL_GL_MakeCurrent(gSDLWindow, gAGLContext);		// make context active
 	if (makeCurrentRC != 0)
 		DoFatalAlert(SDL_GetError());
 

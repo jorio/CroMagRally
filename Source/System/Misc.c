@@ -33,8 +33,6 @@ extern	Boolean		gISpActive,gHasFixedDSpForX;
 extern	/*DSpContextReference*/ void* 	gDisplayContext;
 extern	OGLSetupOutputType		*gGameViewInfoPtr;
 extern	int			gPolysThisFrame;
-extern	AGLContext		gAGLContext;
-extern	AGLDrawable		gAGLWin;
 extern	float			gDemoVersionTimer;
 
 extern	SDL_Window* 	gSDLWindow;

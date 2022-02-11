@@ -9,7 +9,6 @@
 /*    EXTERNALS             */
 /****************************/
 
-#include <GL/gl.h>
 #include "globals.h"
 #include "misc.h"
 #include "objects.h"

@@ -9,12 +9,7 @@
 /*    EXTERNALS             */
 /****************************/
 
-#include <GL/gl.h>
-#include <GL/glu.h>
-//#include <agl.h>
 #include <math.h>
-//#include <aglmacro.h>
-//#include <Movies.h>
 
 #include "globals.h"
 #include "misc.h"
@@ -32,11 +27,9 @@ extern	SpriteType		*gSpriteGroupList[];
 extern	long			gNumSpritesInGroupList[];
 extern	int				gPolysThisFrame,gVRAMUsedThisFrame;
 extern	Boolean			gMyState_Lighting;
-extern	AGLContext		gAGLContext;
 extern	Byte			gDebugMode;
 extern	PrefsType			gGamePrefs;
 extern	Boolean			gSongPlayingFlag;
-//extern	Movie				gSongMovie;
 
 /****************************/
 /*    PROTOTYPES            */
@@ -905,7 +898,6 @@ int	numChildren,i;
 void MO_DrawGeometry_VertexArray(const MOVertexArrayData *data, const OGLSetupOutputType *setupInfo)
 {
 Boolean		useTexture = false;
-AGLContext agl_ctx = setupInfo->drawContext;
 
 			/**********************/
 			/* SETUP VERTEX ARRAY */
@@ -1036,7 +1028,6 @@ MOMaterialData		*matData;
 OGLColorRGBA		*diffuseColor,diffColor2;
 Boolean				textureHasAlpha = false;
 Boolean				alreadySet;
-AGLContext agl_ctx = setupInfo->drawContext;
 u_long				matFlags;
 
 			/* SEE IF THIS MATERIAL IS ALREADY SET AS CURRENT */
@@ -1157,7 +1148,6 @@ u_long				matFlags;
 void MO_DrawMatrix(const MOMatrixObject *matObj, const OGLSetupOutputType *setupInfo)
 {
 const OGLMatrix4x4		*m;
-AGLContext agl_ctx = setupInfo->drawContext;
 
 	m = &matObj->matrix;							// point to matrix
 
@@ -1179,7 +1169,6 @@ float			x,y,z,xadj,yadj;
 const MOPictureData	*picData = &picObj->objectData;
 int				px,py,pw,ph;
 float			screenScaleX,screenScaleY;
-AGLContext agl_ctx = setupInfo->drawContext;
 
 			/* INIT MATRICES */
 
@@ -1261,7 +1250,6 @@ void MO_DrawSprite(const MOSpriteObject *spriteObj, const OGLSetupOutputType *se
 {
 const MOSpriteData	*spriteData = &spriteObj->objectData;
 float			spriteAspectRatio;
-AGLContext agl_ctx = setupInfo->drawContext;
 
 	spriteAspectRatio = spriteData->aspectRatio;						// get sprite's aspect ratio
 
@@ -1589,7 +1577,6 @@ void MO_DeleteObjectInfo_Geometry_VertexArray(MOVertexArrayData *data)
 static void MO_DeleteObjectInfo_Material(MOMaterialObject *obj)
 {
 MOMaterialData		*data = &obj->objectData;
-AGLContext agl_ctx = gAGLContext;
 
 		/* DISPOSE OF TEXTURE NAMES */
 

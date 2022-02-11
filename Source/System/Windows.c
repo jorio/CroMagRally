@@ -27,8 +27,6 @@ extern	long	gPrefsFolderDirID;
 extern	Boolean				gOSX, gISpActive;
 extern	PrefsType			gGamePrefs;
 extern	Boolean			gSongPlayingFlag,gMuteMusicFlag;
-extern	AGLContext		gAGLContext;
-extern	AGLDrawable		gAGLWin;
 
 /****************************/
 /*    PROTOTYPES            */
@@ -155,6 +153,7 @@ float		w,h;
 #endif
 #endif
 
+	IMPLEMENT_ME_SOFT();
 	gGameWindowWidth = 640;
 	gGameWindowHeight = 480;  // TODO read this from gSDLWindow
 }

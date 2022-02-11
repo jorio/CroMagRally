@@ -58,8 +58,6 @@ extern	TileAttribType	**gTileAttribList;
 extern	u_short			**gTileGrid;
 extern	u_long			gSuperTileTextureNames[MAX_SUPERTILE_TEXTURES];
 extern	PrefsType			gGamePrefs;
-extern	AGLContext		gAGLContext;
-extern	AGLDrawable		gAGLWin;
 extern	Boolean			gSongPlayingFlag,gSupportsPackedPixels,gLowMemMode,gOSX;
 
 /****************************/

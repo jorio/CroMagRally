@@ -24,8 +24,6 @@ extern	short				gMainAppRezFile,gMyNetworkPlayerNum,gNumLocalPlayers;
 extern	Byte				gActiveSplitScreenMode;
 extern	PlayerInfoType		gPlayerInfo[];
 extern	Boolean				gOSX,gQuitting;
-extern	AGLContext		gAGLContext;
-extern	AGLDrawable		gAGLWin;
 extern	float			gFramesPerSecondFrac;
 extern	PrefsType			gGamePrefs;
 

@@ -8,7 +8,6 @@
 
 #include <Pomme.h>
 #include <math.h>
-#include <GL/gl.h>
 
 #define	kGameID 		'CavM'
 

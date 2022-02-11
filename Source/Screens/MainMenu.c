@@ -42,8 +42,6 @@ extern	OGLPoint3D	gCoord;
 extern	MOPictureObject 	*gBackgoundPicture;
 extern	OGLSetupOutputType		*gGameViewInfoPtr;
 extern	int			gGameMode,gTheAge;
-extern	AGLContext		gAGLContext;
-extern	AGLDrawable		gAGLWin;
 extern	Byte		gActiveSplitScreenMode;
 extern	SavePlayerType	gPlayerSaveData;
 extern	const short gNumTracksUnlocked[];

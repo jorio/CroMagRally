@@ -444,7 +444,6 @@ void DrawSprite(int	group, int type, float x, float y, float scale, float rot, u
 {
 float			spriteAspectRatio;
 float			scaleBasis;
-AGLContext agl_ctx = setupInfo->drawContext;
 
 
 			/* SET STATE */

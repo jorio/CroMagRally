@@ -45,7 +45,6 @@ extern	PlayerInfoType	gPlayerInfo[];
 extern	short					gNumTotalPlayers;
 extern	FenceDefType			*gFenceList;
 extern	u_long					gGameFrameNum;
-extern	AGLContext		gAGLContext;
 extern	Byte					**gTerrainShadowFlags;
 extern	OGLBoundingBox			gObjectGroupBBoxList[MAX_BG3D_GROUPS][MAX_OBJECTS_IN_GROUP];
 
@@ -227,7 +226,6 @@ int		r,c;
 void DisposeTerrain(void)
 {
 int	i;
-AGLContext agl_ctx = gAGLContext;
 
 #if TERRAIN_DEBUG_GWORLD
 	if (gTerrainDebugGWorld)
@@ -865,7 +863,6 @@ Ptr				pictMapAddr;
 u_long			pictRowBytes;
 GDHandle		oldGD;
 GWorldPtr		oldGW;
-AGLContext agl_ctx = setupInfo->drawContext;
 
 
 

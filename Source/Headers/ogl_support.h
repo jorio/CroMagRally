@@ -4,11 +4,7 @@
 
 #pragma once
 
-typedef void* AGLContext;
-typedef void* AGLDrawable;
-
-#include <GL/gl.h>
-#include <GL/glu.h>
+#include <SDL_opengl.h>
 
 #define MAX_SPLITSCREENS	2
 
@@ -209,7 +205,7 @@ typedef struct
 typedef struct
 {
 	Boolean					isActive;
-	AGLContext				drawContext;
+//	AGLContext				drawContext;
 	WindowPtr				window;
 	Rect					clip;				// not pane size, but clip:  left = amount to clip off left
 	OGLLightDefType			lightList;
