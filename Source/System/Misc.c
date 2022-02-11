@@ -284,113 +284,6 @@ void InitMyRandomSeed(void)
 
 #pragma mark -
 
-
-/******************* FLOAT TO STRING *******************/
-
-void FloatToString(float num, Str255 string)
-{
-Str255	sf;
-long	i,f;
-
-	i = num;						// get integer part
-
-
-	f = (fabs(num)-fabs((float)i)) * 10000;		// reduce num to fraction only & move decimal --> 5 places
-
-	if ((i==0) && (num < 0))		// special case if (-), but integer is 0
-	{
-		string[0] = 2;
-		string[1] = '-';
-		string[2] = '0';
-	}
-	else
-		NumToString(i,string);		// make integer into string
-
-	NumToString(f,sf);				// make fraction into string
-
-	string[++string[0]] = '.';		// add "." into string
-
-	if (f >= 1)
-	{
-		if (f < 1000)
-			string[++string[0]] = '0';	// add 1000's zero
-		if (f < 100)
-			string[++string[0]] = '0';	// add 100's zero
-		if (f < 10)
-			string[++string[0]] = '0';	// add 10's zero
-	}
-
-	for (i = 0; i < sf[0]; i++)
-	{
-		string[++string[0]] = sf[i+1];	// copy fraction into string
-	}
-}
-
-/*********************** STRING TO FLOAT *************************/
-
-float StringToFloat(Str255 textStr)
-{
-short	i;
-short	length;
-Byte	mode = 0;
-long	integer = 0;
-long	mantissa = 0,mantissaSize = 0;
-float	f;
-float	tens[8] = {1,10,100,1000,10000,100000,1000000,10000000};
-char	c;
-float	sign = 1;												// assume positive
-
-	length = textStr[0];										// get string length
-
-	if (length== 0)												// quick check for empty
-		return(0);
-
-
-			/* SCAN THE NUMBER */
-
-	for (i = 1; i <= length; i++)
-	{
-		c  = textStr[i];										// get this char
-
-		if (c == '-')											// see if negative
-		{
-			sign = -1;
-			continue;
-		}
-		else
-		if (c == '.')											// see if hit the decimal
-		{
-			mode = 1;
-			continue;
-		}
-		else
-		if ((c < '0') || (c > '9'))								// skip all but #'s
-			continue;
-
-
-		if (mode == 0)
-			integer = (integer * 10) + (c - '0');
-		else
-		{
-			mantissa = (mantissa * 10) + (c - '0');
-			mantissaSize++;
-		}
-	}
-
-			/* BUILT A FLOAT FROM IT */
-
-	f = (float)integer + ((float)mantissa/tens[mantissaSize]);
-	f *= sign;
-
-	return(f);
-}
-
-
-
-
-
-#pragma mark -
-
 /****************** ALLOC HANDLE ********************/
 
 Handle	AllocHandle(long size)
@@ -491,35 +384,6 @@ u_long	*cookiePtr;
 
 #pragma mark -
 
-/******************* COPY P STRING ********************/
-
-void CopyPString(Str255 from, Str255 to)
-{
-short	i,n;
-
-	n = from[0];			// get length
-
-	for (i = 0; i <= n; i++)
-		to[i] = from[i];
-
-}
-
-
-/***************** P STRING TO C ************************/
-
-void PStringToC(char *pString, char *cString)
-{
-Byte	pLength,i;
-
-	pLength = pString[0];
-
-	for (i=0; i < pLength; i++)					// copy string
-		cString[i] = pString[i+1];
-
-	cString[pLength] = 0x00;					// add null character to end of c string
-}
-
-
 /******************* VERIFY SYSTEM ******************/
 
 void VerifySystem(void)
@@ -536,32 +400,6 @@ long createdDirID;
 
 	iErr = DirCreate(gPrefsFolderVRefNum,gPrefsFolderDirID,"CroMag",&createdDirID);		// make folder in there
 }
-
-
-/******************** REGULATE SPEED ***************/
-
-void RegulateSpeed(short fps)
-{
-short	n;
-static oldTick = 0;
-
-	n = 60 / fps;
-	while ((TickCount() - oldTick) < n) {}			// wait for n ticks
-	oldTick = TickCount();							// remember current time
-}
-
-
-/************* COPY PSTR **********************/
-
-void CopyPStr(ConstStr255Param	inSourceStr, StringPtr	outDestStr)
-{
-short	dataLen = inSourceStr[0] + 1;
-
-	BlockMoveData(inSourceStr, outDestStr, dataLen);
-	outDestStr[0] = dataLen - 1;
-}
-
-
 
 
 

@@ -249,8 +249,8 @@ long					i;
 TerrainItemEntryType	*itemPtr;
 Boolean                 flags[MAX_PLAYERS];
 
-    for (i = 0; i < MAX_PLAYERS; i++)
-        flags[i] = false;
+	for (i = 0; i < MAX_PLAYERS; i++)
+		flags[i] = false;
 
 
 	itemPtr = *gMasterItemList; 												// get pointer to data inside the LOCKED handle

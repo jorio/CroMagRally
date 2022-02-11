@@ -7,7 +7,7 @@ void DoPaused(void);
 void ShowAgePicture(int age);
 void ShowLoadingPicture(void);
 
-Boolean DoFailedMenu(const Str31	headerString);
+Boolean DoFailedMenu(const char* headerString);
 void DoTitleScreen(void);
 void DoAgeConqueredScreen(void);
 

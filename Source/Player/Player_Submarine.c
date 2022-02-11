@@ -271,7 +271,7 @@ float		fps = gFramesPerSecondFrac;
 short		playerNum;
 PlayerInfoType	*pinfo;
 OGLMatrix4x4	mx,my,mxy;
-const static OGLVector3D	v = {0,0,-1};
+static const OGLVector3D	v = {0,0,-1};
 OGLVector3D		aimVec;
 
 	playerNum 	= theNode->PlayerNum;

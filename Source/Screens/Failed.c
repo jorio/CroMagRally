@@ -42,7 +42,7 @@ extern	OGLSetupOutputType		*gGameViewInfoPtr;
 /*    PROTOTYPES            */
 /****************************/
 
-static void BuildFailedMenu(const Str32 s);
+static void BuildFailedMenu(const char* s);
 static Boolean NavigateFailedMenu(void);
 static void FreeFailedMenu(void);
 static void MoveFailedObject(ObjNode *theNode);
@@ -84,7 +84,7 @@ static const OGLColorRGBA gFailedMenuHiliteColor = {.3,.5,.2,1};
 // return true if try again
 //
 
-Boolean DoFailedMenu(const Str31	headerString)
+Boolean DoFailedMenu(const char* headerString)
 {
 	BuildFailedMenu(headerString);
 
@@ -125,7 +125,7 @@ Boolean DoFailedMenu(const Str31	headerString)
 
 /**************************** BUILD FAILED MENU *********************************/
 
-static void BuildFailedMenu(const Str32 s)
+static void BuildFailedMenu(const char* title)
 {
 short	i;
 ObjNode	*obj;
@@ -145,7 +145,7 @@ ObjNode	*obj;
 	gNewObjectDefinition.scale 	    = FAILED_ICON_SCALE * .8f;
 	gNewObjectDefinition.slot 		= SPRITE_SLOT;
 
-	obj = MakeFontStringObject(s, &gNewObjectDefinition, gGameViewInfoPtr, true);		// title
+	obj = MakeFontStringObject(title, &gNewObjectDefinition, gGameViewInfoPtr, true);		// title
 	obj->ColorFilter.a = 0;
 
 	gNewObjectDefinition.coord.y 	-= LINE_SPACING * 1.5f;

@@ -62,9 +62,10 @@ long LZSS_Decode(short fRefNum, Ptr destPtr, long sourceSize)
 {
 short  		i, j, k, r;
 unsigned short  flags;
+Ptr 		destOriginalPtr = destPtr;
 Ptr			srcOriginalPtr;
 unsigned char *sourcePtr,c;
-long		decompSize = (long)destPtr;
+ptrdiff_t		decompSize;
 
 	textsize = 0;						/* text size counter */
 	codesize = 0;						/* code size counter */
@@ -81,7 +82,7 @@ long		decompSize = (long)destPtr;
 
 				/* READ LZSS DATA */
 
-	FSRead(fRefNum,&sourceSize,srcOriginalPtr);
+	FSRead(fRefNum,&sourceSize,(Ptr) srcOriginalPtr);
 
 
 
@@ -132,7 +133,7 @@ long		decompSize = (long)destPtr;
 		}
 	}
 
-	decompSize = (int)destPtr - decompSize;		// calc size of decompressed data
+	decompSize = destPtr - destOriginalPtr;		// calc size of decompressed data
 
 
 			/* CLEANUP */

@@ -432,7 +432,7 @@ short		refNum;
 		Ptr imageData = LoadFileData(inData, &imageLength);
 		GAME_ASSERT(imageData);
 
-		pictMapAddr = stbi_load_from_memory(imageData, imageLength, &width, &height, NULL, 4);
+		pictMapAddr = (Ptr) stbi_load_from_memory((const stbi_uc*) imageData, imageLength, &width, &height, NULL, 4);
 		GAME_ASSERT(pictMapAddr);
 
 		SafeDisposePtr(imageData);
@@ -561,12 +561,12 @@ short		refNum;
 
 			if (depth == 32)
 			{
-				uint32_t	r,g,b,a,x,y;
-				uint32_t	pixels;
+				//uint32_t	r,g,b,a,x,y;
+				//uint32_t	pixels;
 				uint32_t *dest = (uint32_t *)destPtr;
 				uint32_t *src = (uint32_t *)srcPtr;
 
-				for (y = 0; y < vertCellSize; y++)
+				for (int y = 0; y < vertCellSize; y++)
 				{
 #if 0
 					for (x = 0; x < horizCellSize; x++)							// copy & convert a line of pixels
@@ -1819,7 +1819,7 @@ MOMaterialData	matData;
 int				width,height,depth,destDepth;
 Ptr				buffer;
 Ptr 			pictMapAddr;
-uint32_t		pictRowBytes,y,x;
+uint32_t		pictRowBytes;
 Boolean			destHasAlpha;
 
 		/*******************************/
@@ -1852,7 +1852,7 @@ Boolean			destHasAlpha;
 		Ptr imageData = LoadFileData(spec, &imageLength);
 		GAME_ASSERT(imageData);
 
-		pictMapAddr = stbi_load_from_memory(imageData, imageLength, &width, &height, NULL, 4);
+		pictMapAddr = (Ptr) stbi_load_from_memory((const stbi_uc*) imageData, imageLength, &width, &height, NULL, 4);
 		GAME_ASSERT(pictMapAddr);
 
 		SafeDisposePtr(imageData);
@@ -1890,7 +1890,7 @@ Boolean			destHasAlpha;
 		src = (uint32_t *)(pictMapAddr + pictRowBytes * (height-1)); // start @ bottom to flip texture
 		dest = (uint32_t *)buffer;
 
-		for (y = 0; y < height; y++)
+		for (int y = 0; y < height; y++)
 		{
 #if 0
 			for (x = 0; x < width; x++)

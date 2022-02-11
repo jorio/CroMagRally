@@ -56,7 +56,7 @@ extern	CheckpointDefType	   gCheckpointList[MAX_CHECKPOINTS];
 extern	int				gTrackNum;
 extern	TileAttribType	**gTileAttribList;
 extern	u_short			**gTileGrid;
-extern	u_long			gSuperTileTextureNames[MAX_SUPERTILE_TEXTURES];
+extern	GLuint			gSuperTileTextureNames[MAX_SUPERTILE_TEXTURES];
 extern	PrefsType			gGamePrefs;
 extern	Boolean			gSongPlayingFlag,gSupportsPackedPixels,gLowMemMode,gOSX;
 
@@ -658,7 +658,7 @@ kill:
 				/* WRITE DATA */
 
 	count = sizeof(PrefsType);
-	FSWrite(refNum, &count, &gGamePrefs);
+	FSWrite(refNum, &count, (Ptr) &gGamePrefs);
 	FSClose(refNum);
 }
 
@@ -683,8 +683,7 @@ Str255	chooserName;
 //	GetChooserName(chooserName);							// assign machine name to player name
 	strcpy(chooserName, "localhost"); //---TODO: use real hostname
 
-	CopyPString(chooserName, gPlayerSaveData.playerName);
-
+	snprintf(gPlayerSaveData.playerName, sizeof(gPlayerSaveData.playerName), "%s", chooserName);
 }
 
 
@@ -1452,7 +1451,6 @@ Handle					hand;
 PlayfieldHeaderType		**header;
 long					row,col,j,i,size;
 float					yScale;
-float					*src;
 short					fRefNum;
 OSErr					iErr;
 Ptr						tempBuffer16 = nil,tempBuffer24 = nil;
@@ -1603,7 +1601,7 @@ Ptr						tempBuffer16 = nil,tempBuffer24 = nil;
 		DoAlert("ReadDataFromPlayfieldFile: Error reading height data resource!");
 	else
 	{
-		src = (float *)*hand;
+		float* src = (float *)*hand;
 		BYTESWAP_HANDLE("f", float, gTerrainTileDepth*gTerrainTileWidth, hand);
 		for (row = 0; row <= gTerrainTileDepth; row++)
 			for (col = 0; col <= gTerrainTileWidth; col++)
@@ -1808,7 +1806,7 @@ Ptr						tempBuffer16 = nil,tempBuffer24 = nil;
 		BYTESWAP_HANDLE("bbhhxxiiihhhh", File_PathDefType, gNumPaths, hand);
 		File_PathDefType* filePath = (File_PathDefType*) *hand;
 
-		gPathList = NewHandleClear(gNumPaths * sizeof(PathDefType));
+		gPathList = (PathDefType**) NewHandleClear(gNumPaths * sizeof(PathDefType));
 
 		for (i = 0; i < gNumPaths; i++)
 		{
@@ -1925,7 +1923,7 @@ Ptr						tempBuffer16 = nil,tempBuffer24 = nil;
 
 				/* READ THE SIZE OF THE NEXT COMPRESSED SUPERTILE TEXTURE */
 
-		iErr = FSRead(fRefNum, &sizeoflong, &compressedSize);
+		iErr = FSRead(fRefNum, &sizeoflong, (Ptr) &compressedSize);
 		compressedSize = Byteswap32Signed(&compressedSize);
 		if (iErr)
 			DoFatalAlert("ReadDataFromPlayfieldFile: FSRead failed!");
@@ -2091,7 +2089,7 @@ Ptr LoadFileData(const FSSpec* spec, long* outLength)
 
 	// Read file into data buffer
 	readBytes = fileLength;
-	err = FSRead(refNum, &readBytes, data);
+	err = FSRead(refNum, &readBytes, (Ptr) data);
 	GAME_ASSERT(err == noErr);
 	FSClose(refNum);
 

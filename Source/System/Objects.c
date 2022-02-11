@@ -477,7 +477,6 @@ Boolean			texWrap = false;
 Boolean			clipAlpha= false;
 #endif
 float			cameraX, cameraZ;
-const static OGLColorRGBA	white = {1,1,1};
 short			skelType, playerNum;
 
 	if (gFirstNodePtr == nil)									// see if there are any objects

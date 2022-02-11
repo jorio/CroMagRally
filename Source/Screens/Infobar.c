@@ -595,7 +595,7 @@ static void Infobar_DrawInventoryPOW(const OGLSetupOutputType *setupInfo)
 {
 int			n;
 short		powType,q;
-Str31		s;
+char		s[16];
 float		x,y,scale, spacing, fontScale;
 
 	n = GetPlayerNum(gCurrentSplitScreenPane);
@@ -630,12 +630,12 @@ float		x,y,scale, spacing, fontScale;
 	gGlobalColorFilter.b = .3;
 
 	q = gPlayerInfo[n].powQuantity;					// get weapon quantity
-	NumToString(q, s);
+	snprintf(s, sizeof(s), "%d", q);
 
 	x += spacing;
-	for (n = 1; n <= s[0]; n++)
+	for (int i = 0; s[i]; i++)
 	{
-		DrawSprite(SPRITE_GROUP_FONT, s[n]-'0',x, y, fontScale, 0, 0, setupInfo);
+		DrawSprite(SPRITE_GROUP_FONT, s[i]-'0',x, y, fontScale, 0, 0, setupInfo);
 		x += FONT_WIDTH * fontScale;
 	}
 
@@ -794,9 +794,9 @@ float	x,y,scale,spacing;
 
 static void Infobar_DrawTimerPowerups(const OGLSetupOutputType *setupInfo)
 {
-short	p,n;
+short	p;
 float	timer,x,y,x2, scale, fontScale, spacing, lineSpacing;
-Str15	s;
+char	s[16];
 static const OGLColorRGB tint = {1,.7,.5};
 static const OGLColorRGB noTint = {1,1,1};
 
@@ -826,10 +826,10 @@ static const OGLColorRGB noTint = {1,1,1};
 
 		gGlobalColorFilter = tint;
 
-		NumToString(timer+.5f, s);
+		snprintf(s, sizeof(s), "%d", (int) (timer+.5f));
 
 		x2 = x + spacing;
-		for (n = 1; n <= s[0]; n++)
+		for (int n = 0; s[n]; n++)
 		{
 			DrawSprite(SPRITE_GROUP_FONT, s[n]-'0',x2, y, fontScale, 0, 0, setupInfo);
 			x2 += FONT_WIDTH * fontScale;
@@ -857,10 +857,10 @@ static const OGLColorRGB noTint = {1,1,1};
 
 		gGlobalColorFilter = tint;
 
-		NumToString(timer+.5f, s);
+		snprintf(s, sizeof(s), "%d", (int) (timer+.5f));
 
 		x2 = x + spacing;
-		for (n = 1; n <= s[0]; n++)
+		for (int n = 0; s[n]; n++)
 		{
 			DrawSprite(SPRITE_GROUP_FONT, s[n]-'0',x2, y, fontScale, 0, 0, setupInfo);
 			x2 += FONT_WIDTH * fontScale;
@@ -887,10 +887,10 @@ static const OGLColorRGB noTint = {1,1,1};
 
 		gGlobalColorFilter = tint;
 
-		NumToString(timer+.5f, s);
+		snprintf(s, sizeof(s), "%d", (int) (timer+.5f));
 
 		x2 = x + spacing;
-		for (n = 1; n <= s[0]; n++)
+		for (int n = 0; s[n]; n++)
 		{
 			DrawSprite(SPRITE_GROUP_FONT, s[n]-'0',x2, y, fontScale, 0, 0, setupInfo);
 			x2 += FONT_WIDTH * fontScale;
@@ -917,10 +917,10 @@ static const OGLColorRGB noTint = {1,1,1};
 
 		gGlobalColorFilter = tint;
 
-		NumToString(timer+.5f, s);
+		snprintf(s, sizeof(s), "%d", (int) (timer+.5f));
 
 		x2 = x + spacing;
-		for (n = 1; n <= s[0]; n++)
+		for (int n = 0; s[n]; n++)
 		{
 			DrawSprite(SPRITE_GROUP_FONT, s[n]-'0',x2, y, fontScale, 0, 0, setupInfo);
 			x2 += FONT_WIDTH * fontScale;
@@ -947,10 +947,10 @@ static const OGLColorRGB noTint = {1,1,1};
 
 		gGlobalColorFilter = tint;
 
-		NumToString(timer+.5f, s);
+		snprintf(s, sizeof(s), "%d", (int) (timer+.5f));
 
 		x2 = x + spacing;
-		for (n = 1; n <= s[0]; n++)
+		for (int n = 0; s[n]; n++)
 		{
 			DrawSprite(SPRITE_GROUP_FONT, s[n]-'0',x2, y, fontScale, 0, 0, setupInfo);
 			x2 += FONT_WIDTH * fontScale;
@@ -977,10 +977,10 @@ static const OGLColorRGB noTint = {1,1,1};
 
 		gGlobalColorFilter = tint;
 
-		NumToString(timer+.5f, s);
+		snprintf(s, sizeof(s), "%d", (int) (timer+.5f));
 
 		x2 = x + spacing;
-		for (n = 1; n <= s[0]; n++)
+		for (int n = 0; s[n]; n++)
 		{
 			DrawSprite(SPRITE_GROUP_FONT, s[n]-'0',x2, y, fontScale, 0, 0, setupInfo);
 			x2 += FONT_WIDTH * fontScale;

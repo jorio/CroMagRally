@@ -123,7 +123,7 @@ MOMaterialData	matData;
 
 	int32_t numSprites = 0;
 	count = sizeof(numSprites);
-	FSRead(refNum, &count, &numSprites);
+	FSRead(refNum, &count, (Ptr) &numSprites);
 	gNumSpritesInGroupList[groupNum] = Byteswap32(&numSprites);
 
 
@@ -146,7 +146,7 @@ MOMaterialData	matData;
 
 		File_SpriteType fileSprite;
 		count = sizeof(fileSprite);
-		FSRead(refNum, &count, &fileSprite);
+		FSRead(refNum, &count, (Ptr) &fileSprite);
 		ByteswapStructs("iifiii", sizeof(fileSprite), 1, &fileSprite);
 
 		gSpriteGroupList[groupNum][i].width = fileSprite.width;
@@ -166,7 +166,7 @@ MOMaterialData	matData;
 			/* READ THE SPRITE PIXEL BUFFER */
 
 		count = fileSprite.bufferSize;
-		FSRead(refNum, &count, buffer);
+		FSRead(refNum, &count, (Ptr)buffer);
 
 
 

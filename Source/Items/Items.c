@@ -132,7 +132,7 @@ float			y,d;
 OGLMatrix3x3	m;
 OGLPoint2D		p,p1,p2;
 
-static const xOff[] =
+static const float xOff[] =
 {
 	2490,							// desert
 	0,								// jungle
@@ -148,7 +148,7 @@ static const xOff[] =
 
 };
 
-static const diameter[] =
+static const float diameter[] =
 {
 	422,							// desert
 	0,								// jungle

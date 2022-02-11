@@ -44,8 +44,3 @@ Boolean DoSimpleBoxCollisionAgainstPlayer(float top, float bottom, float left, f
 Boolean DoSimpleBoxCollisionAgainstObject(float top, float bottom, float left, float right,
 										float front, float back, ObjNode *targetNode);
 
-
-		/* TRI-TRI COLLISION */
-
-Boolean DoTrianglesIntersect(float V0[3],float V1[3],float V2[3],
-		        	             float U0[3],float U1[3],float U2[3]);

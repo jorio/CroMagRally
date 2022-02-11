@@ -24,7 +24,6 @@
 #include "paths.h"
 #include "items.h"
 #include "window.h"
-#include "triangulate.h"
 #include "checkpoints.h"
 #include	"infobar.h"
 #include	"bg3d.h"
@@ -94,7 +93,7 @@ long			gTerrainUnitWidth,gTerrainUnitDepth;			// width & depth of terrain in wor
 long				gNumUniqueSuperTiles;
 SuperTileGridType 	**gSuperTileTextureGrid = nil;			// 2d array
 
-u_long			gSuperTileTextureNames[MAX_SUPERTILE_TEXTURES];
+GLuint			gSuperTileTextureNames[MAX_SUPERTILE_TEXTURES];
 
 u_short			**gTileGrid = nil;
 
@@ -1388,8 +1387,8 @@ static const Byte gridMask[(SUPERTILE_ACTIVE_RANGE+SUPERTILE_ITEMRING_MARGIN)*2]
 
 					/* SEE IF ROW/COLUMN HAVE CHANGED */
 
-		deltaRow = abs(gCurrentSuperTileRow[playerNum] - gPreviousSuperTileRow[playerNum]);
-		deltaCol = abs(gCurrentSuperTileCol[playerNum] - gPreviousSuperTileCol[playerNum]);
+		deltaRow = labs(gCurrentSuperTileRow[playerNum] - gPreviousSuperTileRow[playerNum]);
+		deltaCol = labs(gCurrentSuperTileCol[playerNum] - gPreviousSuperTileCol[playerNum]);
 
 		if (deltaRow || deltaCol)
 		{

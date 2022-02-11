@@ -176,7 +176,7 @@ long			count;
 
 	count = sizeof(BG3DHeaderType);
 
-	if (FSRead(refNum, &count, &headerData) != noErr)
+	if (FSRead(refNum, &count, (Ptr) &headerData) != noErr)
 		DoFatalAlert("ReadBG3DHeader: FSRead failed");
 
 			/* VERIFY FILE */
@@ -205,7 +205,7 @@ MetaObjectPtr 	newObj;
 			/* READ A TAG */
 
 		count = sizeof(tag);
-		if (FSRead(refNum, &count, &tag) != noErr)
+		if (FSRead(refNum, &count, (Ptr) &tag) != noErr)
 			DoFatalAlert("ParseBG3DFile: FSRead failed");
 		tag = Byteswap32(&tag);
 
@@ -288,7 +288,7 @@ uint32_t			flags;
 			/* READ FLAGS */
 
 	count = sizeof(flags);
-	if (FSRead(refNum, &count, &flags) != noErr)
+	if (FSRead(refNum, &count, (Ptr) &flags) != noErr)
 		DoFatalAlert("ReadMaterialFlags: FSRead failed");
 	flags = Byteswap32(&flags);
 
@@ -332,7 +332,7 @@ MOMaterialData	*data;
 			/* READ COLOR VALUE */
 
 	count = sizeof(GLfloat) * 4;
-	if (FSRead(refNum, &count, color) != noErr)
+	if (FSRead(refNum, &count, (Ptr) color) != noErr)
 		DoFatalAlert("ReadMaterialDiffuseColor: FSRead failed");
 	ByteswapStructs("4f", sizeof(color), 1, color);
 
@@ -374,7 +374,7 @@ MOMaterialData	*data;
 			/***********************/
 
 	count = sizeof(BG3DTextureHeader);
-	FSRead(refNum, &count, &textureHeader);		// read header
+	FSRead(refNum, &count, (Ptr) &textureHeader);		// read header
 	ByteswapStructs("LLiiL4L", sizeof(textureHeader), 1, &textureHeader);
 
 			/* COPY BASIC INFO */
@@ -401,7 +401,7 @@ MOMaterialData	*data;
 	if (texturePixels == nil)
 		DoFatalAlert("ReadMaterialTextureMap: AllocPtr failed");
 
-	FSRead(refNum, &count, texturePixels);		// read pixel data
+	FSRead(refNum, &count, (Ptr) texturePixels);		// read pixel data
 
 
 		/* ASSIGN PIXELS TO CURRENT MATERIAL */
@@ -483,7 +483,7 @@ MetaObjectPtr		newObj;
 			/* READ GEOMETRY HEADER */
 
 	count = sizeof(BG3DGeometryHeader);
-	FSRead(refNum, &count, &geoHeader);		// read header
+	FSRead(refNum, &count, (Ptr) &geoHeader);		// read header
 	ByteswapStructs("Li4LLLL4L", sizeof(geoHeader), 1, &geoHeader);
 
 
@@ -570,7 +570,7 @@ OGLPoint3D			*pointList;
 	if (pointList == nil)
 		DoFatalAlert("ReadVertexArray: AllocPtr failed!");
 
-	FSRead(refNum, &count, pointList);								// read the data
+	FSRead(refNum, &count, (Ptr) pointList);								// read the data
 	ByteswapStructs("fff", sizeof(OGLPoint3D), numPoints, pointList);
 
 	data->points = pointList;										// assign point array to geometry header
@@ -594,7 +594,7 @@ OGLVector3D			*normalList;
 	if (normalList == nil)
 		DoFatalAlert("ReadNormalArray: AllocPtr failed!");
 
-	FSRead(refNum, &count, normalList);								// read the data
+	FSRead(refNum, &count, (Ptr) normalList);								// read the data
 	ByteswapStructs("fff", sizeof(OGLVector3D), numPoints, normalList);
 
 	data->normals = normalList;										// assign normal array to geometry header
@@ -618,7 +618,7 @@ OGLTextureCoord		*uvList;
 	if (uvList == nil)
 		DoFatalAlert("ReadUVArray: AllocPtr failed!");
 
-	FSRead(refNum, &count, uvList);									// read the data
+	FSRead(refNum, &count, (Ptr) uvList);									// read the data
 	ByteswapStructs("ff", sizeof(OGLTextureCoord), numPoints, uvList);
 
 	data->uvs = uvList;												// assign uv array to geometry header
@@ -643,7 +643,7 @@ OGLColorRGBA		*colorsF;
 	if (colorList == nil)
 		DoFatalAlert("ReadVertexColorArray: AllocPtr failed!");
 
-	FSRead(refNum, &count, colorList);								// read the data
+	FSRead(refNum, &count, (Ptr) colorList);								// read the data
 	// No need to byteswap this
 
 	data->colorsByte = colorList;									// assign color array to geometry header
@@ -688,7 +688,7 @@ MOTriangleIndecies	*triList;
 	if (triList == nil)
 		DoFatalAlert("ReadTriangleArray: AllocPtr failed!");
 
-	FSRead(refNum, &count, triList);								// read the data
+	FSRead(refNum, &count, (Ptr) triList);								// read the data
 	ByteswapStructs("LLL", sizeof(MOTriangleIndecies), numTriangles, triList);
 
 	data->triangles = triList;										// assign triangle array to geometry header

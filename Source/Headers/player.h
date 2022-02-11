@@ -12,10 +12,10 @@
 
 #define	MAX_CAR_TYPES	10
 
-#define	CapturedFlag	Special[3]				// objNode of attached team flag
+#define	CapturedFlag	SpecialPtr[3]			// objNode of attached team flag
 #define	InvincibleTimer	SpecialF[4]				// timer for invicibility after being hurt
 
-#define	WhoThrew		Special[0]				// objnode of player who threw the weapon
+#define	WhoThrew		SpecialPtr[0]			// objnode of player who threw the weapon
 
 #define	HEAD_THROW_READY_FLAG	Flag[0]			// set when throw anim is ready to throw
 

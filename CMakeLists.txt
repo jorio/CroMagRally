@@ -145,16 +145,12 @@ if(NOT MSVC)
 		-Wno-unknown-pragmas
 		$<$<CXX_COMPILER_ID:GNU>:-Wno-unused-but-set-variable>
 		-Werror=return-type
+		-Wno-missing-braces #-------------
 		-Wno-unused-parameter
 		-Wno-unused-variable #-------------
-		-Wno-stringop-overflow #-------------
-		-Wno-stringop-overread #-------------
-		-Wno-incompatible-pointer-types #-------------
-		-Wno-missing-braces #-------------
-		-Wno-shadow #-------------
-		-Wno-pointer-sign #-------------
 		-Wno-unused-value #-------------
 		-Wno-unused-function #-------------
+		-Wno-unused-label #-------------
 	)
 else()
 	# By default, MSVC may add /EHsc to CMAKE_CXX_FLAGS, which we don't want (we use /EHs below)

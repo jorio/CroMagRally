@@ -312,7 +312,6 @@ SkeletonObjDataType		*currentSkelObjData = gCurrentSkelObjData;
 const SkeletonDefType	*currentSkeleton = gCurrentSkeleton;
 const OGLMatrix4x4		*jointMat;
 OGLMatrix4x4			*matPtr;
-float					x,y,z;
 DecomposedPointType		*decomposedPointList = currentSkeleton->decomposedPointList;
 MOVertexArrayData		*localTriMeshes = &gLocalTriMeshesOfSkelType[skelType][0];
 
@@ -360,6 +359,7 @@ MOVertexArrayData		*localTriMeshes = &gLocalTriMeshesOfSkelType[skelType][0];
 	{
 		i = bonePtr->normalList[p];												// get index to normal in gDecomposedNormalsList
 
+		float x,y,z;
 		x = currentSkeleton->decomposedNormalsList[i].x;						// get xyz of normal
 		y = currentSkeleton->decomposedNormalsList[i].y;
 		z = currentSkeleton->decomposedNormalsList[i].z;

@@ -321,7 +321,7 @@ const u_short	gUserKeySettings_Defaults[NUM_CONTROL_NEEDS] =
 /**********************************************************************/
 
 
-static const gControlBitToKey[NUM_CONTROL_BITS][2] = {						// remember to update kControlBit_XXX list!!!
+static const int gControlBitToKey[NUM_CONTROL_BITS][2] = {						// remember to update kControlBit_XXX list!!!
 														kKey_ThrowForward_P1, 	kKey_ThrowForward_P2,
 														kKey_ThrowBackward_P1, 	kKey_ThrowBackward_P2,
 														kKey_Brakes_P1, 		kKey_Brakes_P2,

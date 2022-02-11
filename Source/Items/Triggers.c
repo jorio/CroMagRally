@@ -254,7 +254,7 @@ float			heightOff;
 	gNewObjectDefinition.scale 		= 1.0;
 	newObj = MakeNewDisplayGroupObject(&gNewObjectDefinition);
 	if (newObj == nil)
-		return(nil);
+		return false;
 
 	newObj->TerrainItemPtr = itemPtr;						// keep ptr to item list
 
@@ -418,7 +418,7 @@ OGLPoint3D		where;
 	gNewObjectDefinition.scale 		= 1.0;
 	newObj = MakeNewDisplayGroupObject(&gNewObjectDefinition);
 	if (newObj == nil)
-		return(nil);
+		return false;
 
 	newObj->TerrainItemPtr = itemPtr;						// keep ptr to item list
 
@@ -527,7 +527,7 @@ OGLPoint3D		where;
 	gNewObjectDefinition.scale 		= 1.0;
 	newObj = MakeNewDisplayGroupObject(&gNewObjectDefinition);
 	if (newObj == nil)
-		return(nil);
+		return false;
 
 	newObj->TerrainItemPtr = itemPtr;						// keep ptr to item list
 
@@ -622,7 +622,7 @@ OGLPoint3D		where;
 	gNewObjectDefinition.scale 		= 1.0;
 	newObj = MakeNewDisplayGroupObject(&gNewObjectDefinition);
 	if (newObj == nil)
-		return(nil);
+		return false;
 
 	newObj->TerrainItemPtr = itemPtr;						// keep ptr to item list
 
@@ -715,7 +715,7 @@ OGLPoint3D		where;
 	gNewObjectDefinition.scale 		= 1.0;
 	newObj = MakeNewDisplayGroupObject(&gNewObjectDefinition);
 	if (newObj == nil)
-		return(nil);
+		return false;
 
 	newObj->TerrainItemPtr = itemPtr;						// keep ptr to item list
 
@@ -1305,7 +1305,7 @@ static Boolean DoTrig_TeamTorch(ObjNode *theNode, ObjNode *whoNode, Byte sideBit
 	theNode->Mode = 1;							// set carried mode
 	theNode->PlayerNum = whoNode->PlayerNum;	// remember which player is carrying it
 
-	whoNode->CapturedFlag = (long)theNode;		// player remembers the flag
+	whoNode->CapturedFlag = (Ptr)theNode;		// player remembers the flag
 
 
 	return(false);

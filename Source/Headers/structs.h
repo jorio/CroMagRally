@@ -303,6 +303,7 @@ struct ObjNode
 	signed char		Flag[6];
 	long			Special[6];
 	float			SpecialF[6];
+	Ptr				SpecialPtr[6];
 
 	float			Health;				// health 0..1
 	float			Damage;				// damage

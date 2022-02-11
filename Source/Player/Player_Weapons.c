@@ -337,7 +337,7 @@ ObjNode						*newObj,*head,*car;
 
 	SetThrowDeltas(newObj, car, 1.0, throwForward);
 
-	newObj->WhoThrew = (long)car;														// remember who threw it
+	newObj->WhoThrew = (Ptr)car;														// remember who threw it
 }
 
 
@@ -405,7 +405,7 @@ ObjNode						*newObj,*head,*car;
 	if (newObj == nil)
 		return;
 
-	newObj->WhoThrew = (long)car;														// remember who threw it
+	newObj->WhoThrew = (Ptr)car;														// remember who threw it
 
 
 			/* MAKE SHADOW */
@@ -432,7 +432,7 @@ ObjNode						*newObj,*head,*car;
 static void MoveFreezeWeapon(ObjNode *theNode)
 {
 float	fps = gFramesPerSecondFrac;
-float	y;
+float	terrainY;
 
 
 	GetObjectInfo(theNode);
@@ -458,9 +458,9 @@ float	y;
 		/* SEE IF HIT ANYTHING */
 		/***********************/
 
-	y = GetTerrainY(gCoord.x, gCoord.z);
+	terrainY = GetTerrainY(gCoord.x, gCoord.z);
 
-	if ((gCoord.y <= y) || DoSimplePointCollision(&gCoord, CTYPE_MISC|CTYPE_PLAYER, (ObjNode *)theNode->WhoThrew))	// see if hit something
+	if ((gCoord.y <= terrainY) || DoSimplePointCollision(&gCoord, CTYPE_MISC|CTYPE_PLAYER, (ObjNode *)theNode->WhoThrew))	// see if hit something
 	{
 boom:
 		MakeSnowExplosion(&gCoord);
@@ -585,7 +585,7 @@ ObjNode						*newObj,*head,*car;
 		/* SET IN MOTION */
 
 	SetThrowDeltas(newObj, car, .6, throwForward);
-	newObj->WhoThrew = (long)car;														// remember who threw it
+	newObj->WhoThrew = (Ptr)car;														// remember who threw it
 
 }
 
@@ -763,7 +763,7 @@ short		p,bestP;
 	AttachShadowToObject(newObj, SHADOW_TYPE_CIRCULAR, 6.0, 6.0, true);
 
 
-	newObj->WhoThrew = (long)car;														// remember who threw it
+	newObj->WhoThrew = (Ptr)car;														// remember who threw it
 
 
 				/**************************/
@@ -920,7 +920,7 @@ ObjNode		*newObj, *car;
 	if (newObj == nil)
 		return;
 
-	newObj->WhoThrew = (long)car;														// remember who threw it
+	newObj->WhoThrew = (Ptr)car;														// remember who threw it
 
 	newObj->Delta.y = 3000.0f;
 
@@ -1249,7 +1249,7 @@ short		targetP;
 	if (newObj == nil)
 		return;
 
-	newObj->WhoThrew = (long)car;														// remember who threw it
+	newObj->WhoThrew = (Ptr)car;														// remember who threw it
 	newObj->BottleRocketTimer = 4.0;
 
 	newObj->Rot.x = -PI/2.7f;
@@ -1573,7 +1573,7 @@ static const OGLPoint3D	nose = {0,0,-100};
 	if (newObj == nil)
 		return;
 
-	newObj->WhoThrew = (long)car;														// remember who threw it
+	newObj->WhoThrew = (Ptr)car;														// remember who threw it
 	newObj->TorpedoTimer = 10.0;
 
 	newObj->Rot = car->Rot;																// match rotation

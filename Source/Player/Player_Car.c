@@ -912,15 +912,13 @@ Boolean		onWater;
 
 	if ((head->Skeleton->AnimNum != PLAYER_ANIM_THROWFORWARD) && (head->Skeleton->AnimNum != PLAYER_ANIM_THROWBACKWARD))		// dont interrupt a throw for fluff anims
 	{
-		Boolean	onWater = pinfo->onWater;
-
 		desiredAnim = PLAYER_ANIM_SIT;								// assume the default
 
 
-		if ((pinfo->isPlaning) && (!onWater))
+		if ((pinfo->isPlaning) && (!pinfo->onWater))
 			desiredAnim = PLAYER_ANIM_FREAKOUT;
 		else
-		if ((pinfo->distToFloor > 250.0f) && (!onWater))			// see if high off ground
+		if ((pinfo->distToFloor > 250.0f) && (!pinfo->onWater))		// see if high off ground
 		{
 			desiredAnim = PLAYER_ANIM_HANGTIME;
 		}
@@ -3039,7 +3037,7 @@ static void UpdateTireSkidMarks(ObjNode *car)
 {
 short	p = car->PlayerNum;
 Boolean	stopSkid = false;
-const static short skidEffect[] = {EFFECT_SKID, EFFECT_SKID2, EFFECT_SKID3};
+static const short skidEffect[] = {EFFECT_SKID, EFFECT_SKID2, EFFECT_SKID3};
 
 	gPlayerInfo[p].skidSoundTimer -= gFramesPerSecondFrac;			// always dec this so we know if we can play skid sound again when the time comes
 

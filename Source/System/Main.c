@@ -113,8 +113,8 @@ PrefsType			gGamePrefs;
 OGLVector3D			gWorldSunDirection = { 1, -.2, 1};		// also serves as lense flare vector
 
 
-OGLColorRGBA		gFillColor1 = { 1.0, 1.0, 1.0 };
-OGLColorRGBA		gFillColor2 = { .5, .5, .5 };
+OGLColorRGBA		gFillColor1 = { 1.0, 1.0, 1.0, 1.0 };
+OGLColorRGBA		gFillColor2 = { .5, .5, .5, 1.0 };
 
 u_long				gGameFrameNum = 0;
 
@@ -817,7 +817,7 @@ static void TallyTokens(void)
 Byte	stage = 0;
 float	stageTimer;
 ObjNode	*newObj;
-Str31	s;
+char	s[32];
 Boolean	done = false;
 
 	if (gFinalPlaceObj)
@@ -895,7 +895,7 @@ Boolean	done = false;
 						gNewObjectDefinition.scale 	    = 1.5;
 						gNewObjectDefinition.slot 		= SPRITE_SLOT;
 
-						NumToString(gTotalTokens, s);
+						snprintf(s, sizeof(s), "%d", gTotalTokens);
 						MakeFontStringObject(s, &gNewObjectDefinition, gGameViewInfoPtr, false);
 
 						if (gTotalTokens == MAX_TOKENS)
