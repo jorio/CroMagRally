@@ -210,26 +210,26 @@ short	i;
 MOSpriteSetupData	spriteData;
 Str255	maps[] =
 {
-	":sprites:maps:DesertMap",
-	":sprites:maps:JungleMap",
-	":sprites:maps:IceMap",
+	":sprites:maps:DesertMap.png",
+	":sprites:maps:JungleMap.png",
+	":sprites:maps:IceMap.png",
 
-	":sprites:maps:CreteMap",
-	":sprites:maps:ChinaMap",
-	":sprites:maps:EgyptMap",
+	":sprites:maps:CreteMap.png",
+	":sprites:maps:ChinaMap.png",
+	":sprites:maps:EgyptMap.png",
 
-	":sprites:maps:EuropeMap",
-	":sprites:maps:ScandinaviaMap",
-	":sprites:maps:AtlantisMap",
+	":sprites:maps:EuropeMap.png",
+	":sprites:maps:ScandinaviaMap.png",
+	":sprites:maps:AtlantisMap.png",
 
-	":sprites:maps:StoneHengeMap",
-	":sprites:maps:AztecMap",
-	":sprites:maps:ColiseumMap",
-	":sprites:maps:MazeMap",
-	":sprites:maps:CelticMap",
-	":sprites:maps:TarPitsMap",
-	":sprites:maps:SpiralMap",
-	":sprites:maps:RampsMap",
+	":sprites:maps:StoneHengeMap.png",
+	":sprites:maps:AztecMap.png",
+	":sprites:maps:ColiseumMap.png",
+	":sprites:maps:MazeMap.png",
+	":sprites:maps:CelticMap.png",
+	":sprites:maps:TarPitsMap.png",
+	":sprites:maps:SpiralMap.png",
+	":sprites:maps:RampsMap.png",
 };
 
 

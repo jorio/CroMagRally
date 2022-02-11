@@ -437,8 +437,10 @@ short		refNum;
 	{
 		long imageLength = 0;
 		Ptr imageData = LoadFileData(inData, &imageLength);
+		GAME_ASSERT(imageData);
 
 		pictMapAddr = stbi_load_from_memory(imageData, imageLength, &width, &height, NULL, 4);
+		GAME_ASSERT(pictMapAddr);
 
 		SafeDisposePtr(imageData);
 		imageData = NULL;
@@ -1825,18 +1827,13 @@ int					numChildren,i;
 
 MOMaterialObject *MO_GetTextureFromFile(FSSpec *spec, OGLSetupOutputType *setupInfo, int destPixelFormat)
 {
-	IMPLEMENT_ME_SOFT(); return NULL;
-#if 0
 MetaObjectPtr	obj;
 MOMaterialData	matData;
 int				width,height,depth,destDepth;
-GWorldPtr 		pGWorld;
-PixMapHandle 	hPixMap;
 Ptr				buffer;
 Ptr 			pictMapAddr;
-u_long 			pictRowBytes,y,x;
+uint32_t		pictRowBytes,y,x;
 Boolean			destHasAlpha;
-Rect			r;
 
 		/*******************************/
 		/* CREATE TEXTURE PIXEL BUFFER */
@@ -1861,24 +1858,28 @@ Rect			r;
 	}
 
 
-		/* LOAD PICTURE INTO GWORLD */
+		/* LOAD PICTURE FILE */
 
-	if (DrawPictureIntoGWorld(spec , &pGWorld, 32))			//--- for now, must be 32bit for OpenGL internal b/c 16bit not supported
-		DoFatalAlert("MO_GetTextureFromFile: DrawPictureIntoGWorld failed!");
+	{
+		long imageLength = 0;
+		Ptr imageData = LoadFileData(spec, &imageLength);
+		GAME_ASSERT(imageData);
+
+		pictMapAddr = stbi_load_from_memory(imageData, imageLength, &width, &height, NULL, 4);
+		GAME_ASSERT(pictMapAddr);
+
+		SafeDisposePtr(imageData);
+		imageData = NULL;
+	}
+
+	depth = 32;
+	pictRowBytes = 4*width;
 
 
 			/* GET GWORLD INFO */
 
-	GetPortBounds(pGWorld, &r);
-
-	width = r.right - r.left;		// get width/height
-	height = r.bottom - r.top;
-
 	if ((!IsPowerOf2(width)) || (!IsPowerOf2(height)))				// make sure its a power of 2
 		DoFatalAlert("MO_GetTextureFromFile: dimensions not power of 2");
-
-	hPixMap = GetGWorldPixMap(pGWorld);								// get gworld's pixmap
-	depth = (*hPixMap)->pixelSize;									// get gworld pixel bitdepth
 
 
 		/*************************************/
@@ -1891,23 +1892,20 @@ Rect			r;
 	if (buffer == nil)
 		DoFatalAlert("MO_GetTextureFromResource: AllocPtr failed!");
 
-	pictMapAddr = GetPixBaseAddr(hPixMap);
-	pictRowBytes = (u_long)(**hPixMap).rowBytes & 0x3fff;
-	pictMapAddr += pictRowBytes * (height-1);						// start @ bottom to flip texture
-
 
 			/* COPY 32-BIT */
 
 	if (depth == 32)
 	{
-		u_long	r,g,b,a;
-		u_long	pixels, *dest, *src;
+		uint32_t	r,g,b,a;
+		uint32_t	pixels, *dest, *src;
 
-		src = (u_long *)pictMapAddr;
-		dest = (u_long *)buffer;
+		src = (uint32_t *)(pictMapAddr + pictRowBytes * (height-1)); // start @ bottom to flip texture
+		dest = (uint32_t *)buffer;
 
 		for (y = 0; y < height; y++)
 		{
+#if 0
 			for (x = 0; x < width; x++)
 			{
 				pixels = src[x];
@@ -1926,6 +1924,9 @@ Rect			r;
 
 				dest[x] = (r << 24) | (g << 16) | (b << 8) | a;
 			}
+#else
+			BlockMove(src, dest, width*4);
+#endif
 			dest += width;
 			src -= pictRowBytes/4;
 		}
@@ -1939,8 +1940,8 @@ Rect			r;
 		//-------- TODO
 	}
 
-	DisposeGWorld (pGWorld);
-
+	stbi_image_free(pictMapAddr);
+	pictMapAddr = nil;
 
 			/* CREATE NEW TEXTURE OBJECT */
 
@@ -1974,7 +1975,6 @@ Rect			r;
 	SafeDisposePtr(buffer);									// dispose of our copy of the buffer
 
 	return(obj);
-#endif
 }
 
 

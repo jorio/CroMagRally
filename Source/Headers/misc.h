@@ -12,9 +12,6 @@
 void	DoAlert(const char* format, ...);
 void	DoFatalAlert(const char* format, ...);
 extern void	Wait(long);
-extern unsigned char	*NumToHex(unsigned short);
-extern unsigned char	*NumToHex2(unsigned long, short);
-extern unsigned char	*NumToDec(unsigned long);
 extern	void CleanQuit(void);
 extern	void SetMyRandomSeed(unsigned long seed);
 extern	unsigned long MyRandomLong(void);
@@ -46,7 +43,7 @@ void CheckGameRegistration(void);
 
 
 
-#define ShowSystemErr(err) DoAlert("Fatal system error: %d", err)
+#define ShowSystemErr(err) DoFatalAlert("Fatal system error: %d", err)
 #define ShowSystemErr_NonFatal(err) DoFatalAlert("System error: %d", err)
 
 #define IMPLEMENT_ME() DoFatalAlert("IMPLEMENT ME! %s:%d", __func__, __LINE__)
