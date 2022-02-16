@@ -414,14 +414,14 @@ short	max;
 
 		/* SEE IF CHANGE PART SELECTION */
 
-	if (GetNewKeyState_Real(kKey_Forward_P1) && (gMainMenuSelection > 0))
+	if (GetNewNeedStateAnyP(kNeed_UIUp) && (gMainMenuSelection > 0))
 	{
 		gMainMenuSelection--;
 		PlayEffect_Parms(EFFECT_SELECTCLICK, FULL_CHANNEL_VOLUME, FULL_CHANNEL_VOLUME, NORMAL_CHANNEL_RATE + (MyRandomLong() & 0xff));
 		gTimeUntilDemo = DEMO_DELAY;
 	}
 	else
-	if (GetNewKeyState_Real(kKey_Backward_P1))
+	if (GetNewNeedStateAnyP(kNeed_UIDown))
 	{
 		if (gMainMenuSelection < (max-1))
 		{
@@ -473,7 +473,7 @@ short	max;
 			/* SEE IF MAKE A SELECTION */
 			/***************************/
 
-	if (GetNewKeyState_Real(KEY_SPACE) || GetNewKeyState_Real(KEY_RETURN))
+	if (GetNewNeedStateAnyP(kNeed_UIConfirm))
 	{
 		gTimeUntilDemo = DEMO_DELAY;
 
@@ -666,7 +666,7 @@ short	max;
 			// If cancel on any menu, always go back to previous menu
 			//
 	else
-	if (GetNewKeyState_Real(KEY_ESC))
+	if (GetNewNeedStateAnyP(kNeed_UIBack))
 	{
 		gTimeUntilDemo = DEMO_DELAY;
 

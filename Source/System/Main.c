@@ -9,6 +9,7 @@
 /*    EXTERNALS             */
 /****************************/
 
+#include <SDL.h>
 #include "globals.h"
 #include "mobjtypes.h"
 #include "objects.h"
@@ -60,8 +61,11 @@ extern	SavePlayerType	gPlayerSaveData;
 extern	PrefsType	gGamePrefs;
 extern	Boolean		gAutoPilot;
 extern	Byte		gActiveSplitScreenMode;
-extern	const uint16_t	gUserKeySettings_Defaults[];
+//extern	const uint16_t	gUserKeySettings_Defaults[];
 extern  FSSpec		gDataSpec;
+
+extern const KeyBinding kDefaultKeyBindings_P1[NUM_CONTROL_NEEDS];
+extern const KeyBinding kDefaultKeyBindings_P2[NUM_CONTROL_NEEDS];
 
 
 /****************************/
@@ -96,7 +100,7 @@ static void TallyTokens(void);
 
 float	gDemoVersionTimer = 0;
 
-Boolean				gOSX = false;
+Boolean				gOSX = true;
 
 
 Byte				gDebugMode = 0;				// 0 == none, 1 = fps, 2 = all
@@ -217,7 +221,8 @@ uint32_t		seconds, seconds2;
 void InitDefaultPrefs(void)
 {
 long 		keyboardScript, languageCode;
-int		i;
+
+	memset(&gGamePrefs, 0, sizeof(gGamePrefs));
 
 		/* DETERMINE WHAT LANGUAGE IS ON THIS MACHINE */
 
@@ -264,17 +269,13 @@ int		i;
 	gGamePrefs.screenCrop 			= 0;
 	gGamePrefs.tagDuration 			= 3;
 
-	for (i = 0; i < NUM_CONTROL_NEEDS; i++)			// set OS X keyboard defaults
-		gGamePrefs.keySettings[i] = gUserKeySettings_Defaults[i];
-
-	gGamePrefs.reserved[0] 			= 0;
-	gGamePrefs.reserved[1] 			= 0;
-	gGamePrefs.reserved[2] 			= 0;
-	gGamePrefs.reserved[3] 			= 0;
-	gGamePrefs.reserved[4] 			= 0;
-	gGamePrefs.reserved[5] 			= 0;
-	gGamePrefs.reserved[6] 			= 0;
-	gGamePrefs.reserved[7] 			= 0;
+//	for (i = 0; i < NUM_CONTROL_NEEDS; i++)			// set OS X keyboard defaults
+//		gGamePrefs.keySettings[i][0] = gUserKeySettings_Defaults[i];
+	for (int i = 0; i < NUM_CONTROL_NEEDS; i++)
+	{
+		gGamePrefs.keySettings[i][0] = kDefaultKeyBindings_P1[i];
+		gGamePrefs.keySettings[i][1] = kDefaultKeyBindings_P2[i];
+	}
 }
 
 
@@ -1081,9 +1082,9 @@ static void PlayArea(void)
 
 			/* CHECK CHEATS */
 
-		if (GetKeyState_Real(KEY_B))
+		if (GetKeyState_Real(SDL_SCANCODE_B))
 		{
-			if (GetKeyState_Real(KEY_R) && GetKeyState_Real(KEY_I))		// win race cheat
+			if (GetKeyState_Real(SDL_SCANCODE_R) && GetKeyState_Real(SDL_SCANCODE_I))		// win race cheat
 			{
 				if (!gPlayerInfo[0].raceComplete)
 				{
@@ -1094,7 +1095,7 @@ static void PlayArea(void)
 				}
 			}
 
-			if (GetNewKeyState_Real(KEY_F13))		// hide/show infobar
+			if (GetNewKeyState_Real(SDL_SCANCODE_F13))		// hide/show infobar
 				gHideInfobar = !gHideInfobar;
 
 
@@ -1104,7 +1105,7 @@ static void PlayArea(void)
 
 		if (!gIsSelfRunningDemo)
 		{
-			if (GetNewKeyState_Real(kKey_Pause))
+			if (GetNewNeedStateAnyP(kNeed_UIPause))
 				DoPaused();
 		}
 
@@ -1388,7 +1389,7 @@ short				numPanes;
 
 	InitCameras();
 
-	HideCursor();								// do this again to be sure!
+//	HideCursor();								// do this again to be sure!
 
 	GammaFadeOut();
  }
@@ -1626,7 +1627,7 @@ Boolean			userAbortedBeforeGameStarted;
 
 	GetDateTime ((unsigned long *)(&someLong));		// init random seed
 	SetMyRandomSeed(someLong);
-	HideCursor();
+//	HideCursor();
 
 			/* SEE IF DEMO VERSION EXPIRED */
 

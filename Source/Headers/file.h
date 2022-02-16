@@ -2,7 +2,10 @@
 // file.h
 //
 
+#pragma once
+
 #include "input.h"
+#include "main.h"
 
 		/***********************/
 		/* RESOURCE STURCTURES */
@@ -48,7 +51,6 @@ typedef struct
 
 		/* PREFERENCES */
 
-#define	MAX_HTTP_NOTES	1000
 
 typedef struct
 {
@@ -63,9 +65,10 @@ typedef struct
 	Byte	tagDuration;
 	double	videoHz;
 	Byte	monitorNum;
-	uint16_t	keySettings[NUM_CONTROL_NEEDS];
-//	DateTimeRec	lastVersCheckDate;
-//	Byte	didThisNote[MAX_HTTP_NOTES];
+
+	KeyBinding keySettings[NUM_CONTROL_NEEDS][MAX_LOCAL_PLAYERS];
+	Boolean	gamepadRumble;
+
 	Byte	reserved[8];
 }PrefsType;
 

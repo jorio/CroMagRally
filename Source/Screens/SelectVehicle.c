@@ -560,7 +560,7 @@ short	p;
 
 	if (allowAborting)
 	{
-		if (GetNewKeyState_Real(kKey_Pause))
+		if (GetNewNeedState(kNeed_UIBack, p))
 		{
 			gSelectedVehicleIndex = -1;
 			return(true);
@@ -569,7 +569,7 @@ short	p;
 
 		/* SEE IF SELECT THIS ONE */
 
-	if (GetNewKeyState_Real(KEY_SPACE) || GetNewKeyState(kKey_MakeSelection_P2) || GetNewKeyState_Real(KEY_RETURN))
+	if (GetNewNeedState(kNeed_UIConfirm, p))
 	{
 		PlayEffect_Parms(EFFECT_SELECTCLICK, FULL_CHANNEL_VOLUME, FULL_CHANNEL_VOLUME, NORMAL_CHANNEL_RATE * 2/3);
 		return(true);
@@ -578,7 +578,7 @@ short	p;
 
 		/* SEE IF CHANGE SELECTION */
 
-	if (GetNewKeyState_Real(KEY_LEFT) && (gSelectedVehicleIndex > 0))
+	if (GetNewNeedState(kNeed_UILeft, p) && (gSelectedVehicleIndex > 0))
 	{
 		PlayEffect(EFFECT_SELECTCLICK);
 		gSelectedVehicleIndex--;
@@ -595,7 +595,7 @@ short	p;
 		}
 	}
 	else
-	if (GetNewKeyState_Real(KEY_RIGHT) && (gSelectedVehicleIndex < (gNumVehiclesToChooseFrom-1)))
+	if (GetNewNeedState(kNeed_UIRight, p) && (gSelectedVehicleIndex < (gNumVehiclesToChooseFrom-1)))
 	{
 		PlayEffect(EFFECT_SELECTCLICK);
 		gSelectedVehicleIndex++;
@@ -626,12 +626,3 @@ static void MoveCarModel(ObjNode *theNode)
 	theNode->Rot.y += gFramesPerSecondFrac * 1.5f;
 	UpdateObjectTransforms(theNode);
 }
-
-
-
-
-
-
-
-
-

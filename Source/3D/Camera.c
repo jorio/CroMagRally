@@ -316,10 +316,11 @@ Boolean	changeMode;
 	{
 		for (i = 0; i < gNumLocalPlayers; i++)
 		{
-			if (i == 0)
-				changeMode = GetNewKeyState(kKey_CameraMode_P1);
-			else
-				changeMode = GetNewKeyState(kKey_CameraMode_P2);
+			changeMode = GetNewNeedState(kNeed_CameraMode, i);
+			// if (i == 0)
+			// 	changeMode = GetNewKeyState(kKey_CameraMode_P1);
+			// else
+			// 	changeMode = GetNewKeyState(kKey_CameraMode_P2);
 
 			if (changeMode)
 			{

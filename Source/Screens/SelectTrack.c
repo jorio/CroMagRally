@@ -421,7 +421,7 @@ short				highestUnlocked;
 
 		/* SEE IF ABORT */
 
-	if (GetNewKeyState_Real(kKey_Pause))
+	if (GetNewNeedStateAnyP(kNeed_UIBack))
 	{
 		gSelectedTrackIndex = -1;
 		return(true);
@@ -429,7 +429,7 @@ short				highestUnlocked;
 
 		/* SEE IF SELECT THIS ONE */
 
-	if (GetNewKeyState_Real(KEY_SPACE) || GetNewKeyState_Real(KEY_RETURN))
+	if (GetNewNeedStateAnyP(kNeed_UIConfirm))
 	{
 		if (gSelectedTrackIndex > highestUnlocked)
 		{
@@ -445,7 +445,7 @@ short				highestUnlocked;
 
 		/* SEE IF CHANGE SELECTION */
 
-	if (GetNewKeyState_Real(KEY_LEFT) && (gSelectedTrackIndex > 0))
+	if (GetNewNeedStateAnyP(kNeed_UILeft) && (gSelectedTrackIndex > 0))
 	{
 		PlayEffect(EFFECT_SELECTCLICK);
 		gSelectedTrackIndex--;
@@ -453,7 +453,7 @@ short				highestUnlocked;
 		MakeTrackName();
 	}
 	else
-	if (GetNewKeyState_Real(KEY_RIGHT) && (gSelectedTrackIndex < (gNumTracksInSelection-1)))
+	if (GetNewNeedStateAnyP(kNeed_UIRight) && (gSelectedTrackIndex < (gNumTracksInSelection-1)))
 	{
 		PlayEffect(EFFECT_SELECTCLICK);
 		gSelectedTrackIndex++;
@@ -465,19 +465,3 @@ short				highestUnlocked;
 
 	return(false);
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

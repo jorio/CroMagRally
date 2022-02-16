@@ -9,6 +9,7 @@
 /* EXTERNALS   */
 /***************/
 
+#include <SDL.h>
 #include <stdlib.h>
 #include "globals.h"
 #include "misc.h"
@@ -35,7 +36,7 @@ static void MyGetKeys(KeyMap *keyMap);
 static void GetLocalKeyStateForPlayer(short playerNum, Boolean secondaryControls);
 
 static void DoMyKeyboardEdit(void);
-static void SetKeyControl(short item, uint16_t keyCode);
+static void SetKeyControl(short item, unsigned short keyCode);
 static void SetMyKeyEditDefaults(void);
 static short GetFirstRealKeyPressed(void);
 static void KeyCodeToChar(UInt16 code, Str32 s);
@@ -52,13 +53,10 @@ static void KeyCodeToChar(UInt16 code, Str32 s);
 /**********************/
 
 
-KeyMap gKeyMap,gNewKeys,gOldKeys,gKeyMap_Real,gNewKeys_Real,gOldKeys_Real;
+static KeyMap gKeyMap,gNewKeys,gOldKeys,gKeyMap_Real,gNewKeys_Real,gOldKeys_Real;
 
-KeyMap gKeyMapP,gNewKeysP,gOldKeysP;			// for Push/Pop functions below
+static KeyMap gKeyMapP,gNewKeysP,gOldKeysP;			// for Push/Pop functions below
 
-
-Boolean	gISpActive 				= false;
-Boolean	gISPInitialized			= false;
 
 float	gAnalogSteeringTimer[MAX_PLAYERS] = {0,0,0,0,0,0};
 
@@ -67,216 +65,7 @@ float	gAnalogSteeringTimer[MAX_PLAYERS] = {0,0,0,0,0,0};
 
 
 #if 0
-
-static ISpNeed	gControlNeeds[NUM_CONTROL_NEEDS] =
-{
-/*----------------- PLAYER 1 -----------------------*/
-
-	{										// 0
-		"Player 1: Steering Wheel",
-		128,
-		1,
-		0,
-		kISpElementKind_Axis,
-		kISpElementLabel_Axis_XAxis,
-		0,
-		0,
-		0,
-		0,
-	},
-
-
-	{										// 1
-		"Player 1: Forward",
-		131,
-		1,
-		0,
-		kISpElementKind_Button,
-		kISpElementLabel_Btn_MoveForward,
-		0,
-		0,
-		0,
-		0
-	},
-
-	{										// 2
-		"Player 1: Reverse",
-		136,
-		1,
-		0,
-		kISpElementKind_Button,
-		kISpElementLabel_Btn_MoveBackward,
-		0,
-		0,
-		0,
-		0
-	},
-
-	{
-		"Player 1: Brakes",				// 3
-		138,
-		1,
-		0,
-		kISpElementKind_Button,
-		kISpElementLabel_Btn_Select,
-		0,
-		0,
-		0,
-		0
-	},
-
-
-	{
-		"Player 1: Weapon Forward",			// 4
-		140,
-		1,
-		0,
-		kISpElementKind_Button,
-		kISpElementLabel_Btn_Fire,
-		0,
-		0,
-		0,
-		0
-	},
-
-	{
-		"Player 1: Weapon Backward",		// 5
-		141,
-		1,
-		0,
-		kISpElementKind_Button,
-		kISpElementLabel_Btn_SecondaryFire,
-		0,
-		0,
-		0,
-		0
-	},
-
-
-
-	{
-		"Player 1:  Camera Mode",			// 6
-		144,
-		1,
-		0,
-		kISpElementKind_Button,
-		kISpElementLabel_Btn_LookDown,
-		0,
-		0,
-		0,
-		0
-	},
-
-
-/*----------------- PLAYER 2 -----------------------*/
-
-
-	{										// 7
-		"Player 2: Steering Wheel",
-		128,
-		2,
-		0,
-		kISpElementKind_Axis,
-		kISpElementLabel_Axis_XAxis,
-		0,
-		0,
-		0,
-		0,
-	},
-
-
-	{										// 8
-		"Player 2: Forward",
-		131,
-		2,
-		0,
-		kISpElementKind_Button,
-		kISpElementLabel_Btn_MoveForward,
-		0,
-		0,
-		0,
-		0
-	},
-
-	{										// 9
-		"Player 2: Reverse",
-		136,
-		2,
-		0,
-		kISpElementKind_Button,
-		kISpElementLabel_Btn_MoveBackward,
-		0,
-		0,
-		0,
-		0
-	},
-
-	{
-		"Player 2: Brakes",				// 10
-		138,
-		2,
-		0,
-		kISpElementKind_Button,
-		kISpElementLabel_Btn_Select,
-		0,
-		0,
-		0,
-		0
-	},
-
-	{
-		"Player 2: Weapon Forward",		// 11
-		140,
-		2,
-		0,
-		kISpElementKind_Button,
-		kISpElementLabel_Btn_Fire,
-		0,
-		0,
-		0,
-		0
-	},
-
-	{										// 12
-		"Player 2: Weapon Backward",
-		141,
-		2,
-		0,
-		kISpElementKind_Button,
-		kISpElementLabel_Btn_SecondaryFire,
-		0,
-		0,
-		0,
-		0
-	},
-
-
-
-	{										// 13
-		"Player 2:  Camera Mode",
-		144,
-		2,
-		0,
-		kISpElementKind_Button,
-		kISpElementLabel_Btn_LookDown,
-		0,
-		0,
-		0,
-		0
-	},
-
-
-
-
-};
-
-
-ISpElementReference	gVirtualElements[NUM_CONTROL_NEEDS];
-
-#endif
-
-
-static const uint16_t	gNeedToKey[NUM_CONTROL_NEEDS] =				// table to convert need # into key equate value
+static const u_short	gNeedToKey[NUM_CONTROL_NEEDS] =				// table to convert need # into key equate value
 {
 	(kKey_Left_P1<<8) | kKey_Right_P1,	// steer p1
 	kKey_Forward_P1,
@@ -295,9 +84,9 @@ static const uint16_t	gNeedToKey[NUM_CONTROL_NEEDS] =				// table to convert nee
 	kKey_CameraMode_P2
 };
 
-static uint16_t	gUserKeySettings[NUM_CONTROL_NEEDS];
+static u_short	gUserKeySettings[NUM_CONTROL_NEEDS];
 
-const uint16_t	gUserKeySettings_Defaults[NUM_CONTROL_NEEDS] =
+const u_short	gUserKeySettings_Defaults[NUM_CONTROL_NEEDS] =
 {
 	(kKey_Left_P1<<8) | kKey_Right_P1,	// steer p1
 	kKey_Forward_P1,
@@ -330,6 +119,7 @@ static const int gControlBitToKey[NUM_CONTROL_BITS][2] = {						// remember to u
 														kKey_Backward_P1,		kKey_Backward_P2
 													};
 
+#endif
 
 
 
@@ -337,8 +127,8 @@ static const int gControlBitToKey[NUM_CONTROL_BITS][2] = {						// remember to u
 
 void InitInput(void)
 {
+#if 0
 OSErr				iErr;
-//ISpDeviceReference	dev[10];
 UInt32				count = 0;
 int			i;
 
@@ -348,54 +138,10 @@ int			i;
 
 				/* OS X */
 
-	if (gOSX)
-	{
 		for (i = 0; i < NUM_CONTROL_NEEDS; i++)			// copy key settings from prefs
 			gUserKeySettings[i] = gGamePrefs.keySettings[i];
-
-	}
-				/* OS 9 */
-	else
-	{
-#if 0
-		ISpStartup();
-		gISPInitialized = true;
-
-					/* CREATE NEW NEEDS */
-
-		iErr = ISpElement_NewVirtualFromNeeds(NUM_CONTROL_NEEDS, gControlNeeds, gVirtualElements, 0);
-		if (iErr)
-		{
-			DoAlert("InitInput: ISpElement_NewVirtualFromNeeds failed!");
-			ShowSystemErr(iErr);
-		}
-
-		iErr = ISpInit(NUM_CONTROL_NEEDS, gControlNeeds, gVirtualElements, 'CavM','Inp8', 0, 1000, 0);
-		if (iErr)
-		{
-			DoAlert("InitInput: ISpInit failed!");
-			ShowSystemErr(iErr);
-		}
-
-
-				/* ACTIVATE ALL DEVICES */
-
-		if (ISpDevices_Extract(10,&count,dev) != noErr)
-			DoFatalAlert("InitInput: ISpDevices_Extract failed!");
-
-		if (ISpDevices_Activate(count, dev) != noErr)
-			DoFatalAlert("InitInput: ISpDevices_Activate failed!");
-
-		gISpActive = true;
-
-				/* DEACTIVATE JUST THE MOUSE SINCE WE DONT NEED THAT */
-
-		ISpDevices_ExtractByClass(kISpDeviceClass_Mouse,10,&count,dev);
-		ISpDevices_Deactivate(count, dev);
 #endif
-	}
 }
-
 
 /**************** READ KEYBOARD *************/
 //
@@ -404,6 +150,9 @@ int			i;
 
 void ReadKeyboard(void)
 {
+	DoSDLMaintenance();
+
+
 			/* READ REAL KEYBOARD & INPUT SPROCKET KEYMAP */
 			//
 			// Note:  	This will convert ISp data into a KeyMap, so the rest
@@ -422,14 +171,13 @@ void ReadKeyboard(void)
 
 
 
+#if 0
 				/* SEE IF QUIT GAME */
 
 	if (!gQuitting)
 	{
-#if 0
 		if (GetKeyState_Real(KEY_Q) && GetKeyState_Real(KEY_APPLE))			// see if real key quit
 			CleanQuit();
-#endif
 	}
 
 
@@ -439,7 +187,6 @@ void ReadKeyboard(void)
 	if (GetNewKeyState_Real(KEY_F12))
 	{
 		IMPLEMENT_ME_SOFT();
-#if 0
 		Boolean o = gISpActive;
 		TurnOffISp();
 
@@ -457,7 +204,6 @@ void ReadKeyboard(void)
 
 		if (gAGLContext)
 			aglSetDrawable(gAGLContext, gAGLWin);		// reenable gl
-#endif
 
 		CalcFramesPerSecond();
 		CalcFramesPerSecond();
@@ -470,9 +216,11 @@ void ReadKeyboard(void)
 	gOldKeys[1] = gKeyMap[1];
 	gOldKeys[2] = gKeyMap[2];
 	gOldKeys[3] = gKeyMap[3];
+#endif
 }
 
 
+#if 0
 /**************** READ KEYBOARD_REAL *************/
 //
 // This just does a simple read of the REAL keyboard (regardless of Input Sprockets)
@@ -497,6 +245,7 @@ void ReadKeyboard_Real(void)
 	gOldKeys_Real[2] = gKeyMap_Real[2];
 	gOldKeys_Real[3] = gKeyMap_Real[3];
 }
+#endif
 
 
 /****************** GET KEY STATE: REAL ***********/
@@ -561,6 +310,7 @@ unsigned char *keyMap;
 
 static void MyGetKeys(KeyMap *keyMap)
 {
+#if 0
 short	i,key,j,q,p;
 UInt32	keyState,axisState;
 unsigned char *keyBytes;
@@ -574,7 +324,7 @@ unsigned char *keyBytes;
 				/* DO HACK FOR OS X */
 				/********************/
 
-	if (!gISpActive)
+	//if (!gISpActive)
 	{
 		for (i = 0; i < NUM_CONTROL_NEEDS; i++)
 		{
@@ -616,10 +366,11 @@ unsigned char *keyBytes;
 			}
 		}
 	}
+#endif
+#if 0
 	else
 	{
 
-#if 0
 			/***********************************/
 			/* POLL NEEDS FROM INPUT SPROCKETS */
 			/***********************************/
@@ -687,8 +438,8 @@ unsigned char *keyBytes;
 			}
 
 		}
-#endif
 	}
+#endif
 }
 
 
@@ -746,6 +497,7 @@ void DoKeyConfigDialog(void)
 }
 
 
+#if 0
 /***************** ARE ANY NEW KEYS PRESSED ****************/
 
 Boolean AreAnyNewKeysPressed(void)
@@ -755,7 +507,7 @@ Boolean AreAnyNewKeysPressed(void)
 	else
 		return(false);
 }
-
+#endif
 
 #pragma mark -
 
@@ -826,8 +578,12 @@ short	i;
 
 	for (i = 0; i < NUM_CONTROL_BITS; i++)
 	{
+#if 0
 		if (GetKeyState(gControlBitToKey[i][secondaryControls]))	// see if key is down
 			gPlayerInfo[playerNum].controlBits |= mask;				// set bit in bitfield
+#else
+		puts("TODO");
+#endif
 
 		mask <<= 1;													// shift bit to next position
 	}
@@ -901,6 +657,7 @@ int	i;
 #pragma mark -
 
 
+#if 0
 /********************* SET MY KEY EDIT DEFAULTS ****************************/
 
 static void SetMyKeyEditDefaults(void)
@@ -937,7 +694,7 @@ short	i;
 
 /*********************** SET KEY CONTROL ********************************/
 
-static void SetKeyControl(short item, uint16_t keyCode)
+static void SetKeyControl(short item, u_short keyCode)
 {
 	switch(item)
 	{
@@ -978,3 +735,5 @@ static void SetKeyControl(short item, uint16_t keyCode)
 				break;
 	}
 }
+
+#endif

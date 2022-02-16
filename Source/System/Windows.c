@@ -24,7 +24,7 @@ extern	ObjNode	*gCurrentNode,*gFirstNodePtr;
 extern	float	gFramesPerSecondFrac;
 extern	short	gPrefsFolderVRefNum;
 extern	long	gPrefsFolderDirID;
-extern	Boolean				gOSX, gISpActive;
+extern	Boolean				gOSX;
 extern	PrefsType			gGamePrefs;
 extern	Boolean			gSongPlayingFlag,gMuteMusicFlag;
 
@@ -85,8 +85,6 @@ float		gGammaFadePercent;
 int				gGameWindowWidth, gGameWindowHeight;
 
 CGrafPtr				gDisplayContextGrafPtr = nil;
-
-Boolean				gHasFixedDSpForX = false;
 
 short			g2DStackDepth = 0;
 

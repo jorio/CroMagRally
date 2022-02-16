@@ -709,6 +709,8 @@ MOSpriteData	*spriteData = &spriteObj->objectData;
 
 
 
+#if 0
+
 #pragma mark -
 
 /*************** SET PICTURE OBJECT COORDS TO MOUSE *******************/
@@ -731,6 +733,8 @@ int				x,y,w,h;
 	picData->drawCoord.y = 1.0f - (float)pt.v / (float)h * 2.0f;
 
 }
+
+#endif
 
 
 

@@ -199,13 +199,13 @@ short	i;
 
 		/* SEE IF CHANGE SELECTION */
 
-	if (GetNewKeyState_Real(KEY_UP) && (gFailedMenuSelection > 0))
+	if (GetNewNeedStateAnyP(kNeed_UIUp) && (gFailedMenuSelection > 0))
 	{
 		PlayEffect(EFFECT_SELECTCLICK);
 		gFailedMenuSelection--;
 	}
 	else
-	if (GetNewKeyState_Real(KEY_DOWN) && (gFailedMenuSelection < 1))
+	if (GetNewNeedStateAnyP(kNeed_UIDown) && (gFailedMenuSelection < 1))
 	{
 		PlayEffect(EFFECT_SELECTCLICK);
 		gFailedMenuSelection++;
@@ -234,7 +234,7 @@ short	i;
 			/* SEE IF MAKE A SELECTION */
 			/***************************/
 
-	if (GetNewKeyState_Real(KEY_SPACE) || GetNewKeyState_Real(KEY_RETURN) || GetNewKeyState(kKey_MakeSelection_P2))
+	if (GetNewNeedStateAnyP(kNeed_UIConfirm))
 	{
 		switch(gFailedMenuSelection)
 		{
@@ -255,19 +255,4 @@ short	i;
 
 	return(false);
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

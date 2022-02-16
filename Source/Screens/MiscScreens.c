@@ -171,7 +171,7 @@ OGLSetupOutputType	*pictureViewInfoPtr = nil;
 
 					/* MAIN LOOP */
 
-		while(!Button())
+		while (1) //!Button())
 		{
 			if (gOSX)						// hack to fix OS 10.1 audio bug
 				MyFlushEvents();

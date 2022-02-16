@@ -28,8 +28,7 @@
 
 extern	unsigned long gOriginalSystemVolume;
 extern	short		gMainAppRezFile;
-extern	Boolean		gISPInitialized,gOSX;
-extern	Boolean		gISpActive,gHasFixedDSpForX;
+extern	Boolean		gOSX;
 extern	/*DSpContextReference*/ void* 	gDisplayContext;
 extern	OGLSetupOutputType		*gGameViewInfoPtr;
 extern	int			gPolysThisFrame;

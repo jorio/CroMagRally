@@ -1115,7 +1115,7 @@ void DoSoundMaintenance(void)
 {
 				/* SEE IF TOGGLE MUSIC */
 
-	if (GetNewKeyState_Real(kKey_ToggleMusic))
+	if (GetNewNeedStateAnyP(kNeed_ToggleMusic))
 	{
 		ToggleMusic();
 	}
@@ -1166,6 +1166,7 @@ void DoSoundMaintenance(void)
 #endif
 
 
+#if 0
 		/* WHILE WE'RE HERE, SEE IF SCALE SCREEN */
 
 	if (GetNewKeyState_Real(KEY_F10))
@@ -1195,6 +1196,7 @@ void DoSoundMaintenance(void)
 			DoGameSettingsDialog();
 		}
 	}
+#endif
 
 
 		/* CHECK FOR ANNOUNCER */

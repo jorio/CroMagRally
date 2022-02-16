@@ -219,13 +219,13 @@ Boolean	continueGame = false;
 
 		/* SEE IF CHANGE SELECTION */
 
-	if ((GetNewKeyState_Real(KEY_UP) || GetNewKeyState(kKey_Forward_P2)) && (gPausedMenuSelection > 0))
+	if (GetNewNeedStateAnyP(kNeed_UIUp) && (gPausedMenuSelection > 0))
 	{
 		gPausedMenuSelection--;
 		PlayEffect(EFFECT_SELECTCLICK);
 	}
 	else
-	if ((GetNewKeyState_Real(KEY_DOWN) || GetNewKeyState_Real(kKey_Backward_P2)) && (gPausedMenuSelection < 2))
+	if (GetNewNeedStateAnyP(kNeed_UIDown) && (gPausedMenuSelection < 2))
 	{
 		gPausedMenuSelection++;
 		PlayEffect(EFFECT_SELECTCLICK);
@@ -254,7 +254,7 @@ Boolean	continueGame = false;
 			/* SEE IF MAKE A SELECTION */
 			/***************************/
 
-	if (GetNewKeyState_Real(KEY_RETURN) || GetNewKeyState_Real(KEY_SPACE) || GetNewKeyState(kKey_MakeSelection_P2))
+	if (GetNewNeedStateAnyP(kNeed_UIConfirm))
 	{
 		PlayEffect(EFFECT_SELECTCLICK);
 		switch(gPausedMenuSelection)
@@ -281,7 +281,7 @@ Boolean	continueGame = false;
 			/*****************************/
 
 	else
-	if (GetNewKeyState_Real(KEY_ESC))
+	if (GetNewNeedStateAnyP(kNeed_UIBack))
 	{
 		continueGame = true;
 	}

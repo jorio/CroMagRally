@@ -329,7 +329,7 @@ short	p;
 
 	if (allowAborting)
 	{
-		if (GetNewKeyState_Real(kKey_Pause))
+		if (GetNewNeedState(kNeed_UIBack, p))
 		{
 			gSelectedCharacterIndex = -1;
 			return(true);
@@ -338,7 +338,7 @@ short	p;
 
 		/* SEE IF SELECT THIS ONE */
 
-	if (GetNewKeyState_Real(KEY_SPACE) || GetNewKeyState(kKey_MakeSelection_P2) || GetNewKeyState_Real(KEY_RETURN))
+	if (GetNewNeedState(kNeed_UIConfirm, p))
 	{
 		PlayEffect_Parms(EFFECT_SELECTCLICK, FULL_CHANNEL_VOLUME, FULL_CHANNEL_VOLUME, NORMAL_CHANNEL_RATE * 2/3);
 		return(true);
@@ -347,7 +347,7 @@ short	p;
 
 		/* SEE IF CHANGE SELECTION */
 
-	if (GetNewKeyState_Real(KEY_LEFT) && (gSelectedCharacterIndex > 0))
+	if (GetNewNeedState(kNeed_UILeft, p) && (gSelectedCharacterIndex > 0))
 	{
 		PlayEffect(EFFECT_SELECTCLICK);
 		gSelectedCharacterIndex--;
@@ -356,7 +356,7 @@ short	p;
 
 	}
 	else
-	if (GetNewKeyState_Real(KEY_RIGHT) && (gSelectedCharacterIndex < 1))
+	if (GetNewNeedState(kNeed_UIRight, p) && (gSelectedCharacterIndex < 1))
 	{
 		PlayEffect(EFFECT_SELECTCLICK);
 		gSelectedCharacterIndex++;
@@ -367,14 +367,5 @@ short	p;
 
 	return(false);
 }
-
-
-
-
-
-
-
-
-
 
 
