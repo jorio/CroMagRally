@@ -83,8 +83,7 @@ enum
 //=================================================
 
 
-extern	void main(void);
-extern	void ToolBoxInit(void);
+void ToolBoxInit(void);
 void MoveEverything(void);
 void InitDefaultPrefs(void);
 
