@@ -95,6 +95,7 @@ static  long				gSndOffsets[MAX_SOUND_BANKS][MAX_EFFECTS];
 
 static	SndChannelPtr		gSndChannel[MAX_CHANNELS];
 static	ChannelInfoType		gChannelInfo[MAX_CHANNELS];
+static	SndChannelPtr		gMusicChannel;
 
 static short				gMaxChannels = 0;
 
@@ -106,7 +107,6 @@ Boolean						gSongPlayingFlag = false;
 Boolean						gLoopSongFlag = true;
 
 
-static short				gMusicFileRefNum = 0x0ded;
 Boolean				gMuteMusicFlag = false;
 static short				gCurrentSong = -1;
 
@@ -236,6 +236,10 @@ FSSpec			spec;
 		if (iErr)												// if err, stop allocating channels
 			break;
 	}
+
+
+	iErr = SndNewChannel(&gMusicChannel, sampledSynth, 0, nil);
+	GAME_ASSERT_MESSAGE(!iErr, "Couldn't allocate music channel");
 
 
 		/* LOAD DEFAULT SOUNDS */
@@ -482,7 +486,7 @@ OSErr 	iErr;
 Str255	errStr = "PlaySong: Couldnt Open Music AIFF File.";
 static	SndCommand 		mySndCmd;
 FSSpec	spec;
-short	myRefNum;
+short	musicFileRefNum;
 float	volumeTweak;
 GrafPtr	oldPort;
 
@@ -501,74 +505,35 @@ GrafPtr	oldPort;
 			/* OPEN APPROPRIATE AIFF FILE */
 			/******************************/
 
-	switch(songNum)
+	static const struct
 	{
-		case	SONG_WIN:
-				iErr = FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":audio:WinSong.aiff", &spec);
-				volumeTweak = 1.9;
-				break;
-
-		case	SONG_DESERT:
-				iErr = FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":audio:DesertSong.aiff", &spec);
-				volumeTweak = 1.0;
-				break;
-
-		case	SONG_JUNGLE:
-				iErr = FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":audio:JungleSong.aiff", &spec);
-				volumeTweak = 1.5;
-				break;
-
-		case	SONG_THEME:
-				iErr = FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":audio:ThemeSong.aiff", &spec);
-				volumeTweak = 1.5;
-				break;
-
-		case	SONG_ATLANTIS:
-				iErr = FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":audio:AtlantisSong.aiff", &spec);
-				volumeTweak = 1.5;
-				break;
-
-		case	SONG_CHINA:
-				iErr = FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":audio:ChinaSong.aiff", &spec);
-				volumeTweak = 1.5;
-				break;
-
-		case	SONG_CRETE:
-				iErr = FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":audio:CreteSong.aiff", &spec);
-				volumeTweak = 1.5;
-				break;
-
-		case	SONG_EUROPE:
-				iErr = FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":audio:EuroSong.aiff", &spec);
-				volumeTweak = 1.5;
-				break;
-
-		case	SONG_ICE:
-				iErr = FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":audio:IceSong.aiff", &spec);
-				volumeTweak = 1.5;
-				break;
-
-		case	SONG_EGYPT:
-				iErr = FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":audio:EgyptSong.aiff", &spec);
-				volumeTweak = 1.5;
-				break;
-
-		case	SONG_VIKING:
-				iErr = FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":audio:VikingSong.aiff", &spec);
-				volumeTweak = 1.5;
-				break;
-
-		default:
-				DoFatalAlert("PlaySong: unknown song #");
-	}
-
-
-	if (iErr)
+		const char* path;
+		float volumeTweak;
+	} songs[MAX_SONGS] =
 	{
-		iErr = FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":audio:ThemeSong.mp3", &spec);		// if song not found, try MP3 version of theme
-		if (iErr)
-			DoFatalAlert("PlaySong: song file not found");
-	}
+		[SONG_WIN]		= {":audio:WinSong.aiff", 1.9f},
+		[SONG_DESERT]	= {":audio:DesertSong.aiff", 1.0f},
+		[SONG_JUNGLE]	= {":audio:JungleSong.aiff", 1.5f},
+		[SONG_THEME]	= {":audio:ThemeSong.aiff", 1.5f},
+		[SONG_ATLANTIS]	= {":audio:AtlantisSong.aiff", 1.5f},
+		[SONG_CHINA]	= {":audio:ChinaSong.aiff", 1.5f},
+		[SONG_CRETE]	= {":audio:CreteSong.aiff", 1.5f},
+		[SONG_EUROPE]	= {":audio:EuroSong.aiff", 1.5f},
+		[SONG_ICE]		= {":audio:IceSong.aiff", 1.5f},
+		[SONG_EGYPT]	= {":audio:EgyptSong.aiff", 1.5f},
+		[SONG_VIKING]	= {":audio:VikingSong.aiff", 1.5f},
+	};
+
+	if (songNum < 0 || songNum >= MAX_SONGS)
+		DoFatalAlert("PlaySong: unknown song #");
+
+	iErr = FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, songs[songNum].path, &spec);
+	GAME_ASSERT(!iErr);
+
+	iErr = FSpOpenDF(&spec, fsRdPerm, &musicFileRefNum);
+	GAME_ASSERT(!iErr);
+
+	volumeTweak = songs[songNum].volumeTweak;
 
 	gCurrentSong = songNum;
 
@@ -577,39 +542,39 @@ GrafPtr	oldPort;
 				/* START PLAYING */
 				/*****************/
 
-	IMPLEMENT_ME_SOFT();
-#if 0
-			/* GOT TO SET A DUMMY PORT OR QT MAY FREAK */
+			/* START PLAYING FROM FILE */
 
-	if (gQTDummyPort == nil)						// create a blank graf port
-		gQTDummyPort = CreateNewPort();
+	iErr = SndStartFilePlay(
+		gMusicChannel,
+		musicFileRefNum,
+		0,
+		0, //STREAM_BUFFER_SIZE
+		0, //gMusicBuffer
+		nil,
+		nil, //SongCompletionProc
+		true);
 
-	GetPort(&oldPort);								// set as active before NewMovieFromFile()
-	SetPort(gQTDummyPort);
+	FSClose(musicFileRefNum);		// close the file (Pomme decompresses entire song into memory)
 
-
-	iErr = OpenMovieFile(&spec, &myRefNum, fsRdPerm);
-	if (myRefNum && (iErr == noErr))
+	if (iErr)
 	{
-		iErr = NewMovieFromFile(&gSongMovie, myRefNum, 0, nil, newMovieActive, nil);
-		CloseMovieFile(myRefNum);
-
-		if (iErr == noErr)
-		{
-//			if (gOSX)
-//				LoadMovieIntoRam(gSongMovie, 0, GetMovieDuration(gSongMovie), keepInRam);
-
-			SetMoviePlayHints(gSongMovie, 0, hintsUseSoundInterp|hintsHighQuality);
-
-			SetMovieVolume(gSongMovie, FloatToFixed16(gGlobalVolume * SONG_VOLUME * volumeTweak));						// set volume
-			StartMovie(gSongMovie);
-
-			gSongPlayingFlag = true;
-		}
+		DoAlert("PlaySong: SndStartFilePlay failed!");
+		ShowSystemErr(iErr);
 	}
+	gSongPlayingFlag = true;
 
-	SetPort(oldPort);
-#endif
+
+			/* SET LOOP FLAG ON STREAM (SOURCE PORT ADDITION) */
+			/* So we don't need to re-read the file over and over. */
+
+	mySndCmd.cmd = pommeSetLoopCmd;
+	mySndCmd.param1 = loopFlag ? 1 : 0;
+	mySndCmd.param2 = 0;
+	iErr = SndDoImmediate(gMusicChannel, &mySndCmd);
+	if (iErr)
+		DoFatalAlert("PlaySong: SndDoImmediate (pomme loop extension) failed!");
+
+
 
 
 
@@ -644,8 +609,6 @@ void KillSong(void)
 	StopMovie(gSongMovie);
 	DisposeMovie(gSongMovie);
 #endif
-
-	gMusicFileRefNum = 0x0ded;
 }
 
 /******************** TOGGLE MUSIC *********************/
