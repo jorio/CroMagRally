@@ -117,7 +117,7 @@ OGLSetupOutputType	*pictureViewInfoPtr = nil;
 
 			/* CREATE BACKGROUND OBJECT */
 
-	gBackgoundPicture = MO_CreateNewObjectOfType(MO_TYPE_PICTURE, (u_long)pictureViewInfoPtr, spec);
+	gBackgoundPicture = MO_CreateNewObjectOfType(MO_TYPE_PICTURE, (uintptr_t) pictureViewInfoPtr, spec);
 	if (!gBackgoundPicture)
 		DoFatalAlert("DisplayPicture: MO_CreateNewObjectOfType failed");
 
@@ -391,7 +391,7 @@ static Str31 age[3] = {"STONE AGE", "BRONZE AGE", "IRON AGE"};
 	if (FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID,  names[gTheAge], &spec))
 		DoFatalAlert("SetupConqueredScreen: background pict not found.");
 
-	gBackgoundPicture = MO_CreateNewObjectOfType(MO_TYPE_PICTURE, (u_long)gGameViewInfoPtr, &spec);
+	gBackgoundPicture = MO_CreateNewObjectOfType(MO_TYPE_PICTURE, (uintptr_t) gGameViewInfoPtr, &spec);
 	if (!gBackgoundPicture)
 		DoFatalAlert("SetupTrackSelectScreen: MO_CreateNewObjectOfType failed");
 
@@ -582,7 +582,7 @@ static Str31 age[3] = {"STONE AGE", "BRONZE AGE", "IRON AGE"};
 	if (FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":images:Conquered:GameCompleted.jpg",&spec))
 		DoFatalAlert("SetupWinScreen: background pict not found.");
 
-	gBackgoundPicture = MO_CreateNewObjectOfType(MO_TYPE_PICTURE, (u_long)gGameViewInfoPtr, &spec);
+	gBackgoundPicture = MO_CreateNewObjectOfType(MO_TYPE_PICTURE, (uintptr_t) gGameViewInfoPtr, &spec);
 	if (!gBackgoundPicture)
 		DoFatalAlert("SetupTrackSelectScreen: MO_CreateNewObjectOfType failed");
 
@@ -961,7 +961,7 @@ static const float sizes[] =
 	if (FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":images:Credits.jpg",&spec))
 		DoFatalAlert("SetupCreditsScreen: background pict not found.");
 
-	gBackgoundPicture = MO_CreateNewObjectOfType(MO_TYPE_PICTURE, (u_long)gGameViewInfoPtr, &spec);
+	gBackgoundPicture = MO_CreateNewObjectOfType(MO_TYPE_PICTURE, (uintptr_t) gGameViewInfoPtr, &spec);
 	if (!gBackgoundPicture)
 		DoFatalAlert("SetupCreditsScreen: MO_CreateNewObjectOfType failed");
 

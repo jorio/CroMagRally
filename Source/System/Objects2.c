@@ -35,7 +35,7 @@ extern	ObjNode		*gFirstNodePtr;
 extern	OGLSetupOutputType		*gGameViewInfoPtr;
 extern	OGLPoint3D	gCoord;
 extern	NewObjectDefinitionType	gNewObjectDefinition;
-extern	u_long		gAutoFadeStatusBits;
+extern	uint32_t		gAutoFadeStatusBits;
 extern	PrefsType	gGamePrefs;
 extern	FSSpec		gDataSpec;
 extern	OGLMatrix4x4			gViewToFrustumMatrix,gLocalToViewMatrix,gLocalToFrustumMatrix;
@@ -527,8 +527,8 @@ float		minX,minY,minZ,maxX,maxY,maxZ;
 OGLMatrix4x4		m;
 OGLBoundingBox		*bBox;
 float		minusHW;				// -hW
-u_long		clipFlags;				// Clip in/out tests for point
-u_long		clipCodeAND,clipCodeOR;	// Clip test for entire object
+uint32_t		clipFlags;				// Clip in/out tests for point
+uint32_t		clipCodeAND,clipCodeOR;	// Clip test for entire object
 float		lX, lY, lZ;				// Local space co-ordinates
 float		hX, hY, hZ, hW;			// Homogeneous co-ordinates
 

@@ -247,7 +247,7 @@ Str255	maps[] =
 	FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, maps[gTrackNum], &spriteData.spec);
 	spriteData.pixelFormat = GL_RGBA;
 
-	gMapSprite = MO_CreateNewObjectOfType(MO_TYPE_SPRITE, (u_long)setupInfo, &spriteData);
+	gMapSprite = MO_CreateNewObjectOfType(MO_TYPE_SPRITE, (uintptr_t) setupInfo, &spriteData);
 	if (!gMapSprite)
 		DoFatalAlert("InitInfobar: cant find map sprite");
 

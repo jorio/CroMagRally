@@ -120,10 +120,10 @@ typedef struct
 	void				*ignored3;
 	unsigned char		ignored4[32];
 	OGLPoint3D			coord;							// absolute coord (not relative to parent!)
-	u_short				numPointsAttachedToBone;		// # vertices/points that this bone has
-	u_short				*pointList;						// indecies into gDecomposedPointList
-	u_short				numNormalsAttachedToBone;		// # vertex normals this bone has
-	u_short				*normalList;					// indecies into gDecomposedNormalsList
+	uint16_t				numPointsAttachedToBone;		// # vertices/points that this bone has
+	uint16_t				*pointList;						// indecies into gDecomposedPointList
+	uint16_t				numNormalsAttachedToBone;		// # vertex normals this bone has
+	uint16_t				*normalList;					// indecies into gDecomposedNormalsList
 }BoneDefinitionType;
 
 
@@ -264,7 +264,7 @@ struct ObjNode
 
 	struct	ObjNode	*ShadowNode;		// ptr to node's shadow (if any)
 
-	u_short			Slot;				// sort value
+	uint16_t			Slot;				// sort value
 	Byte			Genre;				// obj genre
 	Byte			Type;				// obj type
 	Byte			Group;				// obj group
@@ -272,7 +272,7 @@ struct ObjNode
 	void			(*MoveCall)(struct ObjNode *);			// pointer to object's move routine
 	void			(*SplineMoveCall)(struct ObjNode *);	// pointer to object's spline move routine
 	void			(*CustomDrawFunction)(struct ObjNode *, OGLSetupOutputType *setupInfo);// pointer to object's custom draw function
-	u_long			StatusBits;			// various status bits
+	uint32_t		StatusBits;			// various status bits
 
 	OGLPoint3D		Coord;				// coord of object
 	OGLPoint3D		OldCoord;			// coord @ previous frame
@@ -289,8 +289,8 @@ struct ObjNode
 
 	OGLVector3D		Scale;				// scale of object
 
-	u_long			CType;				// collision type bits
-	u_long			CBits;				// collision attribute bits
+	uint32_t		CType;				// collision type bits
+	uint32_t		CBits;				// collision attribute bits
 	Byte			NumCollisionBoxes;
 	CollisionBoxType	*CollisionBoxes;// Ptr to array of collision rectangles
 	int				LeftOff,RightOff,FrontOff,BackOff,TopOff,BottomOff;		// box offsets (only used by simple objects with 1 collision box)
@@ -317,13 +317,13 @@ struct ObjNode
 
 	TerrainItemEntryType *TerrainItemPtr;		// if item was from terrain, then this pts to entry in array
 	SplineItemType 		*SplineItemPtr;			// if item was from spline, then this pts to entry in array
-	u_char				SplineNum;				// which spline this spline item is on
+	uint8_t				SplineNum;				// which spline this spline item is on
 	float				SplinePlacement;		// 0.0->.9999 for placement on spline
 	short				SplineObjectIndex;		// index into gSplineObjectList of this ObjNode
 
 	short				EffectChannel;			// effect sound channel index (-1 = none)
 	short				ParticleGroup;
-	u_long				ParticleMagicNum;
+	uint32_t			ParticleMagicNum;
 
 	MOSpriteObject		*SpriteMO;				// ref to sprite meta object for sprite genre.
 

@@ -271,7 +271,7 @@ OGLVector3D			fillDirection2 = { -1, -.2, -.5 };
 	if (FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":images:MainMenuBackground.jpg", &spec))
 		DoFatalAlert("SetupMainMenuScreen: background pict not found.");
 
-	gBackgoundPicture = MO_CreateNewObjectOfType(MO_TYPE_PICTURE, (u_long)gGameViewInfoPtr, &spec);
+	gBackgoundPicture = MO_CreateNewObjectOfType(MO_TYPE_PICTURE, (uintptr_t) gGameViewInfoPtr, &spec);
 	if (!gBackgoundPicture)
 		DoFatalAlert("SetupMainMenuScreen: MO_CreateNewObjectOfType failed");
 

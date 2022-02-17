@@ -37,7 +37,7 @@ extern	OGLVector3D			gDelta;
 extern	NewObjectDefinitionType	gNewObjectDefinition;
 extern	OGLVector3D			gRecentTerrainNormal;
 extern	SplineDefType		**gSplineList;
-extern	u_long		gAutoFadeStatusBits;
+extern	uint32_t		gAutoFadeStatusBits;
 extern	short				gNumTotalPlayers,gNumCollisions;
 extern	SuperTileStatus	**gSuperTileStatusGrid;
 extern	NewParticleGroupDefType	gNewParticleGroupDef;

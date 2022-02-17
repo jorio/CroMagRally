@@ -778,9 +778,9 @@ shrink_it:
 					if (matData->pixelSrcFormat == GL_RGB)
 					{
 						int		x,y;
-						u_char	*src,*dest;
+						uint8_t	*src,*dest;
 
-						dest = src = (u_char *)pixels;
+						dest = src = (uint8_t *)pixels;
 
 						for (y = 0; y < h; y+=2)
 						{
@@ -799,9 +799,9 @@ shrink_it:
 					if (matData->pixelSrcFormat == GL_RGBA)
 					{
 						int		x,y;
-						u_long	*src,*dest;
+						uint32_t	*src,*dest;
 
-						dest = src = (u_long *)pixels;
+						dest = src = (uint32_t *)pixels;
 
 						for (y = 0; y < h; y+=2)
 						{
@@ -823,9 +823,9 @@ shrink_it:
 
 			if (gSupportsPackedPixels && (matData->pixelSrcFormat == GL_RGB) && (matData->pixelDstFormat == GL_RGB5_A1))	// see if convert 24 to 16-bit
 			{
-				u_short	*buff;
+				uint16_t	*buff;
 
-				buff = (u_short *)AllocPtr(w*h*2);				// alloc buff for 16-bit texture
+				buff = (uint16_t *)AllocPtr(w*h*2);				// alloc buff for 16-bit texture
 
 				ConvertTexture24To16(pixels, buff, w, h);
 				matData->textureName[0] = OGL_TextureMap_Load(buff, w, h, GL_BGRA_EXT, GL_RGBA, GL_UNSIGNED_SHORT_1_5_5_5_REV); // load 16 as 16
@@ -854,11 +854,11 @@ shrink_it:
 
 /*********************** CONVERT TEXTURE; 24 TO 16 ***********************************/
 
-void	ConvertTexture24To16(u_char *srcBuff24, u_short *destBuff16, int width, int height)
+void	ConvertTexture24To16(uint8_t *srcBuff24, uint16_t *destBuff16, int width, int height)
 {
 int		x,y,h;
-u_long	pixel;
-u_long	r,g,b;
+uint32_t	pixel;
+uint32_t	r,g,b;
 
 	for (y = 0; y < height; y++)
 	{
@@ -934,7 +934,7 @@ int					i;
 // Sets the material flags for this object's vertex array
 //
 
-void BG3D_SetContainerMaterialFlags(short group, short type, u_long flags)
+void BG3D_SetContainerMaterialFlags(short group, short type, uint32_t flags)
 {
 MOVertexArrayObject	*mo;
 MOVertexArrayData	*va;

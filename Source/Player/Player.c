@@ -39,7 +39,7 @@ extern	unsigned long 			gScore;
 extern	float					gMyDistToFloor;
 extern	float 					gCameraDistFromMe;
 extern	OGLSetupOutputType		*gGameViewInfoPtr;
-extern	u_long 					gInfobarUpdateBits,gAutoFadeStatusBits;
+extern	uint32_t 					gInfobarUpdateBits,gAutoFadeStatusBits;
 extern	Boolean					gIsNetworkHost,gIsNetworkClient,gNetGameInProgress;
 extern	long					gNumCheckpoints;
 extern	int						gGameMode,gTrackNum,gNumSplitScreenPanes;
@@ -383,7 +383,7 @@ Boolean	taken[MAX_CAR_TYPES];
 //			gTileAttribParm[3] = byte values
 //
 
-void SetPlayerParmsFromTileAttributes(short playerNum, u_short flags)
+void SetPlayerParmsFromTileAttributes(short playerNum, uint16_t flags)
 {
 			/* IF ON WATER */
 
@@ -741,7 +741,7 @@ void SetSuspensionPOW(short playerNum)
 
 /****************** SET CAR STATUS BITS *******************/
 
-void SetCarStatusBits(short	playerNum, u_long bits)
+void SetCarStatusBits(short	playerNum, uint32_t bits)
 {
 ObjNode *obj;
 
@@ -755,7 +755,7 @@ ObjNode *obj;
 
 /****************** CLEAR CAR STATUS BITS *******************/
 
-void ClearCarStatusBits(short	playerNum, u_long bits)
+void ClearCarStatusBits(short	playerNum, uint32_t bits)
 {
 ObjNode *obj;
 

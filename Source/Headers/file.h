@@ -63,7 +63,7 @@ typedef struct
 	Byte	tagDuration;
 	double	videoHz;
 	Byte	monitorNum;
-	u_short	keySettings[NUM_CONTROL_NEEDS];
+	uint16_t	keySettings[NUM_CONTROL_NEEDS];
 //	DateTimeRec	lastVersCheckDate;
 //	Byte	didThisNote[MAX_HTTP_NOTES];
 	Byte	reserved[8];

@@ -772,7 +772,7 @@ OGLBoundingBox	bbox;
 
 /**************** VERIFY PARTICLE GROUP MAGIC NUM ******************/
 
-Boolean VerifyParticleGroupMagicNum(short group, u_long magicNum)
+Boolean VerifyParticleGroupMagicNum(short group, uint32_t magicNum)
 {
 	if (gParticleGroups[group] == nil)
 		return(false);
@@ -789,10 +789,10 @@ Boolean VerifyParticleGroupMagicNum(short group, u_long magicNum)
 // INPUT:	inFlags = flags to check particle types against
 //
 
-Boolean ParticleHitObject(ObjNode *theNode, u_short inFlags)
+Boolean ParticleHitObject(ObjNode *theNode, uint16_t inFlags)
 {
 int		i,p;
-u_short	flags;
+uint16_t	flags;
 OGLPoint3D	*coord;
 
 	for (i = 0; i < MAX_PARTICLE_GROUPS; i++)

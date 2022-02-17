@@ -35,7 +35,7 @@ static void MyGetKeys(KeyMap *keyMap);
 static void GetLocalKeyStateForPlayer(short playerNum, Boolean secondaryControls);
 
 static void DoMyKeyboardEdit(void);
-static void SetKeyControl(short item, u_short keyCode);
+static void SetKeyControl(short item, uint16_t keyCode);
 static void SetMyKeyEditDefaults(void);
 static short GetFirstRealKeyPressed(void);
 static void KeyCodeToChar(UInt16 code, Str32 s);
@@ -276,7 +276,7 @@ ISpElementReference	gVirtualElements[NUM_CONTROL_NEEDS];
 #endif
 
 
-static const u_short	gNeedToKey[NUM_CONTROL_NEEDS] =				// table to convert need # into key equate value
+static const uint16_t	gNeedToKey[NUM_CONTROL_NEEDS] =				// table to convert need # into key equate value
 {
 	(kKey_Left_P1<<8) | kKey_Right_P1,	// steer p1
 	kKey_Forward_P1,
@@ -295,9 +295,9 @@ static const u_short	gNeedToKey[NUM_CONTROL_NEEDS] =				// table to convert need
 	kKey_CameraMode_P2
 };
 
-static u_short	gUserKeySettings[NUM_CONTROL_NEEDS];
+static uint16_t	gUserKeySettings[NUM_CONTROL_NEEDS];
 
-const u_short	gUserKeySettings_Defaults[NUM_CONTROL_NEEDS] =
+const uint16_t	gUserKeySettings_Defaults[NUM_CONTROL_NEEDS] =
 {
 	(kKey_Left_P1<<8) | kKey_Right_P1,	// steer p1
 	kKey_Forward_P1,
@@ -814,7 +814,7 @@ void GetLocalKeyState(void)
 
 static void GetLocalKeyStateForPlayer(short playerNum, Boolean secondaryControls)
 {
-u_long	mask,old;
+uint32_t	mask,old;
 short	i;
 
 	old = gPlayerInfo[playerNum].controlBits;						// remember old bits
@@ -844,7 +844,7 @@ short	i;
 // INPUT: control = one of kControlBit_XXXX
 //
 
-Boolean GetControlState(short player, u_long control)
+Boolean GetControlState(short player, uint32_t control)
 {
 	if (gPlayerInfo[player].controlBits & (1L << control))
 		return(true);
@@ -858,7 +858,7 @@ Boolean GetControlState(short player, u_long control)
 // INPUT: control = one of kControlBit_XXXX
 //
 
-Boolean GetControlStateNew(short player, u_long control)
+Boolean GetControlStateNew(short player, uint32_t control)
 {
 	if (gPlayerInfo[player].controlBits_New & (1L << control))
 		return(true);
@@ -937,7 +937,7 @@ short	i;
 
 /*********************** SET KEY CONTROL ********************************/
 
-static void SetKeyControl(short item, u_short keyCode)
+static void SetKeyControl(short item, uint16_t keyCode)
 {
 	switch(item)
 	{

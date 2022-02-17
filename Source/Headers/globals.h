@@ -17,9 +17,6 @@
 #define	IS_ZERO(_x)  (fabs(_x) < EPS)
 
 
-#define	MOVE_TO_FRONT		(WindowPtr)-1L
-#define	NIL_STRING			""
-#define	PICT_HEADER_SIZE	512
 #define REMOVE_ALL_EVENTS	 0
 
 
@@ -58,23 +55,6 @@ int _i;																	\
 		array = nil;						\
 }
 
-/* UNIVERSAL PTR TYPE WHICH CAN READ/WRITE ANYTHING */
-
-typedef union {
-	long 	*L;
-	short 	*S;
-	Ptr 	B;
-} UniversalPtr;
-
-typedef union {
-	long 	**L;
-	short 	**S;
-	Handle 	B;
-} UniversalHandle;
-
-typedef	unsigned char u_char;
-typedef	unsigned long u_long;
-typedef	unsigned short u_short;
 
 
 #define	PI					((float)3.1415926535898)

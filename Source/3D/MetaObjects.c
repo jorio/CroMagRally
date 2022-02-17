@@ -35,9 +35,9 @@ extern	Boolean			gSongPlayingFlag;
 /*    PROTOTYPES            */
 /****************************/
 
-static MetaObjectPtr AllocateEmptyMetaObject(u_long type, u_long subType);
+static MetaObjectPtr AllocateEmptyMetaObject(uint32_t type, uintptr_t subType);
 static void SetMetaObjectToGroup(MOGroupObject *groupObj);
-static void SetMetaObjectToGeometry(MetaObjectPtr mo, u_long subType, void *data);
+static void SetMetaObjectToGeometry(MetaObjectPtr mo, uintptr_t subType, void *data);
 static void SetMetaObjectToMaterial(MOMaterialObject *matObj, MOMaterialData *inData);
 static void SetMetaObjectToVertexArrayGeometry(MOVertexArrayObject *geoObj, MOVertexArrayData *data);
 static void SetMetaObjectToMatrix(MOMatrixObject *matObj, OGLMatrix4x4 *inData);
@@ -73,7 +73,7 @@ int					gNumMetaObjects = 0;
 
 float				gGlobalTransparency = 1;			// 0 == clear, 1 = opaque
 OGLColorRGB			gGlobalColorFilter = {1,1,1};
-u_long				gGlobalMaterialFlags = 0;
+uint32_t				gGlobalMaterialFlags = 0;
 
 MOMaterialObject	*gMostRecentMaterial;
 
@@ -164,7 +164,7 @@ int					i;
 //
 
 
-MetaObjectPtr	MO_CreateNewObjectOfType(u_long type, uint64_t subType, void *data)
+MetaObjectPtr	MO_CreateNewObjectOfType(uint32_t type, uintptr_t subType, void *data)
 {
 MetaObjectPtr	mo;
 
@@ -219,7 +219,7 @@ MetaObjectPtr	mo;
 // allocates an empty meta object and connects it to the linked list
 //
 
-static MetaObjectPtr AllocateEmptyMetaObject(u_long type, u_long subType)
+static MetaObjectPtr AllocateEmptyMetaObject(uint32_t type, uintptr_t subType)
 {
 MetaObjectHeader	*mo;
 int					size;
@@ -267,7 +267,7 @@ int					size;
 
 			/* ALLOC MEMORY FOR META OBJECT */
 
-	mo = AllocPtr(size);
+	mo = AllocPtrClear(size); //AllocPtr(size);
 	if (mo == nil)
 		DoFatalAlert("AllocateEmptyMetaObject: AllocPtr failed!");
 
@@ -331,7 +331,7 @@ static void SetMetaObjectToGroup(MOGroupObject *groupObj)
 // INPUT:	mo = meta object which has already been allocated and added to linked list.
 //
 
-static void SetMetaObjectToGeometry(MetaObjectPtr mo, u_long subType, void *data)
+static void SetMetaObjectToGeometry(MetaObjectPtr mo, uintptr_t subType, void *data)
 {
 	switch(subType)
 	{
@@ -421,7 +421,7 @@ int			numHorizCells, numVertCells;
 int			bytesPerPixel;
 MOPictureData	*picData = &pictObj->objectData;
 Ptr			buffer,pictMapAddr;
-u_long		bufferRowBytes,pictRowBytes;
+uint32_t		bufferRowBytes,pictRowBytes;
 MOMaterialData	matData;
 short		refNum;
 
@@ -1028,7 +1028,7 @@ MOMaterialData		*matData;
 OGLColorRGBA		*diffuseColor,diffColor2;
 Boolean				textureHasAlpha = false;
 Boolean				alreadySet;
-u_long				matFlags;
+uint32_t				matFlags;
 
 			/* SEE IF THIS MATERIAL IS ALREADY SET AS CURRENT */
 

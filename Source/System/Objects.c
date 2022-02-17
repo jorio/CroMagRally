@@ -38,7 +38,7 @@ extern	OGLSetupOutputType		*gGameViewInfoPtr;
 extern	MOVertexArrayData		**gLocalTriMeshesOfSkelType;
 extern	int						gCurrentSplitScreenPane;
 extern	OGLColorRGB				gGlobalColorFilter;
-extern	u_long					gGlobalMaterialFlags;
+extern	uint32_t					gGlobalMaterialFlags;
 extern	PlayerInfoType			gPlayerInfo[];
 extern	Boolean					gNetGameInProgress;
 extern	short					gMyNetworkPlayerNum;

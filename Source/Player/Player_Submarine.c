@@ -52,7 +52,7 @@ extern	PlayerInfoType			gPlayerInfo[];
 extern	Boolean					gNetGameInProgress,gTrackCompleted, gAutoPilot, gNoCarControls;
 extern	int						gNumSplitScreenPanes,gGameMode;
 extern	int						gVehicleParameters[MAX_CAR_TYPES][NUM_VEHICLE_PARAMETERS];
-extern	u_char					gTileAttribParm[2];
+extern	uint8_t					gTileAttribParm[2];
 extern	ParticleGroupType		*gParticleGroups[];
 extern	short				gWhoIsIt, gWhoWasIt, gPlayerMultiPassCount;
 extern	float				gReTagTimer;
@@ -418,7 +418,7 @@ static Boolean DoSubCollisionDetect(ObjNode *vehicle)
 short		i,playerNum;
 ObjNode		*hitObj;
 unsigned long	ctype;
-u_char		sides;
+uint8_t		sides;
 
 
 			/* DETERMINE CTYPE BITS TO CHECK FOR */
@@ -748,7 +748,7 @@ ObjNode			*prop;
 
 static void DoPlayerControl_Submarine(ObjNode *theNode)
 {
-u_short			playerNum = theNode->PlayerNum;
+uint16_t			playerNum = theNode->PlayerNum;
 float			fps = gFramesPerSecondFrac;
 
 

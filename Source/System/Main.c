@@ -60,7 +60,7 @@ extern	SavePlayerType	gPlayerSaveData;
 extern	PrefsType	gGamePrefs;
 extern	Boolean		gAutoPilot;
 extern	Byte		gActiveSplitScreenMode;
-extern	const u_short	gUserKeySettings_Defaults[];
+extern	const uint16_t	gUserKeySettings_Defaults[];
 extern  FSSpec		gDataSpec;
 
 
@@ -101,7 +101,7 @@ Boolean				gOSX = false;
 
 Byte				gDebugMode = 0;				// 0 == none, 1 = fps, 2 = all
 
-u_long				gAutoFadeStatusBits;
+uint32_t				gAutoFadeStatusBits;
 short				gMainAppRezFile;
 
 OGLSetupOutputType		*gGameViewInfoPtr = nil;
@@ -116,7 +116,7 @@ OGLVector3D			gWorldSunDirection = { 1, -.2, 1};		// also serves as lense flare 
 OGLColorRGBA		gFillColor1 = { 1.0, 1.0, 1.0, 1.0 };
 OGLColorRGBA		gFillColor2 = { .5, .5, .5, 1.0 };
 
-u_long				gGameFrameNum = 0;
+uint32_t				gGameFrameNum = 0;
 
 Boolean				gNoCarControls = false;						// set if player has no control (for starting light et al)
 Boolean				gGameOver = false;
@@ -161,7 +161,7 @@ void ToolBoxInit(void)
 long		response;
 OSErr		iErr;
 NumVersion	vers;
-u_long		seconds, seconds2;
+uint32_t		seconds, seconds2;
 
 	gMainAppRezFile = CurResFile();
 

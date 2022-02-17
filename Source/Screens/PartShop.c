@@ -54,7 +54,7 @@ static void ShowPartOptions(short playerNum);
 static Boolean SelectOption(short playerNum);
 static Byte GetPartCurrentType(Byte part, short playerNum);
 static void SetPartCurrentType(Byte part, Byte type, short playerNum);
-static void MakeCostNumber(u_long num, float x, float y);
+static void MakeCostNumber(uint32_t num, float x, float y);
 static void DisposeCostDigits(void);
 
 
@@ -223,7 +223,7 @@ short				i;
 
 	if (FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":images:PartShopScreen", &spec))
 		DoFatalAlert("DoPartShop: background pict not found.");
-	gBackgoundPicture = MO_CreateNewObjectOfType(MO_TYPE_PICTURE, (u_long)gGameViewInfoPtr, &spec);
+	gBackgoundPicture = MO_CreateNewObjectOfType(MO_TYPE_PICTURE, (uintptr_t) gGameViewInfoPtr, &spec);
 	if (!gBackgoundPicture)
 		DoFatalAlert("DoPartShop: MO_CreateNewObjectOfType failed");
 
@@ -609,9 +609,9 @@ short	type,i;
 //		we want to attach these digits to the master list.
 //
 
-static void MakeCostNumber(u_long num, float x, float y)
+static void MakeCostNumber(uint32_t num, float x, float y)
 {
-u_long	digit,i,j = gNumCostNumberDigits;
+uint32_t	digit,i,j = gNumCostNumberDigits;
 float	w;
 float	x2;
 

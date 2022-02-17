@@ -43,7 +43,7 @@ extern	Byte					gActiveSplitScreenMode;
 extern	PlayerInfoType	gPlayerInfo[];
 extern	short					gNumTotalPlayers;
 extern	FenceDefType			*gFenceList;
-extern	u_long					gGameFrameNum;
+extern	uint32_t					gGameFrameNum;
 extern	Byte					**gTerrainShadowFlags;
 extern	OGLBoundingBox			gObjectGroupBBoxList[MAX_BG3D_GROUPS][MAX_OBJECTS_IN_GROUP];
 
@@ -54,7 +54,7 @@ extern	OGLBoundingBox			gObjectGroupBBoxList[MAX_BG3D_GROUPS][MAX_OBJECTS_IN_GRO
 static short GetFreeSuperTileMemory(void);
 static inline void ReleaseSuperTileObject(short superTileNum);
 static void CalcNewItemDeleteWindow(int playerNum);
-static u_short	BuildTerrainSuperTile(long	startCol, long startRow);
+static uint16_t	BuildTerrainSuperTile(long	startCol, long startRow);
 static void ReleaseAllSuperTiles(void);
 
 
@@ -83,7 +83,7 @@ static	Byte	gHiccupTimer;
 
 Boolean			gDisableHiccupTimer = false;
 
-static u_char	gHiccupEliminator = 0;
+static uint8_t	gHiccupEliminator = 0;
 
 SuperTileStatus	**gSuperTileStatusGrid = nil;				// supertile status grid
 
@@ -95,7 +95,7 @@ SuperTileGridType 	**gSuperTileTextureGrid = nil;			// 2d array
 
 GLuint			gSuperTileTextureNames[MAX_SUPERTILE_TEXTURES];
 
-u_short			**gTileGrid = nil;
+uint16_t			**gTileGrid = nil;
 
 long			gNumSuperTilesDeep,gNumSuperTilesWide;	  		// dimensions of terrain in terms of supertiles
 static long		gCurrentSuperTileRow[MAX_PLAYERS],gCurrentSuperTileCol[MAX_PLAYERS];
@@ -111,7 +111,7 @@ static Handle	gTerrainTextureBuffers[MAX_SUPERTILES][2];
 
 
 TileAttribType	**gTileAttribList = nil;
-u_char			gTileAttribParm[3];
+uint8_t			gTileAttribParm[3];
 
 
 			/* TILE SPLITTING TABLES */
@@ -488,10 +488,10 @@ int	i;
 // OUTPUT: index to supertile
 //
 
-static u_short	BuildTerrainSuperTile(long	startCol, long startRow)
+static uint16_t	BuildTerrainSuperTile(long	startCol, long startRow)
 {
 long	 			row,col,row2,col2,numPoints,i;
-u_short				superTileNum;
+uint16_t				superTileNum;
 float				height,miny,maxy;
 MOVertexArrayData	*meshData;
 SuperTileMemoryType	*superTilePtr;
@@ -854,12 +854,12 @@ long	i;
 void DrawTerrain(OGLSetupOutputType *setupInfo)
 {
 int				r,c;
-u_short			i,unique;
-u_long			textureName;
+uint16_t			i,unique;
+uint32_t			textureName;
 OGLPoint3D		cameraCoord;
 PixMapHandle 	hPixMap;
 Ptr				pictMapAddr;
-u_long			pictRowBytes;
+uint32_t			pictRowBytes;
 GDHandle		oldGD;
 GWorldPtr		oldGW;
 
@@ -887,7 +887,7 @@ GWorldPtr		oldGW;
 
 		hPixMap = GetGWorldPixMap(gTerrainDebugGWorld);				// get gworld's pixmap
 		pictMapAddr = GetPixBaseAddr(hPixMap);
-		pictRowBytes = (u_long)(**hPixMap).rowBytes & 0x3fff;
+		pictRowBytes = (uint32_t)(**hPixMap).rowBytes & 0x3fff;
 
 		GetGWorld (&oldGW,&oldGD);
 	}
@@ -1216,9 +1216,9 @@ long	row,col;
 
 /******************** GET TILE ATTRIBS *************************/
 
-u_short	GetTileAttribsAtRowCol(float x, float z)
+uint16_t	GetTileAttribsAtRowCol(float x, float z)
 {
-u_short	tile,flags;
+uint16_t	tile,flags;
 int		row,col;
 
 		/* CONVERT COORDS TO TILE ROW/COL */

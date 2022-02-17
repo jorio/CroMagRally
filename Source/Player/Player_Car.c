@@ -55,7 +55,7 @@ extern	Boolean					gNetGameInProgress,gTrackCompleted,gIsSelfRunningDemo;
 extern	int						gNumSplitScreenPanes,gGameMode,gTrackNum,gTheAge;
 extern	int						gVehicleParameters[MAX_CAR_TYPES][NUM_VEHICLE_PARAMETERS];
 extern	int						gDefaultVehicleParameters[MAX_CAR_TYPES][NUM_VEHICLE_PARAMETERS];
-extern	u_char					gTileAttribParm[2];
+extern	uint8_t					gTileAttribParm[2];
 extern	ParticleGroupType		*gParticleGroups[];
 extern	short				gWhoIsIt, gWhoWasIt;
 extern	float				gReTagTimer;
@@ -147,7 +147,7 @@ static void UpdateFlaming(short p);
 /*    VARIABLES      */
 /*********************/
 
-u_short			gPlayer0TileAttribs;
+uint16_t			gPlayer0TileAttribs;
 
 Boolean			gAutoPilot = false;
 
@@ -569,7 +569,7 @@ short		playerNum;
 ObjNode		*head;
 short		desiredAnim;
 CarStatsType	*info;
-u_short		tileAttribs;
+uint16_t		tileAttribs;
 float		thrust,dx,dz;
 PlayerInfoType	*pinfo;
 float		cpuTweakFactor;
@@ -1523,7 +1523,7 @@ static void UpdateFlaming(short p)
 static void RotateCar(ObjNode *theNode)
 {
 float		fps = gFramesPerSecondFrac;
-u_short		playerNum = theNode->PlayerNum;
+uint16_t		playerNum = theNode->PlayerNum;
 float		steering,speed,turnSpeed;
 float		targetDeltaY;
 Boolean		onWater = gPlayerInfo[playerNum].onWater;
@@ -1680,7 +1680,7 @@ static Boolean DoVehicleCollisionDetect(ObjNode *vehicle)
 short		i,playerNum;
 ObjNode		*hitObj;
 unsigned long	ctype;
-u_char		sides;
+uint8_t		sides;
 Boolean		wasInWater;
 
 
@@ -2872,7 +2872,7 @@ short		playerNum = head->PlayerNum;
 
 static void DoPlayerControl_Car(ObjNode *theNode)
 {
-u_short			playerNum = theNode->PlayerNum;
+uint16_t			playerNum = theNode->PlayerNum;
 float			thrust,speed;
 float			fps = gFramesPerSecondFrac;
 float			steering,analogSteering;

@@ -109,8 +109,8 @@ void InitBG3DManager(void);
 void ImportBG3D(FSSpec *spec, int groupNum, OGLSetupOutputType *setupInfo);
 void DisposeBG3DContainer(int groupNum);
 void DisposeAllBG3DContainers(void);
-void BG3D_SetContainerMaterialFlags(short group, short type, u_long flags);
-void	ConvertTexture24To16(u_char *srcBuff24, u_short *destBuff16, int width, int height);
+void BG3D_SetContainerMaterialFlags(short group, short type, uint32_t flags);
+void	ConvertTexture24To16(uint8_t *srcBuff24, uint16_t *destBuff16, int width, int height);
 
 #endif
 

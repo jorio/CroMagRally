@@ -147,9 +147,9 @@ enum
 
 typedef	struct
 {
-	u_short		supertileIndex;
-	u_char		statusFlags;
-	u_char		playerHereFlags;
+	uint16_t	supertileIndex;
+	uint8_t		statusFlags;
+	uint8_t		playerHereFlags;
 }SuperTileStatus;
 
 enum									// statusFlags
@@ -184,7 +184,7 @@ void DoPlayerTerrainUpdate(void);
 void CalcTileNormals(long row, long col, OGLVector3D *n1, OGLVector3D *n2);
 void CalculateSplitModeMatrix(void);
 
-u_short	GetTileAttribsAtRowCol(float x, float z);
+uint16_t	GetTileAttribsAtRowCol(float x, float z);
 void DoItemShadowCasting(void);
 
 

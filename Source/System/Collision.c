@@ -65,7 +65,7 @@ Byte			gTotalSides;
 // INPUT: startNumCollisions = value to start gNumCollisions at should we need to keep existing data in collision list
 //
 
-void CollisionDetect(ObjNode *baseNode, u_long CType, short startNumCollisions)
+void CollisionDetect(ObjNode *baseNode, uint32_t CType, short startNumCollisions)
 {
 ObjNode 	*thisNode;
 long		sideBits,cBits,cType;
@@ -313,7 +313,7 @@ next:
 // OUTPUT: totalSides
 //
 
-Byte HandleCollisions(ObjNode *theNode, u_long cType, float deltaBounce)
+Byte HandleCollisions(ObjNode *theNode, uint32_t cType, float deltaBounce)
 {
 Byte		totalSides;
 short		i;
@@ -892,7 +892,7 @@ signed char	wind;										// current winding number
 // OUTPUT: # collisions detected
 //
 
-short DoSimplePointCollision(OGLPoint3D *thePoint, u_long cType, ObjNode *except)
+short DoSimplePointCollision(OGLPoint3D *thePoint, uint32_t cType, ObjNode *except)
 {
 ObjNode	*thisNode;
 short	targetNumBoxes,target;
@@ -977,7 +977,7 @@ next:
 //
 
 short DoSimpleBoxCollision(float top, float bottom, float left, float right,
-						float front, float back, u_long cType)
+						float front, float back, uint32_t cType)
 {
 ObjNode			*thisNode;
 short			targetNumBoxes,target;

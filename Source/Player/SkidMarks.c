@@ -28,7 +28,7 @@ extern	OGLSetupOutputType		*gGameViewInfoPtr;
 extern	OGLVector3D		gRecentTerrainNormal;
 extern	short			gCurrentPlayerNum;
 extern	PlayerInfoType	gPlayerInfo[];
-extern	u_long			gAutoFadeStatusBits;
+extern	uint32_t			gAutoFadeStatusBits;
 
 /****************************/
 /*    PROTOTYPES            */

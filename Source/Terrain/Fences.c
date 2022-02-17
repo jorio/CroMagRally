@@ -27,7 +27,7 @@ extern	int			gCurrentSplitScreenPane;
 extern	SpriteType	*gSpriteGroupList[MAX_SPRITE_GROUPS];
 extern	long		gNumSpritesInGroupList[MAX_SPRITE_GROUPS];
 extern	NewObjectDefinitionType	gNewObjectDefinition;
-extern	u_long		gGlobalMaterialFlags;
+extern	uint32_t		gGlobalMaterialFlags;
 
 
 /****************************/
@@ -262,7 +262,7 @@ ObjNode					*obj;
 static void MakeFenceGeometry(void)
 {
 int						f;
-u_short					type;
+uint16_t					type;
 float					u,height,aspectRatio,textureUOff;
 long					i,numNubs,j;
 FenceDefType			*fence;

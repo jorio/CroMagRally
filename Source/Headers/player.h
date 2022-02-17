@@ -199,8 +199,8 @@ typedef struct
 
 			/* CONTROL INFO */
 
-	u_long				controlBits;
-	u_long				controlBits_New;
+	uint32_t			controlBits;
+	uint32_t			controlBits_New;
 	float				analogSteering;
 
 			/* INVENTORY INFO */
@@ -243,7 +243,7 @@ typedef struct
 
 void InitPlayerInfo_Game(void);
 void InitPlayersAtStartOfLevel(void);
-void SetPlayerParmsFromTileAttributes(short playerNum, u_short flags);
+void SetPlayerParmsFromTileAttributes(short playerNum, uint16_t flags);
 void ChooseTaggedPlayer(void);
 void UpdateTagMarker(void);
 short FindClosestPlayer(ObjNode *thePlayer, float x, float z, float range, Boolean allowCPUCars, float *dist);
@@ -252,8 +252,8 @@ short FindClosestPlayerInFront(ObjNode *theNode, float range, Boolean allowCPUCa
 void PlayerLoseHealth(short p, float damage);
 void SetStickyTires(short playerNum);
 void SetSuspensionPOW(short playerNum);
-void SetCarStatusBits(short	playerNum, u_long bits);
-void ClearCarStatusBits(short	playerNum, u_long bits);
+void SetCarStatusBits(short	playerNum, uint32_t bits);
+void ClearCarStatusBits(short	playerNum, uint32_t bits);
 
 
 		/* CAR */

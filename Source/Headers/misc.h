@@ -18,7 +18,7 @@ void *AllocPtrClear(long size);
 extern	void InitMyRandomSeed(void);
 extern	void VerifySystem(void);
 extern	float RandomFloat(void);
-u_short	RandomRange(unsigned short min, unsigned short max);
+uint16_t	RandomRange(unsigned short min, unsigned short max);
 extern	void ShowSystemErr_NonFatal(long err);
 void CalcFramesPerSecond(void);
 Boolean IsPowerOf2(int num);

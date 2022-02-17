@@ -53,7 +53,7 @@ Boolean	gQuitting = false;
 short	gPrefsFolderVRefNum;
 long	gPrefsFolderDirID;
 
-u_long 	seed0 = 0, seed1 = 0, seed2 = 0;
+uint32_t 	seed0 = 0, seed1 = 0, seed2 = 0;
 
 float	gFramesPerSecond, gFramesPerSecondFrac;
 
@@ -199,10 +199,10 @@ unsigned long MyRandomLong(void)
 // THE RANGE *IS* INCLUSIVE OF MIN AND MAX
 //
 
-u_short	RandomRange(unsigned short min, unsigned short max)
+uint16_t	RandomRange(unsigned short min, unsigned short max)
 {
-u_short		qdRdm;											// treat return value as 0-65536
-u_long		range, t;
+uint16_t		qdRdm;											// treat return value as 0-65536
+uint32_t		range, t;
 
 	qdRdm = MyRandomLong();
 	range = max+1 - min;
@@ -308,7 +308,7 @@ OSErr	err;
 void *AllocPtr(long size)
 {
 Ptr	pr;
-u_long	*cookiePtr;
+uint32_t* cookiePtr;
 
 	size += 16;								// make room for our cookie & whatever else (also keep to 16-byte alignment!)
 
@@ -316,7 +316,7 @@ u_long	*cookiePtr;
 	if (pr == nil)
 		DoFatalAlert("AllocPtr: NewPtr failed");
 
-	cookiePtr = (u_long *)pr;
+	cookiePtr = (uint32_t*) pr;
 
 	*cookiePtr = 'FACE';
 
@@ -333,7 +333,7 @@ u_long	*cookiePtr;
 void *AllocPtrClear(long size)
 {
 Ptr	pr;
-u_long	*cookiePtr;
+uint32_t* cookiePtr;
 
 	size += 16;								// make room for our cookie & whatever else (also keep to 16-byte alignment!)
 
@@ -341,7 +341,7 @@ u_long	*cookiePtr;
 	if (pr == nil)
 		DoFatalAlert("AllocPtr: NewPtr failed");
 
-	cookiePtr = (u_long *)pr;
+	cookiePtr = (uint32_t*) pr;
 
 	*cookiePtr = 'FACE';
 
@@ -357,11 +357,11 @@ u_long	*cookiePtr;
 
 void SafeDisposePtr(Ptr ptr)
 {
-u_long	*cookiePtr;
+uint32_t* cookiePtr;
 
 	ptr -= 16;					// back up to pt to cookie
 
-	cookiePtr = (u_long *)ptr;
+	cookiePtr = (uint32_t*) ptr;
 
 	if (*cookiePtr != 'FACE')
 		DoFatalAlert("SafeSafeDisposePtr: invalid cookie!");

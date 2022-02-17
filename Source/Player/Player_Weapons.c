@@ -38,7 +38,7 @@ extern	OGLSetupOutputType		*gGameViewInfoPtr;
 extern	OGLVector3D		gRecentTerrainNormal;
 extern	short			gCurrentPlayerNum,gPlayerMultiPassCount,gNumTotalPlayers;
 extern	PlayerInfoType	gPlayerInfo[];
-extern	u_long			gAutoFadeStatusBits;
+extern	uint32_t			gAutoFadeStatusBits;
 extern	NewParticleGroupDefType	gNewParticleGroupDef;
 extern	int				gGameMode;
 
@@ -138,7 +138,7 @@ short	playerNum = theNode->PlayerNum;
 
 static void VehicleActivatePOW(ObjNode *theVehicle, Boolean forwardThrow)
 {
-u_short		playerNum = theVehicle->PlayerNum;
+uint16_t		playerNum = theVehicle->PlayerNum;
 short		powType;
 
 			/* FIRST CHECK IF JUST DROP A FLAG */

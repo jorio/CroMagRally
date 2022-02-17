@@ -962,7 +962,7 @@ void OGLMatrix4x4_Transpose(const OGLMatrix4x4 *matrix4x4, OGLMatrix4x4 *result)
 {
 OGLMatrix4x4 		source;
 const OGLMatrix4x4	*sourcePtr;
-u_long 				row, column;
+uint32_t 				row, column;
 
 	if (result == matrix4x4)
 	{
@@ -1975,8 +1975,8 @@ float			lX, lY, lZ;				// Local space co-ordinates
 float			hX, hY, hZ, hW;			// Homogeneous co-ordinates
 float			minusHW;				// -hW
 
-u_long		clipFlags;				// Clip in/out tests for point
-u_long		clipCodeAND;			// Clip test for entire object
+uint32_t		clipFlags;				// Clip in/out tests for point
+uint32_t		clipCodeAND;			// Clip test for entire object
 
 long			i;
 float			minX,minY,minZ,maxX,maxY,maxZ;

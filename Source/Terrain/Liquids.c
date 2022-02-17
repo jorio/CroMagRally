@@ -28,7 +28,7 @@ extern	NewObjectDefinitionType	gNewObjectDefinition;
 extern	OGLSetupOutputType		*gGameViewInfoPtr;
 extern	ObjNode				*gPlayerObj;
 extern	Byte				gPlayerMode;
-extern	u_long				gAutoFadeStatusBits;
+extern	uint32_t				gAutoFadeStatusBits;
 extern	ObjNode				*gFirstNodePtr;
 extern	MetaObjectPtr		gBG3DGroupList[MAX_BG3D_GROUPS][MAX_OBJECTS_IN_GROUP];
 extern	int					gTrackNum;

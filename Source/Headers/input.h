@@ -183,8 +183,8 @@ Boolean AreAnyNewKeysPressed(void);
 void InitControlBits(void);
 void GetLocalKeyState(void);
 
-Boolean GetControlState(short player, u_long control);
-Boolean GetControlStateNew(short player, u_long control);
+Boolean GetControlState(short player, uint32_t control);
+Boolean GetControlStateNew(short player, uint32_t control);
 
 void PushKeys(void);
 void PopKeys(void);

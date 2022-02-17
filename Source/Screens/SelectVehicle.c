@@ -295,7 +295,7 @@ OGLColorRGBA		fillColor2 = { .5, .5, .5, 1 };
 OGLVector3D			fillDirection1 = { .9, -.7, -1 };
 OGLVector3D			fillDirection2 = { -1, -.2, -.5 };
 int					i;
-u_long				n;
+uint32_t				n;
 
 	gVehicleName = nil;
 	gSelectedVehicleIndex = 0;
@@ -350,7 +350,7 @@ u_long				n;
 	if (FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":images:VehicleSelectScreen.jpg", &spec))
 		DoFatalAlert("SetupVehicleSelectScreen: background pict not found.");
 
-	gBackgoundPicture = MO_CreateNewObjectOfType(MO_TYPE_PICTURE, (u_long)gGameViewInfoPtr, &spec);
+	gBackgoundPicture = MO_CreateNewObjectOfType(MO_TYPE_PICTURE, (uintptr_t) gGameViewInfoPtr, &spec);
 	if (!gBackgoundPicture)
 		DoFatalAlert("SetupVehicleSelectScreen: MO_CreateNewObjectOfType failed");
 

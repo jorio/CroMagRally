@@ -41,9 +41,9 @@ extern	long			gPrefsFolderDirID,gNumPaths;
 extern	long			gTerrainTileWidth,gTerrainTileDepth,gTerrainUnitWidth,gTerrainUnitDepth,gNumUniqueSuperTiles;
 extern	long			gNumSuperTilesDeep,gNumSuperTilesWide;
 extern	FSSpec			gDataSpec;
-extern	u_long			gScore;
+extern	uint32_t			gScore;
 extern	float			gDemoVersionTimer;
-extern  u_short			**gTileDataHandle;
+extern  uint16_t			**gTileDataHandle;
 extern	float			**gMapYCoords;
 extern	Byte			**gMapSplitMode;
 extern	TerrainItemEntryType 	**gMasterItemList;
@@ -55,7 +55,7 @@ extern  PathDefType	    **gPathList;
 extern	CheckpointDefType	   gCheckpointList[MAX_CHECKPOINTS];
 extern	int				gTrackNum;
 extern	TileAttribType	**gTileAttribList;
-extern	u_short			**gTileGrid;
+extern	uint16_t			**gTileGrid;
 extern	GLuint			gSuperTileTextureNames[MAX_SUPERTILE_TEXTURES];
 extern	PrefsType			gGamePrefs;
 extern	Boolean			gSongPlayingFlag,gSupportsPackedPixels,gLowMemMode,gOSX;
@@ -66,8 +66,8 @@ extern	Boolean			gSongPlayingFlag,gSupportsPackedPixels,gLowMemMode,gOSX;
 
 static void ReadDataFromSkeletonFile(SkeletonDefType *skeleton, FSSpec *fsSpec, int skeletonType, OGLSetupOutputType *setupInfo);
 static void ReadDataFromPlayfieldFile(FSSpec *specPtr);
-static void	ConvertTexture16To24(u_short *textureBuffer2, u_char *textureBuffer3, int width, int height);
-static void	ConvertTexture16To16(u_short *textureBuffer, int width, int height);
+static void	ConvertTexture16To24(uint16_t *textureBuffer2, uint8_t *textureBuffer3, int width, int height);
+static void	ConvertTexture16To16(uint16_t *textureBuffer, int width, int height);
 
 static short InitSavedGamesListBox(Rect *r, WindowPtr myDialog);
 static short UpdateSavedGamesList(void);
@@ -1565,7 +1565,7 @@ Ptr						tempBuffer16 = nil,tempBuffer24 = nil;
 			//
 
 	{
-		u_short	*src;
+		uint16_t	*src;
 
 		hand = GetResource('Layr',1000);
 		if (hand == nil)
@@ -1947,9 +1947,9 @@ Ptr						tempBuffer16 = nil,tempBuffer24 = nil;
 		if (gLowMemMode)
 		{
 			int		x,y;
-			u_short	*src,*dest;
+			uint16_t	*src,*dest;
 
-			dest = src = (u_short *)tempBuffer16;
+			dest = src = (uint16_t *)tempBuffer16;
 
 			for (y = 0; y < SUPERTILE_TEXMAP_SIZE; y+=2)
 			{
@@ -1975,14 +1975,14 @@ Ptr						tempBuffer16 = nil,tempBuffer24 = nil;
 		{
 				/* USE PACKED PIXEL TYPE */
 
-			ConvertTexture16To16((u_short *)tempBuffer16, width, height);
+			ConvertTexture16To16((uint16_t *)tempBuffer16, width, height);
 			gSuperTileTextureNames[i] = OGL_TextureMap_Load(tempBuffer16, width, height, GL_BGRA_EXT, GL_RGBA, GL_UNSIGNED_SHORT_1_5_5_5_REV);
 		}
 		else
 		{
 				/* CONVERT 16-BIT BUFFER TO 24-BIT BUFFER & LOAD INTO OPENGL */
 
-			ConvertTexture16To24((u_short *)tempBuffer16, (u_char *)tempBuffer24, width, height);
+			ConvertTexture16To24((uint16_t *)tempBuffer16, (uint8_t *)tempBuffer24, width, height);
 			gSuperTileTextureNames[i] = OGL_TextureMap_Load(tempBuffer24, width, height, GL_RGB, GL_RGB5, GL_UNSIGNED_BYTE);
 		}
 
@@ -2006,12 +2006,12 @@ Ptr						tempBuffer16 = nil,tempBuffer24 = nil;
 
 /*********************** CONVERT TEXTURE; 16 TO 24 ***********************************/
 
-static void	ConvertTexture16To24(u_short *textureBuffer2, u_char *textureBuffer3, int width, int height)
+static void	ConvertTexture16To24(uint16_t *textureBuffer2, uint8_t *textureBuffer3, int width, int height)
 {
 int		x,y;
-u_short	srcPixel;
-u_long	r,g,b;
-u_char	*dest;
+uint16_t	srcPixel;
+uint32_t	r,g,b;
+uint8_t	*dest;
 
 	textureBuffer3 += (width * 3) * (height - 1);				// flip Y while we do this!
 
@@ -2043,11 +2043,11 @@ u_char	*dest;
 // Simply flips Y since OGL Textures are screwey
 //
 
-static void	ConvertTexture16To16(u_short *textureBuffer, int width, int height)
+static void	ConvertTexture16To16(uint16_t *textureBuffer, int width, int height)
 {
 int		x,y;
-u_short	pixel,*bottom;
-u_short	*dest;
+uint16_t	pixel,*bottom;
+uint16_t	*dest;
 
 	bottom = textureBuffer + ((height - 1) * width);
 

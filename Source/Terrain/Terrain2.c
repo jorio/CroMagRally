@@ -25,14 +25,14 @@ extern	long	gTerrainTileWidth,gTerrainTileDepth;
 extern	long		gMyStartX,gMyStartZ;
 extern	long	gNumSuperTilesDeep,gNumSuperTilesWide;
 extern	long	gTerrainUnitWidth,gTerrainUnitDepth,gNumUniqueSuperTiles;
-extern	u_short	**gPathMap;
+extern	uint16_t	**gPathMap;
 extern	OGLPoint3D	gCoord;
 extern	PlayerInfoType	gPlayerInfo[];
 extern	const float	gOneOver_TERRAIN_POLYGON_SIZE;
 extern	Byte					gMyStartAim;
 extern	OGLVector3D				gRecentTerrainNormal;
 extern	OGLSetupOutputType		*gGameViewInfoPtr;
-extern	u_short					**gTileDataHandle;
+extern	uint16_t					**gTileDataHandle;
 extern  short                   gNumTotalPlayers;
 extern	SuperTileStatus			**gSuperTileStatusGrid;
 extern	int						gGameMode;
@@ -44,7 +44,7 @@ extern	int						gGameMode;
 static void PreloadAllTiles(void);
 static void RestoreItemList(void);
 static Boolean NilAdd(TerrainItemEntryType *itemPtr,long x, long z);
-static void	ShrinkSuperTileTextureMap(const u_short *srcPtr,u_short *destPtr);
+static void	ShrinkSuperTileTextureMap(const uint16_t *srcPtr,uint16_t *destPtr);
 
 
 /****************************/
@@ -379,7 +379,7 @@ Boolean TrackTerrainItem(ObjNode *theNode)
 Boolean SeeIfCoordsOutOfRange(float x, float z, short playerToSkip)
 {
 int			row,col;
-u_short		playerFlags, mask;
+uint16_t		playerFlags, mask;
 
 			/* SEE IF OUT OF RANGE */
 

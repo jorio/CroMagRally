@@ -18,7 +18,7 @@
 
 typedef struct
 {
-	u_long			magicNum;
+	uint32_t		magicNum;
 	Byte			isUsed[MAX_PARTICLES];
 	Byte			type;
 	Byte			flags;
@@ -67,7 +67,7 @@ enum
 
 typedef struct
 {
-	u_long 	magicNum;
+	uint32_t magicNum;
 	Byte 	type;
 	Byte 	flags;
 	float 	gravity;
@@ -104,8 +104,8 @@ void DeleteAllParticleGroups(void);
 short NewParticleGroup(NewParticleGroupDefType *def);
 Boolean AddParticleToGroup(NewParticleDefType *def);
 void MoveParticleGroups(void);
-Boolean VerifyParticleGroupMagicNum(short group, u_long magicNum);
-Boolean ParticleHitObject(ObjNode *theNode, u_short inFlags);
+Boolean VerifyParticleGroupMagicNum(short group, uint32_t magicNum);
+Boolean ParticleHitObject(ObjNode *theNode, uint16_t inFlags);
 void DisposeParticleSystem(void);
 
 void MakePuff(float x, float y, float z);

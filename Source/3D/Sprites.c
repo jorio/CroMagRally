@@ -204,9 +204,9 @@ shrink_it:
 				if (matData.pixelSrcFormat == GL_RGB)
 				{
 					int		x,y;
-					u_char	*src,*dest;
+					uint8_t	*src,*dest;
 
-					dest = src = (u_char *)buffer;
+					dest = src = (uint8_t *)buffer;
 
 					for (y = 0; y < h; y+=2)
 					{
@@ -225,9 +225,9 @@ shrink_it:
 				if (matData.pixelSrcFormat == GL_RGBA)
 				{
 					int		x,y;
-					u_long	*src,*dest;
+					uint32_t	*src,*dest;
 
-					dest = src = (u_long *)buffer;
+					dest = src = (uint32_t *)buffer;
 
 					for (y = 0; y < h; y+=2)
 					{
@@ -248,9 +248,9 @@ shrink_it:
 
 		if (gSupportsPackedPixels && (matData.pixelSrcFormat == GL_RGB) && (matData.pixelDstFormat == GL_RGB5_A1))	// see if convert 24 to 16-bit
 		{
-			u_short	*buff16;
+			uint16_t	*buff16;
 
-			buff16 = (u_short *)AllocPtr(matData.width*matData.height*2);				// alloc buff for 16-bit texture
+			buff16 = (uint16_t *)AllocPtr(matData.width*matData.height*2);				// alloc buff for 16-bit texture
 
 			ConvertTexture24To16(buffer, buff16, matData.width, matData.height);
 			matData.textureName[0] = OGL_TextureMap_Load(buff16, matData.width, matData.height, GL_BGRA_EXT, GL_RGBA, GL_UNSIGNED_SHORT_1_5_5_5_REV); // load 16 as 16
@@ -324,7 +324,7 @@ MOSpriteSetupData	spriteData;
 	spriteData.type 	= newObjDef->type;								// set group subtype
 
 
-	spriteMO = MO_CreateNewObjectOfType(MO_TYPE_SPRITE, (u_long)setupInfo, &spriteData);
+	spriteMO = MO_CreateNewObjectOfType(MO_TYPE_SPRITE, (uintptr_t) setupInfo, &spriteData);
 	if (!spriteMO)
 		DoFatalAlert("MakeSpriteObject: MO_CreateNewObjectOfType failed!");
 
@@ -366,7 +366,7 @@ MOSpriteObject		*spriteMO;
 	spriteData.group	= theNode->Group;							// set group
 	spriteData.type 	= type;										// set group subtype
 
-	spriteMO = MO_CreateNewObjectOfType(MO_TYPE_SPRITE, (u_long)setupInfo, &spriteData);
+	spriteMO = MO_CreateNewObjectOfType(MO_TYPE_SPRITE, (uintptr_t) setupInfo, &spriteData);
 	if (!spriteMO)
 		DoFatalAlert("ModifySpriteObjectFrame: MO_CreateNewObjectOfType failed!");
 
@@ -440,7 +440,7 @@ MOMaterialObject	*m;
 
 /************************** DRAW SPRITE ************************/
 
-void DrawSprite(int	group, int type, float x, float y, float scale, float rot, u_long flags, const OGLSetupOutputType *setupInfo)
+void DrawSprite(int	group, int type, float x, float y, float scale, float rot, uint32_t flags, const OGLSetupOutputType *setupInfo)
 {
 float			spriteAspectRatio;
 float			scaleBasis;
@@ -571,7 +571,7 @@ float				scale,x,letterOffset;
 		spriteData.group	= newObjDef->group;								// set group
 		spriteData.type 	= letter;										// convert letter into a sprite index
 
-		spriteMO = MO_CreateNewObjectOfType(MO_TYPE_SPRITE, (u_long)setupInfo, &spriteData);
+		spriteMO = MO_CreateNewObjectOfType(MO_TYPE_SPRITE, (uintptr_t) setupInfo, &spriteData);
 		if (!spriteMO)
 			DoFatalAlert("MakeFontStringObject: MO_CreateNewObjectOfType failed!");
 

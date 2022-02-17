@@ -59,11 +59,11 @@ typedef struct
 {
 //	NSpMessageHeader	h;
 	float				fps, fpsFrac;
-	u_long				randomSeed;					// simply used for error checking (all machines should have same seed!)
-	u_long				controlBits[MAX_PLAYERS];
-	u_long				controlBitsNew[MAX_PLAYERS];
+	uint32_t				randomSeed;					// simply used for error checking (all machines should have same seed!)
+	uint32_t				controlBits[MAX_PLAYERS];
+	uint32_t				controlBitsNew[MAX_PLAYERS];
 	float				analogSteering[MAX_PLAYERS];
-	u_long				frameCounter;
+	uint32_t				frameCounter;
 }NetHostControlInfoMessageType;
 
 
@@ -73,9 +73,9 @@ typedef struct
 {
 //	NSpMessageHeader	h;
 	short				playerNum;
-	u_long				controlBits;
-	u_long				controlBitsNew;
-	u_long				frameCounter;
+	uint32_t				controlBits;
+	uint32_t				controlBitsNew;
+	uint32_t				frameCounter;
 	float				analogSteering;
 }NetClientControlInfoMessageType;
 

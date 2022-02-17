@@ -83,8 +83,8 @@ static Str31				kJoinDialogLabel = "Choose a Game:";
 //short			gNumRowsInList;
 Str32			gPlayerNameStrings[MAX_PLAYERS];
 
-u_long			gClientSendCounter[MAX_PLAYERS];
-u_long			gHostSendCounter;
+uint32_t			gClientSendCounter[MAX_PLAYERS];
+uint32_t			gHostSendCounter;
 int				gTimeoutCounter;
 
 //NetHostControlInfoMessageType	gHostOutMess;
@@ -1087,7 +1087,7 @@ void ClientReceive_ControlInfoFromHost(void)
 
 NetHostControlInfoMessageType		*mess;
 NSpMessageHeader 					*inMess;
-u_long								tick,i;
+uint32_t								tick,i;
 Boolean								gotIt = false;
 
 
@@ -1208,7 +1208,7 @@ void HostReceive_ControlInfoFromClients(void)
 #if 0
 NetClientControlInfoMessageType		*mess;
 NSpMessageHeader 					*inMess;
-u_long								tick;
+uint32_t								tick;
 Boolean								gotIt = false;
 short								n,i;
 

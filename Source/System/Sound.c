@@ -35,7 +35,7 @@ extern	PrefsType			gGamePrefs;
 
 static short FindSilentChannel(void);
 static short EmergencyFreeChannel(void);
-static void Calc3DEffectVolume(short effectNum, OGLPoint3D *where, float volAdjust, u_long *leftVolOut, u_long *rightVolOut);
+static void Calc3DEffectVolume(short effectNum, OGLPoint3D *where, float volAdjust, uint32_t *leftVolOut, uint32_t *rightVolOut);
 static void UpdateGlobalVolume(void);
 
 
@@ -64,9 +64,9 @@ typedef struct
 
 typedef struct
 {
-	u_short	effectNum;
+	uint16_t	effectNum;
 	float	volumeAdjust;
-	u_long	leftVolume, rightVolume;
+	uint32_t	leftVolume, rightVolume;
 }ChannelInfoType;
 
 static CGrafPtr		gQTDummyPort = nil;
@@ -681,7 +681,7 @@ short PlayEffect3D(short effectNum, OGLPoint3D *where)
 {
 short					theChan;
 Byte					bankNum,soundNum;
-u_long					leftVol, rightVol;
+uint32_t					leftVol, rightVol;
 
 			/* GET BANK & SOUND #'S FROM TABLE */
 
@@ -718,11 +718,11 @@ u_long					leftVol, rightVol;
 // OUTPUT: channel # used to play sound
 //
 
-short PlayEffect_Parms3D(short effectNum, OGLPoint3D *where, u_long rateMultiplier, float volumeAdjust)
+short PlayEffect_Parms3D(short effectNum, OGLPoint3D *where, uint32_t rateMultiplier, float volumeAdjust)
 {
 short			theChan;
 Byte			bankNum,soundNum;
-u_long			leftVol, rightVol;
+uint32_t			leftVol, rightVol;
 
 			/* GET BANK & SOUND #'S FROM TABLE */
 
@@ -758,7 +758,7 @@ u_long			leftVol, rightVol;
 void Update3DSoundChannel(short effectNum, short *channel, OGLPoint3D *where)
 {
 SCStatus		theStatus;
-u_long			leftVol,rightVol;
+uint32_t			leftVol,rightVol;
 short			c;
 
 	c = *channel;
@@ -797,12 +797,12 @@ gone:
 
 /******************** CALC 3D EFFECT VOLUME *********************/
 
-static void Calc3DEffectVolume(short effectNum, OGLPoint3D *where, float volAdjust, u_long *leftVolOut, u_long *rightVolOut)
+static void Calc3DEffectVolume(short effectNum, OGLPoint3D *where, float volAdjust, uint32_t *leftVolOut, uint32_t *rightVolOut)
 {
 float	dist;
 float	refDist,volumeFactor;
-u_long	volume,left,right;
-u_long	maxLeft,maxRight;
+uint32_t	volume,left,right;
+uint32_t	maxLeft,maxRight;
 
 	dist 	= OGLPoint3D_Distance(where, &gEarCoords[0]);		// calc dist to sound for pane 0
 	if (gNumSplitScreenPanes > 1)								// see if other pane is closer (thus louder)
@@ -957,14 +957,14 @@ short PlayEffect(short effectNum)
 // OUTPUT: channel # used to play sound
 //
 
-short  PlayEffect_Parms(short effectNum, u_long leftVolume, u_long rightVolume, unsigned long rateMultiplier)
+short  PlayEffect_Parms(short effectNum, uint32_t leftVolume, uint32_t rightVolume, unsigned long rateMultiplier)
 {
 SndCommand 		mySndCmd;
 SndChannelPtr	chanPtr;
 short			theChan;
 Byte			bankNum,soundNum;
 OSErr			myErr;
-u_long			lv2,rv2;
+uint32_t			lv2,rv2;
 static UInt32          loopStart, loopEnd;
 
 
@@ -1017,7 +1017,7 @@ static UInt32          loopStart, loopEnd;
 
 	mySndCmd.cmd = bufferCmd;										// make it play
 	mySndCmd.param1 = 0;
-	mySndCmd.param2 = ((long)*gSndHandles[bankNum][soundNum])+gSndOffsets[bankNum][soundNum];	// pointer to SoundHeader
+	mySndCmd.ptr = ((Ptr) *gSndHandles[bankNum][soundNum]) + gSndOffsets[bankNum][soundNum];	// pointer to SoundHeader
     SndDoImmediate(chanPtr, &mySndCmd);
 	if (myErr)
 		return(-1);
@@ -1087,11 +1087,11 @@ int		c;
 // Modifies the volume of a currently playing channel
 //
 
-void ChangeChannelVolume(short channel, u_long leftVol, u_long rightVol)
+void ChangeChannelVolume(short channel, uint32_t leftVol, uint32_t rightVol)
 {
 SndCommand 		mySndCmd;
 SndChannelPtr	chanPtr;
-u_long			lv2,rv2;
+uint32_t			lv2,rv2;
 
 	if (channel < 0)									// make sure it's valid
 		return;

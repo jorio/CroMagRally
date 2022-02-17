@@ -13,7 +13,7 @@ typedef struct
 
 typedef struct
 {
-	u_short			type;				// type of fence
+	uint16_t			type;				// type of fence
 	short			numNubs;			// # nubs in fence
 	OGLPoint3D		*nubList;			// pointer to nub list
 	OGLBoundingBox	bBox;				// bounding box of fence area
