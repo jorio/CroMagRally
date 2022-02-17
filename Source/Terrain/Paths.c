@@ -115,7 +115,7 @@ int             j,p;
 
         for (p = 0; p < n; p++)
         {
-			OGLVector2D		v;
+			OGLVector2D		v = {0, 0};
 			float			x,z;
 
         	x 	= pointList[p].x;									// get point coord

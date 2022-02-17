@@ -84,7 +84,7 @@ int	i;
 	CreateCyclorama();
 
 	for (i = 0; i < MAX_POW_TYPES; i++)
-		gAnnouncedPOW[MAX_POW_TYPES] = false;
+		gAnnouncedPOW[i] = false;
 
 	gNumTorches = 0;
 }
