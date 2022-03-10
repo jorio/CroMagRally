@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.13)
+cmake_minimum_required(VERSION 3.16)
 
 set(GAME_TARGET				"CroMagRally")
 set(GAME_VERSION			"1.0.0")
@@ -113,27 +113,12 @@ target_include_directories(${GAME_TARGET} PRIVATE
 target_link_libraries(${GAME_TARGET} ${GAME_LIBRARIES})
 
 #------------------------------------------------------------------------------
-# DEFINES
+# COMPILER/LINKER OPTIONS
 #------------------------------------------------------------------------------
 
 add_compile_definitions(
 	"$<$<CONFIG:DEBUG>:_DEBUG>"
 )
-
-if(WIN32)
-	# On Win32, we need NOGDI and NOUSER to be able to define some Mac functions
-	# whose names are otherwise taken by Windows APIs.
-	target_compile_definitions(${GAME_TARGET} PRIVATE
-		WIN32_LEAN_AND_MEAN
-		NOGDI
-		NOUSER
-		_CRT_SECURE_NO_WARNINGS  # quit whining about snprintf_s
-	)
-endif()
-
-#------------------------------------------------------------------------------
-# COMPILER OPTIONS
-#------------------------------------------------------------------------------
 
 if(NOT MSVC)
 	target_compile_options(${GAME_TARGET} PRIVATE
@@ -153,13 +138,14 @@ if(NOT MSVC)
 		-Wno-unused-label #-------------
 	)
 else()
-	# By default, MSVC may add /EHsc to CMAKE_CXX_FLAGS, which we don't want (we use /EHs below)
-	string(REPLACE "/EHsc" "" CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
-
-	# By default, MSVC may add /W3 to CMAKE_CXX_FLAGS, which we don't want (we use /W4 below)
-	# Note that this is not required with "cmake_minimum_required(VERSION 3.15)" or later
-	string(REPLACE "/W3" "" CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
-	string(REPLACE "/W3" "" CMAKE_C_FLAGS ${CMAKE_C_FLAGS})
+	# On Win32, we need NOGDI and NOUSER to be able to define some Mac functions
+	# whose names are otherwise taken by Windows APIs.
+	target_compile_definitions(${GAME_TARGET} PRIVATE
+		WIN32_LEAN_AND_MEAN
+		NOGDI
+		NOUSER
+		_CRT_SECURE_NO_WARNINGS  # quit whining about snprintf_s
+	)
 
 	target_compile_options(${GAME_TARGET} PRIVATE
 		/EHs	# synchronous exceptions; also, extern "C" functions may throw exceptions
