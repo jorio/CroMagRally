@@ -157,6 +157,10 @@ else()
 		/wd4305 # truncation from double to float
 		/wd5105 # see https://developercommunity.visualstudio.com/t/1249671
 	)
+
+	# Enable console for debug builds
+	set_target_properties(${GAME_TARGET} PROPERTIES LINK_FLAGS_DEBUG "/SUBSYSTEM:CONSOLE")
+	set_target_properties(${GAME_TARGET} PROPERTIES COMPILE_DEFINITIONS_DEBUG "_CONSOLE")
 endif()
 
 #------------------------------------------------------------------------------
