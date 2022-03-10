@@ -14,7 +14,6 @@
 #include "version.h"
 
 #if __APPLE__
-#include "killmacmouseacceleration.h"
 #include <libproc.h>
 #include <unistd.h>
 #endif
@@ -78,14 +77,7 @@ static fs::path FindGameData()
 	return dataPath;
 }
 
-static const char* GetWindowTitle()
-{
-	static char windowTitle[256];
-	snprintf(windowTitle, sizeof(windowTitle), "Cro-Mag Rally %s", PROJECT_VERSION);
-	return windowTitle;
-}
-
-void ParseCommandLine(int argc, const char** argv)
+static void ParseCommandLine(int argc, char** argv)
 {
 #if 0
 	memset(&gCommandLine, 0, sizeof(gCommandLine));
@@ -129,10 +121,8 @@ void ParseCommandLine(int argc, const char** argv)
 #endif
 }
 
-int CommonMain(int argc, const char** argv)
+static void Boot()
 {
-	ParseCommandLine(argc, argv);
-
 	// Start our "machine"
 	Pomme::Init();
 
@@ -153,7 +143,7 @@ int CommonMain(int argc, const char** argv)
 #endif
 
 	gSDLWindow = SDL_CreateWindow(
-			GetWindowTitle(),
+			"Cro-Mag Rally " PROJECT_VERSION,
 			SDL_WINDOWPOS_UNDEFINED,
 			SDL_WINDOWPOS_UNDEFINED,
 			640,
@@ -161,9 +151,6 @@ int CommonMain(int argc, const char** argv)
 			SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_SHOWN);
 	if (!gSDLWindow)
 		throw std::runtime_error("Couldn't create SDL window.");
-
-	// Uncomment to dump the game's resources to a temporary directory.
-	//Pomme_StartDumpingResources("/tmp/BugdomRezDump");
 
 	// Find path to game data folder
 	fs::path dataPath = FindGameData();
@@ -177,21 +164,12 @@ int CommonMain(int argc, const char** argv)
 			SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_WARNING, "Cro-Mag Rally", "Couldn't load gamecontrollerdb.txt!", gSDLWindow);
 		}
 	}
+}
 
-	// Start the game
-	try
-	{
-		GameMain();
-	}
-	catch (Pomme::QuitRequest&)
-	{
-		// no-op, the game may throw this exception to shut us down cleanly
-	}
-
-	// Clean up
+static void Shutdown()
+{
 	Pomme::Shutdown();
-
-	return 0;
+	SDL_Quit();
 }
 
 int main(int argc, char** argv)
@@ -200,17 +178,20 @@ int main(int argc, char** argv)
 	std::string		finalErrorMessage		= "";
 	bool			showFinalErrorMessage	= false;
 
-#if _DEBUG
-	// In debug builds, if CommonMain throws, don't catch.
-	// This way, it's easier to get a clean stack trace.
-	returnCode = CommonMain(argc, const_cast<const char**>(argv));
-#else
-	// In release builds, catch anything that might be thrown by CommonMain
-	// so we can show an error dialog to the user.
 	try
 	{
-		returnCode = CommonMain(argc, const_cast<const char**>(argv));
+		ParseCommandLine(argc, argv);
+		Boot();
+		returnCode = GameMain();
+		Shutdown();
 	}
+	catch (Pomme::QuitRequest&)
+	{
+		// no-op, the game may throw this exception to shut us down cleanly
+	}
+#if !(_DEBUG)
+	// In release builds, catch anything that might be thrown by GameMain
+	// so we can show an error dialog to the user.
 	catch (std::exception& ex)		// Last-resort catch
 	{
 		returnCode = 1;
@@ -223,12 +204,6 @@ int main(int argc, char** argv)
 		finalErrorMessage = "unknown";
 		showFinalErrorMessage = true;
 	}
-#endif
-
-#if __APPLE__
-	// Whether we failed or succeeded, always restore the user's mouse acceleration before exiting.
-	// (NOTE: in debug builds, we might not get here because we don't catch what CommonMain throws.)
-	RestoreMacMouseAcceleration();
 #endif
 
 	if (showFinalErrorMessage)
