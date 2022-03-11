@@ -1184,8 +1184,6 @@ float			screenScaleX,screenScaleY;
 		glDisable(GL_FOG);
 	OGL_DisableLighting();
 	glDisable(GL_CULL_FACE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
 
 			/* GET DIMENSIONAL DATA */
@@ -1214,6 +1212,9 @@ float			screenScaleX,screenScaleY;
 					/* ACTIVATE THE MATERIAL */
 
 			MO_DrawMaterial(picData->materials[i], setupInfo);			// submit material #0
+
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
 			glBegin(GL_QUADS);
 			glTexCoord2f(0,1);	glVertex3f(x, y + yadj,z);
