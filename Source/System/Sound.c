@@ -1121,6 +1121,7 @@ void DoSoundMaintenance(void)
 	}
 
 
+#if 0
 			/* SEE IF CHANGE VOLUME */
 
 	if (GetNewKeyState_Real(kKey_RaiseVolume))
@@ -1142,8 +1143,6 @@ void DoSoundMaintenance(void)
 
 	if (gSongPlayingFlag)
 	{
-		IMPLEMENT_ME_SOFT();
-#if 0
 		if (IsMovieDone(gSongMovie))				// see if the song has completed
 		{
 			if (gLoopSongFlag)						// see if repeat it
@@ -1163,8 +1162,8 @@ void DoSoundMaintenance(void)
 				gMoviesTaskTimer += .15f;
 			}
 		}
-#endif
 	}
+#endif
 
 
 		/* WHILE WE'RE HERE, SEE IF SCALE SCREEN */
