@@ -1,6 +1,6 @@
 {
     "notarize": [{
-        "path": "./dist/CroMagRally-1.0.0-mac.dmg",
+        "path": "./dist/CroMagRally-3.0.0-mac.dmg",
         "bundle_id": "io.jor.cromagrally",
         "staple": true
     }]

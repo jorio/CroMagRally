@@ -1,14 +1,20 @@
 cmake_minimum_required(VERSION 3.16)
 
 set(GAME_TARGET				"CroMagRally")
-set(GAME_VERSION			"1.0.0")
+set(GAME_VERSION			"3.0.0")
 set(GAME_MAC_ICNS			"packaging/${GAME_TARGET}.icns")
 set(GAME_MAC_COPYRIGHT		"© 2000 Pangea Software, Inc.\n© 2022 Iliyas Jorio.")
 set(GAME_MAC_BUNDLE_ID		"io.jor.cromagrally")
 
 set(CMAKE_MODULE_PATH		"${CMAKE_SOURCE_DIR}/cmake")
-set(CMAKE_C_STANDARD		11)
+
 set(CMAKE_CXX_STANDARD		20)
+
+if (${CMAKE_VERSION} VERSION_LESS "3.21")
+	set(CMAKE_C_STANDARD	11)
+else()
+	set(CMAKE_C_STANDARD	17)
+endif()
 
 set(CMAKE_OSX_DEPLOYMENT_TARGET "10.11" CACHE STRING "Minimum OS X deployment version")
 set(CMAKE_OSX_ARCHITECTURES "arm64;x86_64" CACHE STRING "Target macOS architectures")
@@ -63,10 +69,7 @@ set(GAME_ALL_SOURCES
 	${GAME_HEADERS}
 )
 
-#------------------------------------------------------------------------------
-# SOURCE GROUPS
-#------------------------------------------------------------------------------
-
+# Make source groups match file tree
 source_group(TREE ${GAME_SRCDIR} PREFIX "" FILES ${GAME_ALL_SOURCES})
 
 #------------------------------------------------------------------------------
@@ -76,7 +79,7 @@ source_group(TREE ${GAME_SRCDIR} PREFIX "" FILES ${GAME_ALL_SOURCES})
 set(GAME_LIBRARIES
 	Pomme
 	${SDL2_LIBRARIES}
-	${OPENGL_LIBRARIES}
+	OpenGL::GL
 )
 
 if(WIN32)
@@ -105,8 +108,6 @@ target_include_directories(${GAME_TARGET} PRIVATE
 	${SDL2_INCLUDE_DIRS}
 	${OPENGL_INCLUDE_DIR}
 	extern/Pomme/src
-	extern/Pomme/src/QD3D
-	${GAME_SRCDIR}
 	${GAME_SRCDIR}/Headers
 )
 
@@ -119,6 +120,10 @@ target_link_libraries(${GAME_TARGET} ${GAME_LIBRARIES})
 add_compile_definitions(
 	"$<$<CONFIG:DEBUG>:_DEBUG>"
 )
+
+target_compile_definitions(${GAME_TARGET} PRIVATE
+	HQ_TERRAIN=1
+	GL_SILENCE_DEPRECATION)
 
 if(NOT MSVC)
 	target_compile_options(${GAME_TARGET} PRIVATE
@@ -142,9 +147,9 @@ else()
 	# whose names are otherwise taken by Windows APIs.
 	target_compile_definitions(${GAME_TARGET} PRIVATE
 		WIN32_LEAN_AND_MEAN
-		NOGDI
-		NOUSER
-		_CRT_SECURE_NO_WARNINGS  # quit whining about snprintf_s
+		NOGDI						# avoid name clashes with Mac functions
+		NOUSER						# avoid name clashes with Mac functions
+		_CRT_SECURE_NO_WARNINGS		# quit whining about snprintf_s
 	)
 
 	target_compile_options(${GAME_TARGET} PRIVATE
@@ -156,7 +161,12 @@ else()
 		/wd4244 # conversion from double to float
 		/wd4305 # truncation from double to float
 		/wd5105 # see https://developercommunity.visualstudio.com/t/1249671
+		/MP		# multiprocessor build
+		/Zi		# output info to PDB
 	)
+
+	# Let executable be debugged with PDB, even in Release builds
+	target_link_options(${GAME_TARGET} PRIVATE /DEBUG)
 
 	# Enable console for debug builds
 	set_target_properties(${GAME_TARGET} PROPERTIES LINK_FLAGS_DEBUG "/SUBSYSTEM:CONSOLE")
@@ -172,8 +182,8 @@ set_target_properties(${GAME_TARGET} PROPERTIES
 	# MSVC/WIN32
 	#--------------------------------------------------------------------------
 
-	VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
-	VS_DPI_AWARE "PerMonitor"
+	VS_DEBUGGER_WORKING_DIRECTORY		"${CMAKE_SOURCE_DIR}"
+	VS_DPI_AWARE						"PerMonitor"
 
 	#--------------------------------------------------------------------------
 	# APPLE
@@ -211,11 +221,15 @@ if(APPLE)
 	if(NOT "$ENV{CODE_SIGN_IDENTITY}" STREQUAL "")
 		set_target_properties(${GAME_TARGET} PROPERTIES
 			XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY[variant=Release] "$ENV{CODE_SIGN_IDENTITY}"
+			XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY[variant=RelWithDebInfo] "$ENV{CODE_SIGN_IDENTITY}"
 			XCODE_ATTRIBUTE_DEVELOPMENT_TEAM[variant=Release] "$ENV{CODE_SIGN_IDENTITY}"
+			XCODE_ATTRIBUTE_DEVELOPMENT_TEAM[variant=RelWithDebInfo] "$ENV{CODE_SIGN_IDENTITY}"
 
 			# The following is to pass notarization requirements
 			XCODE_ATTRIBUTE_CODE_SIGN_INJECT_BASE_ENTITLEMENTS[variant=Release] "NO"
+			XCODE_ATTRIBUTE_CODE_SIGN_INJECT_BASE_ENTITLEMENTS[variant=RelWithDebInfo] "NO"
 			XCODE_ATTRIBUTE_OTHER_CODE_SIGN_FLAGS[variant=Release] "--options=runtime --timestamp"
+			XCODE_ATTRIBUTE_OTHER_CODE_SIGN_FLAGS[variant=RelWithDebInfo] "--options=runtime --timestamp"
 		)
 		message("Release build will be code signed!")
 	endif()
@@ -242,12 +256,16 @@ else()
 		COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/Data ${APP_PARENT_DIR}/Data)
 endif()
 
-# Copy SDL2 DLLs to output folder on Windows
+# Windows-specific libraries
 if(WIN32)
+	# Copy SDL2 DLLs to output folder on Windows for convenience
 	foreach(DLL ${SDL2_DLLS})
 		add_custom_command(TARGET ${GAME_TARGET} POST_BUILD
 			COMMAND ${CMAKE_COMMAND} -E copy_if_different ${DLL} ${APP_PARENT_DIR})
 	endforeach()
+
+	# When installing (cmake --install), copy Visual Studio redistributable DLLs to install location
+	include(InstallRequiredSystemLibraries)
 endif()
 
 # Copy documentation to output folder

@@ -24,7 +24,9 @@ dist_dir = os.path.abspath("dist")
 
 game_name           = "CroMagRally"  # no spaces
 game_name_human     = "Cro-Mag Rally"  # spaces and other special characters allowed
-game_ver            = "1.0.0"
+game_ver            = "3.0.0"
+
+source_check        = "Source/Screens/SelectVehicle.c"  # some file that's likely to be from the game's source tree
 
 sdl_ver             = "2.0.20"
 appimagetool_ver    = "13"
@@ -174,7 +176,7 @@ def zipdir(zipname, topleveldir, arc_topleveldir):
             for file in files:
                 filepath = os.path.join(root, file)
                 arcpath = os.path.join(arc_topleveldir, filepath[len(topleveldir)+1:])
-                log(F"Zipping: {filepath} --> {arcpath}")
+                log(F"Zipping: {arcpath}")
                 zipf.write(filepath, arcpath)
 
 #----------------------------------------------------------------
@@ -182,7 +184,7 @@ def zipdir(zipname, topleveldir, arc_topleveldir):
 def prepare_dependencies_windows():
     rmtree_if_exists(F"{libs_dir}/SDL2-{sdl_ver}")
 
-    sdl_zip_path = get_package(F"http://libsdl.org/release/SDL2-devel-{sdl_ver}-VC.zip")
+    sdl_zip_path = get_package(F"https://libsdl.org/release/SDL2-devel-{sdl_ver}-VC.zip")
     shutil.unpack_archive(sdl_zip_path, libs_dir)
 
 def prepare_dependencies_macos():
@@ -191,7 +193,7 @@ def prepare_dependencies_macos():
 
     rmtree_if_exists(sdl2_framework_target_path)
 
-    sdl_dmg_path = get_package(F"http://libsdl.org/release/SDL2-{sdl_ver}.dmg")
+    sdl_dmg_path = get_package(F"https://libsdl.org/release/SDL2-{sdl_ver}.dmg")
 
     # Mount the DMG and copy SDL2.framework to extern/
     with tempfile.TemporaryDirectory() as mount_point:
@@ -201,7 +203,6 @@ def prepare_dependencies_macos():
 
     if "CODE_SIGN_IDENTITY" in os.environ:
         call(["codesign", "--force", "--timestamp", "--sign", os.environ["CODE_SIGN_IDENTITY"], sdl2_framework_target_path])
-        call(["codesign", "--force", "--timestamp", "--sign", os.environ["CODE_SIGN_IDENTITY"], F"{sdl2_framework_target_path}/Versions/Current/Frameworks/hidapi.framework"])
     else:
         print("SDL will not be codesigned. Set the CODE_SIGN_IDENTITY environment variable if you want to sign it.")
 
@@ -211,7 +212,7 @@ def prepare_dependencies_linux():
         sdl_build_dir = F"{sdl_source_dir}/build"
         rmtree_if_exists(sdl_source_dir)
 
-        sdl_zip_path = get_package(F"http://libsdl.org/release/SDL2-{sdl_ver}.tar.gz")
+        sdl_zip_path = get_package(F"https://libsdl.org/release/SDL2-{sdl_ver}.tar.gz")
         shutil.unpack_archive(sdl_zip_path, libs_dir)
 
         with chdir(sdl_source_dir):
@@ -241,22 +242,31 @@ def copy_documentation(proj, appdir, full=True):
         for docfile in ["CHANGELOG.md"]:
             shutil.copy(docfile, F"{appdir}/Documentation")
 
-def package_windows(proj):
+def package_windows(proj: Project):
+    release_config = proj.build_configs[0]
+    windows_dlls = ["SDL2.dll", "msvcp140.dll", "vcruntime140.dll", "vcruntime140_1.dll"]
+
+    # Prep DLLs with cmake (copied to {cache_dir}/install/bin)
+    call(["cmake", "--install", proj.dir_name, "--prefix", F"{cache_dir}/install"])
+
     appdir = F"{cache_dir}/{game_name}-{game_ver}"
     rmtree_if_exists(appdir)
     os.makedirs(F"{appdir}", exist_ok=True)
 
-    # Copy executable, libs and assets
-    shutil.copy(F"{proj.dir_name}/Release/{game_name}.exe", appdir)
-    shutil.copy(F"extern/SDL2-{sdl_ver}/lib/x64/SDL2.dll", appdir)
+    # Copy executable, PDB, assets and libs
+    shutil.copy(F"{proj.dir_name}/{release_config}/{game_name}.exe", appdir)
+    shutil.copy(F"{proj.dir_name}/{release_config}/{game_name}.pdb", appdir)
     shutil.copytree("Data", F"{appdir}/Data")
+    for dll in windows_dlls:
+        shutil.copy(F"{cache_dir}/install/bin/{dll}", appdir)
 
     copy_documentation(proj, appdir)
 
     zipdir(F"{dist_dir}/{get_artifact_name()}", appdir, F"{game_name}-{game_ver}")
 
-def package_macos(proj):
-    appdir = F"{proj.dir_name}/Release"
+def package_macos(proj: Project):
+    release_config = proj.build_configs[0]
+    appdir = F"{proj.dir_name}/{release_config}"
 
     # Human-friendly name for .app
     os.rename(F"{appdir}/{game_name}.app", F"{appdir}/{game_name_human}.app")
@@ -319,7 +329,7 @@ if not (args.dependencies or args.configure or args.build or args.package):
     args.package = True
 
 # Make sure we're running from the correct directory...
-if not os.path.exists("Source/Screens/SelectVehicle.c"):  # some file that's likely to be from the game's source tree
+if not os.path.exists(source_check):  # some file that's likely to be from the game's source tree
     die(F"STOP - Please run this script from the root of the {game_name} source repo")
 
 #----------------------------------------------------------------
@@ -334,7 +344,8 @@ if args.A:
     common_gen_args += ["-A", args.A]
 
 if SYSTEM == "Windows":
-
+    # On Windows, ship a PDB file along with the Release build.
+    # Avoid RelWithDebInfo because bottom-of-the-barrel AVs may raise a false positive with such builds.
     projects = [Project(
         dir_name="build-msvc",
         gen_args=common_gen_args,
@@ -346,18 +357,20 @@ elif SYSTEM == "Darwin":
     projects = [Project(
         dir_name="build-xcode",
         gen_args=common_gen_args,
-        build_configs=["Release"],
+        build_configs=["RelWithDebInfo"],
         build_args=["-j", str(NPROC), "-quiet"]
     )]
 
 elif SYSTEM == "Linux":
+    release_config = "RelWithDebInfo"
+
     gen_env = {}
     if not args.system_sdl:
         gen_env["SDL2DIR"] = F"{libs_dir}/SDL2-{sdl_ver}/build"
 
     projects.append(Project(
-        dir_name="build-release",
-        gen_args=common_gen_args + ["-DCMAKE_BUILD_TYPE=Release"],
+        dir_name=F"build-{release_config.lower()}",
+        gen_args=common_gen_args + [F"-DCMAKE_BUILD_TYPE={release_config}"],
         gen_env=gen_env,
         build_args=["-j", str(NPROC)]
     ))
