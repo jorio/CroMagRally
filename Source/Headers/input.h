@@ -153,6 +153,8 @@ Boolean GetNeedState(int needID, int playerID);
 Boolean GetNewNeedState(int needID, int playerID);
 Boolean GetNewNeedStateAnyP(int needID);
 
+float GetAnalogSteering(int playerID);
+
 void TurnOnISp(void);
 void TurnOffISp(void);
 

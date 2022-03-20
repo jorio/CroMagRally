@@ -392,6 +392,58 @@ Boolean AreAnyNewKeysPressed(void)
 
 #pragma mark -
 
+float GetAnalogSteering(int playerID)
+{
+			/****************************/
+			/* SET PLAYER AXIS CONTROLS */
+			/****************************/
+
+	float steer = 0; 											// assume no control input
+
+			/* FIRST CHECK ANALOG AXES */
+
+	if (gSDLController)
+	{
+		Sint16 dxRaw = SDL_GameControllerGetAxis(gSDLController, SDL_CONTROLLER_AXIS_LEFTX);
+
+		steer = dxRaw / 32767.0f;
+
+		if (fabsf(steer) < kJoystickDeadZoneFrac)
+		{
+			steer = 0;
+		}
+		else if (steer < -1.0f)
+		{
+			steer = -1.0f;
+		}
+		else if (steer > 1.0f)
+		{
+			steer = 1.0f;
+		}
+		else
+		{
+			// Avoid magnitude bump when thumbstick is pushed past dead zone:
+			// Bring magnitude from [kJoystickDeadZoneFrac, 1.0] to [0.0, 1.0].
+			steer = (steer - kJoystickDeadZoneFrac) / (1.0f - kJoystickDeadZoneFrac);
+		}
+	}
+
+			/* NEXT CHECK THE DIGITAL KEYS */
+
+	if (GetNeedState(kNeed_Left, playerID))					// is Left Key pressed?
+	{
+		steer = -1.0f;
+	}
+	else if (GetNeedState(kNeed_Right, playerID))			// is Right Key pressed?
+	{
+		steer = 1.0f;
+	}
+
+	return steer;
+}
+
+#pragma mark -
+
 /****************************** SDL JOYSTICK FUNCTIONS ********************************/
 
 static SDL_GameController* TryOpenController(bool showMessage)

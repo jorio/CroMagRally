@@ -152,46 +152,13 @@ void ReadKeyboard(void)
 	DoSDLMaintenance();
 
 
+			/* EMULATE THE ANALOG INPUT FOR STEERING */
 
-#if 0
-				/* SEE IF QUIT GAME */
-
-	if (!gQuitting)
-	{
-		if (GetKeyState_Real(KEY_Q) && GetKeyState_Real(KEY_APPLE))			// see if real key quit
-			CleanQuit();
-	}
-
-
-
-			/* SEE IF DO SAFE PAUSE FOR SCREEN SHOTS */
-
-	if (GetNewKeyState_Real(KEY_F12))
-	{
-		IMPLEMENT_ME_SOFT();
-		Boolean o = gISpActive;
-		TurnOffISp();
-
-		if (gAGLContext)
-			aglSetDrawable(gAGLContext, nil);			// diable gl
-
-		do
-		{
-			EventRecord	e;
-			WaitNextEvent(everyEvent,&e, 0, 0);
-			ReadKeyboard_Real();
-		}while(!GetNewKeyState_Real(KEY_F12));
-		if (o)
-			TurnOnISp();
-
-		if (gAGLContext)
-			aglSetDrawable(gAGLContext, gAGLWin);		// reenable gl
-
-		CalcFramesPerSecond();
-		CalcFramesPerSecond();
-	}
-#endif
+	gPlayerInfo[0].analogSteering = GetAnalogSteering(0);
+	// TODO: analog steering for players 2+
 }
+
+
 
 #if 0
 /********************** MY GET KEYS ******************************/
