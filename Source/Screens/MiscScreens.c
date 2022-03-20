@@ -227,7 +227,7 @@ static void DisplayPicture_Draw(OGLSetupOutputType *info)
 void ShowAgePicture(int age)
 {
 FSSpec	spec;
-Str31	names[NUM_AGES] =
+static const char*	names[NUM_AGES] =
 {
 	":images:Ages:StoneAgeIntro.jpg",
 	":images:Ages:BronzeAgeIntro.jpg",
@@ -353,14 +353,14 @@ static void SetupConqueredScreen(void)
 ObjNode				*newObj;
 FSSpec				spec;
 OGLSetupInputType	viewDef;
-static const Str255	names[] =
+static const char* names[] =
 {
-	":images:Conquered:StoneAge_Conquered.jpg",
-	":images:Conquered:BronzeAge_Conquered.jpg",
-	":images:Conquered:IronAge_Conquered.jpg"
+	":images:Conquered:StoneAgeConquered.png",
+	":images:Conquered:BronzeAgeConquered.png",
+	":images:Conquered:IronAgeConquered.png"
 };
 
-static Str31 age[3] = {"STONE AGE", "BRONZE AGE", "IRON AGE"};
+static const char* age[3] = {"STONE AGE", "BRONZE AGE", "IRON AGE"};
 
 
 	PlaySong(SONG_THEME, true);
@@ -579,7 +579,7 @@ static Str31 age[3] = {"STONE AGE", "BRONZE AGE", "IRON AGE"};
 
 			/* MAKE BACKGROUND PICTURE OBJECT */
 
-	if (FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":images:Conquered:GameCompleted.jpg",&spec))
+	if (FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":images:Conquered:GameCompleted.png",&spec))
 		DoFatalAlert("SetupWinScreen: background pict not found.");
 
 	gBackgoundPicture = MO_CreateNewObjectOfType(MO_TYPE_PICTURE, (uintptr_t) gGameViewInfoPtr, &spec);
