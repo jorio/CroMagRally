@@ -69,6 +69,16 @@ enum
 	NUM_CONTROL_NEEDS
 };
 
+enum
+{
+	kControlBit_ThrowForward  = kNeed_ThrowForward,
+	kControlBit_ThrowBackward = kNeed_ThrowBackward,
+	kControlBit_Brakes        = kNeed_Brakes,
+	kControlBit_CameraMode    = kNeed_CameraMode,
+	kControlBit_Forward       = kNeed_Forward,
+	kControlBit_Backward      = kNeed_Backward,
+};
+
 #if 0
 enum
 {
