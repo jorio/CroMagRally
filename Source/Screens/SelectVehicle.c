@@ -27,6 +27,7 @@
 #include "sprites.h"
 #include "mobjtypes.h"
 #include "bg3d.h"
+#include "localization.h"
 
 extern	float				gFramesPerSecondFrac,gFramesPerSecond;
 extern	WindowPtr			gCoverWindow;
@@ -107,29 +108,6 @@ static ObjNode	*gVehicleObj, *gMeterIcon[NUM_VEHICLE_PARAMETERS];
 static ObjNode	*gVehicleName;
 
 static int		gNumVehiclesToChooseFrom;
-
-static const char* gParmStr[NUM_VEHICLE_PARAMETERS] =
-{
-	"SPEED",
-	"ACCELERATION",
-	"TRACTION",
-	"SUSPENSION"
-};
-
-static const char* gCarNames[MAX_CAR_TYPES] =
-{
-	[CAR_TYPE_MAMMOTH]		= "MAMMOTH MOBILE",
-	[CAR_TYPE_BONEBUGGY]	= "BONE BUGGY",
-	[CAR_TYPE_GEODE]		= "GEODE CRUISER", 
-	[CAR_TYPE_LOG]			= "LOGMOBILE", 
-	[CAR_TYPE_TURTLE]		= "TURTLE TANK",
-	[CAR_TYPE_ROCK]			= "HOT ROCK",
-	[CAR_TYPE_TROJANHORSE]	= "TROJAN HORSE",
-	[CAR_TYPE_OBELISK]		= "OBELISK",
-	[CAR_TYPE_CATAPULT]		= "CATAPULT", 
-	[CAR_TYPE_CHARIOT]		= "CHARIOT",
-	//[CAR_TYPE_SUB]			= "SUBMARINE",  // not shown in-game
-};
 
 int		gVehicleParameters[MAX_CAR_TYPES+1][NUM_VEHICLE_PARAMETERS];					// parameter values 0..7
 int		gDefaultVehicleParameters[MAX_CAR_TYPES+1][NUM_VEHICLE_PARAMETERS] =					// parameter values 0..7
@@ -356,8 +334,7 @@ uint32_t				n;
 
 	for (i = 0; i < NUM_VEHICLE_PARAMETERS; i++)
 	{
-
-		MakeFontStringObject(gParmStr[i], &gNewObjectDefinition, gGameViewInfoPtr, false);
+		MakeFontStringObject(Localize(STR_CAR_STAT_1 + i), &gNewObjectDefinition, gGameViewInfoPtr, false);
 		gNewObjectDefinition.coord.y 	-= LINE_SPACING;
 	}
 
@@ -428,7 +405,7 @@ static void MakeVehicleName(void)
 	gNewObjectDefinition.scale 	    = .6;
 	gNewObjectDefinition.slot 		= SPRITE_SLOT;
 
-	gVehicleName = MakeFontStringObject(gCarNames[gSelectedVehicleIndex], &gNewObjectDefinition, gGameViewInfoPtr, true);
+	gVehicleName = MakeFontStringObject(Localize(STR_CAR_MODEL_1 + gSelectedVehicleIndex), &gNewObjectDefinition, gGameViewInfoPtr, true);
 
 	gVehicleName->ColorFilter.r = .3;
 	gVehicleName->ColorFilter.g = .5;

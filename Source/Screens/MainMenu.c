@@ -28,6 +28,7 @@
 #include "selecttrack.h"
 #include "player.h"
 #include "selectvehicle.h"
+#include "localization.h"
 
 extern	float				gFramesPerSecondFrac,gFramesPerSecond;
 extern	WindowPtr			gCoverWindow;
@@ -81,7 +82,8 @@ enum
 	MENU_ID_MULTIPLAYERGAMETYPE,
 	MENU_ID_1PLAYERGAMETYPE,
 	MENU_ID_TOURNAMENT,
-	MENU_ID_NETGAME
+	MENU_ID_NETGAME,
+	NUM_MENU_IDS
 };
 
 
@@ -97,7 +99,22 @@ static short	gMainMenuSelection,gWhichMenu;
 
 static ObjNode	*gIcons[MAX_LINES];
 
-static short	gNumMenuItems[] = {4,3,4,5 ,2,3,2};
+//static short	gNumMenuItems[] = {4,3,4,5 ,2,3,2};
+
+#define MAX_ITEMS_PER_MENU 8
+
+static int gNumMenuItems = 0;
+
+static const LocStrID gMenuItemStrings[NUM_MENU_IDS][MAX_ITEMS_PER_MENU] =
+{
+	[MENU_ID_TITLE]               = { STR_NEW_GAME, STR_LOAD_GAME, STR_OPTIONS, STR_QUIT, 0 },
+	[MENU_ID_PLAY]                = { STR_1PLAYER, STR_2PLAYER, STR_NET_GAME, 0 },
+	[MENU_ID_OPTIONS]             = { STR_SETTINGS, STR_HELP, STR_CREDITS, STR_PHYSICS_EDITOR, 0 },
+	[MENU_ID_MULTIPLAYERGAMETYPE] = { STR_RACE, STR_KEEP_AWAY_TAG, STR_STAMPEDE_TAG, STR_SURVIVAL, STR_QUEST_FOR_FIRE, 0 },
+	[MENU_ID_1PLAYERGAMETYPE]     = { STR_PRACTICE, STR_TOURNAMENT, 0 },
+	[MENU_ID_TOURNAMENT]          = { STR_STONE_AGE, STR_BRONZE_AGE, STR_IRON_AGE, 0 },
+	[MENU_ID_NETGAME]             = { STR_HOST_NET_GAME, STR_JOIN_NET_GAME, 0 }
+};
 
 static const OGLColorRGBA gMainMenuHiliteColor = {.3,.5,.2,1};
 static const OGLColorRGBA gMainMenuNormalColor = {1,1,1,1};
@@ -231,8 +248,8 @@ OGLVector3D			fillDirection1 = { .9, -.7, -1 };
 OGLVector3D			fillDirection2 = { -1, -.2, -.5 };
 
 
-	if (gOSX)							//------- remove network option from menu
-		gNumMenuItems[MENU_ID_PLAY] = 2;
+//	if (gOSX)							//------- remove network option from menu
+//		gNumMenuItems[MENU_ID_PLAY] = 2;
 
 			/**************/
 			/* SETUP VIEW */
@@ -325,10 +342,21 @@ short	i;
 
 	DeleteAllObjects();
 
+			/* COUNT MENU ITEMS */
+
+	gNumMenuItems = 0;
+	while (gNumMenuItems < MAX_ITEMS_PER_MENU)
+	{
+		if (0 == gMenuItemStrings[menuNum][gNumMenuItems])
+			break;
+		
+		gNumMenuItems++;
+	}
+
 			/* BUILD NEW MENU STRINGS */
 
 	gNewObjectDefinition.coord.x 	= 0;
-	gNewObjectDefinition.coord.y 	= -.1 + (float)gNumMenuItems[menuNum] * LINE_SPACING/2;
+	gNewObjectDefinition.coord.y 	= -.1 + (float)gNumMenuItems * LINE_SPACING/2;
 	gNewObjectDefinition.coord.z 	= 0;
 	gNewObjectDefinition.flags 		= 0;
 	gNewObjectDefinition.slot 		= SPRITE_SLOT;
@@ -336,11 +364,9 @@ short	i;
 	gNewObjectDefinition.rot 		= 0;
 	gNewObjectDefinition.scale 	    = MAINMENU_ICON_SCALE;
 
-	for (i = 0; i < gNumMenuItems[menuNum]; i++)
+	for (i = 0; i < gNumMenuItems; i++)
 	{
-		Str255	s;
-
-		GetIndStringC(s, 1000 + gGamePrefs.language, menuNum * MAX_LINES + i + 1);
+		const char* s = Localize(gMenuItemStrings[menuNum][i]);
 		gIcons[i] = MakeFontStringObject(s, &gNewObjectDefinition, gGameViewInfoPtr, true);
 		gNewObjectDefinition.coord.y 	-= LINE_SPACING;
 
@@ -408,7 +434,7 @@ short	max;
 	if (gWhichMenu == MENU_ID_TOURNAMENT)
 		max = gNumTracksUnlocked[gPlayerSaveData.numAgesCompleted & AGE_MASK_AGE]/3;
 	else
-		max = gNumMenuItems[gWhichMenu];
+		max = gNumMenuItems;
 
 
 
@@ -435,7 +461,7 @@ short	max;
 
 		/* SET APPROPRIATE FRAMES FOR ICONS */
 
-	for (i = 0; i < gNumMenuItems[gWhichMenu]; i++)
+	for (i = 0; i < gNumMenuItems; i++)
 	{
 
 		if (i != gMainMenuSelection)

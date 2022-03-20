@@ -28,6 +28,7 @@
 #include "network.h"
 #include "player.h"
 #include "sprites.h"
+#include "localization.h"
 
 extern	float				gFramesPerSecondFrac,gFramesPerSecond;
 extern	WindowPtr			gCoverWindow;
@@ -111,35 +112,6 @@ enum
 
 static int		gSelectedTrackIndex;
 static ObjNode	*gTrackImageIcon, *gTrackName = nil;
-
-const Str31	gTrackNames[] =
-{
-	"DESERT",
-	"JUNGLE",
-	"GLACIERS",
-
-	"CRETE",
-	"THE GREAT WALL",
-	"GIZA",
-
-	"MEDIEVAL",
-	"VIKING VILLAGE",
-	"ATLANTIS",
-};
-
-
-const Str31	gTrackNamesMP[] =
-{
-	"STONEHENGE",
-	"AZTEC CITY",
-	"COLISEUM",
-	"MAZE",
-	"CELTIC",
-	"TAR PITS",
-	"MOUNT CONGE",
-	"RAMPS",
-};
-
 
 static	short	gNumTracksInSelection;
 static 	short	gBaseTrack;
@@ -319,11 +291,11 @@ static void MakeTrackName(void)
 	{
 		case	GAME_MODE_PRACTICE:
 		case	GAME_MODE_MULTIPLAYERRACE:
-				gTrackName = MakeFontStringObject(gTrackNames[gSelectedTrackIndex], &gNewObjectDefinition, gGameViewInfoPtr, true);
+				gTrackName = MakeFontStringObject(Localize(STR_LEVEL_1 + gSelectedTrackIndex), &gNewObjectDefinition, gGameViewInfoPtr, true);
 				break;
 
 		default:
-				gTrackName = MakeFontStringObject(gTrackNamesMP[gSelectedTrackIndex], &gNewObjectDefinition, gGameViewInfoPtr, true);
+				gTrackName = MakeFontStringObject(Localize(STR_MPLEVEL_1 + gSelectedTrackIndex), &gNewObjectDefinition, gGameViewInfoPtr, true);
 	}
 
 }

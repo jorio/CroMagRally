@@ -31,6 +31,7 @@
 #include "skeletonanim.h"
 #include "skeletonjoints.h"
 #include "sound2.h"
+#include "localization.h"
 
 extern	float				gFramesPerSecondFrac,gFramesPerSecond;
 extern	WindowPtr			gCoverWindow;
@@ -127,7 +128,6 @@ OGLSetupOutputType	*pictureViewInfoPtr = nil;
 	if (doKeyText)
 	{
 		FSSpec	spec2;
-		Str255	s;
 
 		FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":sprites:rockfont.sprites", &spec2);
 		LoadSpriteFile(&spec2, SPRITE_GROUP_FONT, pictureViewInfoPtr);
@@ -141,7 +141,7 @@ OGLSetupOutputType	*pictureViewInfoPtr = nil;
 		gNewObjectDefinition.scale 	    = .3;
 		gNewObjectDefinition.slot 		= SPRITE_SLOT;
 
-		GetIndStringC(s, 4000 + gGamePrefs.language, 1);				// get "PRESS ANY KEY" string
+		const char* s = Localize(STR_PRESS_ANY_KEY);
 		MakeFontStringObject(s, &gNewObjectDefinition, pictureViewInfoPtr, true);
 	}
 
@@ -360,8 +360,6 @@ static const char* names[] =
 	":images:Conquered:IronAgeConquered.png"
 };
 
-static const char* age[3] = {"STONE AGE", "BRONZE AGE", "IRON AGE"};
-
 
 	PlaySong(SONG_THEME, true);
 
@@ -439,10 +437,10 @@ static const char* age[3] = {"STONE AGE", "BRONZE AGE", "IRON AGE"};
 	gNewObjectDefinition.rot 		= 0;
 	gNewObjectDefinition.scale 	    = .9;
 	gNewObjectDefinition.slot 		= PARTICLE_SLOT-1;		// in this rare case we want to draw text before particles
-	MakeFontStringObject(age[gTheAge], &gNewObjectDefinition, gGameViewInfoPtr, true);
+	MakeFontStringObject(Localize(STR_STONE_AGE + gTheAge), &gNewObjectDefinition, gGameViewInfoPtr, true);
 
 	gNewObjectDefinition.coord.y 	= .6;
-	MakeFontStringObject("COMPLETE", &gNewObjectDefinition, gGameViewInfoPtr, true);
+	MakeFontStringObject(Localize(STR_AGE_COMPLETE), &gNewObjectDefinition, gGameViewInfoPtr, true);
 
 }
 

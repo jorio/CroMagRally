@@ -27,6 +27,7 @@
 #include "sprites.h"
 #include "triggers.h"
 #include "sound2.h"
+#include "localization.h"
 
 extern	float					gCurrentAspectRatio,gGlobalTransparency,gFramesPerSecondFrac,gCameraStartupTimer;
 extern	PlayerInfoType			gPlayerInfo[];
@@ -42,7 +43,6 @@ extern	Byte					gActiveSplitScreenMode;
 extern	short					gCapturedFlagCount[],gWhoIsIt,gNumTorches;
 extern	OGLColorRGB				gTagColor;
 extern	Str32					gPlayerNameStrings[MAX_PLAYERS];
-extern	const Str31				gTrackNames[];
 extern	PrefsType			gGamePrefs;
 extern	ObjNode				*gTorchObjs[];
 
@@ -265,8 +265,6 @@ Str255	maps[] =
 
 	if (gIsSelfRunningDemo)
 	{
-		Str255	s;
-
 		gNewObjectDefinition.coord.x 	= 0;
 		gNewObjectDefinition.coord.y 	= -.85;
 		gNewObjectDefinition.coord.z 	= 0;
@@ -276,10 +274,7 @@ Str255	maps[] =
 		gNewObjectDefinition.scale 	    = .3;
 		gNewObjectDefinition.slot 		= SPRITE_SLOT;
 
-		GetIndStringC(s, 4000 + gGamePrefs.language, 1);				// get "PRESS ANY KEY" string
-		MakeFontStringObject(s, &gNewObjectDefinition, gGameViewInfoPtr, true);
-
-
+		MakeFontStringObject(Localize(STR_PRESS_ANY_KEY), &gNewObjectDefinition, gGameViewInfoPtr, true);
 	}
 }
 
@@ -1169,7 +1164,6 @@ float	x,y, scale, spacing;
 void ShowLapNum(short playerNum)
 {
 short	lapNum;
-Str255	s;
 
 	if ((!gPlayerInfo[playerNum].onThisMachine) || gPlayerInfo[playerNum].isComputer)
 		return;
@@ -1192,16 +1186,8 @@ Str255	s;
 		gNewObjectDefinition.scale 	    = .7;
 		gNewObjectDefinition.slot 		= SPRITE_SLOT;
 
-		if (lapNum == 1)
-		{
-			GetIndStringC(s, 6000 + gGamePrefs.language, 1);				// get "LAP 2" string
-			MakeFontStringObject(s, &gNewObjectDefinition, gGameViewInfoPtr, true);
-		}
-		else
-		{
-			GetIndStringC(s, 6000 + gGamePrefs.language, 2);				// get "FINAL LAP" string
-			MakeFontStringObject(s, &gNewObjectDefinition, gGameViewInfoPtr, true);
-		}
+		const char* s = Localize(lapNum == 1 ? STR_LAP_2 : STR_LAP_3);
+		MakeFontStringObject(s, &gNewObjectDefinition, gGameViewInfoPtr, true);
 	}
 }
 
@@ -1336,16 +1322,18 @@ static const float scale[3] =
 	switch(mode)
 	{
 		case	0:
-				gWinLoseString[playerNum] = MakeFontStringObject("ELIMINATED", &gNewObjectDefinition, gGameViewInfoPtr, true);
+				gWinLoseString[playerNum] = MakeFontStringObject(Localize(STR_ELIMINATED), &gNewObjectDefinition, gGameViewInfoPtr, true);
 				break;
 
 		case	1:
-				gWinLoseString[playerNum] = MakeFontStringObject("YOU WIN", &gNewObjectDefinition, gGameViewInfoPtr, true);
+				gWinLoseString[playerNum] = MakeFontStringObject(Localize(STR_YOU_WIN), &gNewObjectDefinition, gGameViewInfoPtr, true);
 				break;
 
 		case	2:
 				if (gNetGameInProgress && (gGameMode != GAME_MODE_CAPTUREFLAG) && (winner != -1))		// if net game & not CTF, then show name of winner
 				{
+					puts("TODO: rework this");
+
 					Str31	s;
 					short	i,n;
 
@@ -1369,7 +1357,7 @@ static const float scale[3] =
 					gWinLoseString[playerNum] = MakeFontStringObject(s, &gNewObjectDefinition, gGameViewInfoPtr, true);
 				}
 				else
-					gWinLoseString[playerNum] = MakeFontStringObject("YOU LOSE", &gNewObjectDefinition, gGameViewInfoPtr, true);
+					gWinLoseString[playerNum] = MakeFontStringObject(Localize(STR_YOU_LOSE), &gNewObjectDefinition, gGameViewInfoPtr, true);
 				break;
 
 	}
@@ -1403,7 +1391,7 @@ static const float scale[3] =
 	gNewObjectDefinition.rot 		= 0;
 	gNewObjectDefinition.scale 	    = scale[gActiveSplitScreenMode];
 
-	newObj = MakeFontStringObject(gTrackNames[gTrackNum], &gNewObjectDefinition, gGameViewInfoPtr, true);
+	newObj = MakeFontStringObject(Localize(STR_LEVEL_1 + gTrackNum), &gNewObjectDefinition, gGameViewInfoPtr, true);
 
 	newObj->ColorFilter.a = 3.5;
 }

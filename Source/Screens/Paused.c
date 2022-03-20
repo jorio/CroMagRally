@@ -24,6 +24,7 @@
 #include "sobjtypes.h"
 #include "sprites.h"
 #include "network.h"
+#include "localization.h"
 
 extern	float				gFramesPerSecondFrac,gFramesPerSecond;
 extern	FSSpec		gDataSpec;
@@ -167,9 +168,7 @@ short	i;
 
 	for (i = 0; i < 3; i++)
 	{
-		Str255	s;
-
-		GetIndStringC(s, 2000 + gGamePrefs.language, i + 1);
+		const char* s = Localize(STR_RESUME_GAME + i);
 
 		gPausedIcons[i] = MakeFontStringObject(s, &gNewObjectDefinition, gGameViewInfoPtr, true);
 		gPausedIcons[i]->ColorFilter.a = 0;

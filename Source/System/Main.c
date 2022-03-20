@@ -42,6 +42,7 @@
 #include "selecttrack.h"
 #include "winners.h"
 #include "sobjtypes.h"
+#include "localization.h"
 
 extern	Boolean			gSongPlayingFlag,gDrawLensFlare,gIsNetworkHost,gIsNetworkClient,gNetGameInProgress,gDisableHiccupTimer,gHideInfobar;
 extern	NewObjectDefinitionType	gNewObjectDefinition;
@@ -202,6 +203,8 @@ uint32_t		seconds, seconds2;
 	InitDefaultPrefs();
 	LoadPrefs(&gGamePrefs);							// attempt to read from prefs file
 
+	LoadLocalizedStrings(gGamePrefs.language);
+
 			/* DO BOOT CHECK FOR SCREEN MODE */
 
 //	DoScreenModeDialog();
@@ -223,34 +226,7 @@ long 		keyboardScript, languageCode;
 
 	memset(&gGamePrefs, 0, sizeof(gGamePrefs));
 
-		/* DETERMINE WHAT LANGUAGE IS ON THIS MACHINE */
-
-//	keyboardScript = GetScriptManagerVariable(smKeyScript);
-//	languageCode = GetScriptVariable(keyboardScript, smScriptLang);
-	languageCode = langEnglish;
-
-	switch(languageCode)
-	{
-		case	langFrench:
-				gGamePrefs.language 			= LANGUAGE_FRENCH;
-				break;
-
-		case	langGerman:
-				gGamePrefs.language 			= LANGUAGE_GERMAN;
-				break;
-
-		case	langSpanish:
-				gGamePrefs.language 			= LANGUAGE_SPANISH;
-				break;
-
-		case	langItalian:
-				gGamePrefs.language 			= LANGUAGE_ITALIAN;
-				break;
-
-		default:
-				gGamePrefs.language 			= LANGUAGE_ENGLISH;
-	}
-
+	gGamePrefs.language				= GetBestLanguageIDFromSystemLocale();
 	gGamePrefs.difficulty			= DIFFICULTY_MEDIUM;
 	gGamePrefs.desiredSplitScreenMode	= SPLITSCREEN_MODE_VERT;
 	gGamePrefs.showScreenModeDialog = true;

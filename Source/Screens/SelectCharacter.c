@@ -26,6 +26,7 @@
 #include "mobjtypes.h"
 #include "bg3d.h"
 #include "skeletonanim.h"
+#include "localization.h"
 
 extern	float				gFramesPerSecondFrac,gFramesPerSecond;
 extern	WindowPtr			gCoverWindow;
@@ -260,11 +261,11 @@ ObjNode	*newObj;
 	gNewObjectDefinition.coord.y 	= .8;
 	gNewObjectDefinition.scale 	    = .6;
 	gNewObjectDefinition.slot 		= 0;
-	MakeFontStringObject("BROG", &gNewObjectDefinition, gGameViewInfoPtr, true);
+	MakeFontStringObject(Localize(STR_BROG), &gNewObjectDefinition, gGameViewInfoPtr, true);
 
 	gNewObjectDefinition.coord.x 	= .43;
 	gNewObjectDefinition.coord.y 	= .8;
-	MakeFontStringObject("GRAG", &gNewObjectDefinition, gGameViewInfoPtr, true);
+	MakeFontStringObject(Localize(STR_GRAG), &gNewObjectDefinition, gGameViewInfoPtr, true);
 
 }
 
