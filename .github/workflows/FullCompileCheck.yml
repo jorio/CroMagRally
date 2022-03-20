@@ -6,6 +6,7 @@ jobs:
   full-compile-check:
     name: ${{ matrix.platform.name }}
     runs-on: ${{ matrix.platform.os }}
+    timeout-minutes: 5
 
     strategy:
       fail-fast: false
