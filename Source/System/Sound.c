@@ -35,7 +35,7 @@ extern	PrefsType			gGamePrefs;
 
 static short FindSilentChannel(void);
 static short EmergencyFreeChannel(void);
-static void Calc3DEffectVolume(short effectNum, OGLPoint3D *where, float volAdjust, uint32_t *leftVolOut, uint32_t *rightVolOut);
+static void Calc3DEffectVolume(short effectNum, const OGLPoint3D *where, float volAdjust, uint32_t *leftVolOut, uint32_t *rightVolOut);
 static void UpdateGlobalVolume(void);
 
 
@@ -640,7 +640,7 @@ void ToggleMusic(void)
 // OUTPUT: channel # used to play sound
 //
 
-short PlayEffect3D(short effectNum, OGLPoint3D *where)
+short PlayEffect3D(short effectNum, const OGLPoint3D *where)
 {
 short					theChan;
 Byte					bankNum,soundNum;
@@ -681,7 +681,7 @@ uint32_t					leftVol, rightVol;
 // OUTPUT: channel # used to play sound
 //
 
-short PlayEffect_Parms3D(short effectNum, OGLPoint3D *where, uint32_t rateMultiplier, float volumeAdjust)
+short PlayEffect_Parms3D(short effectNum, const OGLPoint3D *where, uint32_t rateMultiplier, float volumeAdjust)
 {
 short			theChan;
 Byte			bankNum,soundNum;
@@ -718,7 +718,7 @@ uint32_t			leftVol, rightVol;
 
 /************************* UPDATE 3D SOUND CHANNEL ***********************/
 
-void Update3DSoundChannel(short effectNum, short *channel, OGLPoint3D *where)
+void Update3DSoundChannel(short effectNum, short *channel, const OGLPoint3D *where)
 {
 SCStatus		theStatus;
 uint32_t			leftVol,rightVol;
@@ -760,7 +760,7 @@ gone:
 
 /******************** CALC 3D EFFECT VOLUME *********************/
 
-static void Calc3DEffectVolume(short effectNum, OGLPoint3D *where, float volAdjust, uint32_t *leftVolOut, uint32_t *rightVolOut)
+static void Calc3DEffectVolume(short effectNum, const OGLPoint3D *where, float volAdjust, uint32_t *leftVolOut, uint32_t *rightVolOut)
 {
 float	dist;
 float	refDist,volumeFactor;

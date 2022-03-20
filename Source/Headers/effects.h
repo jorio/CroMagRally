@@ -111,18 +111,18 @@ void DisposeParticleSystem(void);
 void MakePuff(float x, float y, float z);
 void MakeSparkExplosion(float x, float y, float z, float force, short sparkTexture);
 
-void MakeBombExplosion(ObjNode *theBomb, float x, float z, OGLVector3D *delta);
+void MakeBombExplosion(ObjNode *theBomb, float x, float z, const OGLVector3D *delta);
 void MakeShockwave(float x, float y, float z);
 void MakeConeBlast(float x, float y, float z);
 void MakeSplash(float x, float y, float z);
 
 void MakeSnow(void);
-void MakeSnowExplosion(OGLPoint3D *where);
+void MakeSnowExplosion(const OGLPoint3D *where);
 void MakeSnowShockwave(float x, float y, float z);
 
 void BurnFire(ObjNode *theNode, float x, float y, float z, Boolean doSmoke, short particleType, float scale);
 
-void MakeBubbles(ObjNode *theNode, OGLPoint3D *coord, float fadeRate, float scale);
+void MakeBubbles(ObjNode *theNode, const OGLPoint3D *coord, float fadeRate, float scale);
 
 void MakeFireExplosion(float x, float z, OGLVector3D *delta);
 Boolean AddBubbleGenerator(TerrainItemEntryType *itemPtr, long  x, long z);

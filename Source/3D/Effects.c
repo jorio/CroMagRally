@@ -59,7 +59,7 @@ static void DrawParticleGroup(ObjNode *theNode, OGLSetupOutputType *setupInfo);
 static void MoveSnowShockwave(ObjNode *theNode);
 
 static void MoveLavaGenerator(ObjNode *theNode);
-static void MakeLava(ObjNode *theNode, OGLPoint3D *coord);
+static void MakeLava(ObjNode *theNode, const OGLPoint3D *coord);
 
 
 static void MoveBubbleGenerator(ObjNode *theNode);
@@ -940,14 +940,12 @@ NewParticleDefType		newParticleDef;
 
 /************** MAKE BOMB EXPLOSION *********************/
 
-void MakeBombExplosion(ObjNode *theBomb, float x, float z, OGLVector3D *delta)
+void MakeBombExplosion(ObjNode *theBomb, float x, float z, const OGLVector3D *delta)
 {
-long					pg,i;
+long					pg;
 OGLVector3D				d;
 OGLPoint3D				pt;
 NewParticleDefType		newParticleDef;
-float					y;
-float					dx,dz;
 OGLPoint3D				where;
 ObjNode					*whoThrew;
 short					p;
@@ -974,18 +972,14 @@ short					p;
 	pg = NewParticleGroup(&gNewParticleGroupDef);
 	if (pg != -1)
 	{
-		x = where.x;
-		y = where.y;
-		z = where.z;
-		dx = delta->x * .2f;
-		dz = delta->z * .2f;
+		float dx = delta->x * .2f;
+		float dz = delta->z * .2f;
 
-
-		for (i = 0; i < 100; i++)
+		for (int i = 0; i < 100; i++)
 		{
-			pt.x = x + (RandomFloat()-.5f) * 200.0f;
-			pt.y = y + RandomFloat() * 60.0f;
-			pt.z = z + (RandomFloat()-.5f) * 200.0f;
+			pt.x = where.x + (RandomFloat()-.5f) * 200.0f;
+			pt.y = where.y + RandomFloat() * 60.0f;
+			pt.z = where.z + (RandomFloat()-.5f) * 200.0f;
 
 			d.y = RandomFloat() * 1000.0f;
 			d.x = (RandomFloat()-.5f) * d.y * 3.0f + dx;
@@ -1007,8 +1001,8 @@ short					p;
 		/* MAKE SHOCKWAVES */
 		/*******************/
 
-	MakeShockwave(x,y+100.0f,z);
-	MakeConeBlast(x, y, z);
+	MakeShockwave(where.x, where.y+100.0f, where.z);
+	MakeConeBlast(where.x, where.y, where.z);
 
 	PlayEffect_Parms3D(EFFECT_BOOM, &where, NORMAL_CHANNEL_RATE, 6);
 
@@ -1026,7 +1020,7 @@ short					p;
 	else
 		p = -1;
 
-	BlastCars(p, x, y, z, BONEBOMB_BLAST_RADIUS);
+	BlastCars(p, where.x, where.y, where.z, BONEBOMB_BLAST_RADIUS);
 
 }
 
@@ -1275,13 +1269,12 @@ short				p;
 
 /************** MAKE SNOW EXPLOSION *********************/
 
-void MakeSnowExplosion(OGLPoint3D *where)
+void MakeSnowExplosion(const OGLPoint3D *where)
 {
 long					pg,i;
 OGLVector3D				d;
 OGLPoint3D				pt;
 NewParticleDefType		newParticleDef;
-float					x,y,z;
 
 
 		/*************/
@@ -1302,15 +1295,11 @@ float					x,y,z;
 	pg = NewParticleGroup(&gNewParticleGroupDef);
 	if (pg != -1)
 	{
-		x = where->x;
-		y = where->y;
-		z = where->z;
-
 		for (i = 0; i < 240; i++)
 		{
-			pt.x = x + RandomFloat2() * 200.0f;
-			pt.y = y + RandomFloat2() * 200.0f;
-			pt.z = z + RandomFloat2() * 200.0f;
+			pt.x = where->x + RandomFloat2() * 200.0f;
+			pt.y = where->y + RandomFloat2() * 200.0f;
+			pt.z = where->z + RandomFloat2() * 200.0f;
 
 			d.y = RandomFloat2() * 700.0f;
 			d.x = RandomFloat2() * 700.0f;
@@ -1332,7 +1321,7 @@ float					x,y,z;
 		/* MAKE SHOCKWAVE */
 		/******************/
 
-	MakeSnowShockwave(x,y,z);
+	MakeSnowShockwave(where->x, where->y, where->z);
 
 	PlayEffect_Parms3D(EFFECT_BOOM, where, NORMAL_CHANNEL_RATE, 4);
 
@@ -1578,7 +1567,7 @@ OGLPoint3D			p;
 
 /****************** MAKE BUBBLES ************************/
 
-void MakeBubbles(ObjNode *theNode, OGLPoint3D *coord, float fadeRate, float scale)
+void MakeBubbles(ObjNode *theNode, const OGLPoint3D *coord, float fadeRate, float scale)
 {
 int		i;
 float	fps = gFramesPerSecondFrac;
@@ -1649,12 +1638,10 @@ float				x,y,z;
 
 void MakeFireExplosion(float x, float z, OGLVector3D *delta)
 {
-long					pg,i;
+long					pg;
 OGLVector3D				d;
 OGLPoint3D				pt;
 NewParticleDefType		newParticleDef;
-float					y;
-float					dx,dz;
 OGLPoint3D				where;
 
 	where.x = x;
@@ -1679,18 +1666,14 @@ OGLPoint3D				where;
 	pg = NewParticleGroup(&gNewParticleGroupDef);
 	if (pg != -1)
 	{
-		x = where.x;
-		y = where.y;
-		z = where.z;
-		dx = delta->x * .2f;
-		dz = delta->z * .2f;
+		float dx = delta->x * .2f;
+		float dz = delta->z * .2f;
 
-
-		for (i = 0; i < 100; i++)
+		for (int i = 0; i < 100; i++)
 		{
-			pt.x = x + (RandomFloat()-.5f) * 200.0f;
-			pt.y = y + RandomFloat() * 60.0f;
-			pt.z = z + (RandomFloat()-.5f) * 200.0f;
+			pt.x = where.x + (RandomFloat()-.5f) * 200.0f;
+			pt.y = where.y + RandomFloat() * 60.0f;
+			pt.z = where.z + (RandomFloat()-.5f) * 200.0f;
 
 			d.y = RandomFloat() * 1000.0f;
 			d.x = (RandomFloat()-.5f) * d.y * 3.0f + dx;
@@ -1712,13 +1695,13 @@ OGLPoint3D				where;
 		/* MAKE SHOCKWAVES */
 		/*******************/
 
-	MakeConeBlast(x, y, z);
+	MakeConeBlast(where.x, where.y, where.z);
 	PlayEffect_Parms3D(EFFECT_BOOM, &where, NORMAL_CHANNEL_RATE * 3/2, 3);
 
 
 		/* SEE IF IT HIT ANY CARS */
 
-	BlastCars(-1, x, y, z, FIRE_BLAST_RADIUS);
+	BlastCars(-1, where.x, where.y, where.z, FIRE_BLAST_RADIUS);
 
 }
 
@@ -1891,7 +1874,7 @@ ObjNode	*obj;
 
 /****************** MAKE LAVA ************************/
 
-static void MakeLava(ObjNode *theNode, OGLPoint3D *coord)
+static void MakeLava(ObjNode *theNode, const OGLPoint3D *coord)
 {
 int		i;
 float	fps = gFramesPerSecondFrac;
