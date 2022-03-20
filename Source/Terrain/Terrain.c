@@ -111,7 +111,6 @@ static Handle	gTerrainTextureBuffers[MAX_SUPERTILES][2];
 
 
 TileAttribType	**gTileAttribList = nil;
-uint8_t			gTileAttribParm[3];
 
 
 			/* TILE SPLITTING TABLES */
@@ -1244,9 +1243,11 @@ int		row,col;
 	tile = gTileGrid[row][col];									// get tile data from map
 
 	flags = (*gTileAttribList)[tile].flags;						// get attribute flags
+#if 0
 	gTileAttribParm[0] = (*gTileAttribList)[tile].parm[0];		// and parameters
 	gTileAttribParm[1] = (*gTileAttribList)[tile].parm[1];
 	gTileAttribParm[2] = (*gTileAttribList)[tile].parm[2];
+#endif
 
 
 	return(flags);

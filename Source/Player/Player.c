@@ -380,7 +380,6 @@ Boolean	taken[MAX_CAR_TYPES];
 /********* SET PLAYER PARMS FROM TILE ATTRIBUTES *****************/
 //
 // INPUT: 	flags = tile attribute flags
-//			gTileAttribParm[3] = byte values
 //
 
 void SetPlayerParmsFromTileAttributes(short playerNum, uint16_t flags)

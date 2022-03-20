@@ -52,7 +52,6 @@ extern	PlayerInfoType			gPlayerInfo[];
 extern	Boolean					gNetGameInProgress,gTrackCompleted, gAutoPilot, gNoCarControls;
 extern	int						gNumSplitScreenPanes,gGameMode;
 extern	int						gVehicleParameters[MAX_CAR_TYPES][NUM_VEHICLE_PARAMETERS];
-extern	uint8_t					gTileAttribParm[2];
 extern	ParticleGroupType		*gParticleGroups[];
 extern	short				gWhoIsIt, gWhoWasIt, gPlayerMultiPassCount;
 extern	float				gReTagTimer;

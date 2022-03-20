@@ -55,7 +55,6 @@ extern	Boolean					gNetGameInProgress,gTrackCompleted,gIsSelfRunningDemo;
 extern	int						gNumSplitScreenPanes,gGameMode,gTrackNum,gTheAge;
 extern	int						gVehicleParameters[MAX_CAR_TYPES][NUM_VEHICLE_PARAMETERS];
 extern	int						gDefaultVehicleParameters[MAX_CAR_TYPES][NUM_VEHICLE_PARAMETERS];
-extern	uint8_t					gTileAttribParm[2];
 extern	ParticleGroupType		*gParticleGroups[];
 extern	short				gWhoIsIt, gWhoWasIt;
 extern	float				gReTagTimer;
