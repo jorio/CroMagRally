@@ -455,12 +455,11 @@ short	i;
 
 	for (i = 0; i < NUM_CONTROL_BITS; i++)
 	{
-#if 0
-		if (GetKeyState(gControlBitToKey[i][secondaryControls]))	// see if key is down
+		if (secondaryControls)
+			puts("TODO: Secondary Controls");
+		
+		if (GetNeedState(i, playerNum))								// see if key is down
 			gPlayerInfo[playerNum].controlBits |= mask;				// set bit in bitfield
-#else
-		puts("TODO");
-#endif
 
 		mask <<= 1;													// shift bit to next position
 	}

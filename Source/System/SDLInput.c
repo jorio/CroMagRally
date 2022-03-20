@@ -355,7 +355,7 @@ Boolean GetKeyState(uint16_t sdlScancode)
 {
 	if (sdlScancode >= SDL_NUM_SCANCODES)
 		return false;
-	return gRawKeyboardState[sdlScancode];
+	return 0 != (gRawKeyboardState[sdlScancode] & KEYSTATE_ACTIVE_BIT);
 }
 
 Boolean GetNewKeyState(uint16_t sdlScancode)
@@ -366,6 +366,12 @@ Boolean GetNewKeyState(uint16_t sdlScancode)
 }
 
 #pragma mark -
+
+Boolean GetNeedState(int needID, int playerID)
+{
+	GAME_ASSERT_MESSAGE(playerID == 0, "TODO: Implement player 2 input");
+	return 0 != (gNeedStates[needID] & KEYSTATE_ACTIVE_BIT);
+}
 
 Boolean GetNewNeedState(int needID, int playerID)
 {
