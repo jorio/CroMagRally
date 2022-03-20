@@ -48,7 +48,7 @@ SkeletonObjDataType	*gCurrentSkelObjData;
 
 static	OGLMatrix4x4		gMatrix;
 
-static	OGLBoundingBox		gBBox = {0,0,0, 0,0,0, false};
+static	OGLBoundingBox		gBBox = {{0,0,0}, {0,0,0}, false};
 
 static	OGLVector3D			gTransformedNormals[MAX_DECOMPOSED_NORMALS];	// temporary buffer for holding transformed normals before they're applied to their trimeshes
 

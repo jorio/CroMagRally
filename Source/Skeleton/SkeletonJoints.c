@@ -53,7 +53,7 @@ static void MakeJointTransforms(SkeletonObjDataType *skeleton);
 void UpdateJointTransforms(SkeletonObjDataType *skeleton,long jointNum)
 {
 OGLMatrix4x4			matrix1;
-static OGLMatrix4x4		matrix2 = {0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,1};
+static OGLMatrix4x4		matrix2 = {{0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,1}};
 OGLMatrix4x4			*destMatPtr;
 const JointKeyframeType	*kfPtr;
 

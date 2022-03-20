@@ -330,43 +330,34 @@ Boolean AddTree(TerrainItemEntryType *itemPtr, long  x, long z)
 ObjNode	*newObj;
 static const short types[NUM_TRACKS][4] =
 {
-	0,0,0,0,			// desert
-	JUNGLE_ObjType_Tree1,JUNGLE_ObjType_Tree2,JUNGLE_ObjType_Tree3,JUNGLE_ObjType_Tree3,			// jungle
-	ICE_ObjType_Tree,0,0,0,			// ice
-
-	CRETE_ObjType_TallTree,CRETE_ObjType_WideTree,0,0,			// crete
-	0,0,0,0,			// china
-	0,0,0,0,			// egypt
-
-	EUROPE_ObjType_TallPine,EUROPE_ObjType_WidePine,0,0,			// europe
-	SCANDINAVIA_ObjType_TallPine,SCANDINAVIA_ObjType_WidePine,0,0,			// scandinavia
-	0,0,0,0,			// atlantis
-
-	0,0,0,0,			// stonehenge
-	AZTEC_ObjType_Tree,0,0,0,			// aztec
-	0,0,0,0,			// coliseum
-
-
+	[TRACK_NUM_DESERT]      = {0,0,0,0},
+	[TRACK_NUM_JUNGLE]      = {JUNGLE_ObjType_Tree1,JUNGLE_ObjType_Tree2,JUNGLE_ObjType_Tree3,JUNGLE_ObjType_Tree3},
+	[TRACK_NUM_ICE]         = {ICE_ObjType_Tree,0,0,0},
+	[TRACK_NUM_CRETE]       = {CRETE_ObjType_TallTree,CRETE_ObjType_WideTree,0,0},
+	[TRACK_NUM_CHINA]       = {0,0,0,0},
+	[TRACK_NUM_EGYPT]       = {0,0,0,0},
+	[TRACK_NUM_EUROPE]      = {EUROPE_ObjType_TallPine,EUROPE_ObjType_WidePine,0,0},
+	[TRACK_NUM_SCANDINAVIA] = {SCANDINAVIA_ObjType_TallPine,SCANDINAVIA_ObjType_WidePine,0,0},
+	[TRACK_NUM_ATLANTIS]    = {0,0,0,0},
+	[TRACK_NUM_STONEHENGE]  = {0,0,0,0},
+	[TRACK_NUM_AZTEC]       = {AZTEC_ObjType_Tree,0,0,0},
+	[TRACK_NUM_COLISEUM]    = {0,0,0,0},
 };
 
 static const short aimAtPlayer[NUM_TRACKS][4] =
 {
-	0,0,0,0,			// desert
-	false,false,false,true,			// jungle
-	false,0,0,0,			// ice
-
-	false,false,0,0,			// crete
-	0,0,0,0,			// china
-	0,0,0,0,			// egypt
-
-	0,0,0,0,			// europe
-	0,0,0,0,			// scandinavia
-	0,0,0,0,			// atlantis
-
-	0,0,0,0,			// stonehenge
-	false,0,0,0,			// aztec
-	0,0,0,0,			// coliseum
-
+	[TRACK_NUM_DESERT]      = {0,0,0,0},
+	[TRACK_NUM_JUNGLE]      = {false,false,false,true},
+	[TRACK_NUM_ICE]         = {false,0,0,0},
+	[TRACK_NUM_CRETE]       = {false,false,0,0},
+	[TRACK_NUM_CHINA]       = {0,0,0,0},
+	[TRACK_NUM_EGYPT]       = {0,0,0,0},
+	[TRACK_NUM_EUROPE]      = {0,0,0,0},
+	[TRACK_NUM_SCANDINAVIA] = {0,0,0,0},
+	[TRACK_NUM_ATLANTIS]    = {0,0,0,0},
+	[TRACK_NUM_STONEHENGE]  = {0,0,0,0},
+	[TRACK_NUM_AZTEC]       = {false,0,0,0},
+	[TRACK_NUM_COLISEUM]    = {0,0,0,0},
 };
 
 Boolean	isSolid = itemPtr->parm[3] & 1;
@@ -490,53 +481,89 @@ Boolean AddPillar(TerrainItemEntryType *itemPtr, long  x, long z)
 ObjNode	*newObj;
 static const ColumnInfo info[NUM_TRACKS] =
 {
-	DESERT_ObjType_RockColumn1,DESERT_ObjType_RockColumn2,DESERT_ObjType_RockColumn3,0,			// desert
-	1,1,.9,1,
-	1,1,1,1,
+	[TRACK_NUM_DESERT] =
+	{
+		{DESERT_ObjType_RockColumn1,DESERT_ObjType_RockColumn2,DESERT_ObjType_RockColumn3,0},
+		{1,1,.9,1},
+		{1,1,1,1},
+	},
 
-	0,0,0,0,																					// jungle
-	1,1,1,1,
-	1,1,1,1,
+	[TRACK_NUM_JUNGLE] =
+	{
+		{0,0,0,0},
+		{1,1,1,1},
+		{1,1,1,1},
+	},
 
-	0,0,0,0,																					// ice
-	1,1,1,1,
-	1,1,1,1,
+	[TRACK_NUM_ICE] =
+	{
+		{0,0,0,0},
+		{1,1,1,1},
+		{1,1,1,1},
+	},
 
-	CRETE_ObjType_Column1,CRETE_ObjType_Column2,CRETE_ObjType_Column3,CRETE_ObjType_Column1,	// crete
-	1,1,.8,1,
-	1,1,1,1,
+	[TRACK_NUM_CRETE] =
+	{
+		{CRETE_ObjType_Column1,CRETE_ObjType_Column2,CRETE_ObjType_Column3,CRETE_ObjType_Column1},
+		{1,1,.8,1},
+		{1,1,1,1},
+	},
 
-	0,0,0,0,																					// china
-	1,1,1,1,
-	1,1,1,1,
+	[TRACK_NUM_CHINA] =
+	{
+		{0,0,0,0},
+		{1,1,1,1},
+		{1,1,1,1},
+	},
 
-	EGYPT_ObjType_Pillar,EGYPT_ObjType_Obelisk,0,0,												// egypt
-	.9,1,1,1,
-	1,1,1,1,
+	[TRACK_NUM_EGYPT] =
+	{
+		{EGYPT_ObjType_Pillar,EGYPT_ObjType_Obelisk,0,0},
+		{.9,1,1,1},
+		{1,1,1,1},
+	},
 
-	0,0,0,0,																					// europe
-	1,1,1,1,
-	1,1,1,1,
+	[TRACK_NUM_EUROPE] =
+	{
+		{0,0,0,0},
+		{1,1,1,1},
+		{1,1,1,1},
+	},
 
-	SCANDINAVIA_ObjType_LookoutTower,0,0,0,														// scandinavia
-	1,1,1,1,
-	1,1,1,1,
+	[TRACK_NUM_SCANDINAVIA] =
+	{
+		{SCANDINAVIA_ObjType_LookoutTower,0,0,0},
+		{1,1,1,1},
+		{1,1,1,1},
+	},
 
-	ATLANTIS_ObjType_Tower,ATLANTIS_ObjType_Column1,ATLANTIS_ObjType_Column2,0,					// atlantis
-	1,.6,.6,1,
-	.5,1,1,1,
+	[TRACK_NUM_ATLANTIS] =
+	{
+		{ATLANTIS_ObjType_Tower,ATLANTIS_ObjType_Column1,ATLANTIS_ObjType_Column2,0},
+		{1,.6,.6,1},
+		{.5,1,1,1},
+	},
 
-	0,0,0,0,																					// TRACK_NUM_STONEHENGE
-	1,1,1,1,
-	1,1,1,1,
+	[TRACK_NUM_STONEHENGE] =
+	{
+		{0,0,0,0},
+		{1,1,1,1},
+		{1,1,1,1},
+	},
 
-	0,0,0,0,																					// TRACK_NUM_AZTEC
-	1,1,1,1,
-	1,1,1,1,
+	[TRACK_NUM_AZTEC] =
+	{
+		{0,0,0,0},
+		{1,1,1,1},
+		{1,1,1,1},
+	},
 
-	COLISEUM_ObjType_Column,0,0,0,																// TRACK_NUM_COLISEUM
-	.9,1,1,1,
-	1,1,1,1,
+	[TRACK_NUM_COLISEUM] =
+	{
+		{COLISEUM_ObjType_Column,0,0,0},
+		{.9,1,1,1},
+		{1,1,1,1},
+	},
 };
 
 Boolean	notSolid = itemPtr->parm[3] & 1;						// see if solid or not
@@ -697,18 +724,15 @@ Boolean AddStatue(TerrainItemEntryType *itemPtr, long  x, long z)
 ObjNode	*newObj;
 static const short types[NUM_TRACKS][2] =
 {
-	0,0,			// desert
-	0,0,			// jungle
-	0,0,			// ice
-
-	CRETE_ObjType_BullStatue,0,				// crete
-	0,0,									// china
-	EGYPT_ObjType_Statue, EGYPT_ObjType_CatStatue,				// egypt
-
-	0,0,			// europe
-	0,0,			// scandinavia
-	0,0,			// atlantis
-
+	[TRACK_NUM_DESERT]      = {0,0},
+	[TRACK_NUM_JUNGLE]      = {0,0},
+	[TRACK_NUM_ICE]         = {0,0},
+	[TRACK_NUM_CRETE]       = {CRETE_ObjType_BullStatue,0},
+	[TRACK_NUM_CHINA]       = {0,0},
+	[TRACK_NUM_EGYPT]       = {EGYPT_ObjType_Statue, EGYPT_ObjType_CatStatue},
+	[TRACK_NUM_EUROPE]      = {0,0},
+	[TRACK_NUM_SCANDINAVIA] = {0,0},
+	[TRACK_NUM_ATLANTIS]    = {0,0},
 };
 
 
@@ -1182,42 +1206,68 @@ Boolean AddHouse(TerrainItemEntryType *itemPtr, long  x, long z)
 ObjNode	*newObj;
 static const HouseInfo info[NUM_TRACKS] =
 {
-	0,0,0,0,																				// desert
-	1,1,1,1,
-	1,1,1,1,
+	[TRACK_NUM_DESERT] =
+	{
+		{0,0,0,0},
+		{1,1,1,1},
+		{1,1,1,1},
+	},
 
-	JUNGLE_ObjType_Hut1,JUNGLE_ObjType_Hut2,0,0,											// jungle
-	.9,.9,1,1,
-	1,1,1,1,
+	[TRACK_NUM_JUNGLE] =
+	{
+		{JUNGLE_ObjType_Hut1,JUNGLE_ObjType_Hut2,0,0},
+		{.9,.9,1,1},
+		{1,1,1,1},
+	},
 
-	ICE_ObjType_Igloo,0,0,0,																// ice
-	1,1,1,1,
-	1,1,1,1,
+	[TRACK_NUM_ICE] =
+	{
+		{ICE_ObjType_Igloo,0,0,0},
+		{1,1,1,1},
+		{1,1,1,1},
+	},
 
-	CRETE_ObjType_House1,CRETE_ObjType_House2,CRETE_ObjType_Palace,0,						// crete
-	1,1,1,1,
-	1,1,1,1,
+	[TRACK_NUM_CRETE] =
+	{
+		{CRETE_ObjType_House1,CRETE_ObjType_House2,CRETE_ObjType_Palace,0},
+		{1,1,1,1},
+		{1,1,1,1},
+	},
 
-	CHINA_ObjType_House,0,0,0,																// china
-	.9,1,1,1,
-	1,1,1,1,
+	[TRACK_NUM_CHINA] =
+	{
+		{CHINA_ObjType_House,0,0,0},
+		{.9,1,1,1},
+		{1,1,1,1},
+	},
 
-	0,0,0,0,																				// egypt
-	1,1,1,1,
-	1,1,1,1,
+	[TRACK_NUM_EGYPT] =
+	{
+		{0,0,0,0},
+		{1,1,1,1},
+		{1,1,1,1},
+	},
 
-	EUROPE_ObjType_Cottage,EUROPE_ObjType_Lodge,EUROPE_ObjType_TownHouse,0,					// europe
-	1,1,1,1,
-	1,1,1,1,
+	[TRACK_NUM_EUROPE] =
+	{
+		{EUROPE_ObjType_Cottage,EUROPE_ObjType_Lodge,EUROPE_ObjType_TownHouse,0},
+		{1,1,1,1},
+		{1,1,1,1},
+	},
 
-	SCANDINAVIA_ObjType_Cabin1,SCANDINAVIA_ObjType_Cabin2,SCANDINAVIA_ObjType_Cabin3,0,		// scandinavia
-	1,1,1,1,
-	1,1,1,1,
+	[TRACK_NUM_SCANDINAVIA] =
+	{
+		{SCANDINAVIA_ObjType_Cabin1,SCANDINAVIA_ObjType_Cabin2,SCANDINAVIA_ObjType_Cabin3,0},
+		{1,1,1,1},
+		{1,1,1,1},
+	},
 
-	ATLANTIS_ObjType_BugDome,ATLANTIS_ObjType_SaucerDome,ATLANTIS_ObjType_TwinkieDome,0,	// atlantis
-	1,1,1,1,
-	.55,.5,.55,1,
-
+	[TRACK_NUM_ATLANTIS] =
+	{
+		{ATLANTIS_ObjType_BugDome,ATLANTIS_ObjType_SaucerDome,ATLANTIS_ObjType_TwinkieDome,0},
+		{1,1,1,1},
+		{.55,.5,.55,1},
+	},
 };
 
 Boolean	notSolid = itemPtr->parm[3] & 1;						// see if solid or not

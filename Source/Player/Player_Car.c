@@ -3100,10 +3100,10 @@ OGLPoint3D	coord;
 
 static const OGLPoint3D	wheelOffset[4] =
 {
-	-20,0,0,				// f/l
-	20,0,0,					// f/r
-	20,0,0,					// b/r
-	-20,0,0,				// b/l
+	{-20,0,0},				// f/l
+	{20,0,0},				// f/r
+	{20,0,0},				// b/r
+	{-20,0,0},				// b/l
 };
 
 			/* SEE IF NEED TO MAKE NEW SEGMENT OR JUST STRETCH LAST ONE */
@@ -3302,95 +3302,32 @@ OGLMatrix4x4	m1,m2,m3;
 short			i,playerNum = theCar->PlayerNum;
 static const OGLPoint3D	wheelOffsets[MAX_CAR_TYPES][4] =
 {
-		/* MAMMOTH */
-
-	-109,-19,-92,					// front left
-	109,-19,-92,					// front right
-	129,4,91,					// back right
-	-129,4,91,					// back left
-
-
-	/* BONE BUGGY */
-
-	-76,-35,-101,				// front left
-	76,-35,-101,					// front right
-	84,-9,91,					// back right
-	-84,-9,91,					// back left
-
-	/* GEODE */
-
-	-126,-27,-85,				// front left
-	126,-27,-85,				// front right
-	126,-27,82,					// back right
-	-126,-27,82,				// back left
-
-	/* LOG */
-
-	-112,-49,-122,				// front left
-	112,-49,-122,					// front right
-	123,-27,37,					// back right
-	-123,-27,37,				// back left
-
-	/* TURTLE */
-
-	-99,-31,-102,				// front left
-	99,-31,-102,					// front right
-	109,-23,73,					// back right
-	-109,-23,73,				// back left
-
-	/* rock */
-
-	-70,-45,-84,				// front left
-	70,-45,-84,					// front right
-	96,-38,77,					// back right
-	-96,-38,77,					// back left
-
-
-	/* TROJAN HORSE */
-
-	-103,-57,-64,				// front left
-	103,-57,-64,				// front right
-	103,-57,94,					// back right
-	-103,-57,94,					// back left
-
-
-	/* OBELISK */
-
-	-111,-58,-89,				// front left
-	111,-58,-89,				// front right
-	112,-38,79,					// back right
-	-112,-38,79,					// back left
-
-	/* CATAPULT */
-
-	-108,-38,-109,				// front left
-	108,-38,-109,				// front right
-	112,-10,105,					// back right
-	-112,-10,105,					// back left
-
-	/* ??????? */
-
-	-122,-28,-80,				// front left
-	122,-28,-80,				// front right
-	122,-2,85,					// back right
-	-122,-2,85,					// back left
+	//                         Front Left		Front Right		Back Right		Back Left
+	[CAR_TYPE_MAMMOTH]     = { {-109,-19,-92},	{109,-19,-92},	{129,4,91},		{-129,4,91} },
+	[CAR_TYPE_BONEBUGGY]   = { {-76,-35,-101},	{76,-35,-101},	{84,-9,91},		{-84,-9,91} },
+	[CAR_TYPE_GEODE]       = { {-126,-27,-85},	{126,-27,-85},	{126,-27,82},	{-126,-27,82} },
+	[CAR_TYPE_LOG]         = { {-112,-49,-122},	{112,-49,-122},	{123,-27,37},	{-123,-27,37} },
+	[CAR_TYPE_TURTLE]      = { {-99,-31,-102},	{99,-31,-102},	{109,-23,73},	{-109,-23,73} },
+	[CAR_TYPE_ROCK]        = { {-70,-45,-84},	{70,-45,-84},	{96,-38,77},	{-96,-38,77} },
+	[CAR_TYPE_TROJANHORSE] = { {-103,-57,-64},	{103,-57,-64},	{103,-57,94},	{-103,-57,94} },
+	[CAR_TYPE_OBELISK]     = { {-111,-58,-89},	{111,-58,-89},	{112,-38,79},	{-112,-38,79} },
+	[CAR_TYPE_CATAPULT]    = { {-108,-38,-109},	{108,-38,-109},	{112,-10,105},	{-112,-10,105} },
+	[CAR_TYPE_CHARIOT]     = { {-122,-28,-80},	{122,-28,-80},	{122,-2,85},	{-122,-2,85} },
 };
 
 
 static const OGLPoint3D	headOffsets[MAX_CAR_TYPES] =
 {
-	0, 58, 	-10,				// mammoth
-	0, 65,  -20,				// bone buggy
-	0, 70, 	20,					// geode
-	0, 85, 	0,					// log
-	0, 70, 40,					// turtle
-	0, 50, 10,					// rock
-
-	0, 140, 35,					// trojan
-	0, 85, 22,					// obelisk
-
-	0, 85, 10,					// catapult
-	0, 85, 10,					// ??????
+	[CAR_TYPE_MAMMOTH]     = { 0, 58, -10 },
+	[CAR_TYPE_BONEBUGGY]   = { 0, 65, -20 },
+	[CAR_TYPE_GEODE]       = { 0, 70, 20 },
+	[CAR_TYPE_LOG]         = { 0, 85, 0 },
+	[CAR_TYPE_TURTLE]      = { 0, 70, 40 },
+	[CAR_TYPE_ROCK]        = { 0, 50, 10 },
+	[CAR_TYPE_TROJANHORSE] = { 0, 140, 35 },
+	[CAR_TYPE_OBELISK]     = { 0, 85, 22 },
+	[CAR_TYPE_CATAPULT]    = { 0, 85, 10 },
+	[CAR_TYPE_CHARIOT]     = { 0, 85, 10 },
 };
 
 

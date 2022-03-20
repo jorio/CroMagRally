@@ -105,82 +105,82 @@ enum
 
 static const float	gIconInfo[NUM_INFOBAR_ICONTYPES][NUM_SPLITSCREEN_MODES][5] =	// x,y,scale,spacing, spacing2
 {
-	/* PLACE RANKING */
+	[ICON_PLACE] =
+	{
+		[SPLITSCREEN_MODE_NONE]  = { -.8, .8, .9, 0, 0 },
+		[SPLITSCREEN_MODE_HORIZ] = { -.8, .66, .9, 0, 0 },
+		[SPLITSCREEN_MODE_VERT]  = { -.75, .85, 1.2, 0, 0 },
+	},
 
-	-.8, .8, .9, 0, 0,				// full screen
-	-.8, .66, .9, 0, 0,				// 2 horiz
-	-.75, .85, 1.2, 0, 0,				// 2 vert
+	[ICON_MAP] =
+	{
+		[SPLITSCREEN_MODE_NONE]  = { .75, -.65, .2, 0, 0 },
+		[SPLITSCREEN_MODE_HORIZ] = { .75, -.5, .15, 0, 0 },
+		[SPLITSCREEN_MODE_VERT]  = { .6, -.75, .3, 0, 0 },
+	},
 
+	[ICON_STARTLIGHT] =
+	{
+		[SPLITSCREEN_MODE_NONE]  = { 0, .3, 1.0, 0, 0 },
+		[SPLITSCREEN_MODE_HORIZ] = { 0, .3, 1.0, 0, 0 },
+		[SPLITSCREEN_MODE_VERT]  = { 0, .1, 1.4, 0, 0 },
+	},
 
-	/* OVERHEAD MAP */
+	[ICON_LAP] =
+	{
+		[SPLITSCREEN_MODE_NONE]  = { -.84, -.8, 1.0, 0, 0 },
+		[SPLITSCREEN_MODE_HORIZ] = { -.9, -.8, .7, 0, 0 },
+		[SPLITSCREEN_MODE_VERT]  = { -.85, -.8, 1.7, 0, 0 },
+	},
 
-	.75, -.65, .2, 0, 0,			// full screen
-	.75, -.5, .15, 0, 0,			// 2 horiz
-	.6, -.75, .3, 0, 0,				// 2 vert
+	[ICON_WRONGWAY] =
+	{
+		[SPLITSCREEN_MODE_NONE]  = { 0, .5, 1.0, 0, 0 },
+		[SPLITSCREEN_MODE_HORIZ] = { 0, .4, 1.0, 0, 0 },
+		[SPLITSCREEN_MODE_VERT]  = { 0, .5, 1.5, 0, 0 },
+	},
 
+	[ICON_TOKEN] =
+	{
+		[SPLITSCREEN_MODE_NONE]  = { .4, .9, .4, .08, 0 },
+		[SPLITSCREEN_MODE_HORIZ] = { .4, .8, .4, .08, 0 },
+		[SPLITSCREEN_MODE_VERT]  = { .4, .9, .4, .08, 0 },
+	},
 
-	/* START LIGHT */
+	[ICON_WEAPON] =
+	{
+		[SPLITSCREEN_MODE_NONE]  = { -.2, .85, .9, .13, 0 },
+		[SPLITSCREEN_MODE_HORIZ] = { -.2, .78, .9, .13, 0 },
+		[SPLITSCREEN_MODE_VERT]  = { -.22, .9, 1.3, .17, 0 },
+	},
 
-	0, .3, 1.0, 0, 0,				// full screen
-	0, .3, 1.0, 0, 0,				// 2 horiz
-	0, .1, 1.4, 0, 0,				// 2 vert
+	[ICON_TIMER] =
+	{
+		[SPLITSCREEN_MODE_NONE]  = { .63, .85, 1.0, .39, 0 },
+		[SPLITSCREEN_MODE_HORIZ] = { .7, .7, .8, .35, 0 },
+		[SPLITSCREEN_MODE_VERT]  = { .6, .85, 1.2, .5, 0 },
+	},
 
+	[ICON_TIMERINDEX] =
+	{
+		[SPLITSCREEN_MODE_NONE]  = { .48, .85, .6, .33, 0 },
+		[SPLITSCREEN_MODE_HORIZ] = { .60, .7, .6, .25, 0 },
+		[SPLITSCREEN_MODE_VERT]  = { .42, .85, .9, .4, 0 },
+	},
 
-	/* LAP # */
+	[ICON_POWTIMER] =
+	{
+		[SPLITSCREEN_MODE_NONE]  = { -.91, .4, .8, .14, .19 },
+		[SPLITSCREEN_MODE_HORIZ] = { -.9,  .2, .5, .09, .25 },
+		[SPLITSCREEN_MODE_VERT]  = { -.91, .4, 1.0, .18, .12 },
+	},
 
-	-.84, -.8, 1.0, 0, 0,				// full screen
-	-.9, -.8, .7, 0, 0,				// 2 horiz
-	-.85, -.8, 1.7, 0, 0,				// 2 vert
-
-
-	/* WRONG WAY*/
-
-	0, .5, 1.0, 0, 0,				// full screen
-	0, .4, 1.0, 0, 0,				// 2 horiz
-	0, .5, 1.5, 0, 0,				// 2 vert
-
-
-	/* TOKEN*/
-
-	.4, .9, .4, .08, 0,			// full screen
-	.4, .8, .4, .08, 0,			// 2 horiz
-	.4, .9, .4, .08, 0,			// 2 vert
-
-
-	/* WEAPON */
-
-	-.2, .85, .9, .13, 0,				// full screen
-	-.2, .78, .9, .13, 0,				// 2 horiz
-	-.22, .9, 1.3, .17, 0,				// 2 vert
-
-
-	/* TIMER */
-
-	.63, .85, 1.0, .39, 0,			// full screen
-	.7, .7, .8, .35, 0,				// 2 horiz
-	.6, .85, 1.2, .5, 0,			// 2 vert
-
-
-	/* TIMER MARKER */
-
-	.48, .85, .6, .33, 0,			// full screen
-	.60, .7, .6, .25, 0,				// 2 horiz
-	.42, .85, .9, .4, 0,			// 2 vert
-
-
-	/* POW TIMER */
-
-	-.91, .4, .8, .14, .19,				// full screen
-	-.9,  .2, .5, .09, .25,				// 2 horiz
-	-.91, .4, 1.0, .18, .12,				// 2 vert
-
-
-	/* FIRE */
-
-	-.94, .85, .5, .1, 0,				// full screen
-	-.94, .78, .5, .1, 0,				// 2 horiz
-	-.94, .9, .5, .1, 0,				// 2 vert
-
+	[ICON_FIRE] =
+	{
+		[SPLITSCREEN_MODE_NONE]  = { -.94, .85, .5, .1, 0 },
+		[SPLITSCREEN_MODE_HORIZ] = { -.94, .78, .5, .1, 0 },
+		[SPLITSCREEN_MODE_VERT]  = { -.94, .9, .5, .1, 0 },
+	},
 };
 
 
@@ -393,12 +393,12 @@ float	scale,mapX,mapY;
 
 static const OGLColorRGBA	blipColors[] =
 {
-	.8,.5,.3,.9,			// brown
-	0,1,0,.9,			// green
-	0,0,1,.9,			// blue
-	.5,.5,.5,.9,		// grey
-	1,0,0,.9,			// red
-	1,1,1,.9			// white
+	{.8,.5,.3,.9},		// brown
+	{0,1,0,.9},			// green
+	{0,0,1,.9},			// blue
+	{.5,.5,.5,.9},		// grey
+	{1,0,0,.9},			// red
+	{1,1,1,.9},			// white
 };
 
 	short	p = GetPlayerNum(gCurrentSplitScreenPane);

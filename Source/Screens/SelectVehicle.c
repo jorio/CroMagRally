@@ -108,95 +108,44 @@ static ObjNode	*gVehicleName;
 
 static int		gNumVehiclesToChooseFrom;
 
-static Str31 	gParmStr[NUM_VEHICLE_PARAMETERS] = {"SPEED", "ACCELERATION", "TRACTION", "SUSPENSION"};
+static const char* gParmStr[NUM_VEHICLE_PARAMETERS] =
+{
+	"SPEED",
+	"ACCELERATION",
+	"TRACTION",
+	"SUSPENSION"
+};
 
-static Str31	gCarNames[MAX_CAR_TYPES] = {"MAMMOTH MOBILE", "BONE BUGGY", "GEODE CRUISER", "LOGMOBILE", "TURTLE TANK", "HOT ROCK",
-											"TROJAN HORSE", "OBELISK",
-											"CATAPULT", "CHARIOT"};
+static const char* gCarNames[MAX_CAR_TYPES] =
+{
+	[CAR_TYPE_MAMMOTH]		= "MAMMOTH MOBILE",
+	[CAR_TYPE_BONEBUGGY]	= "BONE BUGGY",
+	[CAR_TYPE_GEODE]		= "GEODE CRUISER", 
+	[CAR_TYPE_LOG]			= "LOGMOBILE", 
+	[CAR_TYPE_TURTLE]		= "TURTLE TANK",
+	[CAR_TYPE_ROCK]			= "HOT ROCK",
+	[CAR_TYPE_TROJANHORSE]	= "TROJAN HORSE",
+	[CAR_TYPE_OBELISK]		= "OBELISK",
+	[CAR_TYPE_CATAPULT]		= "CATAPULT", 
+	[CAR_TYPE_CHARIOT]		= "CHARIOT",
+	//[CAR_TYPE_SUB]			= "SUBMARINE",  // not shown in-game
+};
 
 int		gVehicleParameters[MAX_CAR_TYPES+1][NUM_VEHICLE_PARAMETERS];					// parameter values 0..7
 int		gDefaultVehicleParameters[MAX_CAR_TYPES+1][NUM_VEHICLE_PARAMETERS] =					// parameter values 0..7
 {
-
-		/* MAMMOTH */
-
-	4,							// speed
-	2,							// acceleration
-	4,							// traction
-	7,							// suspension
-
-		/* BONE BUGGY */
-
-	5,							// speed
-	4,							// acceleration
-	4,							// traction
-	2,							// suspension
-
-
-		/* GEODE */
-
-	3,							// speed
-	5,							// acceleration
-	6,							// traction
-	7,							// suspension
-
-		/* LOG */
-
-	6,							// speed
-	5,							// acceleration
-	2,							// traction
-	3,							// suspension
-
-		/* TURTLE */
-
-	3,							// speed
-	6,							// acceleration
-	4,							// traction
-	3,							// suspension
-
-		/* ROCK */
-
-	4,							// speed
-	3,							// acceleration
-	5,							// traction
-	2,							// suspension
-
-		/* TROJAN HORSE */
-
-	4,							// speed
-	5,							// acceleration
-	6,							// traction
-	4,							// suspension
-
-		/* OBELISK */
-
-	5,							// speed
-	3,							// acceleration
-	6,							// traction
-	7,							// suspension
-
-		/* CATAPULT */
-
-	6,							// speed
-	7,							// acceleration
-	5,							// traction
-	4,							// suspension
-
-		/* CHARIOT */
-
-	7,							// speed
-	7,							// acceleration
-	4,							// traction
-	3,							// suspension
-
-		/* SUBMARINE */
-
-	0,							// speed
-	7,							// acceleration
-	0,							// traction
-	0,							// suspension
-
-
+	//							Spd Acc Tra Sus
+	[CAR_TYPE_MAMMOTH]		= {  4,  2,  4,  7 },
+	[CAR_TYPE_BONEBUGGY]	= {  5,  4,  4,  2 },
+	[CAR_TYPE_GEODE]		= {  3,  5,  6,  7 },
+	[CAR_TYPE_LOG]			= {  6,  5,  2,  3 },
+	[CAR_TYPE_TURTLE]		= {  3,  6,  4,  3 },
+	[CAR_TYPE_ROCK]			= {  4,  3,  5,  2 },
+	[CAR_TYPE_TROJANHORSE]	= {  4,  5,  6,  4 },
+	[CAR_TYPE_OBELISK]		= {  5,  3,  6,  7 },
+	[CAR_TYPE_CATAPULT]		= {  6,  7,  5,  4 },
+	[CAR_TYPE_CHARIOT]		= {  7,  7,  4,  3 },
+	[CAR_TYPE_SUB]			= {  0,  7,  0,  0 },
 };
 
 

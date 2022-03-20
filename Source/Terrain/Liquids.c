@@ -59,18 +59,15 @@ static void UpdateWaterfallTextureAnimation(void);
 
 const float gWaterHeights[NUM_TRACKS][6] =
 {
-	0,0,0,0,0,0,			// desert
-	700,0,0,0,0,0,			// forest
-	0,0,0,0,0,0,			// glacier
-
-	600,0,0,0,0,0,			// crete
-	0,0,0,0,0,0,			// china
-	250,0,0,0,0,0,			// egypt
-
-	0,0,0,0,0,0,			// europe
-	0,0,0,0,0,0,			// scandinavia
-	0,0,0,0,0,0,			// atlantis
-
+	[TRACK_NUM_DESERT]      = {0,0,0,0,0,0},
+	[TRACK_NUM_JUNGLE]      = {700,0,0,0,0,0},
+	[TRACK_NUM_ICE]         = {0,0,0,0,0,0},
+	[TRACK_NUM_CRETE]       = {600,0,0,0,0,0},
+	[TRACK_NUM_CHINA]       = {0,0,0,0,0,0},
+	[TRACK_NUM_EGYPT]       = {250,0,0,0,0,0},
+	[TRACK_NUM_EUROPE]      = {0,0,0,0,0,0},
+	[TRACK_NUM_SCANDINAVIA] = {0,0,0,0,0,0},
+	[TRACK_NUM_ATLANTIS]    = {0,0,0,0,0,0},
 };
 
 

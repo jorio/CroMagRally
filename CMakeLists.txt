@@ -135,7 +135,6 @@ if(NOT MSVC)
 		-Wno-unknown-pragmas
 		$<$<CXX_COMPILER_ID:GNU>:-Wno-unused-but-set-variable>
 		-Werror=return-type
-		-Wno-missing-braces #-------------
 		-Wno-unused-parameter
 		-Wno-unused-variable #-------------
 		-Wno-unused-value #-------------
