@@ -693,7 +693,7 @@ Str255	chooserName;
 
 void DoSavedPlayerDialog(void)
 {
-	IMPLEMENT_ME();
+	IMPLEMENT_ME_SOFT();
 #if 0
 DialogRef 		myDialog;
 DialogItemType			itemType,itemHit;
