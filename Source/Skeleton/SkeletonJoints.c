@@ -136,16 +136,17 @@ OGLMatrix4x4	matrix;
 void FindCoordOnJointAtFlagEvent(ObjNode *theNode, long jointNum, const OGLPoint3D *inPoint, OGLPoint3D *outPoint)
 {
 OGLMatrix4x4	matrix;
-short			time,oldTime;
+short			time = 0;
+short			oldTime = 0;
 SkeletonObjDataType	*skeleton;
-Byte			i,numEvents;
+Byte			numEvents;
 
 			/* GET THE TIME OF THE 1ST FLAG EVENT */
 
 	skeleton = theNode->Skeleton;
 	numEvents = skeleton->skeletonDefinition->NumAnimEvents[skeleton->AnimNum];
 
-	for (i = 0; i < numEvents; i++)
+	for (int i = 0; i < numEvents; i++)
 	{
 		if (skeleton->skeletonDefinition->AnimEventsList[skeleton->AnimNum][i].type == ANIMEVENT_TYPE_SETFLAG)
 		{
