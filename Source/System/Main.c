@@ -42,7 +42,6 @@
 #include "selecttrack.h"
 #include "winners.h"
 #include "sobjtypes.h"
-#include "internet.h"
 
 extern	Boolean			gSongPlayingFlag,gDrawLensFlare,gIsNetworkHost,gIsNetworkClient,gNetGameInProgress,gDisableHiccupTimer,gHideInfobar;
 extern	NewObjectDefinitionType	gNewObjectDefinition;
