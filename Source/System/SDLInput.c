@@ -220,7 +220,7 @@ void DoSDLMaintenance(void)
 
 	for (int i = 0; i < NUM_CONTROL_NEEDS; i++)
 	{
-		const KeyBinding* kb = &gGamePrefs.keySettings[i];
+		const KeyBinding* kb = &gGamePrefs.keySettings[i][0];
 
 		bool downNow = false;
 
@@ -347,6 +347,22 @@ void DoSDLMaintenance(void)
 	if (!gGamePrefs.mouseControlsOtto)
 		gCameraControlDelta.x -= mdx * mouseSensitivityFrac * 0.04f;
 #endif
+}
+
+#pragma mark -
+
+Boolean GetKeyState(uint16_t sdlScancode)
+{
+	if (sdlScancode >= SDL_NUM_SCANCODES)
+		return false;
+	return gRawKeyboardState[sdlScancode];
+}
+
+Boolean GetNewKeyState(uint16_t sdlScancode)
+{
+	if (sdlScancode >= SDL_NUM_SCANCODES)
+		return false;
+	return gRawKeyboardState[sdlScancode] == KEYSTATE_PRESSED;
 }
 
 #pragma mark -

@@ -53,11 +53,6 @@ static void KeyCodeToChar(UInt16 code, Str32 s);
 /**********************/
 
 
-static KeyMap gKeyMap,gNewKeys,gOldKeys,gKeyMap_Real,gNewKeys_Real,gOldKeys_Real;
-
-static KeyMap gKeyMapP,gNewKeysP,gOldKeysP;			// for Push/Pop functions below
-
-
 float	gAnalogSteeringTimer[MAX_PLAYERS] = {0,0,0,0,0,0};
 
 
@@ -150,24 +145,11 @@ int			i;
 
 void ReadKeyboard(void)
 {
-	DoSDLMaintenance();
 
 
 			/* READ REAL KEYBOARD & INPUT SPROCKET KEYMAP */
-			//
-			// Note:  	This will convert ISp data into a KeyMap, so the rest
-			// 			of the code looks like its just reading the real keyboard.
-			//
 
-	MyGetKeys(&gKeyMap);
-
-
-			/* CALC WHICH KEYS ARE NEW THIS TIME */
-
-	gNewKeys[0] = (gOldKeys[0] ^ gKeyMap[0]) & gKeyMap[0];
-	gNewKeys[1] = (gOldKeys[1] ^ gKeyMap[1]) & gKeyMap[1];
-	gNewKeys[2] = (gOldKeys[2] ^ gKeyMap[2]) & gKeyMap[2];
-	gNewKeys[3] = (gOldKeys[3] ^ gKeyMap[3]) & gKeyMap[3];
+	DoSDLMaintenance();
 
 
 
@@ -208,100 +190,10 @@ void ReadKeyboard(void)
 		CalcFramesPerSecond();
 		CalcFramesPerSecond();
 	}
-
-
-			/* REMEMBER AS OLD MAP */
-
-	gOldKeys[0] = gKeyMap[0];
-	gOldKeys[1] = gKeyMap[1];
-	gOldKeys[2] = gKeyMap[2];
-	gOldKeys[3] = gKeyMap[3];
 #endif
 }
-
 
 #if 0
-/**************** READ KEYBOARD_REAL *************/
-//
-// This just does a simple read of the REAL keyboard (regardless of Input Sprockets)
-//
-
-void ReadKeyboard_Real(void)
-{
-	GetKeys(gKeyMap_Real);
-
-			/* CALC WHICH KEYS ARE NEW THIS TIME */
-
-	gNewKeys_Real[0] = (gOldKeys_Real[0] ^ gKeyMap_Real[0]) & gKeyMap_Real[0];
-	gNewKeys_Real[1] = (gOldKeys_Real[1] ^ gKeyMap_Real[1]) & gKeyMap_Real[1];
-	gNewKeys_Real[2] = (gOldKeys_Real[2] ^ gKeyMap_Real[2]) & gKeyMap_Real[2];
-	gNewKeys_Real[3] = (gOldKeys_Real[3] ^ gKeyMap_Real[3]) & gKeyMap_Real[3];
-
-
-			/* REMEMBER AS OLD MAP */
-
-	gOldKeys_Real[0] = gKeyMap_Real[0];
-	gOldKeys_Real[1] = gKeyMap_Real[1];
-	gOldKeys_Real[2] = gKeyMap_Real[2];
-	gOldKeys_Real[3] = gKeyMap_Real[3];
-}
-#endif
-
-
-/****************** GET KEY STATE: REAL ***********/
-//
-// for data from ReadKeyboard_Real
-//
-
-Boolean GetKeyState_Real(unsigned short key)
-{
-unsigned char *keyMap;
-
-	keyMap = (unsigned char *)&gKeyMap_Real;
-	return ( ( keyMap[key>>3] >> (key & 7) ) & 1);
-}
-
-/****************** GET NEW KEY STATE: REAL ***********/
-//
-// for data from ReadKeyboard_Real
-//
-
-Boolean GetNewKeyState_Real(unsigned short key)
-{
-unsigned char *keyMap;
-
-	keyMap = (unsigned char *)&gNewKeys_Real;
-	return ( ( keyMap[key>>3] >> (key & 7) ) & 1);
-}
-
-
-/****************** GET KEY STATE ***********/
-//
-// NOTE: Assumes that ReadKeyboard has already been called!!
-//
-
-Boolean GetKeyState(unsigned short key)
-{
-unsigned char *keyMap;
-
-	keyMap = (unsigned char *)&gKeyMap;
-	return ( ( keyMap[key>>3] >> (key & 7) ) & 1);
-}
-
-
-/****************** GET NEW KEY STATE ***********/
-//
-// NOTE: Assumes that ReadKeyboard has already been called!!
-//
-
-Boolean GetNewKeyState(unsigned short key)
-{
-unsigned char *keyMap;
-
-	keyMap = (unsigned char *)&gNewKeys;
-	return ( ( keyMap[key>>3] >> (key & 7) ) & 1);
-}
-
 /********************** MY GET KEYS ******************************/
 //
 // Depending on mode, will either read key map from GetKeys or
@@ -310,7 +202,6 @@ unsigned char *keyMap;
 
 static void MyGetKeys(KeyMap *keyMap)
 {
-#if 0
 short	i,key,j,q,p;
 UInt32	keyState,axisState;
 unsigned char *keyBytes;
@@ -366,8 +257,6 @@ unsigned char *keyBytes;
 			}
 		}
 	}
-#endif
-#if 0
 	else
 	{
 
@@ -439,8 +328,8 @@ unsigned char *keyBytes;
 
 		}
 	}
-#endif
 }
+#endif
 
 
 
@@ -496,18 +385,6 @@ void DoKeyConfigDialog(void)
 #endif
 }
 
-
-#if 0
-/***************** ARE ANY NEW KEYS PRESSED ****************/
-
-Boolean AreAnyNewKeysPressed(void)
-{
-	if (gNewKeys_Real[0] || gNewKeys_Real[1] ||  gNewKeys_Real[2] || gNewKeys_Real[3])
-		return(true);
-	else
-		return(false);
-}
-#endif
 
 #pragma mark -
 
@@ -629,6 +506,7 @@ Boolean GetControlStateNew(short player, uint32_t control)
 
 void PushKeys(void)
 {
+#if 0
 int	i;
 
 	for (i = 0; i < 4; i++)
@@ -637,12 +515,14 @@ int	i;
 		gNewKeysP[i] = gNewKeys[i];
 		gOldKeysP[i] = gOldKeys[i];
 	}
+#endif
 }
 
 /************************ POP KEYS ******************************/
 
 void PopKeys(void)
 {
+#if 0
 int	i;
 
 	for (i = 0; i < 4; i++)
@@ -651,6 +531,7 @@ int	i;
 		gNewKeys[i] = gNewKeysP[i];
 		gOldKeys[i] = gOldKeysP[i];
 	}
+#endif
 }
 
 

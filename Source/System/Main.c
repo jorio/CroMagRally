@@ -1082,9 +1082,9 @@ static void PlayArea(void)
 
 			/* CHECK CHEATS */
 
-		if (GetKeyState_Real(SDL_SCANCODE_B))
+		if (GetKeyState(SDL_SCANCODE_B))
 		{
-			if (GetKeyState_Real(SDL_SCANCODE_R) && GetKeyState_Real(SDL_SCANCODE_I))		// win race cheat
+			if (GetKeyState(SDL_SCANCODE_R) && GetKeyState(SDL_SCANCODE_I))		// win race cheat
 			{
 				if (!gPlayerInfo[0].raceComplete)
 				{
@@ -1095,7 +1095,7 @@ static void PlayArea(void)
 				}
 			}
 
-			if (GetNewKeyState_Real(SDL_SCANCODE_F13))		// hide/show infobar
+			if (GetKeyState(SDL_SCANCODE_F13))		// hide/show infobar
 				gHideInfobar = !gHideInfobar;
 
 

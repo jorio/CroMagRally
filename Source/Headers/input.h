@@ -144,9 +144,10 @@ enum				// must match gControlBitToKey list!!!
 
 
 void InitInput(void);
-Boolean GetNewKeyState(unsigned short sdlScancode);
 extern	void ReadKeyboard(void);
-//extern	Boolean GetKeyState(unsigned short key);
+
+Boolean GetKeyState(uint16_t sdlScancode);
+Boolean GetNewKeyState(uint16_t sdlScancode);
 
 Boolean GetNewNeedState(int needID, int playerID);
 Boolean GetNewNeedStateAnyP(int needID);
