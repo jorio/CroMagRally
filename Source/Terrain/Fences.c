@@ -721,7 +721,6 @@ float			oldX,oldZ,newX,newZ;
 					continue;
 			}
 		} // for i
-next_fence:;
 	}
 }
 

@@ -139,7 +139,6 @@ if(NOT MSVC)
 		-Wno-unused-variable #-------------
 		-Wno-unused-value #-------------
 		-Wno-unused-function #-------------
-		-Wno-unused-label #-------------
 	)
 else()
 	# On Win32, we need NOGDI and NOUSER to be able to define some Mac functions

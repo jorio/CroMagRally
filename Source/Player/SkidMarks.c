@@ -146,8 +146,6 @@ short	p = owner->PlayerNum;
 
 		/* NOTHING IN PROGRESS, SO START A NEW SKID */
 
-make_new_skid:
-
 	i = StartNewSkidMark(owner, subID);
 	if (i == -1)
 		return;

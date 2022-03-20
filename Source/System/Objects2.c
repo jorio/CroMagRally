@@ -454,7 +454,6 @@ float	dist;
 
 	RotateOnTerrain(shadowNode, SHADOW_Y_OFF, nil);							// set transform matrix
 
-update:
 			/* CALC SCALE OF SHADOW */
 
 	dist = (y - shadowNode->Coord.y) * (1.0f/800.0f);					// as we go higher, shadow gets smaller
@@ -669,7 +668,7 @@ try_cull:
 
 	if (clipCodeAND)															// check for case #2
 	{
-draw_off:
+				/* NOT DRAWN */
 		theNode->StatusBits |= STATUS_BIT_ISCULLED;								// set cull bit
 	}
 	else

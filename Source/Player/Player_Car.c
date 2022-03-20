@@ -2610,7 +2610,6 @@ short	targetP;
 	}
 	else
 	{
-no_target:
 		gPlayerInfo[playerNum].targetedPlayer = -1;									// nobody is targeted
 		return;
 	}
@@ -2687,7 +2686,6 @@ Boolean	attackCPUCars, inFront;
 	}
 	else
 	{
-no_target:
 		gPlayerInfo[playerNum].targetedPlayer = -1;									// nobody is targeted
 		return;
 	}

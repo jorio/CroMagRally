@@ -650,7 +650,6 @@ long				count;
 	iErr = FSpOpenDF(&file, fsRdWrPerm, &refNum);
 	if (iErr)
 	{
-kill:
 		FSpDelete(&file);
 		return;
 	}
