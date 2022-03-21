@@ -65,8 +65,6 @@ extern	PrefsType			gGamePrefs;
 
 static void ReadDataFromSkeletonFile(SkeletonDefType *skeleton, FSSpec *fsSpec, int skeletonType, OGLSetupOutputType *setupInfo);
 static void ReadDataFromPlayfieldFile(FSSpec *specPtr);
-static void	ConvertTexture16To24(uint16_t *textureBuffer2, uint8_t *textureBuffer3, int width, int height);
-static void	ConvertTexture16To16(uint16_t *textureBuffer, int width, int height);
 
 static short InitSavedGamesListBox(Rect *r, WindowPtr myDialog);
 static short UpdateSavedGamesList(void);
@@ -1451,7 +1449,7 @@ long					row,col,j,i,size;
 float					yScale;
 short					fRefNum;
 OSErr					iErr;
-Ptr						tempBuffer16 = nil,tempBuffer24 = nil;
+Ptr						tempBuffer16 = nil;
 
 				/* OPEN THE REZ-FORK */
 
@@ -1899,10 +1897,6 @@ Ptr						tempBuffer16 = nil,tempBuffer24 = nil;
 	if (tempBuffer16 == nil)
 		DoFatalAlert("ReadDataFromPlayfieldFile: AllocHandle failed!");
 
-	tempBuffer24 = AllocPtr(SUPERTILE_TEXMAP_SIZE * SUPERTILE_TEXMAP_SIZE * 3);		// alloc for 24bit pixels
-	if (tempBuffer24 == nil)
-		DoFatalAlert("ReadDataFromPlayfieldFile: AllocHandle failed!");
-
 
 				/* OPEN THE DATA FORK */
 
@@ -1944,10 +1938,8 @@ Ptr						tempBuffer16 = nil,tempBuffer24 = nil;
 
 
 				/* USE PACKED PIXEL TYPE */
-				// TODO: skip ConvertTexture16To16 and just flip in UVs
 
-		ConvertTexture16To16((uint16_t *)tempBuffer16, width, height);
-		gSuperTileTextureNames[i] = OGL_TextureMap_Load(tempBuffer16, width, height, GL_BGRA_EXT, GL_RGBA, GL_UNSIGNED_SHORT_1_5_5_5_REV);
+		gSuperTileTextureNames[i] = OGL_TextureMap_Load(tempBuffer16, width, height, GL_BGRA_EXT, GL_RGB, GL_UNSIGNED_SHORT_1_5_5_5_REV);
 
 
 
@@ -1962,38 +1954,6 @@ Ptr						tempBuffer16 = nil,tempBuffer24 = nil;
 	FSClose(fRefNum);
 	if (tempBuffer16)
 		SafeDisposePtr(tempBuffer16);
-	if (tempBuffer24)
-		SafeDisposePtr(tempBuffer24);
-}
-
-
-/*********************** CONVERT TEXTURE; 16 TO 16 ***********************************/
-//
-// Simply flips Y since OGL Textures are screwey
-//
-
-static void	ConvertTexture16To16(uint16_t *textureBuffer, int width, int height)
-{
-int		x,y;
-uint16_t	pixel,*bottom;
-uint16_t	*dest;
-
-	bottom = textureBuffer + ((height - 1) * width);
-
-	for (y = 0; y < height / 2; y++)
-	{
-		dest = bottom;
-
-		for (x = 0; x < width; x++)
-		{
-			pixel = textureBuffer[x] | 0x8000;						// get 16bit pixel
-			textureBuffer[x] = bottom[x] | 0x8000;
-			bottom[x] = pixel;
-		}
-
-		textureBuffer += width;
-		bottom -= width;
-	}
 }
 
 
@@ -2006,7 +1966,6 @@ Ptr LoadFileData(const FSSpec* spec, long* outLength)
 	long fileLength = 0;
 	long readBytes = 0;
 
-	puts(spec->cName);
 	err = FSpOpenDF(spec, fsRdPerm, &refNum);
 	GAME_ASSERT(!err);
 
