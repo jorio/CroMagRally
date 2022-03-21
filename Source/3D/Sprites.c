@@ -108,7 +108,6 @@ int 		i,n;
 void LoadSpriteFile(FSSpec *spec, int groupNum, OGLSetupOutputType *setupInfo)
 {
 short			refNum;
-int				i,w,h;
 long			count;
 MOMaterialData	matData;
 
@@ -137,7 +136,7 @@ MOMaterialData	matData;
 			/* READ EACH SPRITE */
 			/********************/
 
-	for (i = 0; i < gNumSpritesInGroupList[groupNum]; i++)
+	for (int i = 0; i < gNumSpritesInGroupList[groupNum]; i++)
 	{
 		uint8_t *buffer;
 
@@ -181,8 +180,8 @@ MOMaterialData	matData;
 		matData.diffuseColor.a	= 1;
 
 		matData.numMipmaps		= 1;
-		w = matData.width		= gSpriteGroupList[groupNum][i].width;
-		h = matData.height		= gSpriteGroupList[groupNum][i].height;
+		matData.width			= gSpriteGroupList[groupNum][i].width;
+		matData.height			= gSpriteGroupList[groupNum][i].height;
 
 		matData.pixelSrcFormat	= gSpriteGroupList[groupNum][i].srcFormat;
 		matData.pixelDstFormat	= gSpriteGroupList[groupNum][i].destFormat;

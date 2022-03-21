@@ -327,8 +327,11 @@ struct ObjNode
 
 	MOSpriteObject		*SpriteMO;				// ref to sprite meta object for sprite genre.
 
+	// TODO: remove this once everything is migrated to TextMesh?
 	Byte				NumStringSprites;		// # sprites to build string (NOT SAME AS LENGTH OF STRING B/C SPACES ET.AL.)
 	MOSpriteObject		*StringCharacters[31];	// sprites for each character
+
+	int					TextQuadCapacity;
 
 	OGLColorRGBA		ColorFilter;
 };

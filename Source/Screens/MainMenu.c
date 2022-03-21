@@ -29,6 +29,7 @@
 #include "player.h"
 #include "selectvehicle.h"
 #include "localization.h"
+#include "atlas.h"
 
 extern	float				gFramesPerSecondFrac,gFramesPerSecond;
 extern	WindowPtr			gCoverWindow;
@@ -295,8 +296,9 @@ OGLVector3D			fillDirection2 = { -1, -.2, -.5 };
 
 			/* LOAD SPRITES */
 
-	FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":sprites:wallfont.sprites", &spec);
-	LoadSpriteFile(&spec, SPRITE_GROUP_FONT, gGameViewInfoPtr);
+//	FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":sprites:wallfont.sprites", &spec);
+//	LoadSpriteFile(&spec, SPRITE_GROUP_FONT, gGameViewInfoPtr);
+	TextMesh_LoadFont(gGameViewInfoPtr, "wallfont");
 
 
 			/* SETUP TITLE MENU */
@@ -367,7 +369,10 @@ short	i;
 	for (i = 0; i < gNumMenuItems; i++)
 	{
 		const char* s = Localize(gMenuItemStrings[menuNum][i]);
-		gIcons[i] = MakeFontStringObject(s, &gNewObjectDefinition, gGameViewInfoPtr, true);
+
+		gIcons[i] = TextMesh_New(s, kTextMeshAlignCenter, &gNewObjectDefinition);
+
+		//gIcons[i] = MakeFontStringObject(s, &gNewObjectDefinition, gGameViewInfoPtr, true);
 		gNewObjectDefinition.coord.y 	-= LINE_SPACING;
 
 		if (i != gMainMenuSelection)

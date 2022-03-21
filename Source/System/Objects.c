@@ -857,6 +857,23 @@ short			skelType, playerNum;
 					break;
 
 
+			case	TEXTMESH_GENRE:
+					if (theNode->BaseGroup)
+					{
+						OGL_PushState();								// keep state
+//						SetInfobarSpriteState(true);
+						MO_DrawObject(theNode->BaseGroup, setupInfo);
+
+						if (gDebugMode == 1)
+						{
+//							TextMesh_DrawExtents(theNode);
+						}
+
+						OGL_PopState();									// restore state
+					}
+					break;
+
+
 			case	CUSTOM_GENRE:
 					if (theNode->CustomDrawFunction)
 					{

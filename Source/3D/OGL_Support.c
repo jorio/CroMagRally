@@ -23,6 +23,7 @@
 #include "input.h"
 #include "file.h"
 #include "sound2.h"
+#include "stb_image.h"
 #include <string.h>
 
 extern SDL_Window*		gSDLWindow;
@@ -41,6 +42,7 @@ extern	int				gGameWindowWidth,gGameWindowHeight;
 extern	CGrafPtr				gDisplayContextGrafPtr;
 //extern	DisplayIDType		gOurDisplayID;
 extern	float 			gGammaFadePercent;
+extern	FSSpec			gDataSpec;
 
 /****************************/
 /*    PROTOTYPES            */
@@ -268,7 +270,6 @@ OGLSetupOutputType	*data;
 static void OGL_CreateDrawContext(OGLViewDefType *viewDefPtr)
 {
 GLint			maxTexSize;
-static char			*s;
 
 			/* CREATE AGL CONTEXT & ATTACH TO WINDOW */
 
@@ -318,7 +319,7 @@ static char			*s;
 		/* GET OPENGL CAPABILITIES */
  		/***************************/
 
-	s = (char *)glGetString(GL_EXTENSIONS);					// get extensions list
+//	char* s = (char *)glGetString(GL_EXTENSIONS);					// get extensions list
 
 
 
@@ -755,43 +756,42 @@ GLuint	textureName;
 	return(textureName);
 }
 
-/***************** OGL TEXTUREMAP LOAD FROM TGA **********************/
+/***************** OGL TEXTUREMAP LOAD FROM PNG/JPG **********************/
 
-#if 0
-GLuint OGL_TextureMap_LoadTGA(const char* path, int flags, int* outWidth, int* outHeight)
+GLuint OGL_TextureMap_LoadImageFile(const char* path, int* outWidth, int* outHeight)
 {
 FSSpec					spec;
 uint8_t*				pixelData = nil;
-TGAHeader				header;
 OSErr					err;
+int						width;
+int						height;
+long					imageFileLength = 0;
+Ptr						imageFileData = nil;
 
 	FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, path, &spec);
 
 			/* LOAD RAW ARGB DATA FROM TGA FILE */
 
-	err = ReadTGA(&spec, &pixelData, &header, true);
-	GAME_ASSERT(err == noErr);
+				/* LOAD PICTURE FILE */
 
-	GAME_ASSERT(header.bpp == 32);
-	GAME_ASSERT(header.imageType == TGA_IMAGETYPE_CONVERTED_ARGB);
+	err = FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, path, &spec);
+	GAME_ASSERT(!err);
+
+	imageFileData = LoadFileData(&spec, &imageFileLength);
+	GAME_ASSERT(imageFileData);
+
+	pixelData = (uint8_t*) stbi_load_from_memory((const stbi_uc*) imageFileData, imageFileLength, &width, &height, NULL, 4);
+	GAME_ASSERT(pixelData);
+
+	SafeDisposePtr(imageFileData);
+	imageFileData = NULL;
 
 			/* PRE-PROCESS IMAGE */
 
-	int internalFormat = GL_RGB;
+	int internalFormat = GL_RGBA;
 
-	if (flags & kLoadTextureFlags_GrayscaleIsAlpha)
-	{
-		for (int p = 0; p < 4 * header.width * header.height; p += 4)
-		{
-			// put Blue into Alpha & leave map white
-			pixelData[p+0] = pixelData[p+3];	// put blue into alpha
-			pixelData[p+1] = 255;
-			pixelData[p+2] = 255;
-			pixelData[p+3] = 255;
-		}
-		internalFormat = GL_RGBA;
-	}
-	else if (flags & kLoadTextureFlags_KeepOriginalAlpha)
+#if 0
+	if (flags & kLoadTextureFlags_KeepOriginalAlpha)
 	{
 		internalFormat = GL_RGBA;
 	}
@@ -799,13 +799,14 @@ OSErr					err;
 	{
 		internalFormat = GL_RGB;
 	}
+#endif
 
 			/* LOAD TEXTURE */
 
 	GLuint glTextureName = OGL_TextureMap_Load(
 			pixelData,
-			header.width,
-			header.height,
+			width,
+			height,
 			GL_BGRA,
 			internalFormat,
 			GL_UNSIGNED_INT_8_8_8_8
@@ -813,16 +814,16 @@ OSErr					err;
 
 			/* CLEAN UP */
 
-	DisposePtr((Ptr) pixelData);
+	//DisposePtr((Ptr) pixelData);
+	free(pixelData);  // TODO: define STBI_MALLOC/STBI_REALLOC/STBI_FREE in stb_image.c?
 
 	if (outWidth)
-		*outWidth = header.width;
+		*outWidth = width;
 	if (outHeight)
-		*outHeight = header.height;
+		*outHeight = height;
 
 	return glTextureName;
 }
-#endif
 
 
 /****************** OGL: TEXTURE SET OPENGL TEXTURE **************************/
