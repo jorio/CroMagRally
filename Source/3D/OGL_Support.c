@@ -69,10 +69,6 @@ static void	ConvertTextureToColorAnaglyph(void *imageMemory, short width, short 
 /*    VARIABLES      */
 /*********************/
 
-Boolean			gSupportsPackedPixels = false;
-Boolean			gOpenGL112 = false;
-Boolean			gCanDo512 = true;
-
 SDL_GLContext	gAGLContext = nil;
 
 

@@ -58,8 +58,6 @@ float	gFramesPerSecond, gFramesPerSecondFrac;
 
 int		gNumPointers = 0;
 
-Boolean	gLowMemMode = false;
-
 
 /**********************/
 /*     PROTOTYPES     */

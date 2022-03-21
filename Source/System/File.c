@@ -58,7 +58,6 @@ extern	TileAttribType	**gTileAttribList;
 extern	uint16_t			**gTileGrid;
 extern	GLuint			gSuperTileTextureNames[MAX_SUPERTILE_TEXTURES];
 extern	PrefsType			gGamePrefs;
-extern	Boolean			gSongPlayingFlag,gSupportsPackedPixels,gLowMemMode,gOSX;
 
 /****************************/
 /*    PROTOTYPES            */
@@ -1940,50 +1939,15 @@ Ptr						tempBuffer16 = nil,tempBuffer24 = nil;
 		ByteswapInts(2, decompressedSize/2, tempBuffer16);
 
 
-#if 0
-				/* IF LOW MEM MODE THEN SHRINK THE TERRAIN TEXTURES IN HALF */
-
-		if (gLowMemMode)
-		{
-			int		x,y;
-			uint16_t	*src,*dest;
-
-			dest = src = (uint16_t *)tempBuffer16;
-
-			for (y = 0; y < SUPERTILE_TEXMAP_SIZE; y+=2)
-			{
-				for (x = 0; x < SUPERTILE_TEXMAP_SIZE; x+=2)
-				{
-					*dest++ = src[x];
-				}
-				src += SUPERTILE_TEXMAP_SIZE*2;
-			}
-
-			width = SUPERTILE_TEXMAP_SIZE/2;
-			height = SUPERTILE_TEXMAP_SIZE/2;
-		}
-		else
-#endif
-		{
-			width = SUPERTILE_TEXMAP_SIZE;
-			height = SUPERTILE_TEXMAP_SIZE;
-		}
+		width = SUPERTILE_TEXMAP_SIZE;
+		height = SUPERTILE_TEXMAP_SIZE;
 
 
-		if (gSupportsPackedPixels)
-		{
 				/* USE PACKED PIXEL TYPE */
+				// TODO: skip ConvertTexture16To16 and just flip in UVs
 
-			ConvertTexture16To16((uint16_t *)tempBuffer16, width, height);
-			gSuperTileTextureNames[i] = OGL_TextureMap_Load(tempBuffer16, width, height, GL_BGRA_EXT, GL_RGBA, GL_UNSIGNED_SHORT_1_5_5_5_REV);
-		}
-		else
-		{
-				/* CONVERT 16-BIT BUFFER TO 24-BIT BUFFER & LOAD INTO OPENGL */
-
-			ConvertTexture16To24((uint16_t *)tempBuffer16, (uint8_t *)tempBuffer24, width, height);
-			gSuperTileTextureNames[i] = OGL_TextureMap_Load(tempBuffer24, width, height, GL_RGB, GL_RGB5, GL_UNSIGNED_BYTE);
-		}
+		ConvertTexture16To16((uint16_t *)tempBuffer16, width, height);
+		gSuperTileTextureNames[i] = OGL_TextureMap_Load(tempBuffer16, width, height, GL_BGRA_EXT, GL_RGBA, GL_UNSIGNED_SHORT_1_5_5_5_REV);
 
 
 
@@ -2000,40 +1964,6 @@ Ptr						tempBuffer16 = nil,tempBuffer24 = nil;
 		SafeDisposePtr(tempBuffer16);
 	if (tempBuffer24)
 		SafeDisposePtr(tempBuffer24);
-}
-
-
-/*********************** CONVERT TEXTURE; 16 TO 24 ***********************************/
-
-static void	ConvertTexture16To24(uint16_t *textureBuffer2, uint8_t *textureBuffer3, int width, int height)
-{
-int		x,y;
-uint16_t	srcPixel;
-uint32_t	r,g,b;
-uint8_t	*dest;
-
-	textureBuffer3 += (width * 3) * (height - 1);				// flip Y while we do this!
-
-	for (y = 0; y < height; y++)
-	{
-		dest = textureBuffer3;
-
-		for (x = 0; x < width; x++)
-		{
-			srcPixel = textureBuffer2[x];						// get 16bit pixel
-
-			b = srcPixel & 0x1f;
-			g = (srcPixel & (0x1f << 5)) >> 5;
-			r = (srcPixel & (0x1f << 10)) >> 10;
-
-			*dest++ = r<<3;			// save red byte
-			*dest++ = g<<3;			// save green byte
-			*dest++ = b<<3;			// save blue byte
-		}
-
-		textureBuffer2 += width;
-		textureBuffer3 -= (width*3);
-	}
 }
 
 

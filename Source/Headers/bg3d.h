@@ -2,8 +2,7 @@
 // bg3d.h
 //
 
-#ifndef __BG3D
-#define __BG3D
+#pragma once
 
 #include "metaobjects.h"
 #include "skeletonobj.h"
@@ -110,7 +109,3 @@ void ImportBG3D(FSSpec *spec, int groupNum, OGLSetupOutputType *setupInfo);
 void DisposeBG3DContainer(int groupNum);
 void DisposeAllBG3DContainers(void);
 void BG3D_SetContainerMaterialFlags(short group, short type, uint32_t flags);
-void	ConvertTexture24To16(uint8_t *srcBuff24, uint16_t *destBuff16, int width, int height);
-
-#endif
-

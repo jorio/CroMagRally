@@ -17,8 +17,6 @@
 #include "skeletonobj.h"
 #include "mobjtypes.h"
 
-extern	Boolean			gSongPlayingFlag,gSupportsPackedPixels,gCanDo512,gLowMemMode;
-
 
 /****************************/
 /*    PROTOTYPES            */
@@ -764,77 +762,15 @@ void				*pixels;
 			h 			= matData->height;						// get height
 
 
-#if 0
-				/* SEE IF NEED TO SHRINK FOR VOODOO 2 */
-
-			if (gLowMemMode)
-				goto shrink_it;
-
-			if ((w == 512) || (h == 512))
-			{
-				if (!gCanDo512)
-				{
-shrink_it:
-					if (matData->pixelSrcFormat == GL_RGB)
-					{
-						int		x,y;
-						uint8_t	*src,*dest;
-
-						dest = src = (uint8_t *)pixels;
-
-						for (y = 0; y < h; y+=2)
-						{
-							for (x = 0; x < w; x+=2)
-							{
-								*dest++ = src[x*3];
-								*dest++ = src[x*3+1];
-								*dest++ = src[x*3+2];
-							}
-							src += w*2*3;
-						}
-						w /= 2;
-						h /= 2;
-					}
-					else
-					if (matData->pixelSrcFormat == GL_RGBA)
-					{
-						int		x,y;
-						uint32_t	*src,*dest;
-
-						dest = src = (uint32_t *)pixels;
-
-						for (y = 0; y < h; y+=2)
-						{
-							for (x = 0; x < w; x+=2)
-							{
-								*dest++ = src[x];
-							}
-							src += w*2;
-						}
-						w /= 2;
-						h /= 2;
-					}
-				}
-			}
-#endif
-
-
 				/* LOAD INTO OPENGL */
 
-			if (gSupportsPackedPixels && (matData->pixelSrcFormat == GL_RGB) && (matData->pixelDstFormat == GL_RGB5_A1))	// see if convert 24 to 16-bit
-			{
-				uint16_t	*buff;
-
-				buff = (uint16_t *)AllocPtr(w*h*2);				// alloc buff for 16-bit texture
-
-				ConvertTexture24To16(pixels, buff, w, h);
-				matData->textureName[0] = OGL_TextureMap_Load(buff, w, h, GL_BGRA_EXT, GL_RGBA, GL_UNSIGNED_SHORT_1_5_5_5_REV); // load 16 as 16
-
-				SafeDisposePtr((Ptr)buff);							// dispose buff
-
-			}
-			else
-				matData->textureName[0] = OGL_TextureMap_Load(pixels, w, h, matData->pixelSrcFormat, matData->pixelDstFormat, GL_UNSIGNED_BYTE);
+			matData->textureName[0] = OGL_TextureMap_Load(
+				pixels,
+				w,
+				h,
+				matData->pixelSrcFormat,
+				matData->pixelDstFormat,
+				GL_UNSIGNED_BYTE);
 
 
 			/* DISPOSE ORIGINAL PIXELS */
@@ -848,35 +784,6 @@ shrink_it:
 //		if (gSongPlayingFlag)
 //			MoviesTask(gSongMovie, 0);
 
-	}
-}
-
-
-/*********************** CONVERT TEXTURE; 24 TO 16 ***********************************/
-
-void	ConvertTexture24To16(uint8_t *srcBuff24, uint16_t *destBuff16, int width, int height)
-{
-int		x,y,h;
-uint32_t	pixel;
-uint32_t	r,g,b;
-
-	for (y = 0; y < height; y++)
-	{
-		h = 0;
-		for (x = 0; x < width; x++)
-		{
-			r = srcBuff24[h++];				// get red
-			g = srcBuff24[h++];			// get green
-			b = srcBuff24[h++];			// get blue
-
-			pixel = (r >> 3) << 10;
-			pixel |= (g >> 3) << 5;
-			pixel |= (b >> 3);
-
-			destBuff16[x] = pixel | 0x8000;
-		}
-		srcBuff24 += width * 3;
-		destBuff16 += width;
 	}
 }
 

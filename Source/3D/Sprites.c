@@ -23,7 +23,6 @@
 
 extern	float	gCurrentAspectRatio,gGlobalTransparency;
 extern	int		gPolysThisFrame;
-extern	Boolean			gSongPlayingFlag,gSupportsPackedPixels,gCanDo512,gLowMemMode;
 
 
 /****************************/
@@ -190,82 +189,13 @@ MOMaterialData	matData;
 
 		matData.texturePixels[0]= nil;											// we're going to preload
 
-#if 0
-			/* SEE IF NEED TO SHRINK FOR VOODOO 2 */
-
-		if (gLowMemMode)
-			goto shrink_it;
-
-		if ((w == 512) || (h == 512))
-		{
-			if (!gCanDo512)
-			{
-shrink_it:
-				if (matData.pixelSrcFormat == GL_RGB)
-				{
-					int		x,y;
-					uint8_t	*src,*dest;
-
-					dest = src = (uint8_t *)buffer;
-
-					for (y = 0; y < h; y+=2)
-					{
-						for (x = 0; x < w; x+=2)
-						{
-							*dest++ = src[x*3];
-							*dest++ = src[x*3+1];
-							*dest++ = src[x*3+2];
-						}
-						src += w*2*3;
-					}
-					matData.width /= 2;
-					matData.height /= 2;
-				}
-				else
-				if (matData.pixelSrcFormat == GL_RGBA)
-				{
-					int		x,y;
-					uint32_t	*src,*dest;
-
-					dest = src = (uint32_t *)buffer;
-
-					for (y = 0; y < h; y+=2)
-					{
-						for (x = 0; x < w; x+=2)
-						{
-							*dest++ = src[x];
-						}
-						src += w*2;
-					}
-					matData.width /= 2;
-					matData.height /= 2;
-				}
-			}
-		}
-#endif
-
-
-
-		if (gSupportsPackedPixels && (matData.pixelSrcFormat == GL_RGB) && (matData.pixelDstFormat == GL_RGB5_A1))	// see if convert 24 to 16-bit
-		{
-			uint16_t	*buff16;
-
-			buff16 = (uint16_t *)AllocPtr(matData.width*matData.height*2);				// alloc buff for 16-bit texture
-
-			ConvertTexture24To16(buffer, buff16, matData.width, matData.height);
-			matData.textureName[0] = OGL_TextureMap_Load(buff16, matData.width, matData.height, GL_BGRA_EXT, GL_RGBA, GL_UNSIGNED_SHORT_1_5_5_5_REV); // load 16 as 16
-
-			SafeDisposePtr((Ptr)buff16);							// dispose buff
-
-		}
-		else
-		{
-			matData.textureName[0] 	= OGL_TextureMap_Load(buffer,
-													 matData.width,
-													 matData.height,
-													 matData.pixelSrcFormat,
-													 matData.pixelDstFormat, GL_UNSIGNED_BYTE);
-		}
+		matData.textureName[0] 	= OGL_TextureMap_Load(
+			buffer,
+			matData.width,
+			matData.height,
+			matData.pixelSrcFormat,
+			matData.pixelDstFormat,
+			GL_UNSIGNED_BYTE);
 
 
 		gSpriteGroupList[groupNum][i].materialObject = MO_CreateNewObjectOfType(MO_TYPE_MATERIAL, 0, &matData);
