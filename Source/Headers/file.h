@@ -56,22 +56,16 @@ typedef struct
 {
 	Byte	difficulty;
 	Byte	desiredSplitScreenMode;
-	Boolean	showScreenModeDialog;
-	short	depth;
-	int		screenWidth;
-	int		screenHeight;
-	float	screenCrop;
 	Byte	language;
 	Byte	tagDuration;
-	double	videoHz;
 	Byte	monitorNum;
 
 	KeyBinding keySettings[NUM_CONTROL_NEEDS][MAX_LOCAL_PLAYERS];
 	Boolean	gamepadRumble;
-
-	Byte	reserved[8];
 }PrefsType;
 
+#define PREFS_MAGIC "CMR Prefs v0"
+#define PREFS_FILE_PATH ":CroMagRally:Prefs"
 
 
 		/* SAVE PLAYER */

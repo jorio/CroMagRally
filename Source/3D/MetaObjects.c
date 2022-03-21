@@ -196,10 +196,7 @@ MetaObjectPtr	mo;
 				break;
 
 		case	MO_TYPE_PICTURE:
-				if (gGamePrefs.depth == 16)		// picture depth depends on display depth (no point in doing 32 bit if display is 16)
-					SetMetaObjectToPicture(mo, (OGLSetupOutputType *)subType, data, GL_RGB5_A1);
-				else
-					SetMetaObjectToPicture(mo, (OGLSetupOutputType *)subType, data, GL_RGB);
+				SetMetaObjectToPicture(mo, (OGLSetupOutputType*)subType, data, GL_RGB);
 				break;
 
 		case	MO_TYPE_SPRITE:

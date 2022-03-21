@@ -571,26 +571,43 @@ OSErr		iErr;
 short		refNum;
 FSSpec		file;
 long		count;
+long		eof = 0;
+char		magic[sizeof(PREFS_MAGIC)];
 
 				/*************/
 				/* READ FILE */
 				/*************/
 
-#if DEMO
-	FSMakeFSSpec(gPrefsFolderVRefNum, gPrefsFolderDirID, ":CroMag:DemoPreferences4", &file);
-#else
-	FSMakeFSSpec(gPrefsFolderVRefNum, gPrefsFolderDirID, ":CroMag:Preferences4", &file);
-#endif
+	FSMakeFSSpec(gPrefsFolderVRefNum, gPrefsFolderDirID, PREFS_FILE_PATH, &file);
 	iErr = FSpOpenDF(&file, fsRdPerm, &refNum);
 	if (iErr)
 		return(iErr);
 
+				/* CHECK FILE LENGTH */
+
+	GetEOF(refNum, &eof);
+
+	if (eof != sizeof(PrefsType) + sizeof(PREFS_MAGIC))
+		goto fileIsCorrupt;
+
+				/* READ HEADER */
+
+	count = sizeof(PREFS_MAGIC);
+	iErr = FSRead(refNum, &count, magic);
+	if (iErr ||
+		count != sizeof(PREFS_MAGIC) ||
+		0 != strncmp(magic, PREFS_MAGIC, sizeof(PREFS_MAGIC)-1))
+	{
+		goto fileIsCorrupt;
+	}
+
+				/* READ PREFS STRUCT */
+
 	count = sizeof(PrefsType);
 	iErr = FSRead(refNum, &count,  (Ptr)prefBlock);		// read data from file
-	if (iErr)
+	if (iErr || count != sizeof(PrefsType))
 	{
-		FSClose(refNum);
-		return(iErr);
+		goto fileIsCorrupt;
 	}
 
 	FSClose(refNum);
@@ -599,22 +616,11 @@ long		count;
 			/* VERIFY PREFS */
 			/****************/
 
-	if ((gGamePrefs.depth != 16) && (gGamePrefs.depth != 32))
-		goto err;
-
-//	if ((gGamePrefs.screenWidth != 1024) && (gGamePrefs.screenWidth != 800) && (gGamePrefs.screenWidth != 640))
-//		goto err;
-
-//	if ((gGamePrefs.screenHeight != 768) && (gGamePrefs.screenHeight != 600) && (gGamePrefs.screenHeight != 480))
-//		goto err;
-
-	if ((gGamePrefs.screenCrop < 0.0f) || (gGamePrefs.screenCrop > 1.0))
-		goto err;
-
-
 	return(noErr);
 
-err:
+fileIsCorrupt:
+	puts("Prefs file appears to be corrupt!");
+	FSClose(refNum);
 	InitDefaultPrefs();
 	return(noErr);
 }
@@ -632,11 +638,7 @@ long				count;
 
 				/* CREATE BLANK FILE */
 
-#if DEMO
-	FSMakeFSSpec(gPrefsFolderVRefNum, gPrefsFolderDirID, ":CroMag:DemoPreferences4", &file);
-#else
-	FSMakeFSSpec(gPrefsFolderVRefNum, gPrefsFolderDirID, ":CroMag:Preferences4", &file);
-#endif
+	FSMakeFSSpec(gPrefsFolderVRefNum, gPrefsFolderDirID, PREFS_FILE_PATH, &file);
 	FSpDelete(&file);															// delete any existing file
 	iErr = FSpCreate(&file, 'CavM', 'Pref', smSystemScript);					// create blank file
 	if (iErr)
@@ -650,6 +652,11 @@ long				count;
 		FSpDelete(&file);
 		return;
 	}
+
+				/* WRITE MAGIC */
+
+	count = sizeof(PREFS_MAGIC);
+	FSWrite(refNum, &count, (Ptr) PREFS_MAGIC);
 
 				/* WRITE DATA */
 

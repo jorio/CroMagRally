@@ -229,19 +229,7 @@ long 		keyboardScript, languageCode;
 	gGamePrefs.language				= GetBestLanguageIDFromSystemLocale();
 	gGamePrefs.difficulty			= DIFFICULTY_MEDIUM;
 	gGamePrefs.desiredSplitScreenMode	= SPLITSCREEN_MODE_VERT;
-	gGamePrefs.showScreenModeDialog = true;
-#if OEM
-	gGamePrefs.depth				= 32;
-	gGamePrefs.screenWidth			= 800;
-	gGamePrefs.screenHeight			= 600;
-#else
-	gGamePrefs.depth				= 16;
-	gGamePrefs.screenWidth			= 800;
-	gGamePrefs.screenHeight			= 600;
-#endif
-	gGamePrefs.videoHz				= 0;
 	gGamePrefs.monitorNum			= 0;			// main monitor by default
-	gGamePrefs.screenCrop 			= 0;
 	gGamePrefs.tagDuration 			= 3;
 
 //	for (i = 0; i < NUM_CONTROL_NEEDS; i++)			// set OS X keyboard defaults
