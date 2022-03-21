@@ -807,10 +807,10 @@ Ptr						imageFileData = nil;
 			pixelData,
 			width,
 			height,
-			GL_BGRA,
+			GL_RGBA,
 			internalFormat,
-			GL_UNSIGNED_INT_8_8_8_8
-			);
+			GL_UNSIGNED_BYTE);
+	GAME_ASSERT(!OGL_CheckError());
 
 			/* CLEAN UP */
 

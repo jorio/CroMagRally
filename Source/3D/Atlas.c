@@ -1,6 +1,6 @@
 // TEXT MESH.C
-// (C) 2021 Iliyas Jorio
-// This file is part of Otto Matic. https://github.com/jorio/ottomatic
+// (C) 2022 Iliyas Jorio
+// This file is part of Cro-Mag Rally. https://github.com/jorio/cromagrally
 
 /****************************/
 /*    EXTERNALS             */
@@ -38,9 +38,6 @@ typedef struct
 // This covers the basic multilingual plane (0000-FFFF)
 #define MAX_CODEPOINT_PAGES 256
 
-#define ATLAS_WIDTH 1024
-#define ATLAS_HEIGHT 1024
-
 #define TAB_STOP 60.0f
 
 /****************************/
@@ -49,6 +46,8 @@ typedef struct
 
 // The font material must be reloaded everytime a new GL context is created
 static MetaObjectPtr gFontMaterial = NULL;
+static int gFontAtlasWidth = 0;
+static int gFontAtlasHeight = 0;
 
 static bool gFontMetricsLoaded = false;
 static float gFontLineHeight = 0;
@@ -137,13 +136,13 @@ static void ParseSFL(const char* data)
 
 	nArgs = sscanf(data, "%d %f", &junk, &gFontLineHeight);
 	GAME_ASSERT(nArgs == 2);
-	ParseSFL_SkipLine(&data);
+	ParseSFL_SkipLine(&data);  // Skip rest of line
 
 	ParseSFL_SkipLine(&data);	// Skip image filename
 
 	nArgs = sscanf(data, "%d", &nGlyphs);
 	GAME_ASSERT(nArgs == 1);
-	ParseSFL_SkipLine(&data);
+	ParseSFL_SkipLine(&data);  // Skip rest of line
 
 	for (int i = 0; i < nGlyphs; i++)
 	{
@@ -176,7 +175,7 @@ static void ParseSFL(const char* data)
 
 		gAtlasGlyphsPages[codePointPage][codePoint & 0xFF] = newGlyph;
 
-		ParseSFL_SkipLine(&data);
+		ParseSFL_SkipLine(&data);  // Skip rest of line
 	}
 
 	// Force monospaced numbers
@@ -241,6 +240,9 @@ void TextMesh_LoadMetrics(const char* sflPath)
 
 void TextMesh_InitMaterial(OGLSetupOutputType* setupInfo, const char* texturePath)
 {
+	GLuint textureName = 0;
+	textureName = OGL_TextureMap_LoadImageFile(texturePath, &gFontAtlasWidth, &gFontAtlasHeight);
+
 		/* CREATE FONT MATERIAL */
 
 	GAME_ASSERT_MESSAGE(!gFontMaterial, "gFontMaterial already created");
@@ -250,9 +252,9 @@ void TextMesh_InitMaterial(OGLSetupOutputType* setupInfo, const char* texturePat
 	matData.flags			= BG3D_MATERIALFLAG_ALWAYSBLEND | BG3D_MATERIALFLAG_TEXTURED | BG3D_MATERIALFLAG_CLAMP_U | BG3D_MATERIALFLAG_CLAMP_V;
 	matData.diffuseColor	= (OGLColorRGBA) {1, 1, 1, 1};
 	matData.numMipmaps		= 1;
-	matData.width			= ATLAS_WIDTH;
-	matData.height			= ATLAS_HEIGHT;
-	matData.textureName[0]	= OGL_TextureMap_LoadImageFile(texturePath, nil, nil);
+	matData.width			= gFontAtlasWidth;
+	matData.height			= gFontAtlasHeight;
+	matData.textureName[0]	= textureName;
 	gFontMaterial = MO_CreateNewObjectOfType(MO_TYPE_MATERIAL, 0, &matData);
 }
 
@@ -283,7 +285,6 @@ void TextMesh_DisposeMetrics(void)
 /*                MESH ALLOCATION/LAYOUT                       */
 /***************************************************************/
 
-#if 1
 static void TextMesh_ReallocateMesh(MOVertexArrayData* mesh, int numQuads)
 {
 	if (mesh->points)
@@ -325,7 +326,6 @@ static void TextMesh_InitMesh(MOVertexArrayData* mesh, int numQuads)
 
 	TextMesh_ReallocateMesh(mesh, numQuads);
 }
-#endif
 
 static const AtlasGlyph* GetGlyphFromCodepoint(uint32_t c)
 {
@@ -345,8 +345,6 @@ static const AtlasGlyph* GetGlyphFromCodepoint(uint32_t c)
 
 	return &gAtlasGlyphsPages[page][c & 0xFF];
 }
-
-#if 1
 
 void TextMesh_Update(const char* text, int align, ObjNode* textNode)
 {
@@ -370,11 +368,14 @@ void TextMesh_Update(const char* text, int align, ObjNode* textNode)
 
 	//-----------------------------------
 
-	float S = .5f;
+	const float S = 2.0f;//.5f;
 	float x = 0;
 	float y = 0;
 	float z = 0;
 	float spacing = 0;
+
+	const float invAtlasW = 1.0f / gFontAtlasWidth;
+	const float invAtlasH = 1.0f / gFontAtlasHeight;
 
 	// Compute number of quads and line width
 	float lineWidth = 0;
@@ -441,28 +442,28 @@ void TextMesh_Update(const char* text, int align, ObjNode* textNode)
 	GAME_ASSERT(mesh->materials[0]);
 
 	// Create a quad for each character
-	int t = 0;
-	int p = 0;
+	int t = 0;		// triangle counter
+	int p = 0;		// point counter
 	for (const char* utftext = text; *utftext; )
 	{
-		uint32_t c = ReadNextCodepointFromUTF8(&utftext);
+		uint32_t codepoint = ReadNextCodepointFromUTF8(&utftext);
 
-		if (c == '\n')
+		if (codepoint == '\n')
 		{
 			x = x0;
 			y += gFontLineHeight * S;
 			continue;
 		}
 
-		if (c == '\t')
+		if (codepoint == '\t')
 		{
 			x = TAB_STOP * ceilf((x+1.0f) / TAB_STOP);
 			continue;
 		}
 
-		const AtlasGlyph g = *GetGlyphFromCodepoint(c);
+		const AtlasGlyph g = *GetGlyphFromCodepoint(codepoint);
 
-		if (c == ' ')
+		if (codepoint == ' ')
 		{
 			x += S*(g.xadv + spacing);
 			continue;
@@ -481,10 +482,10 @@ void TextMesh_Update(const char* text, int align, ObjNode* textNode)
 		mesh->points[p + 1] = (OGLPoint3D) { qx + S*g.w*.5f, qy - S*g.h*.5f, z };
 		mesh->points[p + 2] = (OGLPoint3D) { qx + S*g.w*.5f, qy + S*g.h*.5f, z };
 		mesh->points[p + 3] = (OGLPoint3D) { qx - S*g.w*.5f, qy + S*g.h*.5f, z };
-		mesh->uvs[p + 0] = (OGLTextureCoord) { g.x/ATLAS_WIDTH,		g.y/ATLAS_HEIGHT };
-		mesh->uvs[p + 1] = (OGLTextureCoord) { (g.x+g.w)/ATLAS_WIDTH,	g.y/ATLAS_HEIGHT };
-		mesh->uvs[p + 2] = (OGLTextureCoord) { (g.x+g.w)/ATLAS_WIDTH,	(g.y+g.h)/ATLAS_HEIGHT };
-		mesh->uvs[p + 3] = (OGLTextureCoord) { g.x/ATLAS_WIDTH,		(g.y+g.h)/ATLAS_HEIGHT };
+		mesh->uvs[p + 0] = (OGLTextureCoord) { invAtlasW * g.x,			invAtlasH * (g.y+g.h) };
+		mesh->uvs[p + 1] = (OGLTextureCoord) { invAtlasW * (g.x+g.w),	invAtlasH * (g.y+g.h) };
+		mesh->uvs[p + 2] = (OGLTextureCoord) { invAtlasW * (g.x+g.w),	invAtlasH * g.y };
+		mesh->uvs[p + 3] = (OGLTextureCoord) { invAtlasW * g.x,			invAtlasH * g.y };
 
 		x += S*(g.xadv + spacing);
 		t += 2;
@@ -504,7 +505,8 @@ ObjNode *TextMesh_NewEmpty(int capacity, NewObjectDefinitionType* newObjDef)
 	TextMesh_InitMesh(&mesh, capacity);
 
 	newObjDef->genre = TEXTMESH_GENRE;
-	newObjDef->flags = STATUS_BIT_KEEPBACKFACES | STATUS_BIT_NOFOG | STATUS_BIT_NOLIGHTING | STATUS_BIT_NOZWRITES | STATUS_BIT_NOZBUFFER | STATUS_BIT_GLOW;
+	newObjDef->flags = STATUS_BIT_NOFOG | STATUS_BIT_NOLIGHTING | STATUS_BIT_NOZWRITES | STATUS_BIT_NOZBUFFER
+		| STATUS_BIT_DONTCULL;   // TODO: make it so we don't need DONTCULL
 	ObjNode* textNode = MakeNewObject(newObjDef);
 
 	// Attach color mesh
@@ -582,5 +584,3 @@ void TextMesh_DrawExtents(ObjNode* textNode)
 
 	OGL_PopState();
 }
-
-#endif

@@ -28,6 +28,7 @@
 #include "terrain.h"
 #include "splineitems.h"
 #include "player.h"
+#include "atlas.h"
 
 extern	Byte					gDebugMode;
 extern	MetaObjectPtr			gBG3DGroupList[MAX_BG3D_GROUPS][MAX_OBJECTS_IN_GROUP];
@@ -42,6 +43,7 @@ extern	uint32_t					gGlobalMaterialFlags;
 extern	PlayerInfoType			gPlayerInfo[];
 extern	Boolean					gNetGameInProgress;
 extern	short					gMyNetworkPlayerNum;
+extern	float					gCurrentAspectRatio;
 
 /****************************/
 /*    PROTOTYPES            */
@@ -861,12 +863,33 @@ short			skelType, playerNum;
 					if (theNode->BaseGroup)
 					{
 						OGL_PushState();								// keep state
-//						SetInfobarSpriteState(true);
+
+						glMatrixMode(GL_PROJECTION);
+						glLoadIdentity();
+						glMatrixMode(GL_MODELVIEW);
+						glLoadIdentity();
+
+// TODO: settle on one of the #if branches and remove the other
+#if 1  // Like original FONTSTRING_GENRE - based on window width
+						float scaleBasis = 1.0f / SPRITE_SCALE_BASIS_DENOMINATOR;
+						float aspectRatio = 1.0f; // font AR
+						// Hack: use Scale.z as scaling reference
+						theNode->Scale.x = theNode->Scale.z * scaleBasis;
+						theNode->Scale.y = theNode->Scale.z * scaleBasis * gCurrentAspectRatio * aspectRatio;
+#else  // Based on window height - makes more sense in 2022 I guess, because screen width is more likely to be variable
+						float scaleBasis = 1.0f / 480.0f;
+						theNode->Scale.x = theNode->Scale.z * scaleBasis / gCurrentAspectRatio;
+						theNode->Scale.y = theNode->Scale.z * scaleBasis;
+#endif
+						UpdateObjectTransforms(theNode);
+
 						MO_DrawObject(theNode->BaseGroup, setupInfo);
 
+#if !_DEBUG // always show extents for now
 						if (gDebugMode == 1)
+#endif
 						{
-//							TextMesh_DrawExtents(theNode);
+							TextMesh_DrawExtents(theNode);
 						}
 
 						OGL_PopState();									// restore state
