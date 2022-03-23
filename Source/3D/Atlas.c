@@ -411,13 +411,13 @@ void TextMesh_Update(const char* text, int align, ObjNode* textNode)
 	float x0 = x;
 
 	// Adjust y for ascender
-	y -= S*(gFontLineHeight * .3f);
+	y -= S*gFontLineHeight/2.0f;
 
 	// Save extents
 	textNode->LeftOff	= x;
 	textNode->RightOff	= x + lineWidth;
-	textNode->TopOff	= y + S*gFontLineHeight*0.3f;
-	textNode->BottomOff	= y + S*gFontLineHeight*1.25f;
+	textNode->TopOff	= y;
+	textNode->BottomOff	= y + S*gFontLineHeight;
 
 	// Ensure mesh has capacity for quads
 	if (textNode->TextQuadCapacity < numQuads)
