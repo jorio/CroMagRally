@@ -32,6 +32,7 @@
 #include "skeletonjoints.h"
 #include "sound2.h"
 #include "localization.h"
+#include "atlas.h"
 
 extern	float				gFramesPerSecondFrac,gFramesPerSecond;
 extern	WindowPtr			gCoverWindow;
@@ -402,8 +403,7 @@ static const char* names[] =
 
 			/* LOAD SPRITES */
 
-	FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":sprites:wallfont.sprites", &spec);
-	LoadSpriteFile(&spec, SPRITE_GROUP_FONT, gGameViewInfoPtr);
+	TextMesh_LoadFont(gGameViewInfoPtr, "wallfont");
 
 	InitParticleSystem(gGameViewInfoPtr);
 
@@ -456,6 +456,7 @@ static void FreeConqueredScreen(void)
 	MO_DisposeObjectReference(gBackgoundPicture);
 	DisposeAllSpriteGroups();
 	DisposeAllBG3DContainers();
+	TextMesh_DisposeFont();
 	OGL_DisposeWindowSetup(&gGameViewInfoPtr);
 }
 
@@ -550,9 +551,6 @@ ObjNode				*newObj,*signObj;
 FSSpec				spec;
 OGLSetupInputType	viewDef;
 
-static Str31 age[3] = {"STONE AGE", "BRONZE AGE", "IRON AGE"};
-
-
 	PlaySong(SONG_WIN, false);
 
 
@@ -597,8 +595,7 @@ static Str31 age[3] = {"STONE AGE", "BRONZE AGE", "IRON AGE"};
 
 			/* LOAD SPRITES */
 
-	FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":sprites:wallfont.sprites", &spec);
-	LoadSpriteFile(&spec, SPRITE_GROUP_FONT, gGameViewInfoPtr);
+	TextMesh_LoadFont(gGameViewInfoPtr, "wallfont");
 
 	InitParticleSystem(gGameViewInfoPtr);
 
@@ -683,6 +680,7 @@ static void FreeWinScreen(void)
 	DisposeAllSpriteGroups();
 	FreeAllSkeletonFiles(-1);
 	DisposeAllBG3DContainers();
+	TextMesh_DisposeFont();
 	OGL_DisposeWindowSetup(&gGameViewInfoPtr);
 }
 

@@ -296,10 +296,6 @@ OGLVector3D			fillDirection2 = { -1, -.2, -.5 };
 
 			/* LOAD SPRITES */
 
-	// TODO: Remove sprites once TextMesh is good enough
-	FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":sprites:wallfont.sprites", &spec);
-	LoadSpriteFile(&spec, SPRITE_GROUP_FONT, gGameViewInfoPtr);
-	//-------------
 	TextMesh_LoadFont(gGameViewInfoPtr, "wallfont");
 
 
@@ -328,8 +324,7 @@ static void FreeMainMenuArt(void)
 	DeleteAllObjects();
 	MO_DisposeObjectReference(gBackgoundPicture);
 	DisposeAllSpriteGroups();
-	TextMesh_DisposeMaterial();
-	TextMesh_DisposeMetrics();
+	TextMesh_DisposeFont();
 	OGL_DisposeWindowSetup(&gGameViewInfoPtr);
 }
 
@@ -375,9 +370,6 @@ short	i;
 		const char* s = Localize(gMenuItemStrings[menuNum][i]);
 
 		gIcons[i] = TextMesh_New(s, kTextMeshAlignCenter, &gNewObjectDefinition);
-
-		ObjNode* tempForComparisonWithTextMesh = MakeFontStringObject(s, &gNewObjectDefinition, gGameViewInfoPtr, true);
-		tempForComparisonWithTextMesh->ColorFilter.b = 0;
 
 		gNewObjectDefinition.coord.y 	-= LINE_SPACING;
 

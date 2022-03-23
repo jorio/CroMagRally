@@ -8,6 +8,7 @@ enum
 };
 
 void TextMesh_LoadFont(OGLSetupOutputType* setupInfo, const char* fontName);
+void TextMesh_DisposeFont(void);
 void TextMesh_LoadMetrics(const char* sflPath);
 void TextMesh_DisposeMetrics(void);
 void TextMesh_InitMaterial(OGLSetupOutputType* setupInfo, const char* pngPath);

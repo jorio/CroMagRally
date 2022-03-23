@@ -203,6 +203,12 @@ void TextMesh_LoadFont(OGLSetupOutputType* setupInfo, const char* fontName)
 	TextMesh_InitMaterial(setupInfo, pathBuf);
 }
 
+void TextMesh_DisposeFont(void)
+{
+	TextMesh_DisposeMaterial();
+	TextMesh_DisposeMetrics();
+}
+
 void TextMesh_LoadMetrics(const char* sflPath)
 {
 	OSErr err;

@@ -27,6 +27,7 @@
 #include "bg3d.h"
 #include "skeletonanim.h"
 #include "localization.h"
+#include "atlas.h"
 
 extern	float				gFramesPerSecondFrac,gFramesPerSecond;
 extern	WindowPtr			gCoverWindow;
@@ -193,11 +194,10 @@ ObjNode	*newObj;
 
 			/* LOAD SPRITES */
 
+	TextMesh_LoadFont(gGameViewInfoPtr, "wallfont");
+
 	FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":sprites:charselect.sprites", &spec);
 	LoadSpriteFile(&spec, SPRITE_GROUP_CHARACTERSELECTSCREEN, gGameViewInfoPtr);
-
-	FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":sprites:wallfont.sprites", &spec);
-	LoadSpriteFile(&spec, SPRITE_GROUP_FONT, gGameViewInfoPtr);
 
 
 			/* LOAD SKELETONS */
@@ -216,8 +216,6 @@ ObjNode	*newObj;
 
 	if (gNumLocalPlayers > 1)
 	{
-		static Str31 playerStr[2] = {"PLAYER 1", "PLAYER 2"};
-
 		gNewObjectDefinition.coord.x 	= 0;
 		gNewObjectDefinition.coord.y 	= -.85;
 		gNewObjectDefinition.coord.z 	= 0;
@@ -226,12 +224,24 @@ ObjNode	*newObj;
 		gNewObjectDefinition.rot 		= 0;
 		gNewObjectDefinition.scale 	    = .4;
 		gNewObjectDefinition.slot 		= SPRITE_SLOT;
-		newObj = MakeFontStringObject(playerStr[whichPlayer], &gNewObjectDefinition, gGameViewInfoPtr, true);
+		newObj = TextMesh_New(Localize(STR_PLAYER_1 + whichPlayer), kTextMeshAlignCenter, &gNewObjectDefinition);
 
 		newObj->ColorFilter.r = .2;
 		newObj->ColorFilter.g = .7;
 		newObj->ColorFilter.b = .2;
 	}
+
+			/* CREATE NAME STRINGS */
+
+	gNewObjectDefinition.coord.x 	= -.43;
+	gNewObjectDefinition.coord.y 	= .8;
+	gNewObjectDefinition.scale 	    = .6;
+	gNewObjectDefinition.slot 		= 0;
+	TextMesh_New(Localize(STR_BROG), kTextMeshAlignCenter, &gNewObjectDefinition);
+
+	gNewObjectDefinition.coord.x 	= .43;
+	gNewObjectDefinition.coord.y 	= .8;
+	TextMesh_New(Localize(STR_GRAG), kTextMeshAlignCenter, &gNewObjectDefinition);
 
 			/* CREATE MALE CHARACTER */
 
@@ -253,20 +263,6 @@ ObjNode	*newObj;
 	gNewObjectDefinition.coord.x 	= -gNewObjectDefinition.coord.x;
 	gNewObjectDefinition.animNum	= 0;
 	gSex[1] = MakeNewSkeletonObject(&gNewObjectDefinition);
-
-
-			/* CREATE NAME STRINGS */
-
-	gNewObjectDefinition.coord.x 	= -.43;
-	gNewObjectDefinition.coord.y 	= .8;
-	gNewObjectDefinition.scale 	    = .6;
-	gNewObjectDefinition.slot 		= 0;
-	MakeFontStringObject(Localize(STR_BROG), &gNewObjectDefinition, gGameViewInfoPtr, true);
-
-	gNewObjectDefinition.coord.x 	= .43;
-	gNewObjectDefinition.coord.y 	= .8;
-	MakeFontStringObject(Localize(STR_GRAG), &gNewObjectDefinition, gGameViewInfoPtr, true);
-
 }
 
 
@@ -279,6 +275,7 @@ static void FreeCharacterSelectArt(void)
 	MO_DisposeObjectReference(gBackgoundPicture);
 	FreeAllSkeletonFiles(-1);
 	DisposeAllSpriteGroups();
+	TextMesh_DisposeFont();
 	DisposeAllBG3DContainers();
 }
 

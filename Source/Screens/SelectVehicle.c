@@ -28,6 +28,7 @@
 #include "mobjtypes.h"
 #include "bg3d.h"
 #include "localization.h"
+#include "atlas.h"
 
 extern	float				gFramesPerSecondFrac,gFramesPerSecond;
 extern	WindowPtr			gCoverWindow;
@@ -287,8 +288,7 @@ uint32_t				n;
 	FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":sprites:vehicleselect.sprites", &spec);
 	LoadSpriteFile(&spec, SPRITE_GROUP_VEHICLESELECTSCREEN, gGameViewInfoPtr);
 
-	FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":sprites:wallfont.sprites", &spec);
-	LoadSpriteFile(&spec, SPRITE_GROUP_FONT, gGameViewInfoPtr);
+	TextMesh_LoadFont(gGameViewInfoPtr, "wallfont");
 
 
 			/* LOAD MODELS */
@@ -334,7 +334,7 @@ uint32_t				n;
 
 	for (i = 0; i < NUM_VEHICLE_PARAMETERS; i++)
 	{
-		MakeFontStringObject(Localize(STR_CAR_STAT_1 + i), &gNewObjectDefinition, gGameViewInfoPtr, false);
+		TextMesh_New(Localize(STR_CAR_STAT_1 + i), kTextMeshAlignLeft, &gNewObjectDefinition);
 		gNewObjectDefinition.coord.y 	-= LINE_SPACING;
 	}
 
@@ -366,7 +366,6 @@ uint32_t				n;
 
 	if (gNumLocalPlayers > 1)
 	{
-		static Str31 playerStr[2] = {"PLAYER 1", "PLAYER 2"};
 		ObjNode	*newObj;
 
 		gNewObjectDefinition.coord.x 	= 0;
@@ -377,7 +376,7 @@ uint32_t				n;
 		gNewObjectDefinition.rot 		= 0;
 		gNewObjectDefinition.scale 	    = .5;
 		gNewObjectDefinition.slot 		= SPRITE_SLOT;
-		newObj = MakeFontStringObject(playerStr[whichPlayer], &gNewObjectDefinition, gGameViewInfoPtr, true);
+		newObj = TextMesh_New(Localize(STR_PLAYER_1 + whichPlayer), kTextMeshAlignCenter, &gNewObjectDefinition);
 
 		newObj->ColorFilter.r = .5;
 		newObj->ColorFilter.g = .3;
@@ -405,7 +404,7 @@ static void MakeVehicleName(void)
 	gNewObjectDefinition.scale 	    = .6;
 	gNewObjectDefinition.slot 		= SPRITE_SLOT;
 
-	gVehicleName = MakeFontStringObject(Localize(STR_CAR_MODEL_1 + gSelectedVehicleIndex), &gNewObjectDefinition, gGameViewInfoPtr, true);
+	gVehicleName = TextMesh_New(Localize(STR_CAR_MODEL_1 + gSelectedVehicleIndex), kTextMeshAlignCenter, &gNewObjectDefinition);
 
 	gVehicleName->ColorFilter.r = .3;
 	gVehicleName->ColorFilter.g = .5;
@@ -424,6 +423,7 @@ static void FreeVehicleSelectArt(void)
 	MO_DisposeObjectReference(gBackgoundPicture);
 	DisposeAllSpriteGroups();
 	DisposeAllBG3DContainers();
+	TextMesh_DisposeFont();
 	OGL_DisposeWindowSetup(&gGameViewInfoPtr);
 }
 

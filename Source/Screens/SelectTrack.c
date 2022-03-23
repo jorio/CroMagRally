@@ -29,6 +29,7 @@
 #include "player.h"
 #include "sprites.h"
 #include "localization.h"
+#include "atlas.h"
 
 extern	float				gFramesPerSecondFrac,gFramesPerSecond;
 extern	WindowPtr			gCoverWindow;
@@ -211,6 +212,8 @@ OGLSetupInputType	viewDef;
 
 			/* LOAD SPRITES */
 
+	TextMesh_LoadFont(gGameViewInfoPtr, "wallfont");
+
 	switch(gGameMode)
 	{
 		case	GAME_MODE_PRACTICE:
@@ -234,10 +237,6 @@ OGLSetupInputType	viewDef;
 				FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":sprites:trackselectMP.sprites", &spec);
 	}
 	LoadSpriteFile(&spec, SPRITE_GROUP_TRACKSELECTSCREEN, gGameViewInfoPtr);
-
-
-	FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":sprites:wallfont.sprites", &spec);
-	LoadSpriteFile(&spec, SPRITE_GROUP_FONT, gGameViewInfoPtr);
 
 
 
@@ -291,11 +290,11 @@ static void MakeTrackName(void)
 	{
 		case	GAME_MODE_PRACTICE:
 		case	GAME_MODE_MULTIPLAYERRACE:
-				gTrackName = MakeFontStringObject(Localize(STR_LEVEL_1 + gSelectedTrackIndex), &gNewObjectDefinition, gGameViewInfoPtr, true);
+				gTrackName = TextMesh_New(Localize(STR_LEVEL_1 + gSelectedTrackIndex), kTextMeshAlignCenter, &gNewObjectDefinition);
 				break;
 
 		default:
-				gTrackName = MakeFontStringObject(Localize(STR_MPLEVEL_1 + gSelectedTrackIndex), &gNewObjectDefinition, gGameViewInfoPtr, true);
+				gTrackName = TextMesh_New(Localize(STR_MPLEVEL_1 + gSelectedTrackIndex), kTextMeshAlignCenter, &gNewObjectDefinition);
 	}
 
 }
@@ -310,6 +309,7 @@ static void FreeTrackSelectArt(void)
 	DeleteAllObjects();
 	MO_DisposeObjectReference(gBackgoundPicture);
 	DisposeAllSpriteGroups();
+	TextMesh_DisposeFont();
 }
 
 

@@ -8,6 +8,9 @@
 #include <string.h>
 #include <SDL.h>
 
+#define SEPARATOR '\t'
+#define CSV_PATH ":system:strings.tsv"
+
 #define MAX_STRINGS (NUM_LOCALIZED_STRINGS + 1)
 
 extern FSSpec gDataSpec;
@@ -45,7 +48,7 @@ void LoadLocalizedStrings(GameLanguageID languageID)
 	GAME_ASSERT(languageID < MAX_LANGUAGES);
 
 	FSSpec spec;
-	FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":system:strings.tsv", &spec);
+	FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, CSV_PATH, &spec);
 
 	short refNum;
 	if (FSpOpenDF(&spec, fsRdPerm, &refNum) != noErr)
@@ -74,7 +77,7 @@ void LoadLocalizedStrings(GameLanguageID languageID)
 	{
 		char currChar = gStringsBuffer[i];
 
-		if (currChar == '\t')
+		if (currChar == SEPARATOR)
 		{
 			gStringsBuffer[i] = '\0';
 
