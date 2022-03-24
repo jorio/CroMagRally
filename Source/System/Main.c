@@ -1260,6 +1260,90 @@ short				numPanes;
 				viewDef.lights.fillColor[1]			= gFillColor2;
 	}
 
+			/* SET CLEAR COLOR */
+			//
+			// Our crappy sky dome is a cylinder with a big hole, so pick a color to kinda blend it in
+			//
+
+	switch(gTrackNum)
+	{
+
+		case		TRACK_NUM_DESERT:
+					viewDef.view.clearColor.r = 153.0/255.0;
+					viewDef.view.clearColor.g = 171.0/255.0;
+					viewDef.view.clearColor.b = 237.0/255.0;
+					break;
+
+		case		TRACK_NUM_JUNGLE:
+					viewDef.view.clearColor.r = 82.0/255.0;
+					viewDef.view.clearColor.g = 148.0/255.0;
+					viewDef.view.clearColor.b = 198.0/255.0;
+					break;
+
+		case		TRACK_NUM_ICE:
+		case		TRACK_NUM_RAMPS:
+					viewDef.view.clearColor.r = 115.0/255.0;
+					viewDef.view.clearColor.g = 198.0/255.0;
+					viewDef.view.clearColor.b = 255.0/255.0;
+					break;
+
+		case		TRACK_NUM_SPIRAL:
+		case		TRACK_NUM_CRETE:
+		case		TRACK_NUM_CELTIC:
+		case		TRACK_NUM_MAZE:
+					viewDef.view.clearColor.r = 44.0/255.0;
+					viewDef.view.clearColor.g = 73.0/255.0;
+					viewDef.view.clearColor.b = 195.0/255.0;
+					break;
+
+		case		TRACK_NUM_CHINA:
+					viewDef.view.clearColor.r = 179.0/255.0;
+					viewDef.view.clearColor.g = 153.0/255.0;
+					viewDef.view.clearColor.b = 91.0/255.0;
+					break;
+
+		case		TRACK_NUM_EGYPT:
+		case		TRACK_NUM_TARPITS:
+					viewDef.view.clearColor.r = 222.0/255.0;
+					viewDef.view.clearColor.g = 181.0/255.0;
+					viewDef.view.clearColor.b = 99.0/255.0;
+					break;
+
+		case		TRACK_NUM_EUROPE:
+					viewDef.view.clearColor.r = 16.0/255.0;
+					viewDef.view.clearColor.g = 16.0/255.0;
+					viewDef.view.clearColor.b = 74.0/255.0;
+					break;
+
+		case		TRACK_NUM_SCANDINAVIA:
+		case		TRACK_NUM_STONEHENGE:
+					viewDef.view.clearColor.r = 74.0/255.0;
+					viewDef.view.clearColor.g = 90.0/255.0;
+					viewDef.view.clearColor.b = 148.0/255.0;
+					break;
+
+		case		TRACK_NUM_ATLANTIS:
+					viewDef.view.clearColor.r = 5.0/255.0;
+					viewDef.view.clearColor.g = 160.0/255.0;
+					viewDef.view.clearColor.b = 190.0/255.0;
+					break;
+
+
+		case		TRACK_NUM_AZTEC:
+					viewDef.view.clearColor.r = 82.0/255.0;
+					viewDef.view.clearColor.g = 148.0/255.0;
+					viewDef.view.clearColor.b = 198.0/255.0;
+					break;
+
+		case		TRACK_NUM_COLISEUM:
+					viewDef.view.clearColor.r = 61.0/255.0;
+					viewDef.view.clearColor.g = 87.0/255.0;
+					
+					break;
+
+	}
+
+
 	OGL_SetupWindow(&viewDef, &gGameViewInfoPtr);
 
 
