@@ -100,7 +100,6 @@ OGLSetupOutputType	*gScreenViewInfoPtr = nil;
 void DisplayPicture(FSSpec *spec, Boolean showAndBail, Boolean doKeyText)
 {
 OGLSetupInputType	viewDef;
-OGLSetupOutputType	*pictureViewInfoPtr = nil;
 
 
 			/* SETUP VIEW */
@@ -114,24 +113,24 @@ OGLSetupOutputType	*pictureViewInfoPtr = nil;
 	viewDef.view.clearColor.b		= 0;
 	viewDef.styles.useFog			= false;
 
-	OGL_SetupWindow(&viewDef, &pictureViewInfoPtr);
+	OGL_SetupWindow(&viewDef, &gGameViewInfoPtr);
 
 
 			/* CREATE BACKGROUND OBJECT */
 
-	gBackgoundPicture = MO_CreateNewObjectOfType(MO_TYPE_PICTURE, (uintptr_t) pictureViewInfoPtr, spec);
+	gBackgoundPicture = MO_CreateNewObjectOfType(MO_TYPE_PICTURE, (uintptr_t) gGameViewInfoPtr, spec);
 	if (!gBackgoundPicture)
 		DoFatalAlert("DisplayPicture: MO_CreateNewObjectOfType failed");
 
 
+
 			/* CREATE TEXT */
+
+	TextMesh_LoadFont(gGameViewInfoPtr, "rockfont");
 
 	if (doKeyText)
 	{
-		FSSpec	spec2;
-
-		TextMesh_LoadFont(gGameViewInfoPtr, "rockfont");
-
+		ClearNewObjectDefinition();
 		gNewObjectDefinition.coord.x 	= 0;
 		gNewObjectDefinition.coord.y 	= -.94;
 		gNewObjectDefinition.coord.z 	= 0;
@@ -156,7 +155,7 @@ OGLSetupOutputType	*pictureViewInfoPtr = nil;
 		int	i;
 
 		for (i = 0; i < 10; i++)
-			OGL_DrawScene(pictureViewInfoPtr, DisplayPicture_Draw);
+			OGL_DrawScene(gGameViewInfoPtr, DisplayPicture_Draw);
 		GammaFadeIn();
 	}
 	else
@@ -177,7 +176,7 @@ OGLSetupOutputType	*pictureViewInfoPtr = nil;
 
 			CalcFramesPerSecond();
 			MoveObjects();
-			OGL_DrawScene(pictureViewInfoPtr, DisplayPicture_Draw);
+			OGL_DrawScene(gGameViewInfoPtr, DisplayPicture_Draw);
 
 			ReadKeyboard();
 			if (AreAnyNewKeysPressed())
@@ -196,10 +195,7 @@ OGLSetupOutputType	*pictureViewInfoPtr = nil;
 	MO_DisposeObjectReference(gBackgoundPicture);
 	DisposeAllSpriteGroups();
 
-	if (doKeyText)
-	{
-		TextMesh_DisposeFont();
-	}
+	TextMesh_DisposeFont();
 
 
 			/* FADE OUT */
@@ -208,7 +204,7 @@ OGLSetupOutputType	*pictureViewInfoPtr = nil;
 		GammaFadeOut();
 
 
-	OGL_DisposeWindowSetup(&pictureViewInfoPtr);
+	OGL_DisposeWindowSetup(&gGameViewInfoPtr);
 
 
 }

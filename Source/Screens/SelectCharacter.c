@@ -28,6 +28,7 @@
 #include "skeletonanim.h"
 #include "localization.h"
 #include "atlas.h"
+#include <string.h>
 
 extern	float				gFramesPerSecondFrac,gFramesPerSecond;
 extern	WindowPtr			gCoverWindow;
@@ -216,6 +217,7 @@ ObjNode	*newObj;
 
 	if (gNumLocalPlayers > 1)
 	{
+		ClearNewObjectDefinition();
 		gNewObjectDefinition.coord.x 	= 0;
 		gNewObjectDefinition.coord.y 	= -.85;
 		gNewObjectDefinition.coord.z 	= 0;
@@ -233,6 +235,7 @@ ObjNode	*newObj;
 
 			/* CREATE NAME STRINGS */
 
+	ClearNewObjectDefinition();
 	gNewObjectDefinition.coord.x 	= -.43;
 	gNewObjectDefinition.coord.y 	= .8;
 	gNewObjectDefinition.scale 	    = .6;
@@ -245,6 +248,7 @@ ObjNode	*newObj;
 
 			/* CREATE MALE CHARACTER */
 
+	ClearNewObjectDefinition();
 	gNewObjectDefinition.type 		= SKELETON_TYPE_MALESTANDING;
 	gNewObjectDefinition.animNum	= 1;
 	gNewObjectDefinition.coord.x 	= -60;

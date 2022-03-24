@@ -2,6 +2,7 @@
 // Object.h
 //
 #include "ogl_support.h"
+#include <string.h>
 
 #define INVALID_NODE_FLAG	0xdeadbeef			// put into CType when node is deleted
 
@@ -49,6 +50,8 @@ enum
 
 //========================================================
 
+#define ClearNewObjectDefinition() memset(&gNewObjectDefinition, 0, sizeof(gNewObjectDefinition))
+
 extern	void InitObjectManager(void);
 extern	ObjNode	*MakeNewObject(NewObjectDefinitionType *newObjDef);
 extern	void MoveObjects(void);
@@ -88,10 +91,3 @@ void CreateCollisionBoxFromBoundingBox_Maximized(ObjNode *theNode);
 void CreateCollisionBoxFromBoundingBox_Rotated(ObjNode *theNode, float tweakXZ, float tweakY);
 extern	void StopObjectStreamEffect(ObjNode *theNode);
 extern	void KeepOldCollisionBoxes(ObjNode *theNode);
-
-
-
-
-
-
-
