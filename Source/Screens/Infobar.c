@@ -638,7 +638,7 @@ float		x,y,scale, spacing, fontScale;
 	x += spacing;
 	for (int i = 0; s[i]; i++)
 	{
-		DrawSprite(SPRITE_GROUP_FONT, s[i]-'0',x, y, fontScale, 0, 0, setupInfo);
+		TextMesh_DrawImmediate(s[i], x, y, fontScale, 0, 0, setupInfo);
 		x += FONT_WIDTH * fontScale;
 	}
 
@@ -834,7 +834,7 @@ static const OGLColorRGB noTint = {1,1,1};
 		x2 = x + spacing;
 		for (int n = 0; s[n]; n++)
 		{
-			DrawSprite(SPRITE_GROUP_FONT, s[n]-'0',x2, y, fontScale, 0, 0, setupInfo);
+			TextMesh_DrawImmediate(s[n], x2, y, fontScale, 0, 0, setupInfo);
 			x2 += FONT_WIDTH * fontScale;
 		}
 
@@ -865,7 +865,7 @@ static const OGLColorRGB noTint = {1,1,1};
 		x2 = x + spacing;
 		for (int n = 0; s[n]; n++)
 		{
-			DrawSprite(SPRITE_GROUP_FONT, s[n]-'0',x2, y, fontScale, 0, 0, setupInfo);
+			TextMesh_DrawImmediate(s[n], x2, y, fontScale, 0, 0, setupInfo);
 			x2 += FONT_WIDTH * fontScale;
 		}
 		gGlobalColorFilter = noTint;
@@ -895,7 +895,7 @@ static const OGLColorRGB noTint = {1,1,1};
 		x2 = x + spacing;
 		for (int n = 0; s[n]; n++)
 		{
-			DrawSprite(SPRITE_GROUP_FONT, s[n]-'0',x2, y, fontScale, 0, 0, setupInfo);
+			TextMesh_DrawImmediate(s[n], x2, y, fontScale, 0, 0, setupInfo);
 			x2 += FONT_WIDTH * fontScale;
 		}
 		gGlobalColorFilter = noTint;
@@ -925,7 +925,7 @@ static const OGLColorRGB noTint = {1,1,1};
 		x2 = x + spacing;
 		for (int n = 0; s[n]; n++)
 		{
-			DrawSprite(SPRITE_GROUP_FONT, s[n]-'0',x2, y, fontScale, 0, 0, setupInfo);
+			TextMesh_DrawImmediate(s[n], x2, y, fontScale, 0, 0, setupInfo);
 			x2 += FONT_WIDTH * fontScale;
 		}
 		gGlobalColorFilter = noTint;
@@ -955,7 +955,7 @@ static const OGLColorRGB noTint = {1,1,1};
 		x2 = x + spacing;
 		for (int n = 0; s[n]; n++)
 		{
-			DrawSprite(SPRITE_GROUP_FONT, s[n]-'0',x2, y, fontScale, 0, 0, setupInfo);
+			TextMesh_DrawImmediate(s[n], x2, y, fontScale, 0, 0, setupInfo);
 			x2 += FONT_WIDTH * fontScale;
 		}
 		gGlobalColorFilter = noTint;
@@ -985,7 +985,7 @@ static const OGLColorRGB noTint = {1,1,1};
 		x2 = x + spacing;
 		for (int n = 0; s[n]; n++)
 		{
-			DrawSprite(SPRITE_GROUP_FONT, s[n]-'0',x2, y, fontScale, 0, 0, setupInfo);
+			TextMesh_DrawImmediate(s[n], x2, y, fontScale, 0, 0, setupInfo);
 			x2 += FONT_WIDTH * fontScale;
 		}
 		gGlobalColorFilter = noTint;

@@ -11,10 +11,14 @@
 #include 	"objects.h"
 #include	"misc.h"
 #include	"bg3d.h"
+#include	"sprites.h"
+#include	"3dmath.h"
 #include <string.h>
 #include <stdio.h>
 
 extern FSSpec gDataSpec;
+extern	float					gCurrentAspectRatio;
+extern	int						gPolysThisFrame;
 
 /****************************/
 /*    PROTOTYPES            */
@@ -589,4 +593,69 @@ void TextMesh_DrawExtents(ObjNode* textNode)
 	glEnd();
 
 	OGL_PopState();
+}
+
+void TextMesh_DrawImmediate(int codepoint, float x, float y, float scale, float rot, uint32_t flags, const OGLSetupOutputType *setupInfo)
+{
+			/* SET STATE */
+
+	OGL_PushState();								// keep state
+	glMatrixMode(GL_PROJECTION);					// init projection matrix
+	glLoadIdentity();
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();								// init MODELVIEW matrix
+
+	OGL_DisableLighting();
+	glDisable(GL_CULL_FACE);
+	glDisable(GL_DEPTH_TEST);
+
+	if (flags & SPRITE_FLAG_GLOW)
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+
+	const AtlasGlyph* glyph = GetGlyphFromCodepoint(codepoint);
+
+	float spriteAspectRatio = glyph->h / (float)glyph->w;
+	float scaleBasis = glyph->w  *  (1.0f/SPRITE_SCALE_BASIS_DENOMINATOR);		// calculate a scale basis to keep things scaled relative to texture size
+
+	glTranslatef(x,y,0);
+	glScalef(scale * scaleBasis, scale * gCurrentAspectRatio * spriteAspectRatio * scaleBasis, 1);
+
+	if (rot != 0.0f)
+		glRotatef(OGLMath_RadiansToDegrees(rot), 0, 0, 1);											// remember:  rotation is in degrees, not radians!
+
+
+		/* ACTIVATE THE MATERIAL */
+
+	MO_DrawMaterial(gFontMaterial, setupInfo);
+
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);						// set clamp mode after each texture set since OGL just likes it that way
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+
+			/* DRAW IT */
+
+	const float invAtlasW = 1.0f / gFontAtlasWidth;
+	const float invAtlasH = 1.0f / gFontAtlasHeight;
+	const float gl = invAtlasW * glyph->x;
+	const float gt = invAtlasH * glyph->y;
+	const float gr = invAtlasW * (glyph->x + glyph->w);
+	const float gb = invAtlasH * (glyph->y + glyph->h);
+
+	glBegin(GL_QUADS);
+	glTexCoord2f(gl,gt);	glVertex3f(-1,  1, 0);
+	glTexCoord2f(gr,gt);	glVertex3f(1,   1, 0);
+	glTexCoord2f(gr,gb);	glVertex3f(1,  -1, 0);
+	glTexCoord2f(gl,gb);	glVertex3f(-1, -1, 0);
+	glEnd();
+
+
+		/* CLEAN UP */
+
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);						// set this back to normal
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+
+	OGL_PopState();									// restore state
+
+	gPolysThisFrame += 2;						// 2 tris drawn
 }
