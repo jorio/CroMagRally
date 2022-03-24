@@ -197,6 +197,7 @@ NSpProtocolReference 		atRef;
 			/* GET SOME NAMES */
 
 	CopyPString(gPlayerSaveData.playerName, gNetPlayerName);
+	// TODO: this is probably STR_RACE + gGameMode - GAME_MODE_MULTIPLAYERRACE
 	GetIndStringC(gameName, 1000 + gGamePrefs.language, 16 + (gGameMode - GAME_MODE_MULTIPLAYERRACE));	// name of game is game mode string
 
 	password[0] = 0;

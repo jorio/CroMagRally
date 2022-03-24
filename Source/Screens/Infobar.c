@@ -28,6 +28,8 @@
 #include "triggers.h"
 #include "sound2.h"
 #include "localization.h"
+#include "atlas.h"
+#include <string.h>
 
 extern	float					gCurrentAspectRatio,gGlobalTransparency,gFramesPerSecondFrac,gCameraStartupTimer;
 extern	PlayerInfoType			gPlayerInfo[];
@@ -73,6 +75,7 @@ static void MoveLapMessage(ObjNode *theNode);
 /*    CONSTANTS             */
 /****************************/
 
+#define PLAYER_NAME_SAFE_CHARSET " .0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
 enum
 {
@@ -206,9 +209,8 @@ ObjNode			*gWinLoseString[MAX_PLAYERS];
 
 void InitInfobar(OGLSetupOutputType *setupInfo)
 {
-short	i;
 MOSpriteSetupData	spriteData;
-Str255	maps[] =
+static const char*	maps[] =
 {
 	":sprites:maps:DesertMap.png",
 	":sprites:maps:JungleMap.png",
@@ -238,7 +240,7 @@ Str255	maps[] =
 	gStartingLightTimer = 3.0;											// init starting light
 	gFinalPlaceObj = nil;
 
-	for (i = 0; i < MAX_PLAYERS; i++)
+	for (int i = 0; i < MAX_PLAYERS; i++)
 		gWinLoseString[i] = nil;
 
 			/* LOAD MAP SPRITE */
@@ -254,6 +256,12 @@ Str255	maps[] =
 	gMapSprite->objectData.scaleBasis = 1.0;							// don't use the scale basis since we're putting the dots on the map and we need this to be easy
 
 	gMapSprite->objectData.coord.z = 0;
+
+		/* LOAD ROCKFONT AS SPRITES (FOR COUNTER DIGITS) */
+
+	FSSpec spec;
+	FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":sprites:rockfont.sprites", &spec);
+	LoadSpriteFile(&spec, SPRITE_GROUP_FONT, setupInfo);
 
 
 		/* SET GLOWING */
@@ -274,7 +282,7 @@ Str255	maps[] =
 		gNewObjectDefinition.scale 	    = .3;
 		gNewObjectDefinition.slot 		= SPRITE_SLOT;
 
-		MakeFontStringObject(Localize(STR_PRESS_ANY_KEY), &gNewObjectDefinition, gGameViewInfoPtr, true);
+		TextMesh_New(Localize(STR_PRESS_ANY_KEY), 0, &gNewObjectDefinition);
 	}
 }
 
@@ -1187,7 +1195,7 @@ short	lapNum;
 		gNewObjectDefinition.slot 		= SPRITE_SLOT;
 
 		const char* s = Localize(lapNum == 1 ? STR_LAP_2 : STR_LAP_3);
-		MakeFontStringObject(s, &gNewObjectDefinition, gGameViewInfoPtr, true);
+		TextMesh_New(s, kTextMeshAlignCenter, &gNewObjectDefinition);
 	}
 }
 
@@ -1322,42 +1330,42 @@ static const float scale[3] =
 	switch(mode)
 	{
 		case	0:
-				gWinLoseString[playerNum] = MakeFontStringObject(Localize(STR_ELIMINATED), &gNewObjectDefinition, gGameViewInfoPtr, true);
+				gWinLoseString[playerNum] = TextMesh_New(Localize(STR_ELIMINATED), 0, &gNewObjectDefinition);
 				break;
 
 		case	1:
-				gWinLoseString[playerNum] = MakeFontStringObject(Localize(STR_YOU_WIN), &gNewObjectDefinition, gGameViewInfoPtr, true);
+				gWinLoseString[playerNum] = TextMesh_New(Localize(STR_YOU_WIN), 0, &gNewObjectDefinition);
 				break;
 
 		case	2:
 				if (gNetGameInProgress && (gGameMode != GAME_MODE_CAPTUREFLAG) && (winner != -1))		// if net game & not CTF, then show name of winner
 				{
-					puts("TODO: rework this");
+					char s[64];
+					char safePlayerName[32];
 
-					Str31	s;
-					short	i,n;
+					memset(s, 0, sizeof(s));
+					memset(safePlayerName, 0, sizeof(safePlayerName));
 
-					for (i = 0; i < 32; i++)									// copy name
+					int j = 0;
+					for (int i = 0; i < 20; i++)									// copy name
 					{
-						s[i] = gPlayerNameStrings[winner][i];
-						if ((s[i] >= 'a') && (s[i] <= 'z'))						// convert to UPPER CASE
-							s[i] = 'A' + (s[i] - 'a');
+						char c = gPlayerNameStrings[winner][i];
+
+						if ((c >= 'a') && (c <= 'z'))								// convert to UPPER CASE
+							c = 'A' + (c - 'a');
+
+						if (strchr(PLAYER_NAME_SAFE_CHARSET, c))					// safe characters
+							safePlayerName[j++] = c;
 					}
-					if (s[0] > 20)													// crop
-						s[0] = 20;
 
-					n = s[0];
-					s[n+1] = ' ';												// insert " WINS"
-					s[n+2] = 'W';
-					s[n+3] = 'I';
-					s[n+4] = 'N';
-					s[n+5] = 'S';
-					s[0] += 5;
+					snprintf(s, sizeof(s), "%s %s", safePlayerName, Localize(STR_3RDPERSON_WINS));	// insert "WINS"
 
-					gWinLoseString[playerNum] = MakeFontStringObject(s, &gNewObjectDefinition, gGameViewInfoPtr, true);
+					gWinLoseString[playerNum] = TextMesh_New(s, 0, &gNewObjectDefinition);
 				}
 				else
-					gWinLoseString[playerNum] = MakeFontStringObject(Localize(STR_YOU_LOSE), &gNewObjectDefinition, gGameViewInfoPtr, true);
+				{
+					gWinLoseString[playerNum] = TextMesh_New(Localize(STR_YOU_LOSE), 0, &gNewObjectDefinition);
+				}
 				break;
 
 	}
@@ -1391,7 +1399,7 @@ static const float scale[3] =
 	gNewObjectDefinition.rot 		= 0;
 	gNewObjectDefinition.scale 	    = scale[gActiveSplitScreenMode];
 
-	newObj = MakeFontStringObject(Localize(STR_LEVEL_1 + gTrackNum), &gNewObjectDefinition, gGameViewInfoPtr, true);
+	newObj = TextMesh_New(Localize(STR_LEVEL_1 + gTrackNum), kTextMeshAlignCenter, &gNewObjectDefinition);
 
 	newObj->ColorFilter.a = 3.5;
 }

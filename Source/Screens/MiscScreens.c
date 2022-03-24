@@ -130,8 +130,7 @@ OGLSetupOutputType	*pictureViewInfoPtr = nil;
 	{
 		FSSpec	spec2;
 
-		FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":sprites:rockfont.sprites", &spec2);
-		LoadSpriteFile(&spec2, SPRITE_GROUP_FONT, pictureViewInfoPtr);
+		TextMesh_LoadFont(gGameViewInfoPtr, "rockfont");
 
 		gNewObjectDefinition.coord.x 	= 0;
 		gNewObjectDefinition.coord.y 	= -.94;
@@ -142,8 +141,7 @@ OGLSetupOutputType	*pictureViewInfoPtr = nil;
 		gNewObjectDefinition.scale 	    = .3;
 		gNewObjectDefinition.slot 		= SPRITE_SLOT;
 
-		const char* s = Localize(STR_PRESS_ANY_KEY);
-		MakeFontStringObject(s, &gNewObjectDefinition, pictureViewInfoPtr, true);
+		TextMesh_New(Localize(STR_PRESS_ANY_KEY), kTextMeshAlignCenter, &gNewObjectDefinition);
 	}
 
 
@@ -197,6 +195,11 @@ OGLSetupOutputType	*pictureViewInfoPtr = nil;
 	DeleteAllObjects();
 	MO_DisposeObjectReference(gBackgoundPicture);
 	DisposeAllSpriteGroups();
+
+	if (doKeyText)
+	{
+		TextMesh_DisposeFont();
+	}
 
 
 			/* FADE OUT */
@@ -437,10 +440,10 @@ static const char* names[] =
 	gNewObjectDefinition.rot 		= 0;
 	gNewObjectDefinition.scale 	    = .9;
 	gNewObjectDefinition.slot 		= PARTICLE_SLOT-1;		// in this rare case we want to draw text before particles
-	MakeFontStringObject(Localize(STR_STONE_AGE + gTheAge), &gNewObjectDefinition, gGameViewInfoPtr, true);
+	TextMesh_New(Localize(STR_STONE_AGE + gTheAge), 0, &gNewObjectDefinition);
 
 	gNewObjectDefinition.coord.y 	= .6;
-	MakeFontStringObject(Localize(STR_AGE_COMPLETE), &gNewObjectDefinition, gGameViewInfoPtr, true);
+	TextMesh_New(Localize(STR_AGE_COMPLETE), 0, &gNewObjectDefinition);
 
 }
 
@@ -836,7 +839,7 @@ typedef struct
 {
 	signed char	color;
 	signed char	size;
-	Str32	text;
+	const char*	text;
 }CreditLine;
 
 static void SetupCreditsScreen(void)
@@ -955,8 +958,7 @@ static const float sizes[] =
 
 			/* LOAD SPRITES */
 
-	FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":sprites:rockfont.sprites", &spec);
-	LoadSpriteFile(&spec, SPRITE_GROUP_FONT, gGameViewInfoPtr);
+	TextMesh_LoadFont(gGameViewInfoPtr, "rockfont");
 
 
 			/*****************/
@@ -975,7 +977,7 @@ static const float sizes[] =
 		gNewObjectDefinition.rot 		= 0;
 		gNewObjectDefinition.scale 	    = scale = sizes[lines[i].size];
 		gNewObjectDefinition.slot 		= PARTICLE_SLOT-1;		// in this rare case we want to draw text before particles
-		newObj = MakeFontStringObject(lines[i].text, &gNewObjectDefinition, gGameViewInfoPtr, true);
+		newObj = TextMesh_New(lines[i].text, kTextMeshAlignCenter, &gNewObjectDefinition);
 
 
 		newObj->ColorFilter = colors[lines[i].color];
@@ -991,6 +993,7 @@ static const float sizes[] =
 
 static void MoveCredit(ObjNode *theNode)
 {
+#if 0
 short	i;
 MOSpriteObject		*spriteMO;
 
@@ -999,6 +1002,8 @@ MOSpriteObject		*spriteMO;
 		spriteMO = theNode->StringCharacters[i];
 		spriteMO->objectData.coord.y += .12f * gFramesPerSecondFrac;
 	}
+#endif
+	theNode->Coord.y += .12f * gFramesPerSecondFrac;
 }
 
 
@@ -1016,6 +1021,7 @@ static void FreeCreditsScreen(void)
 	DeleteAllObjects();
 	MO_DisposeObjectReference(gBackgoundPicture);
 	DisposeAllSpriteGroups();
+	TextMesh_DisposeFont();
 	DisposeAllBG3DContainers();
 	OGL_DisposeWindowSetup(&gGameViewInfoPtr);
 }

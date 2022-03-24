@@ -2,9 +2,9 @@
 
 enum
 {
-	kTextMeshAlignLeft,
-	kTextMeshAlignCenter,
-	kTextMeshAlignRight,
+	kTextMeshAlignCenter = 0,
+	kTextMeshAlignLeft = 1,
+	kTextMeshAlignRight = 2,
 };
 
 void TextMesh_LoadFont(OGLSetupOutputType* setupInfo, const char* fontName);

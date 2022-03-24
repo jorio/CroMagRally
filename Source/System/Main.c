@@ -43,6 +43,7 @@
 #include "winners.h"
 #include "sobjtypes.h"
 #include "localization.h"
+#include "atlas.h"
 
 extern	Boolean			gSongPlayingFlag,gDrawLensFlare,gIsNetworkHost,gIsNetworkClient,gNetGameInProgress,gDisableHiccupTimer,gHideInfobar;
 extern	NewObjectDefinitionType	gNewObjectDefinition;
@@ -513,9 +514,7 @@ short	placeToWin,startStage;
 			{
 				if (gNumRetriesRemaining > 0)										// see if there are any retries remaining
 				{
-					Str255	s;
-
-					GetIndStringC(s, 5000 + gGamePrefs.language, gNumRetriesRemaining);	// get "NUM RETRIES REMAINING" string
+					const char* s = Localize(STR_1_TRY_REMAINING + gNumRetriesRemaining - 1);
 
 					if (DoFailedMenu(s))												// returns true if want to retry
 					{
@@ -860,7 +859,7 @@ Boolean	done = false;
 						gNewObjectDefinition.slot 		= SPRITE_SLOT;
 
 						snprintf(s, sizeof(s), "%d", gTotalTokens);
-						MakeFontStringObject(s, &gNewObjectDefinition, gGameViewInfoPtr, false);
+						TextMesh_New(s, kTextMeshAlignCenter, &gNewObjectDefinition);
 
 						if (gTotalTokens == MAX_TOKENS)
 							PlayAnnouncerSound(EFFECT_COMPLETED, true, .3);
@@ -1325,6 +1324,7 @@ short				numPanes;
 			// NOTE: only call this *after* draw context is created!
 			//
 
+	TextMesh_LoadFont(gGameViewInfoPtr, "rockfont");
 	LoadLevelArt(gGameViewInfoPtr);
 	InitInfobar(gGameViewInfoPtr);
 
@@ -1373,6 +1373,7 @@ static void CleanupLevel(void)
 	DisposeInfobar();
 	DisposeParticleSystem();
 	DisposeAllSpriteGroups();
+	TextMesh_DisposeFont();
 	DisposeFences();
 
 	DisposeAllBG3DContainers();

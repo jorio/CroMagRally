@@ -24,6 +24,8 @@
 #include "sobjtypes.h"
 #include "sprites.h"
 #include "network.h"
+#include "localization.h"
+#include "atlas.h"
 
 extern	float				gFramesPerSecondFrac,gFramesPerSecond;
 extern	FSSpec		gDataSpec;
@@ -145,7 +147,7 @@ ObjNode	*obj;
 	gNewObjectDefinition.scale 	    = FAILED_ICON_SCALE * .8f;
 	gNewObjectDefinition.slot 		= SPRITE_SLOT;
 
-	obj = MakeFontStringObject(title, &gNewObjectDefinition, gGameViewInfoPtr, true);		// title
+	obj = TextMesh_New(title, kTextMeshAlignCenter, &gNewObjectDefinition);		// title
 	obj->ColorFilter.a = 0;
 
 	gNewObjectDefinition.coord.y 	-= LINE_SPACING * 1.5f;
@@ -153,11 +155,9 @@ ObjNode	*obj;
 	gNewObjectDefinition.scale 	    = FAILED_ICON_SCALE;
 	for (i = 0; i < 2; i++)
 	{
-		Str255	s;
+		const char* s = Localize(STR_TRY_AGAIN + i);
 
-		GetIndStringC(s, 3000 + gGamePrefs.language, i + 1);
-
-		gFailedIcons[i] = MakeFontStringObject(s, &gNewObjectDefinition, gGameViewInfoPtr, true);
+		gFailedIcons[i] = TextMesh_New(s, kTextMeshAlignCenter, &gNewObjectDefinition);
 		gFailedIcons[i]->ColorFilter.a = 0;
 		gNewObjectDefinition.coord.y 	-= LINE_SPACING;
 	}

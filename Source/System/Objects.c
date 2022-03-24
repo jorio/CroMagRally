@@ -842,23 +842,6 @@ short			skelType, playerNum;
 					break;
 
 
-			case	FONTSTRING_GENRE:
-					OGL_PushState();								// keep state
-
-					for (i = 0; i < theNode->NumStringSprites; i++)
-					{
-						glMatrixMode(GL_PROJECTION);					// clear projection matrix
-						glLoadIdentity();
-						glMatrixMode(GL_MODELVIEW);
-						glLoadIdentity();
-
-						MO_DrawObject(theNode->StringCharacters[i], setupInfo);
-					}
-
-					OGL_PopState();									// restore state
-					break;
-
-
 			case	TEXTMESH_GENRE:
 					if (theNode->BaseGroup)
 					{
@@ -1172,11 +1155,6 @@ int		i;
 		case	SPRITE_GENRE:
 				MO_DisposeObjectReference(theNode->SpriteMO);	// dispose reference to sprite meta object
 		   		theNode->SpriteMO = nil;
-				break;
-
-		case	FONTSTRING_GENRE:
-				for (i = 0; i < theNode->NumStringSprites; i++)
-					MO_DisposeObjectReference(theNode->StringCharacters[i]);	// dispose reference to sprite meta objects
 				break;
 	}
 

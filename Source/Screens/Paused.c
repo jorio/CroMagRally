@@ -25,6 +25,7 @@
 #include "sprites.h"
 #include "network.h"
 #include "localization.h"
+#include "atlas.h"
 
 extern	float				gFramesPerSecondFrac,gFramesPerSecond;
 extern	FSSpec		gDataSpec;
@@ -170,7 +171,7 @@ short	i;
 	{
 		const char* s = Localize(STR_RESUME_GAME + i);
 
-		gPausedIcons[i] = MakeFontStringObject(s, &gNewObjectDefinition, gGameViewInfoPtr, true);
+		gPausedIcons[i] = TextMesh_New(s, 0, &gNewObjectDefinition);
 		gPausedIcons[i]->ColorFilter.a = 0;
 		gNewObjectDefinition.coord.y 	-= gLineSpacing[gActiveSplitScreenMode];
 	}

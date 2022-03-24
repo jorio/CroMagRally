@@ -1212,7 +1212,7 @@ void LoadLevelArt(OGLSetupOutputType *setupInfo)
 {
 FSSpec	spec;
 
-static const Str255	terrainFiles[NUM_TRACKS] =
+static const char*	terrainFiles[NUM_TRACKS] =
 {
 	":terrain:StoneAge_Desert.ter",
 	":terrain:StoneAge_Jungle.ter",
@@ -1236,7 +1236,7 @@ static const Str255	terrainFiles[NUM_TRACKS] =
 	":terrain:Battle_Ramps.ter",
 };
 
-static const Str255	levelModelFiles[NUM_TRACKS] =
+static const char*	levelModelFiles[NUM_TRACKS] =
 {
 	":models:desert.bg3d",
 	":models:jungle.bg3d",
@@ -1395,12 +1395,8 @@ static const Str255	levelModelFiles[NUM_TRACKS] =
 	FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":sprites:fence.sprites", &spec);
 	LoadSpriteFile(&spec, SPRITE_GROUP_FENCES, setupInfo);
 
-
 	FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":sprites:global.sprites", &spec);
 	LoadSpriteFile(&spec, SPRITE_GROUP_GLOBAL, setupInfo);
-
-	FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":sprites:rockfont.sprites", &spec);
-	LoadSpriteFile(&spec, SPRITE_GROUP_FONT, setupInfo);
 
 
 			/* LOAD TERRAIN */
