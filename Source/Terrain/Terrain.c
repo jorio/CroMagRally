@@ -406,6 +406,12 @@ int	u,v,i,j;
 
 				/* SET UV & COLOR VALUES */
 
+#if HQ_TERRAIN
+		const float seamlessTexmapSize	= (2.0f + SUPERTILE_TEXMAP_SIZE);
+		const float seamlessUVScale		= SUPERTILE_TEXMAP_SIZE / seamlessTexmapSize;
+		const float seamlessUVTranslate	= 1.0f / seamlessTexmapSize;
+#endif
+
 		j = 0;
 		for (v = 0; v <= SUPERTILE_SIZE; v++)
 		{
@@ -413,6 +419,10 @@ int	u,v,i,j;
 			{
 				uvPtr[j].u = (float)u / (float)SUPERTILE_SIZE;		// sets uv's 0.0 -> 1.0 for single texture map
 				uvPtr[j].v = (float)v / (float)SUPERTILE_SIZE;
+#if HQ_TERRAIN
+				uvPtr[j].u = (uvPtr[j].u * seamlessUVScale) + seamlessUVTranslate;
+				uvPtr[j].v = (uvPtr[j].v * seamlessUVScale) + seamlessUVTranslate;
+#endif
 
 				j++;
 			}

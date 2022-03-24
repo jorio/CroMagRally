@@ -64,6 +64,8 @@ extern	PrefsType			gGamePrefs;
 
 static void ReadDataFromSkeletonFile(SkeletonDefType *skeleton, FSSpec *fsSpec, int skeletonType, OGLSetupOutputType *setupInfo);
 static void ReadDataFromPlayfieldFile(FSSpec *specPtr);
+static void LoadTerrainSuperTileTextures(short fRefNum);
+static void LoadTerrainSuperTileTexturesSeamless(short fRefNum);
 
 static short InitSavedGamesListBox(Rect *r, WindowPtr myDialog);
 static short UpdateSavedGamesList(void);
@@ -1906,50 +1908,11 @@ Ptr						tempBuffer16 = nil;
 	if (iErr)
 		DoFatalAlert("ReadDataFromPlayfieldFile: FSpOpenDF failed!");
 
-
-
-	for (i = 0; i < gNumUniqueSuperTiles; i++)
-	{
-		static long	sizeoflong = 4;
-		int32_t	compressedSize;
-		int32_t	decompressedSize;
-		long	width,height;
-
-				/* READ THE SIZE OF THE NEXT COMPRESSED SUPERTILE TEXTURE */
-
-		iErr = FSRead(fRefNum, &sizeoflong, (Ptr) &compressedSize);
-		compressedSize = Byteswap32Signed(&compressedSize);
-		if (iErr)
-			DoFatalAlert("ReadDataFromPlayfieldFile: FSRead failed!");
-
-
-				/* READ & DECOMPRESS IT */
-
-		decompressedSize = LZSS_Decode(fRefNum, tempBuffer16, compressedSize);
-		if (decompressedSize != size)
-      			DoFatalAlert("ReadDataFromPlayfieldFile: LZSS_Decode size is wrong!");
-		
-
-				/* BYTESWAP 16-BIT TEXTURE */
-
-		ByteswapInts(2, decompressedSize/2, tempBuffer16);
-
-
-		width = SUPERTILE_TEXMAP_SIZE;
-		height = SUPERTILE_TEXMAP_SIZE;
-
-
-				/* USE PACKED PIXEL TYPE */
-
-		gSuperTileTextureNames[i] = OGL_TextureMap_Load(tempBuffer16, width, height, GL_BGRA_EXT, GL_RGB, GL_UNSIGNED_SHORT_1_5_5_5_REV);
-
-
-
-				/* KEEP MUSIC PLAYING */
-
-//		if (gSongPlayingFlag)
-//			MoviesTask(gSongMovie, 0);
-	}
+#if HQ_TERRAIN
+	LoadTerrainSuperTileTexturesSeamless(fRefNum);
+#else
+	LoadTerrainSuperTileTextures(fRefNum);
+#endif
 
 			/* CLOSE THE FILE */
 
@@ -1957,6 +1920,192 @@ Ptr						tempBuffer16 = nil;
 	if (tempBuffer16)
 		SafeDisposePtr(tempBuffer16);
 }
+
+
+static void LoadTerrainSuperTileTextures(short fRefNum)
+{
+			/* ALLOC BUFFERS */
+
+	int size = SUPERTILE_TEXMAP_SIZE*SUPERTILE_TEXMAP_SIZE * sizeof(UInt16);		// calc size of supertile 16-bit texture
+
+	Ptr	lzss = AllocPtr(size*2);									// temp buffer for compressed data
+	Ptr pixels = AllocPtr(size);									// temp buffer for decompressed 16-bit pixel data
+
+			/* LOAD EACH SUPERTILE */
+
+	for (int i = 0; i < gNumUniqueSuperTiles; i++)
+	{
+		OSErr err;
+		long sizeoflong = 4;
+		UInt32 compressedSize;
+		err = FSRead(fRefNum, &sizeoflong, (Ptr) &compressedSize);	// read size of compressed data
+		compressedSize = Byteswap32Signed(&compressedSize);
+		GAME_ASSERT(!err);
+		GAME_ASSERT(sizeoflong == 4);
+		GAME_ASSERT_MESSAGE(compressedSize <= (UInt32)size*2, "compressed data won't fit into buffer!");
+
+		// read compressed data from file and decompress it into texture buffer
+		long decompressedSize = LZSS_Decode(fRefNum, pixels, compressedSize);
+		GAME_ASSERT(decompressedSize == size);
+
+//		FlipImageVertically(pixels, SUPERTILE_TEXMAP_SIZE * sizeof(UInt16), SUPERTILE_TEXMAP_SIZE);
+
+				/* BYTESWAP 16-BIT TEXTURE */
+
+		ByteswapInts(2, decompressedSize/2, pixels);
+
+				/* LOAD IT IN */
+
+		gSuperTileTextureNames[i] = OGL_TextureMap_Load(pixels, SUPERTILE_TEXMAP_SIZE, SUPERTILE_TEXMAP_SIZE,
+														GL_BGRA_EXT, GL_RGB, GL_UNSIGNED_SHORT_1_5_5_5_REV);
+
+		OGL_Texture_SetOpenGLTexture(gSuperTileTextureNames[i]);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);		// set clamp mode after each texture set since OGL just likes it that way
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	}
+
+	SafeDisposePtr(lzss);
+	SafeDisposePtr(pixels);
+}
+
+#if HQ_TERRAIN
+
+static void Blit16(
+		const char*			src,
+		int					srcWidth,
+		int					srcHeight,
+		int					srcRectX,
+		int					srcRectY,
+		int					srcRectWidth,
+		int					srcRectHeight,
+		char*				dst,
+		int 				dstWidth,
+		int 				dstHeight,
+		int					dstRectX,
+		int					dstRectY
+		)
+{
+	const int bpp = 2;
+
+	src += bpp * (srcRectX + srcWidth*srcRectY);
+	dst += bpp * (dstRectX + dstWidth*dstRectY);
+
+	for (int row = 0; row < srcRectHeight; row++)
+	{
+		memcpy(dst, src, bpp * srcRectWidth);
+		src += bpp * srcWidth;
+		dst += bpp * dstWidth;
+	}
+}
+
+static void LoadTerrainSuperTileTexturesSeamless(short fRefNum)
+{
+	memset(gSuperTileTextureNames, 0, sizeof(gSuperTileTextureNames[0]) * gNumUniqueSuperTiles);
+
+			/* ALLOC BUFFERS */
+
+	const int tileSize = SUPERTILE_TEXMAP_SIZE;
+	const int tileW = tileSize;
+	const int tileH = tileSize;
+	const int canvasW = tileW + 2;
+	const int canvasH = tileH + 2;
+	const int tileRowBytes = tileSize * sizeof(UInt16);
+	const int tileBytes = tileRowBytes * tileSize;	// calc size of supertile 16-bit texture
+
+	Ptr	lzss = AllocPtr(tileBytes * 2);									// temp buffer for compressed data
+	Ptr canvas = AllocPtr((SUPERTILE_TEXMAP_SIZE + 2) * (SUPERTILE_TEXMAP_SIZE + 2) * sizeof(UInt16));
+	Ptr allImages = AllocPtr(tileBytes * gNumUniqueSuperTiles);
+
+			/* UNPACK SUPERTILE TEXTURES FROM FILE */
+
+	for (int i = 0; i < gNumUniqueSuperTiles; i++)
+	{
+		Ptr image = allImages + i * tileBytes;
+
+		OSErr err;
+		long sizeoflong = 4;
+		UInt32 compressedSize;
+		err = FSRead(fRefNum, &sizeoflong, (Ptr) &compressedSize);	// read size of compressed data
+		compressedSize = Byteswap32Signed(&compressedSize);
+		GAME_ASSERT(!err);
+		GAME_ASSERT(sizeoflong == 4);
+		GAME_ASSERT_MESSAGE(compressedSize <= (UInt32)tileBytes*2, "compressed data won't fit into buffer!");
+
+		// read compressed data from file and decompress it into texture buffer
+		long decompressedSize = LZSS_Decode(fRefNum, image, compressedSize);
+		GAME_ASSERT(decompressedSize == tileBytes);
+
+//		FlipImageVertically(image, tileRowBytes, tileSize);
+
+				/* BYTESWAP 16-BIT TEXTURE */
+
+		ByteswapInts(2, decompressedSize/2, image);
+	}
+
+			/* ASSEMBLE SEAMLESS TEXTURES */
+
+#define TILEIMAGE(col, row) (allImages + gSuperTileTextureGrid[(row)][(col)].superTileID * tileBytes)
+
+	const int deep = gNumSuperTilesDeep;
+	const int wide = gNumSuperTilesWide;
+
+	for (int row = 0; row < deep; row++)
+	for (int col = 0; col < wide; col++)
+	{
+		int unique = gSuperTileTextureGrid[row][col].superTileID;
+		if (unique == 0)																// if 0 then its a blank
+		{
+			continue;
+		}
+
+		int tw = SUPERTILE_TEXMAP_SIZE;		// supertile width & height
+		int th = SUPERTILE_TEXMAP_SIZE;
+		int cw = tw + 2;
+		int ch = th + 2;
+
+		// Clear canvas to black
+		memset(canvas, 0, canvasW * canvasH * sizeof(UInt16));
+
+		// Blit supertile image to middle of canvas
+		Blit16(TILEIMAGE(col, row), tw, th, 0, 0, tw, th, canvas, cw, ch, 1, 1);
+
+		// Scan for neighboring supertiles
+		bool hasN = row > 0;
+		bool hasS = row < gNumSuperTilesDeep-1;
+		bool hasW = col > 0;
+		bool hasE = col < gNumSuperTilesWide-1;
+
+		// Stitch edges from neighboring supertiles on each side and copy 1px corners from diagonal neighbors
+		//                       srcBuf                   sW  sH    sX    sY  rW  rH  dstBuf  dW  dH    dX    dY
+		if (hasN)         Blit16(TILEIMAGE(col  , row-1), tw, th,    0, th-1, tw,  1, canvas, cw, ch,    1,    0);
+		if (hasS)         Blit16(TILEIMAGE(col  , row+1), tw, th,    0,    0, tw,  1, canvas, cw, ch,    1, ch-1);
+		if (hasW)         Blit16(TILEIMAGE(col-1, row  ), tw, th, tw-1,    0,  1, th, canvas, cw, ch,    0,    1);
+		if (hasE)         Blit16(TILEIMAGE(col+1, row  ), tw, th,    0,    0,  1, th, canvas, cw, ch, cw-1,    1);
+		if (hasE && hasN) Blit16(TILEIMAGE(col+1, row-1), tw, th,    0, th-1,  1,  1, canvas, cw, ch, cw-1,    0);
+		if (hasW && hasN) Blit16(TILEIMAGE(col-1, row-1), tw, th, tw-1, th-1,  1,  1, canvas, cw, ch,    0,    0);
+		if (hasW && hasS) Blit16(TILEIMAGE(col-1, row+1), tw, th, tw-1,    0,  1,  1, canvas, cw, ch,    0, ch-1);
+		if (hasE && hasS) Blit16(TILEIMAGE(col+1, row+1), tw, th,    0,    0,  1,  1, canvas, cw, ch, cw-1, ch-1);
+
+		// Now load texture
+		gSuperTileTextureNames[unique] = OGL_TextureMap_Load(canvas, canvasW, canvasH,
+														GL_BGRA_EXT, GL_RGB, GL_UNSIGNED_SHORT_1_5_5_5_REV);
+
+		// Clamp to edge
+		OGL_Texture_SetOpenGLTexture(gSuperTileTextureNames[unique]);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	}
+
+#undef TILEIMAGE
+
+			/* CLEAN UP */
+
+	SafeDisposePtr(lzss);
+	SafeDisposePtr(allImages);
+	SafeDisposePtr(canvas);
+}
+#endif
+
 
 
 /*********************** LOAD FILE INTO MEMORY ***********************************/
