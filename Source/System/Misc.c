@@ -28,11 +28,9 @@
 
 extern	unsigned long gOriginalSystemVolume;
 extern	short		gMainAppRezFile;
-extern	Boolean		gOSX;
 extern	/*DSpContextReference*/ void* 	gDisplayContext;
 extern	OGLSetupOutputType		*gGameViewInfoPtr;
 extern	int			gPolysThisFrame;
-extern	float			gDemoVersionTimer;
 
 extern	SDL_Window* 	gSDLWindow;
 
@@ -46,8 +44,6 @@ extern	SDL_Window* 	gSDLWindow;
 /**********************/
 /*     VARIABLES      */
 /**********************/
-
-Boolean	gQuitting = false;
 
 short	gPrefsFolderVRefNum;
 long	gPrefsFolderDirID;
@@ -113,14 +109,9 @@ void CleanQuit(void)
 {
 static Boolean	beenHere = false;
 
-	gQuitting = true;
-
 	if (!beenHere)
 	{
-
-#if DEMO || SHAREWARE
 		DeleteAllObjects();
-#endif
 
 		beenHere = true;
 
@@ -135,14 +126,6 @@ static Boolean	beenHere = false;
 
 		if (gGameViewInfoPtr)							// see if need to dispose this
 			OGL_DisposeWindowSetup(&gGameViewInfoPtr);
-
-
-#if DEMO
-		ShowDemoQuitScreen();
-#elif SHAREWARE
-		if (!gGameIsRegistered)
-			DoSharewareExitScreen();
-#endif
 
 		ShutdownSound();								// cleanup sound stuff
 	}

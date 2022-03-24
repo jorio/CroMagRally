@@ -26,7 +26,7 @@ extern	OGLSetupOutputType		*gGameViewInfoPtr;
 extern	int			gNumSplitScreenPanes;
 extern	FSSpec				gDataSpec;
 extern	float		gFramesPerSecondFrac,gGameWindowShrink;
-extern	Boolean		gNetGameInProgress,gIsSelfRunningDemo,gOSX;
+extern	Boolean		gNetGameInProgress,gIsSelfRunningDemo;
 extern	PrefsType			gGamePrefs;
 
 /****************************/

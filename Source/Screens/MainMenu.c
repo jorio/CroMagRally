@@ -38,7 +38,7 @@ extern	Boolean		gNetGameInProgress,gSavedPlayerIsLoaded,gIsSelfRunningDemo;
 extern	KeyMap gKeyMap,gNewKeys;
 extern	short		gNumRealPlayers,gNumLocalPlayers, gMyNetworkPlayerNum;
 extern	NewObjectDefinitionType	gNewObjectDefinition;
-extern	Boolean		gSongPlayingFlag,gResetSong,gDisableAnimSounds,gIsNetworkHost,gIsNetworkClient,gOSX;
+extern	Boolean		gSongPlayingFlag,gResetSong,gDisableAnimSounds,gIsNetworkHost,gIsNetworkClient;
 extern	PrefsType	gGamePrefs;
 extern	OGLPoint3D	gCoord;
 extern	MOPictureObject 	*gBackgoundPicture;
@@ -599,7 +599,6 @@ short	max;
 
 						case	1:								// TOURNAMENT
 								gGameMode = GAME_MODE_TOURNAMENT;
-#if !DEMO
 								DoSavedPlayerDialog();
 
 //								if (!gSavedPlayerIsLoaded)		// must have loaded a player to do this
@@ -607,7 +606,6 @@ short	max;
 //									DoSavedPlayerDialog();
 //								}
 //								else
-#endif
 								{
 									BuildMenu(MENU_ID_TOURNAMENT);
 								}

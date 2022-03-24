@@ -99,11 +99,6 @@ static void TallyTokens(void);
 /*    VARIABLES             */
 /****************************/
 
-float	gDemoVersionTimer = 0;
-
-Boolean				gOSX = true;
-
-
 Byte				gDebugMode = 0;				// 0 == none, 1 = fps, 2 = all
 
 uint32_t				gAutoFadeStatusBits;
@@ -184,13 +179,7 @@ uint32_t		seconds, seconds2;
 
 	SetDefaultDirectory();							// be sure to get the default directory
 
-#if DEMO
-	iErr = FSMakeFSSpec(0, 0, ":DemoData:Images", &gDataSpec);
-#elif SHAREWARE
-	iErr = FSMakeFSSpec(0 ,0, ":SWData:Images", &gDataSpec);
-#else
 	iErr = FSMakeFSSpec(0, 0, ":Data:Images", &gDataSpec);
-#endif
 	if (iErr)
 	{
 		DoFatalAlert("Cannot find Data folder.");
@@ -328,9 +317,6 @@ select_track:
 
 	if (gIsSelfRunningDemo)									// auto-pick if SRD
 	{
-#if DEMO
-		gTrackNum = RandomRange(0,1);						// randomly pick tracks 0..1
-#else
 		switch(gPlayerSaveData.numAgesCompleted & AGE_MASK_AGE)
 		{
 			case	0:
@@ -345,7 +331,6 @@ select_track:
 					gTrackNum = RandomRange(0,7);			// randomly pick tracks 0..7 (no atlantis!)
 					break;
 		}
-#endif
 	}
 	else
 	{
@@ -459,11 +444,7 @@ short	placeToWin,startStage;
 			/* GO THRU EACH AGE, STARTING WITH THE ONE THE USER SELECTED IN THE MENU */
 			/*************************************************************************/
 
-#if DEMO
-	for (gTheAge = 0;gTheAge <= STONE_AGE; gTheAge++)					// only stone age in DEMO
-#else
 	for (;gTheAge <= IRON_AGE; gTheAge++)
-#endif
 	{
 		gNumRetriesRemaining = MAX_RETRIES;								// # retries for this age
 
@@ -483,9 +464,6 @@ short	placeToWin,startStage;
 					/* PLAY EACH  LEVEL OF THIS AGE */
 					/********************************/
 
-#if DEMO
-		for (gTournamentStage = 0; gTournamentStage < 2; gTournamentStage++)		// only 1st 2 tracks in DEMO
-#else
 		if ((gPlayerSaveData.numAgesCompleted & AGE_MASK_AGE) == 3)					// if won game, then start stage @ 0
 			startStage = 0;
 		else
@@ -495,7 +473,6 @@ short	placeToWin,startStage;
 			startStage = (gPlayerSaveData.numAgesCompleted & AGE_MASK_STAGE) >> 4;	// otherwise start were we last were
 
 		for (gTournamentStage = startStage; gTournamentStage < 3; gTournamentStage++)
-#endif
 		{
 			gTrackNum = gTournamentTrackTable[gTheAge][gTournamentStage];	// get global track # to play
 
@@ -554,10 +531,6 @@ short	placeToWin,startStage;
 				return(false);
 
 		}
-
-#if DEMO
-		return(false);
-#endif
 
 			/* NEXT AGE */
 
@@ -942,16 +915,6 @@ static void PlayArea(void)
 				// Also gathers frame rate info for the net clients.
 				//
 
-		if (!gIsSelfRunningDemo)
-		{
-#if DEMO
-			gDemoVersionTimer += gFramesPerSecondFrac;							// count the seconds for DEMO
-#elif SHAREWARE
-	    	if (!gGameIsRegistered)                    			// if not registered, then time demo
-				gDemoVersionTimer += gFramesPerSecondFrac;		// count the seconds for DEMO
-#endif
-		}
-
 				/* NETWORK CLIENT */
 
 		if (gIsNetworkClient)
@@ -1158,7 +1121,6 @@ short				numPanes;
 				PlaySong(SONG_JUNGLE, true);
 				break;
 
-#if !DEMO
 		case	TRACK_NUM_ATLANTIS:
 		case	TRACK_NUM_TARPITS:
 				PlaySong(SONG_ATLANTIS, true);
@@ -1193,7 +1155,6 @@ short				numPanes;
 				PlaySong(SONG_VIKING, true);
 				break;
 
-#endif
 		default:
 				PlaySong(SONG_DESERT, true);
 	}
@@ -1592,12 +1553,6 @@ Boolean			userAbortedBeforeGameStarted;
 	GetDateTime ((unsigned long *)(&someLong));		// init random seed
 	SetMyRandomSeed(someLong);
 //	HideCursor();
-
-			/* SEE IF DEMO VERSION EXPIRED */
-
-#if DEMO
-	GetDemoTimer();
-#endif
 
 	PlaySong(SONG_THEME, true);
 

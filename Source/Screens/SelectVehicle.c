@@ -228,9 +228,6 @@ uint32_t				n;
 	gVehicleName = nil;
 	gSelectedVehicleIndex = 0;
 
-#if DEMO
-	gNumVehiclesToChooseFrom = 6;							// only let do main cars
-#else
 	i = gPlayerSaveData.numAgesCompleted & AGE_MASK_AGE;
 	if (i > 2)												// prevent extra cars after winning Iron Age
 		i = 2;
@@ -239,7 +236,6 @@ uint32_t				n;
 	if (gNumRealPlayers > 1)							// let use any car in mutliplayer mode
 		gNumVehiclesToChooseFrom = 10;
 
-#endif
 			/**************/
 			/* SETUP VIEW */
 			/**************/

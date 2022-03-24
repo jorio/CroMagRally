@@ -90,8 +90,6 @@ void SavePrefs(void);
 void LoadPlayfield(FSSpec *specPtr);
 void LoadLevelArt(OGLSetupOutputType *setupInfo);
 OSErr DrawPictureIntoGWorld(FSSpec *myFSSpec, GWorldPtr *theGWorld, short depth);
-void GetDemoTimer(void);
-void SaveDemoTimer(void);
 void SetDefaultDirectory(void);
 
 void SetDefaultPlayerSaveData(void);

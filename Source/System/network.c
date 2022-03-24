@@ -26,7 +26,7 @@ typedef void* NSpPlayerLeftMessage;
 extern	short	gNumRealPlayers,gMyNetworkPlayerNum,gNumTotalPlayers;
 extern	float	gFramesPerSecond,gFramesPerSecondFrac;
 extern	PlayerInfoType	gPlayerInfo[];
-extern	Boolean	gGameOver,gOSX,gSavedPlayerIsLoaded;
+extern	Boolean	gGameOver,gSavedPlayerIsLoaded;
 extern	int		gGameMode,gTheAge,gTrackNum;
 extern	SavePlayerType	gPlayerSaveData;
 extern	Boolean						gSongPlayingFlag;
@@ -54,11 +54,7 @@ static Boolean PlayerReceiveVehicleTypeFromOthers(short *playerNum, short *charT
 
 #define	DATA_TIMEOUT	2						// # seconds for data to timeout
 
-#if DEMO
-#define	kNBPType		"CMD5"
-#else
 #define	kNBPType		"CMR5"
-#endif
 
 /**********************/
 /*     VARIABLES      */

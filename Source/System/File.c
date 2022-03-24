@@ -42,7 +42,6 @@ extern	long			gTerrainTileWidth,gTerrainTileDepth,gTerrainUnitWidth,gTerrainUnit
 extern	long			gNumSuperTilesDeep,gNumSuperTilesWide;
 extern	FSSpec			gDataSpec;
 extern	uint32_t			gScore;
-extern	float			gDemoVersionTimer;
 extern  uint16_t			**gTileDataHandle;
 extern	float			**gMapYCoords;
 extern	Byte			**gMapSplitMode;

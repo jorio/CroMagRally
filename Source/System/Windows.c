@@ -24,7 +24,6 @@ extern	ObjNode	*gCurrentNode,*gFirstNodePtr;
 extern	float	gFramesPerSecondFrac;
 extern	short	gPrefsFolderVRefNum;
 extern	long	gPrefsFolderDirID;
-extern	Boolean				gOSX;
 extern	PrefsType			gGamePrefs;
 extern	Boolean			gSongPlayingFlag,gMuteMusicFlag;
 

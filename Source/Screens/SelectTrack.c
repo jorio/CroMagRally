@@ -218,21 +218,13 @@ OGLSetupInputType	viewDef;
 	{
 		case	GAME_MODE_PRACTICE:
 		case	GAME_MODE_MULTIPLAYERRACE:
-#if DEMO
-				gNumTracksInSelection = 2; 		// only 2 tracks in DEMO
-#else
 				gNumTracksInSelection = NUM_PRACTICE_TRACKS;
-#endif
 				gBaseTrack = 0;
 				FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":sprites:trackselect.sprites", &spec);
 				break;
 
 		default:
-#if DEMO
-				gNumTracksInSelection = 2;
-#else
 				gNumTracksInSelection = NUM_BATTLE_TRACKS;
-#endif
 				gBaseTrack = 9;
 				FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":sprites:trackselectMP.sprites", &spec);
 	}

@@ -34,7 +34,7 @@ extern	short			gNumSuperTilesDrawn,gNumActiveParticleGroups,gNumFencesDrawn,gNum
 extern	PlayerInfoType	gPlayerInfo[];
 extern	float			gFramesPerSecond,gCameraStartupTimer;
 extern	Byte			gDebugMode;
-extern	Boolean			gAutoPilot,gNetGameInProgress,gOSX;
+extern	Boolean			gAutoPilot,gNetGameInProgress;
 extern	uint16_t			gPlayer0TileAttribs;
 extern	uint32_t			gGlobalMaterialFlags;
 extern	PrefsType			gGamePrefs;

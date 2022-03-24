@@ -16,6 +16,3 @@ void DoCreditsScreen(void);
 void DoTournamentWinScreen(void);
 
 void DoHelpScreen(void);
-void DoDemoExpiredScreen(void);
-void ShowDemoQuitScreen(void);
-void DoSharewareExitScreen(void);

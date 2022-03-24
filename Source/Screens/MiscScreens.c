@@ -40,7 +40,7 @@ extern	FSSpec		gDataSpec;
 extern	KeyMap gKeyMap,gNewKeys;
 extern	short		gNumRealPlayers;
 extern	NewObjectDefinitionType	gNewObjectDefinition;
-extern	Boolean		gSongPlayingFlag,gOSX,gDisableAnimSounds,gIsNetworkHost,gIsNetworkClient;
+extern	Boolean		gSongPlayingFlag,gDisableAnimSounds,gIsNetworkHost,gIsNetworkClient;
 extern	PrefsType	gGamePrefs;
 extern	OGLPoint3D	gCoord;
 extern	int			gGameMode,gTheAge;
@@ -171,9 +171,6 @@ OGLSetupInputType	viewDef;
 
 		while (1) //!Button())
 		{
-			if (gOSX)						// hack to fix OS 10.1 audio bug
-				MyFlushEvents();
-
 			CalcFramesPerSecond();
 			MoveObjects();
 			OGL_DrawScene(gGameViewInfoPtr, DisplayPicture_Draw);
@@ -248,15 +245,8 @@ void ShowLoadingPicture(void)
 {
 FSSpec	spec;
 
-	if (gOSX)
-	{
-		GameScreenToBlack();
-	}
-	else
-	{
-		FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":images:Loading1.jpg", &spec);
-		DisplayPicture(&spec, true, false);
-	}
+	FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":images:Loading1.jpg", &spec);
+	DisplayPicture(&spec, true, false);
 }
 
 
