@@ -257,13 +257,6 @@ static const char*	maps[] =
 
 	gMapSprite->objectData.coord.z = 0;
 
-		/* LOAD ROCKFONT AS SPRITES (FOR COUNTER DIGITS) */
-
-	FSSpec spec;
-	FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":sprites:rockfont.sprites", &spec);
-	LoadSpriteFile(&spec, SPRITE_GROUP_FONT, setupInfo);
-
-
 		/* SET GLOWING */
 
 	BlendASprite(SPRITE_GROUP_INFOBAR, INFOBAR_SObjType_Invisibility);
