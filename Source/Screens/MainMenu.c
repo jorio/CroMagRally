@@ -261,9 +261,7 @@ OGLVector3D			fillDirection2 = { -1, -.2, -.5 };
 	viewDef.camera.fov 				= 1.0;
 	viewDef.camera.hither 			= 10;
 	viewDef.camera.yon 				= 3000;
-	viewDef.view.clearColor.r 		= 0;
-	viewDef.view.clearColor.g 		= 0;
-	viewDef.view.clearColor.b		= 0;
+	viewDef.view.clearColor 		= (OGLColorRGBA) {.76f, .61f, .45f, 1.0f};
 	viewDef.styles.useFog			= false;
 	viewDef.view.pillarbox4x3		= true;
 

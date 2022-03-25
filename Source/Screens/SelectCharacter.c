@@ -164,9 +164,7 @@ ObjNode	*newObj;
 	viewDef.camera.yon 				= 3000;
 	viewDef.camera.from[0].z		= 700;
 
-	viewDef.view.clearColor.r 		= 0;
-	viewDef.view.clearColor.g 		= 0;
-	viewDef.view.clearColor.b		= 0;
+	viewDef.view.clearColor 		= (OGLColorRGBA) { .51f, .39f, .27f, 1 };
 	viewDef.styles.useFog			= false;
 	viewDef.view.pillarbox4x3		= true;
 

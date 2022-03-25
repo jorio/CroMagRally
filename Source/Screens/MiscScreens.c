@@ -926,6 +926,7 @@ static const float sizes[] =
 	viewDef.camera.yon 				= 2000;
 	viewDef.camera.from[0].z		= 1200;
 	viewDef.camera.from[0].y		= 0;
+	viewDef.view.clearColor 		= (OGLColorRGBA) { .49f, .39f, .29f, 1 };
 	viewDef.view.pillarbox4x3		= true;
 
 	OGL_SetupWindow(&viewDef, &gGameViewInfoPtr);

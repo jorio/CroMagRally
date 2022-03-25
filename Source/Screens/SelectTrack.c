@@ -193,6 +193,7 @@ OGLSetupInputType	viewDef;
 
 	OGL_NewViewDef(&viewDef);
 	viewDef.view.pillarbox4x3		= true;
+	viewDef.view.clearColor 		= (OGLColorRGBA) {.76f, .61f, .45f, 1.0f};
 	OGL_SetupWindow(&viewDef, &gGameViewInfoPtr);
 
 

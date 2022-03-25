@@ -248,9 +248,7 @@ uint32_t				n;
 	viewDef.camera.from[0].z		= -700;
 	viewDef.camera.from[0].y		= 250;
 
-	viewDef.view.clearColor.r 		= 0;
-	viewDef.view.clearColor.g 		= 0;
-	viewDef.view.clearColor.b		= 0;
+	viewDef.view.clearColor 		= (OGLColorRGBA) {.76f, .61f, .45f, 1.0f};
 	viewDef.styles.useFog			= false;
 	viewDef.view.pillarbox4x3		= true;
 
