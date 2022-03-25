@@ -192,6 +192,7 @@ OGLSetupInputType	viewDef;
 			/**************/
 
 	OGL_NewViewDef(&viewDef);
+	viewDef.view.pillarbox4x3		= true;
 	OGL_SetupWindow(&viewDef, &gGameViewInfoPtr);
 
 

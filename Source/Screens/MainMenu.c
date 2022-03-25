@@ -265,6 +265,7 @@ OGLVector3D			fillDirection2 = { -1, -.2, -.5 };
 	viewDef.view.clearColor.g 		= 0;
 	viewDef.view.clearColor.b		= 0;
 	viewDef.styles.useFog			= false;
+	viewDef.view.pillarbox4x3		= true;
 
 	OGLVector3D_Normalize(&fillDirection1, &fillDirection1);
 	OGLVector3D_Normalize(&fillDirection2, &fillDirection2);

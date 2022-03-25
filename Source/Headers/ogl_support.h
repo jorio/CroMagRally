@@ -155,6 +155,7 @@ typedef	struct
 	OGLColorRGBA			clearColor;
 	Rect					clip;			// left = amount to clip off left, etc.
 	int						numPanes;
+	Boolean					pillarbox4x3;
 }OGLViewDefType;
 
 
@@ -213,6 +214,7 @@ typedef struct
 	float					fov[MAX_SPLITSCREENS],hither,yon;
 	Boolean					useFog;
 	Boolean					clearBackBuffer;
+	Boolean					pillarbox4x3;
 }OGLSetupOutputType;
 
 

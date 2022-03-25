@@ -112,6 +112,7 @@ OGLSetupInputType	viewDef;
 	viewDef.view.clearColor.g 		= 0;
 	viewDef.view.clearColor.b		= 0;
 	viewDef.styles.useFog			= false;
+	viewDef.view.pillarbox4x3		= true;
 
 	OGL_SetupWindow(&viewDef, &gGameViewInfoPtr);
 
@@ -365,6 +366,7 @@ static const char* names[] =
 	viewDef.camera.yon 				= 2000;
 	viewDef.camera.from[0].z		= 1200;
 	viewDef.camera.from[0].y		= 0;
+	viewDef.view.pillarbox4x3		= true;
 
 	OGL_SetupWindow(&viewDef, &gGameViewInfoPtr);
 
@@ -554,6 +556,7 @@ OGLSetupInputType	viewDef;
 	viewDef.camera.yon 				= 2000;
 	viewDef.camera.from[0].z		= 1200;
 	viewDef.camera.from[0].y		= 0;
+	viewDef.view.pillarbox4x3		= true;
 
 	OGL_SetupWindow(&viewDef, &gGameViewInfoPtr);
 
@@ -923,6 +926,7 @@ static const float sizes[] =
 	viewDef.camera.yon 				= 2000;
 	viewDef.camera.from[0].z		= 1200;
 	viewDef.camera.from[0].y		= 0;
+	viewDef.view.pillarbox4x3		= true;
 
 	OGL_SetupWindow(&viewDef, &gGameViewInfoPtr);
 

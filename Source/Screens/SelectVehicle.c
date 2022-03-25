@@ -252,6 +252,7 @@ uint32_t				n;
 	viewDef.view.clearColor.g 		= 0;
 	viewDef.view.clearColor.b		= 0;
 	viewDef.styles.useFog			= false;
+	viewDef.view.pillarbox4x3		= true;
 
 	viewDef.lights.ambientColor 	= ambientColor;
 	viewDef.lights.numFillLights 	= 2;

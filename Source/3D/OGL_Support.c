@@ -135,6 +135,8 @@ static OGLVector3D			fillDirection2 = { -1, -.3, -.3 };
 	OGLVector3D_Normalize(&fillDirection1, &fillDirection1);
 	OGLVector3D_Normalize(&fillDirection2, &fillDirection2);
 
+	memset(viewDef, 0, sizeof(*viewDef));
+
 	viewDef->view.clearColor 		= clearColor;
 	viewDef->view.clip.left 	= 0;
 	viewDef->view.clip.right 	= 0;
@@ -208,6 +210,7 @@ OGLSetupOutputType	*outputPtr;
 	outputPtr->yon 				= setupDefPtr->camera.yon;
 	outputPtr->useFog 			= setupDefPtr->styles.useFog;
 	outputPtr->clearBackBuffer 	= setupDefPtr->view.clearBackBuffer;
+	outputPtr->pillarbox4x3		= setupDefPtr->view.pillarbox4x3;
 
 	outputPtr->isActive = true;											// it's now an active structure
 
@@ -651,6 +654,28 @@ int	t,b,l,r;
 		IMPLEMENT_ME_SOFT();
 #endif
 
+	if (setupInfo->pillarbox4x3)
+	{
+		int widescreenAdjustedWidth = gGameWindowHeight * 640 / 480;
+
+		if (widescreenAdjustedWidth <= gGameWindowWidth)
+		{
+			// keep height
+			*w = widescreenAdjustedWidth;
+			*h = gGameWindowHeight;
+			*x = (gGameWindowWidth - *w) / 2;
+			*y = 0;
+		}
+		else
+		{
+			// keep width
+			*w = gGameWindowWidth;
+			*h = gGameWindowWidth * 480 / 640;
+			*x = 0;
+			*y = (gGameWindowHeight - *h) / 2;
+		}
+	}
+	else
 	switch(gActiveSplitScreenMode)
 	{
 		case	SPLITSCREEN_MODE_NONE:
