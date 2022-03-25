@@ -40,7 +40,6 @@
 #include "sprites.h"
 #include "liquids.h"
 #include "selecttrack.h"
-#include "winners.h"
 #include "sobjtypes.h"
 #include "localization.h"
 #include "atlas.h"
