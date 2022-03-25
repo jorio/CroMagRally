@@ -232,7 +232,11 @@ OGLSetupOutputType	*outputPtr;
 
 	if (outputPtr->pillarbox4x3)
 	{
+#if _DEBUG
+		gPillarboxTexture = OGL_TextureMap_LoadImageFile(":images:pillarboxtest.png", NULL, NULL);
+#else
 		gPillarboxTexture = OGL_TextureMap_LoadImageFile(":images:pillarbox.jpg", NULL, NULL);
+#endif
 	}
 }
 
@@ -486,43 +490,102 @@ void DrawPillarboxBackground(OGLSetupOutputType* setupInfo, int vpx, int vpy, in
 	glEnable(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D, gPillarboxTexture);
 
-	float dk = .3;
+	float dk = .2;
 	float z = 0;
+	float textureAR = 1024.0f / 768.0f;
 
 	if (vph == gGameWindowHeight) // widescreen
 	{
-		float xpadding = (gGameWindowWidth - vpw) / (float)gGameWindowWidth;
-		float left = (1.0f - xpadding);
-		float right = 1.0f;
-		float bottom = -1;
-		float top = 1;
-		
-		glBegin(GL_QUADS);
-		for (int flip = -1; flip <= 1; flip += 2)
+		float stripeW = 0.5f * (gGameWindowWidth - vpw);
+		float stripeAR = stripeW / gGameWindowHeight;
+		float texRegionAR = textureAR / 2;
+
+		float qB = -1;
+		float qT = 1;
+		float qL1 = (1.0f - stripeW / (0.5f * gGameWindowWidth));
+		float qR1 = 1.0f;
+		float qR2 = -qL1;
+		float qL2 = -1.0f;
+
+		float tcT, tcB, tcL1, tcR1, tcL2, tcR2;
+		if (stripeAR <= texRegionAR)
 		{
-			glColor4f(dk,dk,dk,1);		glTexCoord2f(0, 1);		glVertex3f(flip*left, bottom, z);
-			glColor4f(1, 1, 1, 1);		glTexCoord2f(1, 1);		glVertex3f(flip*right, bottom, z);
-			glColor4f(1, 1, 1, 1);		glTexCoord2f(1, 0);		glVertex3f(flip*right, top, z);
-			glColor4f(dk,dk,dk,1);		glTexCoord2f(0, 0);		glVertex3f(flip*left, top, z);
+			// padding stripe is narrower than texture -- keep height, crop sides
+			tcB = 1;
+			tcT = 0;
+			tcL1 = .5f;
+			tcR1 = .5f + .5f * (stripeAR / texRegionAR);
+			tcL2 = .5f - .5f * (stripeAR / texRegionAR);
+			tcR2 = .5f;
 		}
+		else
+		{
+			// ultra-wide -- pin image to bottom and crop sides
+			tcB = 1;
+			tcT = 1 - (texRegionAR / stripeAR);
+			tcL1 = .5f;
+			tcR1 = 1;
+			tcL2 = 0;
+			tcR2 = .5f;
+		}
+
+		glBegin(GL_QUADS);
+		glColor4f(dk,dk,dk,1);		glTexCoord2f(tcL1, tcB);		glVertex3f(qL1, qB, z);		// Quad 1 (right)
+		glColor4f(1, 1, 1, 1);		glTexCoord2f(tcR1, tcB);		glVertex3f(qR1, qB, z);
+		glColor4f(1, 1, 1, 1);		glTexCoord2f(tcR1, tcT);		glVertex3f(qR1, qT, z);
+		glColor4f(dk,dk,dk,1);		glTexCoord2f(tcL1, tcT);		glVertex3f(qL1, qT, z);
+		glColor4f(1, 1, 1, 1);		glTexCoord2f(tcL2, tcB);		glVertex3f(qL2, qB, z);		// Quad 2 (left)
+		glColor4f(dk,dk,dk,1);		glTexCoord2f(tcR2, tcB);		glVertex3f(qR2, qB, z);
+		glColor4f(dk,dk,dk,1);		glTexCoord2f(tcR2, tcT);		glVertex3f(qR2, qT, z);
+		glColor4f(1, 1, 1, 1);		glTexCoord2f(tcL2, tcT);		glVertex3f(qL2, qT, z);
 		glEnd();
 	}
 	else // tallscreen
 	{
-		float ypadding = (gGameWindowHeight - vph) / (float)gGameWindowHeight;
-		float left = -1.0f;
-		float right = 1.0f;
-		float bottom = (1.0f - ypadding);
-		float top = 1.0;
+		float stripeH = 0.5f * (gGameWindowHeight - vph);
+		float stripeAR = gGameWindowWidth / stripeH;
+		float texRegionAR = textureAR * 2;
+
+		float qL = -1.0f;
+		float qR = 1.0f;
+		float qB1 = (1.0f - stripeH / (0.5f * gGameWindowHeight));
+		float qT1 = 1.0;
+		float qB2 = -1.0;
+		float qT2 = -qB1;
+
+		float tcL, tcR, tcT1, tcB1, tcT2, tcB2;
+		if (stripeAR <= texRegionAR)
+		{
+			// keep height, crop left/right
+			float invZoom = stripeAR / texRegionAR;
+			tcL =     (1 - invZoom) * 0.5f;
+			tcR = 1 - (1 - invZoom) * 0.5f;
+			tcT1 = 0.0f; // pin top
+			tcB1 = 0.5f; // pin bottom
+			tcT2 = 0.5f;
+			tcB2 = 1.0f;
+		}
+		else
+		{
+			// keep width, crop top/bottom
+			float zoom = texRegionAR / stripeAR;
+			tcL = 0;
+			tcR = 1;
+			tcT1 = 0.5f - .5f * zoom;
+			tcB1 = 0.5f;
+			tcT2 = 0.5f;
+			tcB2 = 0.5f + .5f * zoom;
+		}
 
 		glBegin(GL_QUADS);
-		for (int flip = -1; flip <= 1; flip += 2)
-		{
-			glColor4f(dk,dk,dk,1);		glTexCoord2f(0, 1);		glVertex3f(left, flip*bottom, z);
-			glColor4f(dk,dk,dk,1);		glTexCoord2f(1, 1);		glVertex3f(right, flip*bottom, z);
-			glColor4f(1, 1, 1, 1);		glTexCoord2f(1, 0);		glVertex3f(right, flip*top, z);
-			glColor4f(1, 1, 1, 1);		glTexCoord2f(0, 0);		glVertex3f(left, flip*top, z);
-		}
+		glColor4f(dk,dk,dk,1);		glTexCoord2f(tcL, tcB1);		glVertex3f(qL, qB1, z);		// Quad 1 (top)
+		glColor4f(dk,dk,dk,1);		glTexCoord2f(tcR, tcB1);		glVertex3f(qR, qB1, z);
+		glColor4f(1, 1, 1, 1);		glTexCoord2f(tcR, tcT1);		glVertex3f(qR, qT1, z);
+		glColor4f(1, 1, 1, 1);		glTexCoord2f(tcL, tcT1);		glVertex3f(qL, qT1, z);
+		glColor4f(1, 1, 1, 1);		glTexCoord2f(tcL, tcB2);		glVertex3f(qL, qB2, z);		// Quad 2 (bottom)
+		glColor4f(1, 1, 1, 1);		glTexCoord2f(tcR, tcB2);		glVertex3f(qR, qB2, z);
+		glColor4f(dk,dk,dk,1);		glTexCoord2f(tcR, tcT2);		glVertex3f(qR, qT2, z);
+		glColor4f(dk,dk,dk,1);		glTexCoord2f(tcL, tcT2);		glVertex3f(qL, qT2, z);
 		glEnd();
 	}
 
