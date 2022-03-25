@@ -510,8 +510,6 @@ float		relSpeed;
 OGLVector3D	v1,v2;
 OGLVector3D	b1,b2;
 OGLVector3D	relD1,relD2;
-short		p1 = car1->PlayerNum;
-short		p2 = car2->PlayerNum;
 
 
 			/* SINCE THE COLLISION FUNCTION PROBABLY NEUTRALIZED THE DELTAS, LETS RESET THEM */

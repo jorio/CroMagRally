@@ -71,7 +71,7 @@ void DoAlert(const char* format, ...)
 	char message[1024];
 	va_list args;
 	va_start(args, format);
-	int result = vsnprintf(message, sizeof(message), format, args);
+	vsnprintf(message, sizeof(message), format, args);
 	va_end(args);
 
 	printf("CMR Alert: %s\n", message);
@@ -92,7 +92,7 @@ void DoFatalAlert(const char* format, ...)
 	char message[1024];
 	va_list args;
 	va_start(args, format);
-	int result = vsnprintf(message, sizeof(message), format, args);
+	vsnprintf(message, sizeof(message), format, args);
 	va_end(args);
 
 	printf("CMR Fatal Alert: %s\n", message);

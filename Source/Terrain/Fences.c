@@ -465,7 +465,7 @@ float			cameraX, cameraZ;
 
 static void SubmitFence(int f, OGLSetupOutputType *setupInfo, float camX, float camZ)
 {
-float					dist,alpha;
+float					dist,alpha = 1.0f;
 long					i,numNubs,j;
 FenceDefType			*fence;
 OGLPoint3D				*nubs;
@@ -506,8 +506,6 @@ OGLPoint3D				*nubs;
 					alpha = 1.0f - dist;
 			}
 		}
-		else
-			dist = 1.0f;
 
 		gFenceColors[f][j].a =
 		gFenceColors[f][j+1].a = 255.0f * alpha;

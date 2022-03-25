@@ -92,65 +92,6 @@ short			g2DStackDepth = 0;
 
 void InitWindowStuff(void)
 {
-GDHandle 		phGD;
-OSErr		iErr;
-Rect			r;
-float		w,h;
-
-
-
-				/****************************/
-				/* INIT WITH DRAW SPROCKETS */
-				/****************************/
-
-#if USE_DSP
-	PrepDrawSprockets();
-
-	w = gGamePrefs.screenWidth;
-	h = gGamePrefs.screenHeight;
-
-	DSpContext_GetDisplayID(gDisplayContext, &displayID);				// get context display ID
-	iErr = DMGetGDeviceByDisplayID(displayID, &phGD, true);				// get GDHandle for ID'd device
-	if (iErr != noErr)
-	{
-		DoFatalAlert("InitWindowStuff: DMGetGDeviceByDisplayID failed!");
-	}
-
-	r.top  		= (short) ((**phGD).gdRect.top + ((**phGD).gdRect.bottom - (**phGD).gdRect.top) / 2);	  	// h center
-	r.top  		-= (short) (h / 2);
-	r.left  	= (short) ((**phGD).gdRect.left + ((**phGD).gdRect.right - (**phGD).gdRect.left) / 2);		// v center
-	r.left  	-= (short) (w / 2);
-	r.right 	= (short) (r.left + w);
-	r.bottom 	= (short) (r.top + h);
-
-
-			/* GET SOME INFO ABOUT THIS GDEVICE */
-
-//	if (OGL_CheckRenderer(phGD, &totalVRAM) == false)
-//		DoAlert("No 3D hardware acceleration was found.  Check that the drivers for your 3D accelerator are installed properly");
-
-
-#else
-				/********************/
-				/* INIT SOME WINDOW */
-				/********************/
-	
-#if 0
-	{
-		WindowPtr	window;
-
-		SetRect(&r, 100,100,1024,768);
-
-		window = NewCWindow(nil, &r, "", true, plainDBox, (void *)-1, false, nil);
-		gDisplayContextGrafPtr = GetWindowPort(window);
-	}
-
-	gGameWindowWidth = r.right - r.left;
-	gGameWindowHeight = r.bottom - r.top;
-#endif
-#endif
-
-	IMPLEMENT_ME_SOFT();
 	gGameWindowWidth = 640;
 	gGameWindowHeight = 480;  // TODO read this from gSDLWindow
 }

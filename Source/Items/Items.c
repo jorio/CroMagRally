@@ -671,6 +671,9 @@ Boolean	collision = true;
 				gNewObjectDefinition.type 		= ATLANTIS_ObjType_Shipwreck;
 				y = GetTerrainY(x,z);
 				break;
+
+		default:
+				DoFatalAlert("Can't AddBoat in track %d!", gTrackNum);
 	}
 
 	gNewObjectDefinition.coord.x 	= x;
@@ -1589,7 +1592,6 @@ ObjNode	*newObj;
 Boolean AddVolcano(TerrainItemEntryType *itemPtr, long  x, long z)
 {
 ObjNode	*newObj;
-Boolean	isSolid = itemPtr->parm[3] & 1;						// see if solid or not
 
 
 	gNewObjectDefinition.group 		= MODEL_GROUP_LEVELSPECIFIC;

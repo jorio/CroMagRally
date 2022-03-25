@@ -1276,6 +1276,11 @@ OGLMatrix4x4	m1,m2;
 				tipY = theNode->Coord.y + 110.0f;
 				tipZ = theNode->Coord.z;
 				break;
+
+		default:
+				printf("Incorrect TeamTorch mode: %d\n", theNode->Mode);
+				return;
+
 	}
 
 		/* ITS ALWAYS BURNING */

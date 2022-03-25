@@ -528,7 +528,6 @@ float	newSpeed,speed;
 
 Boolean IsPointInTriangle3D(const OGLPoint3D *point3D,	const OGLPoint3D *trianglePoints, OGLVector3D *normal)
 {
-Boolean					intersects = false;
 Byte					maximalComponent;
 unsigned long			skip;
 float					*tmp;
@@ -625,6 +624,9 @@ float					verts2x,verts2y;
 				verts2x = point->x;
 				verts2y = point->y;
 				break;
+
+		default:
+				GAME_ASSERT_MESSAGE(false, "Unknown vector component!");
 	}
 
 
@@ -2012,7 +2014,7 @@ float			minX,minY,minZ,maxX,maxY,maxZ;
 	maxY = bBox->max.y;
 	maxZ = bBox->max.z;
 
-	clipCodeAND = ~0;
+	clipCodeAND = ~0u;
 
 	for (i = 0; i < 8; i++)
 	{

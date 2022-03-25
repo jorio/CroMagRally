@@ -10,6 +10,7 @@
 /****************************/
 
 #include <math.h>
+#include <string.h>
 
 #include "globals.h"
 #include "misc.h"
@@ -420,7 +421,6 @@ MOPictureData	*picData = &pictObj->objectData;
 Ptr			buffer,pictMapAddr;
 uint32_t		bufferRowBytes,pictRowBytes;
 MOMaterialData	matData;
-short		refNum;
 
 			/* LOAD PICTURE FILE */
 
@@ -1886,36 +1886,14 @@ Boolean			destHasAlpha;
 
 	if (depth == 32)
 	{
-		uint32_t	r,g,b,a;
-		uint32_t	pixels, *dest, *src;
+		uint32_t	*dest, *src;
 
 		src = (uint32_t *)(pictMapAddr + pictRowBytes * (height-1)); // start @ bottom to flip texture
 		dest = (uint32_t *)buffer;
 
 		for (int y = 0; y < height; y++)
 		{
-#if 0
-			for (x = 0; x < width; x++)
-			{
-				pixels = src[x];
-				if (destHasAlpha && (destDepth == 32))		// see if use file's alpha channel for 32bit destinations
-					a = (pixels & 0xff000000) >> 24;
-				else										// otherwise just do 0 or ff
-				{
-					if (pixels == 0)
-						a = 0;
-					else
-						a = 0xff;
-				}
-				r = (pixels & 0x00ff0000) >> 16;
-				g = (pixels & 0x0000ff00) >> 8;
-				b = pixels & 0xff;
-
-				dest[x] = (r << 24) | (g << 16) | (b << 8) | a;
-			}
-#else
-			BlockMove(src, dest, width*4);
-#endif
+			memcpy(dest, src, width*4);
 			dest += width;
 			src -= pictRowBytes/4;
 		}

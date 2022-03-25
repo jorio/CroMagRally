@@ -593,7 +593,7 @@ try_cull:
 	maxY = bBox->max.y;
 	maxZ = bBox->max.z;
 
-	clipCodeAND = ~0;
+	clipCodeAND = ~0u;
 	clipCodeOR 	= 0;
 
 	for (i = 0; i < 8; i++)

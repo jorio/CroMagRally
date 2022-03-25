@@ -474,7 +474,6 @@ static	SndCommand 		mySndCmd;
 FSSpec	spec;
 short	musicFileRefNum;
 float	volumeTweak;
-GrafPtr	oldPort;
 
 	if (songNum == gCurrentSong)					// see if this is already playing
 		return;

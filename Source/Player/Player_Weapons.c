@@ -60,11 +60,11 @@ static void PlayerLaunchRomanCandle(short playerNum);
 static void MoveRomanCandle(ObjNode *theNode);
 static void PlayerLaunchBottleRocket(short playerNum, Boolean forwardThrow);
 static void MoveBottleRocket(ObjNode *theNode);
-static void ExplodeRomanCandle(ObjNode *theBullet, OGLPoint3D *where);
-static void ExplodeBottleRocket(ObjNode *theBullet, OGLPoint3D *where);
+static void ExplodeRomanCandle(ObjNode *theBullet, const OGLPoint3D *where);
+static void ExplodeBottleRocket(ObjNode *theBullet, const OGLPoint3D *where);
 static void PlayerLaunchTorpedo(short playerNum);
 static void MoveTorpedo(ObjNode *theNode);
-static void ExplodeTorpedo(ObjNode *theBullet, OGLPoint3D *where);
+static void ExplodeTorpedo(ObjNode *theBullet, const OGLPoint3D *where);
 static void MoveFreezeWeapon(ObjNode *theNode);
 static void MoveLandMine(ObjNode *theNode);
 static void DropLandMine(short playerNum);
@@ -1101,13 +1101,12 @@ float		dist;
 
 /******************** EXPLODE ROMAN CANDLE ****************************/
 
-static void ExplodeRomanCandle(ObjNode *theBullet, OGLPoint3D *where)
+static void ExplodeRomanCandle(ObjNode *theBullet, const OGLPoint3D *where)
 {
 long					pg,i;
 OGLVector3D				d;
 OGLPoint3D				pt;
 NewParticleDefType		newParticleDef;
-float					x,y,z;
 ObjNode					*whoThrew;
 
 		/*********************/
@@ -1128,16 +1127,11 @@ ObjNode					*whoThrew;
 	pg = NewParticleGroup(&gNewParticleGroupDef);
 	if (pg != -1)
 	{
-		x = where->x;
-		y = where->y;
-		z = where->z;
-
-
 		for (i = 0; i < 200; i++)
 		{
-			pt.x = x + RandomFloat2() * 60.0f;
-			pt.y = y + 60.0 + RandomFloat2() * 60.0f;
-			pt.z = z + RandomFloat2() * 60.0f;
+			pt.x = where->x + RandomFloat2() * 60.0f;
+			pt.y = where->y + 60.0 + RandomFloat2() * 60.0f;
+			pt.z = where->z + RandomFloat2() * 60.0f;
 
 			d.y = RandomFloat2() * 800.0f;
 			d.x = RandomFloat2() * 800.0f;
@@ -1174,16 +1168,11 @@ ObjNode					*whoThrew;
 	pg = NewParticleGroup(&gNewParticleGroupDef);
 	if (pg != -1)
 	{
-		x = where->x;
-		y = where->y;
-		z = where->z;
-
-
 		for (i = 0; i < 200; i++)
 		{
-			pt.x = x + RandomFloat2() * 60.0f;
-			pt.y = y + 60.0 + RandomFloat2() * 60.0f;
-			pt.z = z + RandomFloat2() * 60.0f;
+			pt.x = where->x + RandomFloat2() * 60.0f;
+			pt.y = where->y + 60.0 + RandomFloat2() * 60.0f;
+			pt.z = where->z + RandomFloat2() * 60.0f;
 
 			d.y = RandomFloat2() * 1000.0f;
 			d.x = RandomFloat2() * 1000.0f;
@@ -1210,7 +1199,7 @@ ObjNode					*whoThrew;
 		/* SEE IF IT HIT ANY CARS */
 
 	whoThrew = (ObjNode *)theBullet->WhoThrew;
-	BlastCars(whoThrew->PlayerNum, x, y, z, BOTTLEROCKET_BLAST_RADIUS);
+	BlastCars(whoThrew->PlayerNum, where->x, where->y, where->z, BOTTLEROCKET_BLAST_RADIUS);
 
 }
 
@@ -1428,13 +1417,12 @@ boom:
 
 /******************** EXPLODE BOTTLE ROCKET ****************************/
 
-static void ExplodeBottleRocket(ObjNode *theBullet, OGLPoint3D *where)
+static void ExplodeBottleRocket(ObjNode *theBullet, const OGLPoint3D *where)
 {
-long					pg,i;
+long					pg;
 OGLVector3D				d;
 OGLPoint3D				pt;
 NewParticleDefType		newParticleDef;
-float					x,y,z;
 ObjNode					*whoThrew;
 
 		/*********************/
@@ -1455,16 +1443,11 @@ ObjNode					*whoThrew;
 	pg = NewParticleGroup(&gNewParticleGroupDef);
 	if (pg != -1)
 	{
-		x = where->x;
-		y = where->y;
-		z = where->z;
-
-
-		for (i = 0; i < 230; i++)
+		for (int i = 0; i < 230; i++)
 		{
-			pt.x = x + RandomFloat2() * 60.0f;
-			pt.y = y + 60.0f + RandomFloat2() * 60.0f;
-			pt.z = z + RandomFloat2() * 60.0f;
+			pt.x = where->x + RandomFloat2() * 60.0f;
+			pt.y = where->y + 60.0f + RandomFloat2() * 60.0f;
+			pt.z = where->z + RandomFloat2() * 60.0f;
 
 			d.y = RandomFloat2() * 800.0f;
 			d.x = RandomFloat2() * 800.0f;
@@ -1501,16 +1484,11 @@ ObjNode					*whoThrew;
 	pg = NewParticleGroup(&gNewParticleGroupDef);
 	if (pg != -1)
 	{
-		x = where->x;
-		y = where->y;
-		z = where->z;
-
-
-		for (i = 0; i < 230; i++)
+		for (int i = 0; i < 230; i++)
 		{
-			pt.x = x + RandomFloat2() * 60.0f;
-			pt.y = y + 60.0f + RandomFloat2() * 60.0f;
-			pt.z = z + RandomFloat2() * 60.0f;
+			pt.x = where->x + RandomFloat2() * 60.0f;
+			pt.y = where->y + 60.0f + RandomFloat2() * 60.0f;
+			pt.z = where->z + RandomFloat2() * 60.0f;
 
 			d.y = RandomFloat2() * 1000.0f;
 			d.x = RandomFloat2() * 1000.0f;
@@ -1537,7 +1515,7 @@ ObjNode					*whoThrew;
 		/* SEE IF IT HIT ANY CARS */
 
 	whoThrew = (ObjNode *)theBullet->WhoThrew;
-	BlastCars(whoThrew->PlayerNum, x, y, z, BOTTLEROCKET_BLAST_RADIUS);
+	BlastCars(whoThrew->PlayerNum, where->x, where->y, where->z, BOTTLEROCKET_BLAST_RADIUS);
 
 }
 
@@ -1708,13 +1686,12 @@ boom:
 
 /******************** EXPLODE TORPEDO ****************************/
 
-static void ExplodeTorpedo(ObjNode *theBullet, OGLPoint3D *where)
+static void ExplodeTorpedo(ObjNode *theBullet, const OGLPoint3D *where)
 {
 long					pg,i;
 OGLVector3D				d;
 OGLPoint3D				pt;
 NewParticleDefType		newParticleDef;
-float					x,y,z;
 ObjNode					*whoThrew;
 
 		/****************/
@@ -1735,16 +1712,11 @@ ObjNode					*whoThrew;
 	pg = NewParticleGroup(&gNewParticleGroupDef);
 	if (pg != -1)
 	{
-		x = where->x;
-		y = where->y;
-		z = where->z;
-
-
 		for (i = 0; i < 100; i++)
 		{
-			pt.x = x + RandomFloat2() * 160.0f;
-			pt.y = y + RandomFloat2() * 160.0f;
-			pt.z = z + RandomFloat2() * 160.0f;
+			pt.x = where->x + RandomFloat2() * 160.0f;
+			pt.y = where->y + RandomFloat2() * 160.0f;
+			pt.z = where->z + RandomFloat2() * 160.0f;
 
 			d.y = 800;
 			d.x = 0;
@@ -1781,16 +1753,11 @@ ObjNode					*whoThrew;
 	pg = NewParticleGroup(&gNewParticleGroupDef);
 	if (pg != -1)
 	{
-		x = where->x;
-		y = where->y;
-		z = where->z;
-
-
 		for (i = 0; i < 200; i++)
 		{
-			pt.x = x + RandomFloat2() * 60.0f;
-			pt.y = y + RandomFloat2() * 60.0f;
-			pt.z = z + RandomFloat2() * 60.0f;
+			pt.x = where->x + RandomFloat2() * 60.0f;
+			pt.y = where->y + RandomFloat2() * 60.0f;
+			pt.z = where->z + RandomFloat2() * 60.0f;
 
 			d.y = RandomFloat2() * 500.0f;
 			d.x = RandomFloat2() * 500.0f;
@@ -1817,7 +1784,7 @@ ObjNode					*whoThrew;
 		/* SEE IF IT HIT ANY CARS */
 
 	whoThrew = (ObjNode *)theBullet->WhoThrew;
-	BlastCars(whoThrew->PlayerNum, x, y, z, TORPEDO_BLAST_RADIUS);
+	BlastCars(whoThrew->PlayerNum, where->x, where->y, where->z, TORPEDO_BLAST_RADIUS);
 
 }
 

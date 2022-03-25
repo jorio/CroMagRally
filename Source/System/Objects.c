@@ -466,13 +466,14 @@ void DrawObjects(OGLSetupOutputType *setupInfo)
 ObjNode		*theNode;
 short		i,numTriMeshes;
 unsigned long	statusBits;
-Boolean			noCache = false;
 Boolean			noLighting = false;
 Boolean			noZBuffer = false;
 Boolean			noZWrites = false;
 //Boolean			noFog = false;
 Boolean			glow = false;
+#if ALLOW_GL_CLIP_HINTS
 Boolean			noClipTest = false;
+#endif
 Boolean			noCullFaces = false;
 Boolean			texWrap = false;
 #if DO_EDGE_ALPHA_CLIPPING
@@ -1112,8 +1113,6 @@ void DeleteAllObjects(void)
 
 void DeleteObject(ObjNode	*theNode)
 {
-int		i;
-
 	if (theNode == nil)								// see if passed a bogus node
 		return;
 

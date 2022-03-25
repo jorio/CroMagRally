@@ -724,8 +724,12 @@ OGLVector3D			vertexNormalList[NUM_VERTICES_IN_SUPERTILE];
 		}
 	}
 
-	if (vertexColorList)  // TODO: Do we even have Vertex Colors in CMR, or is it a remnant of Bugdom?
+	if (vertexColorList)
 	{
+		// I think vertex colors are a remnant of Bugdom that is never used in CMR.
+		DoFatalAlert("apparently, we DO have per-vertex colors in CMR!");
+	
+#if 0
 			/*****************************/
 			/* CALCULATE VERTEX COLORS   */
 			/*****************************/
@@ -796,6 +800,7 @@ OGLVector3D			vertexNormalList[NUM_VERTICES_IN_SUPERTILE];
 				i++;
 			}
 		}
+#endif
 	}
 
 			/*********************/
@@ -866,15 +871,16 @@ int				r,c;
 uint16_t			i,unique;
 uint32_t			textureName;
 OGLPoint3D		cameraCoord;
-PixMapHandle 	hPixMap;
-Ptr				pictMapAddr;
-uint32_t			pictRowBytes;
-GDHandle		oldGD;
-GWorldPtr		oldGW;
 
 
 
 #if TERRAIN_DEBUG_GWORLD
+PixMapHandle 	hPixMap;
+GDHandle		oldGD;
+GWorldPtr		oldGW;
+Ptr				pictMapAddr;
+uint32_t			pictRowBytes;
+
 			/* CREATE DEBUG GWORLD */
 
 	if (gDebugMode == 2)
