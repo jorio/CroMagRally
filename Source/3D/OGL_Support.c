@@ -468,7 +468,7 @@ GLfloat	ambient[4];
 
 #pragma mark -
 
-void DrawPillarboxBackground(OGLSetupOutputType* setupInfo)
+void DrawPillarboxBackground(OGLSetupOutputType* setupInfo, int vpx, int vpy, int vpw, int vph)
 {
 	glViewport(0, 0, gGameWindowWidth, gGameWindowHeight);
 
@@ -483,21 +483,48 @@ void DrawPillarboxBackground(OGLSetupOutputType* setupInfo)
 	glDisable(GL_CULL_FACE);
 	glDisable(GL_DEPTH_TEST);
 	glDisable(GL_BLEND);
-	glDisable(GL_TEXTURE_2D);
+	glEnable(GL_TEXTURE_2D);
+	glBindTexture(GL_TEXTURE_2D, gPillarboxTexture);
 
-	float left		= -0.95;
-	float bottom	= -0.95;
-	float right		= 0.95;
-	float top	 	= 0.95;
-	float z			= 0;
+	float dk = .3;
+	float z = 0;
 
-	glColor4f(1.0, 0.0, 0.0, 1.0);
-	glBegin(GL_QUADS);
-	glTexCoord2f(0,1);	glVertex3f(left, bottom, z);
-	glTexCoord2f(1,1);	glVertex3f(right, bottom, z);
-	glTexCoord2f(1,0);	glVertex3f(right, top, z);
-	glTexCoord2f(0,0);	glVertex3f(left, top, z);
-	glEnd();
+	if (vph == gGameWindowHeight) // widescreen
+	{
+		float xpadding = (gGameWindowWidth - vpw) / (float)gGameWindowWidth;
+		float left = (1.0f - xpadding);
+		float right = 1.0f;
+		float bottom = -1;
+		float top = 1;
+		
+		glBegin(GL_QUADS);
+		for (int flip = -1; flip <= 1; flip += 2)
+		{
+			glColor4f(dk,dk,dk,1);		glTexCoord2f(0, 1);		glVertex3f(flip*left, bottom, z);
+			glColor4f(1, 1, 1, 1);		glTexCoord2f(1, 1);		glVertex3f(flip*right, bottom, z);
+			glColor4f(1, 1, 1, 1);		glTexCoord2f(1, 0);		glVertex3f(flip*right, top, z);
+			glColor4f(dk,dk,dk,1);		glTexCoord2f(0, 0);		glVertex3f(flip*left, top, z);
+		}
+		glEnd();
+	}
+	else // tallscreen
+	{
+		float ypadding = (gGameWindowHeight - vph) / (float)gGameWindowHeight;
+		float left = -1.0f;
+		float right = 1.0f;
+		float bottom = (1.0f - ypadding);
+		float top = 1.0;
+
+		glBegin(GL_QUADS);
+		for (int flip = -1; flip <= 1; flip += 2)
+		{
+			glColor4f(dk,dk,dk,1);		glTexCoord2f(0, 1);		glVertex3f(left, flip*bottom, z);
+			glColor4f(dk,dk,dk,1);		glTexCoord2f(1, 1);		glVertex3f(right, flip*bottom, z);
+			glColor4f(1, 1, 1, 1);		glTexCoord2f(1, 0);		glVertex3f(right, flip*top, z);
+			glColor4f(1, 1, 1, 1);		glTexCoord2f(0, 0);		glVertex3f(left, flip*top, z);
+		}
+		glEnd();
+	}
 
 	OGL_PopState();
 }
@@ -569,7 +596,7 @@ void OGL_DrawScene(OGLSetupOutputType *setupInfo, void (*drawRoutine)(OGLSetupOu
 
 		if (setupInfo->pillarbox4x3 && (w != gGameWindowWidth || h != gGameWindowHeight))
 		{
-			DrawPillarboxBackground(setupInfo);
+			DrawPillarboxBackground(setupInfo, x, y, w, h);
 		}
 
 		glViewport(x, y, w, h);
