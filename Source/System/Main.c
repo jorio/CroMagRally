@@ -157,10 +157,7 @@ float				gSelfRunningDemoTimer;
 
 void ToolBoxInit(void)
 {
-long		response;
 OSErr		iErr;
-NumVersion	vers;
-uint32_t		seconds, seconds2;
 
 	gMainAppRezFile = CurResFile();
 
@@ -211,8 +208,6 @@ uint32_t		seconds, seconds2;
 
 void InitDefaultPrefs(void)
 {
-long 		keyboardScript, languageCode;
-
 	memset(&gGamePrefs, 0, sizeof(gGamePrefs));
 
 	gGamePrefs.language				= GetBestLanguageIDFromSystemLocale();
@@ -1104,8 +1099,6 @@ void MoveEverything(void)
 static void InitArea(void)
 {
 OGLSetupInputType	viewDef;
-RGBColor			c = {0x4000, 0x4000, 0x5000};
-int					i;
 short				numPanes;
 
 
@@ -1172,7 +1165,7 @@ short				numPanes;
 	gTotalTokens 		= 0;
 	gReTagTimer 		= 0;
 
-	for (i = 0; i < MAX_PLAYERS; i++)
+	for (int i = 0; i < MAX_PLAYERS; i++)
 	{
 		gPlayerInfo[i].objNode = nil;
 		gAnalogSteeringTimer[i] = 0;

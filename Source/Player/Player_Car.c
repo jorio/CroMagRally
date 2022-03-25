@@ -520,9 +520,6 @@ long	oldLeft,oldRight,oldFront,oldBack,oldTop,oldBottom;
 
 static void MovePlayer_Car_Multipass(ObjNode *theNode)
 {
-float	fps = gFramesPerSecondFrac;
-
-
             /***********/
 			/* CONTROL */
             /***********/

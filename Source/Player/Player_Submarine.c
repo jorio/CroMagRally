@@ -227,9 +227,6 @@ float				oldFPS,oldFPSFrac;
 
 static void MovePlayer_Sub_Multipass(ObjNode *theNode)
 {
-float	fps = gFramesPerSecondFrac;
-
-
             /***********/
 			/* CONTROL */
             /***********/

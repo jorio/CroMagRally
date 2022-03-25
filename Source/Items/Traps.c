@@ -393,7 +393,6 @@ float			x,z,placement;
 static void MoveYeti(ObjNode *theNode)
 {
 Boolean isVisible;
-float	fps = gFramesPerSecondFrac;
 
 	isVisible = IsSplineItemVisible(theNode);					// update its visibility
 
@@ -421,11 +420,6 @@ float	fps = gFramesPerSecondFrac;
 		theNode->Delta.y = (theNode->Coord.y - theNode->OldCoord.y) * gFramesPerSecond;
 		theNode->Delta.z = (theNode->Coord.z - theNode->OldCoord.z) * gFramesPerSecond;
 		UpdateShadow(theNode);
-	}
-
-			/* NOT VISIBLE */
-	else
-	{
 	}
 }
 
@@ -491,7 +485,6 @@ float			x,z,placement;
 static void MoveBeetle(ObjNode *theNode)
 {
 Boolean isVisible;
-float	fps = gFramesPerSecondFrac;
 
 	isVisible = IsSplineItemVisible(theNode);					// update its visibility
 
@@ -519,11 +512,6 @@ float	fps = gFramesPerSecondFrac;
 		theNode->Delta.y = (theNode->Coord.y - theNode->OldCoord.y) * gFramesPerSecond;
 		theNode->Delta.z = (theNode->Coord.z - theNode->OldCoord.z) * gFramesPerSecond;
 		UpdateShadow(theNode);
-	}
-
-			/* NOT VISIBLE */
-	else
-	{
 	}
 }
 
@@ -592,7 +580,6 @@ float			x,z,placement;
 static void MoveCamel(ObjNode *theNode)
 {
 Boolean isVisible;
-float	fps = gFramesPerSecondFrac;
 
 	isVisible = IsSplineItemVisible(theNode);					// update its visibility
 
@@ -620,11 +607,6 @@ float	fps = gFramesPerSecondFrac;
 		theNode->Delta.y = (theNode->Coord.y - theNode->OldCoord.y) * gFramesPerSecond;
 		theNode->Delta.z = (theNode->Coord.z - theNode->OldCoord.z) * gFramesPerSecond;
 		UpdateShadow(theNode);
-	}
-
-			/* NOT VISIBLE */
-	else
-	{
 	}
 }
 
@@ -1366,7 +1348,6 @@ float			x,z,placement;
 static void MoveShark(ObjNode *theNode)
 {
 Boolean isVisible;
-float	fps = gFramesPerSecondFrac;
 
 	isVisible = IsSplineItemVisible(theNode);					// update its visibility
 
@@ -1394,11 +1375,6 @@ float	fps = gFramesPerSecondFrac;
 		theNode->Delta.y = (theNode->Coord.y - theNode->OldCoord.y) * gFramesPerSecond;
 		theNode->Delta.z = (theNode->Coord.z - theNode->OldCoord.z) * gFramesPerSecond;
 		UpdateShadow(theNode);
-	}
-
-			/* NOT VISIBLE */
-	else
-	{
 	}
 }
 
@@ -2026,7 +2002,6 @@ float			x,z,placement;
 static void MoveMummy(ObjNode *theNode)
 {
 Boolean isVisible;
-float	fps = gFramesPerSecondFrac;
 
 	isVisible = IsSplineItemVisible(theNode);					// update its visibility
 
@@ -2054,11 +2029,6 @@ float	fps = gFramesPerSecondFrac;
 		theNode->Delta.y = (theNode->Coord.y - theNode->OldCoord.y) * gFramesPerSecond;
 		theNode->Delta.z = (theNode->Coord.z - theNode->OldCoord.z) * gFramesPerSecond;
 		UpdateShadow(theNode);
-	}
-
-			/* NOT VISIBLE */
-	else
-	{
 	}
 }
 
@@ -2297,7 +2267,6 @@ float			x,z,placement;
 static void MoveTroll(ObjNode *theNode)
 {
 Boolean isVisible;
-float	fps = gFramesPerSecondFrac;
 
 	isVisible = IsSplineItemVisible(theNode);					// update its visibility
 
@@ -2325,11 +2294,6 @@ float	fps = gFramesPerSecondFrac;
 		theNode->Delta.y = (theNode->Coord.y - theNode->OldCoord.y) * gFramesPerSecond;
 		theNode->Delta.z = (theNode->Coord.z - theNode->OldCoord.z) * gFramesPerSecond;
 		UpdateShadow(theNode);
-	}
-
-			/* NOT VISIBLE */
-	else
-	{
 	}
 }
 

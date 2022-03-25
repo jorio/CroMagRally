@@ -724,7 +724,7 @@ OGLVector3D			vertexNormalList[NUM_VERTICES_IN_SUPERTILE];
 		}
 	}
 
-	if (vertexColorList)
+	if (vertexColorList)  // TODO: Do we even have Vertex Colors in CMR, or is it a remnant of Bugdom?
 	{
 			/*****************************/
 			/* CALCULATE VERTEX COLORS   */

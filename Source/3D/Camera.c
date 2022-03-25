@@ -368,7 +368,6 @@ OGLPoint3D	from,to;
 float		dist;
 float		rotY;
 float		myX,myY,myZ;
-float		fps = gFramesPerSecondFrac;
 ObjNode		*playerObj;
 PlayerInfoType	*playerInfo;
 Byte		cameraMode;

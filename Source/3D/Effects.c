@@ -1570,7 +1570,6 @@ OGLPoint3D			p;
 void MakeBubbles(ObjNode *theNode, const OGLPoint3D *coord, float fadeRate, float scale)
 {
 int		i;
-float	fps = gFramesPerSecondFrac;
 int		particleGroup,magicNum;
 NewParticleGroupDefType	groupDef;
 NewParticleDefType	newParticleDef;
@@ -1877,7 +1876,6 @@ ObjNode	*obj;
 static void MakeLava(ObjNode *theNode, const OGLPoint3D *coord)
 {
 int		i;
-float	fps = gFramesPerSecondFrac;
 int		particleGroup,magicNum;
 NewParticleGroupDefType	groupDef;
 NewParticleDefType	newParticleDef;
