@@ -268,7 +268,6 @@ int	i;
 void LoadSoundBank(FSSpec *spec, long bankNum)
 {
 short			srcFile1,numSoundsInBank,i;
-Str255			error = "Couldnt Open Sound Resource File.";
 OSErr			iErr;
 
 	StopAllEffectChannels();
@@ -471,7 +470,6 @@ SCStatus				theStatus;
 void PlaySong(short songNum, Boolean loopFlag)
 {
 OSErr 	iErr;
-Str255	errStr = "PlaySong: Couldnt Open Music AIFF File.";
 static	SndCommand 		mySndCmd;
 FSSpec	spec;
 short	musicFileRefNum;

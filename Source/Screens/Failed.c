@@ -68,13 +68,6 @@ static short	gFailedMenuSelection;
 
 static ObjNode	*gFailedIcons[2];
 
-static Str31	gMenuStrings[2] =
-{
-	"TRY AGAIN",
-	"RETIRE",
-};
-
-
 static Boolean	gTryAgain;
 
 static const OGLColorRGBA gFailedMenuHiliteColor = {.3,.5,.2,1};

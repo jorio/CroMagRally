@@ -135,8 +135,6 @@ typedef struct
 /*     VARIABLES      */
 /**********************/
 
-static	Str255		gBasePathName = "NewGame";
-
 float	g3DTileSize, g3DMinY, g3DMaxY;
 
 SavePlayerType	gPlayerSaveData;
