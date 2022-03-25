@@ -1,7 +1,8 @@
 /****************************/
 /*   OPENGL SUPPORT.C	    */
-/* (c)2001 Pangea Software  */
 /*   By Brian Greenstone    */
+/* (c)2001 Pangea Software  */
+/* (c)2022 Iliyas Jorio     */
 /****************************/
 
 
@@ -82,6 +83,7 @@ float	gCurrentAspectRatio = 1;
 float	g2DLogicalWidth		= 640.0f;
 float	g2DLogicalHeight	= 480.0f;
 
+GLuint	gPillarboxTexture = 0;
 
 Boolean		gStateStack_Lighting[STATE_STACK_SIZE];
 Boolean		gStateStack_CullFace[STATE_STACK_SIZE];
@@ -227,6 +229,11 @@ OGLSetupOutputType	*outputPtr;
 
 //	TextMesh_InitMaterial(outputPtr, setupDefPtr->styles.redFont);
 	OGL_InitFont();
+
+	if (outputPtr->pillarbox4x3)
+	{
+		gPillarboxTexture = OGL_TextureMap_LoadImageFile(":images:pillarbox.jpg", NULL, NULL);
+	}
 }
 
 
@@ -245,6 +252,14 @@ OGLSetupOutputType	*data;
 			/* KILL FONT MATERIAL */
 
 //	TextMesh_DisposeMaterial();
+
+			/* KILL PILLARBOX TEXTURE, IF ANY */
+	
+	if (gPillarboxTexture)
+	{
+		glDeleteTextures(1, &gPillarboxTexture);
+		gPillarboxTexture = 0;
+	}
 
 			/* KILL GL CONTEXT */
 
@@ -453,6 +468,40 @@ GLfloat	ambient[4];
 
 #pragma mark -
 
+void DrawPillarboxBackground(OGLSetupOutputType* setupInfo)
+{
+	glViewport(0, 0, gGameWindowWidth, gGameWindowHeight);
+
+	OGL_PushState();
+
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+
+	glDisable(GL_LIGHTING);
+	glDisable(GL_CULL_FACE);
+	glDisable(GL_DEPTH_TEST);
+	glDisable(GL_BLEND);
+	glDisable(GL_TEXTURE_2D);
+
+	float left		= -0.95;
+	float bottom	= -0.95;
+	float right		= 0.95;
+	float top	 	= 0.95;
+	float z			= 0;
+
+	glColor4f(1.0, 0.0, 0.0, 1.0);
+	glBegin(GL_QUADS);
+	glTexCoord2f(0,1);	glVertex3f(left, bottom, z);
+	glTexCoord2f(1,1);	glVertex3f(right, bottom, z);
+	glTexCoord2f(1,0);	glVertex3f(right, top, z);
+	glTexCoord2f(0,0);	glVertex3f(left, top, z);
+	glEnd();
+
+	OGL_PopState();
+}
+
 /******************* OGL DRAW SCENE *********************/
 
 void OGL_DrawScene(OGLSetupOutputType *setupInfo, void (*drawRoutine)(OGLSetupOutputType *))
@@ -517,6 +566,12 @@ void OGL_DrawScene(OGLSetupOutputType *setupInfo, void (*drawRoutine)(OGLSetupOu
 	{
 		int x, y, w, h;
 		OGL_GetCurrentViewport(setupInfo, &x, &y, &w, &h, gCurrentSplitScreenPane);
+
+		if (setupInfo->pillarbox4x3 && (w != gGameWindowWidth || h != gGameWindowHeight))
+		{
+			DrawPillarboxBackground(setupInfo);
+		}
+
 		glViewport(x, y, w, h);
 		gCurrentAspectRatio = (float) w / (float) (h == 0? 1: h);
 
