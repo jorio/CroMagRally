@@ -356,6 +356,51 @@ static const AtlasGlyph* GetGlyphFromCodepoint(uint32_t c)
 	return &gAtlasGlyphsPages[page][c & 0xFF];
 }
 
+static float Kern(uint8_t char1, uint8_t char2)
+{
+	// ASCII only for now.
+	if (char1 < 'A' || char1 > 'Z' ||
+		char2 < 'A' || char2 > 'Z')
+	{
+		return 1;
+	}
+
+	// The character that comes after a paired character defines how tight the kerning should be:
+	// '+':				loose (e.g.: SA)
+	// no modifier:		normal (e.g. PA)
+	// '-':				tight (e.g. VA)
+	static const char* kPoorMansKerningTable[256] =
+	{
+		['A'] = "C+G+TU+VW+X+Y",
+		['D'] = "A+",
+		['F'] = "A+",
+		['L'] = "T-",
+		['O'] = "A+V+",
+		['P'] = "A",
+		['R'] = "O+V+Y+",
+		['S'] = "A+",
+		['T'] = "A",
+		['U'] = "A+",
+		['V'] = "A-O+",
+		['Y'] = "AS",
+		['W'] = "A",
+	};
+
+	const char* kernPairs = kPoorMansKerningTable[char1&0xFF];
+	if (!kernPairs)
+		return 1;
+
+	const char* kp = strchr(kernPairs, char2);
+	if (!kp)				// no kerning
+		return 1;
+	else if (kp[1] == '+')	// loose
+		return 0.92f;
+	else if (kp[1] == '-')	// tight
+		return 0.80f;
+	else					// standard
+		return 0.85f;
+}
+
 void TextMesh_Update(const char* text, int align, ObjNode* textNode)
 {
 	GAME_ASSERT_MESSAGE(gFontMaterial, "Can't lay out text if the font material isn't loaded!");
@@ -407,7 +452,8 @@ void TextMesh_Update(const char* text, int align, ObjNode* textNode)
 		}
 
 		const AtlasGlyph* g = GetGlyphFromCodepoint(c);
-		lineWidth += S*(g->xadv + spacing);
+		float kernFactor = Kern(c, *utftext);
+		lineWidth += S*(g->xadv*kernFactor + spacing);
 		if (c != ' ')
 			numQuads++;
 	}
@@ -497,7 +543,8 @@ void TextMesh_Update(const char* text, int align, ObjNode* textNode)
 		mesh->uvs[p + 2] = (OGLTextureCoord) { invAtlasW * (g.x+g.w),	invAtlasH * g.y };
 		mesh->uvs[p + 3] = (OGLTextureCoord) { invAtlasW * g.x,			invAtlasH * g.y };
 
-		x += S*(g.xadv + spacing);
+		float kernFactor = Kern(codepoint, *utftext);
+		x += S*(g.xadv*kernFactor + spacing);
 		t += 2;
 		p += 4;
 	}
@@ -554,7 +601,8 @@ float TextMesh_GetCharX(const char* text, int n)
 		if (c == '\n')		// TODO: line widths for strings containing line breaks aren't supported yet
 			continue;
 
-		x += GetGlyphFromCodepoint(c)->xadv;
+		float kernFactor = Kern(c, *utftext);
+		x += GetGlyphFromCodepoint(c)->xadv * kernFactor;
 	}
 	return x;
 }
