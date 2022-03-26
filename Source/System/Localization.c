@@ -66,10 +66,10 @@ void LoadLocalizedStrings(GameLanguageID languageID)
 	for (int i = 0; i < MAX_STRINGS; i++)
 		gStringsTable[i] = nil;
 
-	int row = 0;
 	int col = 0;
+	int row = 0;
+	bool rowIsEmpty = true;
 
-	char prevChar = '\0';
 	char* currentString = gStringsBuffer;
 	char* fallbackString = gStringsBuffer;
 
@@ -89,28 +89,35 @@ void LoadLocalizedStrings(GameLanguageID languageID)
 			currentString = &gStringsBuffer[i + 1];
 			col++;
 		}
-
-		if (currChar == '\n' || currChar == '\r')
+		else if (currChar == '\r' && gStringsBuffer[i + 1] == '\n')  // Windows CRLF
+		{
+			gStringsBuffer[i] = '\0';
+			continue;
+		}
+		else if (currChar == '\n' || currChar == '\r')
 		{
 			gStringsBuffer[i] = '\0';
 
-			if (!(prevChar == '\r' && currChar == '\n'))	// Windows CR+LF
+			if (col == languageID)
 			{
-				if (col == languageID)
-				{
-					gStringsTable[row] = currentString[0]? currentString: fallbackString;
-				}
+				gStringsTable[row] = currentString[0]? currentString: fallbackString;
+			}
 
+			col = 0;
+			if (!rowIsEmpty)
+			{
 				row++;
-				col = 0;
+				rowIsEmpty = true;
 				GAME_ASSERT(row < MAX_STRINGS);
 			}
 
 			currentString = &gStringsBuffer[i + 1];
 			fallbackString = currentString;
 		}
-
-		prevChar = currChar;
+		else
+		{
+			rowIsEmpty = false;
+		}
 	}
 
 	//for (int i = 0; i < MAX_STRINGS; i++) printf("String #%d: %s\n", i, gStringsTable[i]);
