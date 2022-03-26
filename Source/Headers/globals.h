@@ -16,11 +16,6 @@
 #define EPS .0001					// a very small number which is useful for FP compares close to 0
 #define	IS_ZERO(_x)  (fabs(_x) < EPS)
 
-
-#define REMOVE_ALL_EVENTS	 0
-
-
-
 		/* CLOSE ENOUGH TO ZERO */
 		//
 		// If float value is close enough to 0, then make it 0

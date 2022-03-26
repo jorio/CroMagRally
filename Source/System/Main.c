@@ -198,9 +198,6 @@ OSErr		iErr;
 	SetDefaultPlayerSaveData();							// set default player info
 
 	SetDefaultPhysics();								// set all physics to defaults
-
-	FlushEvents ( everyEvent, REMOVE_ALL_EVENTS);
-//	FlushEventQueue(GetMainEventQueue());
 }
 
 
@@ -380,8 +377,6 @@ select_sex:
 	if (!gNetGameInProgress)									// dont show intro if Net since we're already showing it
 		ShowLoadingPicture();									// show track intro screen
 
-	FlushEvents (everyEvent, REMOVE_ALL_EVENTS);
-	// FlushEventQueue(GetMainEventQueue());
 	InitArea();
 
 
@@ -393,8 +388,6 @@ select_sex:
 
 		/* CLEANUP LEVEL */
 
-	FlushEvents (everyEvent, REMOVE_ALL_EVENTS);
-	// FlushEventQueue(GetMainEventQueue());
 	GammaFadeOut();
 	CleanupLevel();
 	GameScreenToBlack();
@@ -1642,8 +1635,6 @@ Boolean			userAbortedBeforeGameStarted;
 
 	while(true)
 	{
-		FlushEvents (everyEvent, REMOVE_ALL_EVENTS);
-		// FlushEventQueue(GetMainEventQueue());
 		PlaySong(SONG_THEME, true);
 		DoMainMenuScreen();
 

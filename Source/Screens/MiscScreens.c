@@ -440,8 +440,6 @@ static const char* names[] =
 
 static void FreeConqueredScreen(void)
 {
-	FlushEvents (everyEvent, REMOVE_ALL_EVENTS);
-//	FlushEventQueue(GetMainEventQueue());
 	DeleteAllObjects();
 	DisposeParticleSystem();
 	MO_DisposeObjectReference(gBackgoundPicture);
@@ -664,8 +662,6 @@ OGLSetupInputType	viewDef;
 
 static void FreeWinScreen(void)
 {
-	FlushEvents (everyEvent, REMOVE_ALL_EVENTS);
-//	FlushEventQueue(GetMainEventQueue());
 	DeleteAllObjects();
 	DisposeParticleSystem();
 	MO_DisposeObjectReference(gBackgoundPicture);
@@ -1007,8 +1003,6 @@ MOSpriteObject		*spriteMO;
 
 static void FreeCreditsScreen(void)
 {
-	FlushEvents (everyEvent, REMOVE_ALL_EVENTS);
-//	FlushEventQueue(GetMainEventQueue());
 	DeleteAllObjects();
 	MO_DisposeObjectReference(gBackgoundPicture);
 	DisposeAllSpriteGroups();

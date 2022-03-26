@@ -134,19 +134,7 @@ static Boolean	beenHere = false;
 	GameScreenToBlack();
 	CleanupDisplay();								// unloads Draw Sprocket
 
-#if 0
-	if (gISPInitialized)							// unload ISp
-		ISpShutdown();
-#endif
-
 	UseResFile(gMainAppRezFile);
-
-#if 0
-	InitCursor();
-	FlushEvents ( everyEvent, REMOVE_ALL_EVENTS);
-	FlushEventQueue(GetMainEventQueue());
-#endif
-
 
 	SavePrefs();							// save prefs before bailing
 
