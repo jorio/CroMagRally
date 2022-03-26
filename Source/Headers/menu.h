@@ -7,14 +7,14 @@
 typedef enum
 {
 	kMenuItem_END_SENTINEL,
+	kMenuItem_Pick,
 	kMenuItem_Title,
 	kMenuItem_Subtitle,
 	kMenuItem_Label,
-	kMenuItem_Action,
-	kMenuItem_Submenu,
+//	kMenuItem_Action,
+//	kMenuItem_Submenu,
 	kMenuItem_Spacer,
 	kMenuItem_Cycler,
-	kMenuItem_Pick,
 	kMenuItem_KeyBinding,
 	kMenuItem_PadBinding,
 	kMenuItem_MouseBinding,
@@ -29,36 +29,27 @@ typedef struct MenuItem
 	const char*				rawText;
 	const char*				(*generateText)(void);
 
-	union
+	bool					(*enableIf)(const struct MenuItem*);
+
+	int						gotoMenu;
+	void					(*callback)(const struct MenuItem*);
+
+	int						id;
+
+	struct
 	{
-		struct
-		{
-			void			(*callback)(void);
-		} action;
+		Byte*			valuePtr;
+		bool			callbackSetsValue;
 
-		struct
-		{
-			const struct MenuItem* menu;
-		} submenu;
+		uint8_t			numChoices;
+		LocStrID		choices[MAX_MENU_CYCLER_CHOICES];	// localizable strings
 
-		struct
-		{
-			Byte*			valuePtr;
+		uint8_t			(*generateNumChoices)(void);
+		const char*		(*generateChoiceString)(char* buf, int bufSize, Byte value);
+	} cycler;
 
-			void			(*callback)(void);
-			bool			callbackSetsValue;
 
-			uint8_t			numChoices;
-			LocStrID		choices[MAX_MENU_CYCLER_CHOICES];	// localizable strings
-
-			uint8_t			(*generateNumChoices)(void);
-			const char*		(*generateChoiceString)(char* buf, int bufSize, Byte value);
-		} cycler;
-
-		int					pick;
-
-		int 				kb;
-	};
+	int 				kb;  // keybinding
 } MenuItem;
 
 typedef struct MenuStyle
@@ -68,6 +59,7 @@ typedef struct MenuStyle
 	bool			asyncFadeOut;
 	bool			centeredText;
 	OGLColorRGBA	titleColor;
+	OGLColorRGBA	highlightColor;
 	OGLColorRGBA	inactiveColor;
 	OGLColorRGBA	inactiveColor2;
 	float			standardScale;
@@ -82,10 +74,10 @@ typedef struct MenuStyle
 	bool			isInteractive;
 } MenuStyle;
 
-int StartMenu(
-		const MenuItem* menu,
+int StartMenuTree(
+		const MenuItem** menus,
 		const MenuStyle* style,
 		void (*updateRoutine)(void),
 		void (*backgroundDrawRoutine)(OGLSetupOutputType *));
 void LayoutCurrentMenuAgain(void);
-void MenuCallback_Back(void);
+void MenuCallback_Back(const MenuItem* mi);

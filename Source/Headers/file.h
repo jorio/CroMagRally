@@ -57,7 +57,7 @@ typedef struct
 	Byte	difficulty;
 	Byte	desiredSplitScreenMode;
 	Byte	language;
-	Byte	tagDuration;
+	Byte	tagDuration;		// legal values: 2,3,4
 	Byte	antialiasingLevel;
 	Boolean	fullscreen;
 	Boolean	music;

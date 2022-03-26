@@ -1,7 +1,8 @@
 /****************************/
 /*   	MAINMENU SCREEN.C	*/
-/* (c)2000 Pangea Software  */
 /* By Brian Greenstone      */
+/* (c)2000 Pangea Software  */
+/* (c)2022 Iliyas Jorio     */
 /****************************/
 
 
@@ -30,6 +31,8 @@
 #include "selectvehicle.h"
 #include "localization.h"
 #include "atlas.h"
+#include "menu.h"
+
 
 extern	float				gFramesPerSecondFrac,gFramesPerSecond;
 extern	WindowPtr			gCoverWindow;
@@ -58,10 +61,6 @@ extern	float	gSteeringResponsiveness,gCarMaxTightTurn,gCarTurningRadius,gTireTra
 static void SetupMainMenuScreen(void);
 static void FreeMainMenuArt(void);
 static void DrawMainMenuCallback(OGLSetupOutputType *info);
-
-static void BuildMenu(short menuNum);
-static Boolean NavigateMenu(void);
-
 static void DoPhysicsEditor(void);
 
 
@@ -72,8 +71,6 @@ static void DoPhysicsEditor(void);
 #define	MAINMENU_ICON_SCALE	.55f
 
 #define	MAX_LINES		5
-
-#define	LINE_SPACING	.14f
 
 enum
 {
@@ -95,32 +92,168 @@ enum
 /*    VARIABLES      */
 /*********************/
 
-
-static short	gMainMenuSelection,gWhichMenu;
-
-static ObjNode	*gIcons[MAX_LINES];
-
-//static short	gNumMenuItems[] = {4,3,4,5 ,2,3,2};
-
-#define MAX_ITEMS_PER_MENU 8
-
-static int gNumMenuItems = 0;
-
-static const LocStrID gMenuItemStrings[NUM_MENU_IDS][MAX_ITEMS_PER_MENU] =
+static void OnConfirmPlayMenu(const MenuItem* mi)
 {
-	[MENU_ID_TITLE]               = { STR_NEW_GAME, STR_LOAD_GAME, STR_OPTIONS, STR_QUIT, 0 },
-	[MENU_ID_PLAY]                = { STR_1PLAYER, STR_2PLAYER, STR_NET_GAME, 0 },
-	[MENU_ID_OPTIONS]             = { STR_SETTINGS, STR_HELP, STR_CREDITS, STR_PHYSICS_EDITOR, 0 },
-	[MENU_ID_MULTIPLAYERGAMETYPE] = { STR_RACE, STR_KEEP_AWAY_TAG, STR_STAMPEDE_TAG, STR_SURVIVAL, STR_QUEST_FOR_FIRE, 0 },
-	[MENU_ID_1PLAYERGAMETYPE]     = { STR_PRACTICE, STR_TOURNAMENT, 0 },
-	[MENU_ID_TOURNAMENT]          = { STR_STONE_AGE, STR_BRONZE_AGE, STR_IRON_AGE, 0 },
-	[MENU_ID_NETGAME]             = { STR_HOST_NET_GAME, STR_JOIN_NET_GAME, 0 }
-};
+	switch (mi->id)
+	{
+		case 1:
+			gIsNetworkHost = false;								// assume I'm not hosting
+			gIsNetworkClient = false;							// assume I'm not joining either
+			gNetGameInProgress = false;
+			gNumLocalPlayers = 1;								// assume just 1 local player on this machine
+			gNumRealPlayers = 1;
+			break;
+		
+		case 2:
+			gIsNetworkHost = false;								// assume I'm not hosting
+			gIsNetworkClient = false;							// assume I'm not joining either
+			gNetGameInProgress = false;
+			gNumLocalPlayers = 2;								// assume just 1 local player on this machine
+			gNumRealPlayers = 2;
+			break;
+
+		case 3:
+			gIsNetworkHost = false;								// assume I'm not hosting
+			gIsNetworkClient = false;							// assume I'm not joining either
+			gNetGameInProgress = true;
+			gNumRealPlayers = 1;
+			gNumLocalPlayers = 1;
+			break;
+	}
+}
+
+static void OnPickGameMode(const MenuItem* mi)
+{
+	gGameMode = GAME_CLAMP(mi->id, 0, NUM_GAME_MODES);
+}
+
+static void OnPickTournamentAge(const MenuItem* mi)
+{
+	gTheAge = GAME_CLAMP(mi->id, 0, NUM_AGES-1);
+}
+
+static void OnPickHostOrJoin(const MenuItem* mi)
+{
+	switch (mi->text)
+	{
+		case STR_HOST_NET_GAME:
+			gIsNetworkHost = true;
+			gIsNetworkClient = false;
+			break;
+		
+		case STR_JOIN_NET_GAME:
+			gIsNetworkHost = false;
+			gIsNetworkClient = true;
+			break;
+
+		default:
+			DoAlert("Unsupported host/join mode: %d", mi->text);
+			break;
+	}
+}
+
+
+//static short	gMainMenuSelection,gWhichMenu;
 
 static const OGLColorRGBA gMainMenuHiliteColor = {.3,.5,.2,1};
 static const OGLColorRGBA gMainMenuNormalColor = {1,1,1,1};
 
 static float	gTimeUntilDemo;
+
+static bool IsTournamentAgeAvailable(const MenuItem* mi)
+{
+	return mi->id < (gPlayerSaveData.numAgesCompleted & AGE_MASK_AGE);
+}
+
+enum
+{
+	kPick_QuitGame,
+	kPick_MPRace,
+	kPick_MPKeepAwayTag,
+	kPick_MPStampedeTag,
+};
+
+static void OnPickQuit(const MenuItem* mi)
+{
+	CleanQuit();
+}
+
+static const MenuItem
+	gMenuTitle[] =
+	{
+		{ kMenuItem_Pick, STR_NEW_GAME, .gotoMenu=MENU_ID_PLAY, },
+//		{ kMenuItem_Pick, STR_LOAD_GAME },  // DoSavedPlayerDialog
+		{ kMenuItem_Pick, STR_OPTIONS, .gotoMenu=MENU_ID_OPTIONS, },
+		{ kMenuItem_Pick, STR_QUIT, .callback=OnPickQuit, .gotoMenu=-1 },  // Quit
+		{ kMenuItem_END_SENTINEL },
+	},
+
+	gMenuPlay[] =
+	{
+		{ kMenuItem_Pick, STR_1PLAYER,	.id=1, .callback=OnConfirmPlayMenu, .gotoMenu=MENU_ID_1PLAYERGAMETYPE },
+		{ kMenuItem_Pick, STR_2PLAYER,	.id=2, .callback=OnConfirmPlayMenu, .gotoMenu=MENU_ID_MULTIPLAYERGAMETYPE },
+		{ kMenuItem_Pick, STR_NET_GAME,	.id=3, .callback=OnConfirmPlayMenu, .gotoMenu=MENU_ID_NETGAME },
+		{ kMenuItem_END_SENTINEL },
+	},
+
+	gMenuOptions[] =
+	{
+		{ kMenuItem_Pick, STR_SETTINGS, .gotoMenu=0 },
+		{ kMenuItem_Pick, STR_HELP, .gotoMenu=0 },		// FreeMainMenuArt, DoHelpScreen, SetupMainMenuScreen, BuildMenu, MakeFadeEvent
+		{ kMenuItem_Pick, STR_CREDITS, .gotoMenu=0 },	// FreeMainMenuArt, DoCreditsScreen, SetupMainMenuScreen, BuildMenu, MakeFadeEvent
+		{ kMenuItem_Pick, STR_PHYSICS_EDITOR, .gotoMenu=0 },	// DoPhysicsEditor
+		{ kMenuItem_END_SENTINEL },
+	},
+
+	gMenuMPGameModes[] =
+	{
+		{ kMenuItem_Pick,	STR_RACE,			.callback=OnPickGameMode, .id=GAME_MODE_MULTIPLAYERRACE,	.gotoMenu=-1, },
+		{ kMenuItem_Pick,	STR_KEEP_AWAY_TAG,	.callback=OnPickGameMode, .id=GAME_MODE_TAG1,				.gotoMenu=-1, },
+		{ kMenuItem_Pick,	STR_STAMPEDE_TAG,	.callback=OnPickGameMode, .id=GAME_MODE_TAG2,				.gotoMenu=-1, },
+		{ kMenuItem_Pick,	STR_SURVIVAL,		.callback=OnPickGameMode, .id=GAME_MODE_SURVIVAL,			.gotoMenu=-1, },
+		{ kMenuItem_Pick,	STR_QUEST_FOR_FIRE,	.callback=OnPickGameMode, .id=GAME_MODE_CAPTUREFLAG,		.gotoMenu=-1, },
+		{ kMenuItem_END_SENTINEL },
+	},
+
+	gMenu1PGameModes[] =
+	{
+		{ kMenuItem_Pick,	STR_PRACTICE,		.callback=OnPickGameMode, .id=GAME_MODE_PRACTICE,			.gotoMenu=-1 },
+		{ kMenuItem_Pick,	STR_TOURNAMENT,		.callback=OnPickGameMode, .id=GAME_MODE_TOURNAMENT,			.gotoMenu=MENU_ID_TOURNAMENT, },
+		// ^^^ TODO: if picking tournament, pick saved game file?
+		{ kMenuItem_END_SENTINEL },
+	},
+
+	gMenuTournament[] =
+	{
+		{ kMenuItem_Pick, STR_STONE_AGE,	.callback=OnPickTournamentAge, .id=STONE_AGE,	.gotoMenu=-1 },
+		{ kMenuItem_Pick, STR_BRONZE_AGE,	.callback=OnPickTournamentAge, .id=BRONZE_AGE,	.gotoMenu=-1, .enableIf=IsTournamentAgeAvailable },
+		{ kMenuItem_Pick, STR_IRON_AGE,		.callback=OnPickTournamentAge, .id=IRON_AGE,	.gotoMenu=-1, .enableIf=IsTournamentAgeAvailable },
+		{ kMenuItem_END_SENTINEL },
+	},
+
+	gMenuNetGame[] =
+	{
+		{ kMenuItem_Pick, STR_HOST_NET_GAME, .callback=OnPickHostOrJoin, .id=0, .gotoMenu=MENU_ID_MULTIPLAYERGAMETYPE }, // host gets to select game type
+		{ kMenuItem_Pick, STR_JOIN_NET_GAME, .callback=OnPickHostOrJoin, .id=1, .gotoMenu=-1 },
+		{ kMenuItem_END_SENTINEL },
+	};
+
+
+
+static const MenuItem* gMainMenuTree[NUM_MENU_IDS] =
+{
+	[MENU_ID_TITLE] = gMenuTitle,
+	[MENU_ID_PLAY] = gMenuPlay,
+	[MENU_ID_OPTIONS] = gMenuOptions,
+	[MENU_ID_MULTIPLAYERGAMETYPE] = gMenuMPGameModes,
+	[MENU_ID_1PLAYERGAMETYPE] = gMenu1PGameModes,
+	[MENU_ID_TOURNAMENT] = gMenuTournament,
+	[MENU_ID_NETGAME] = gMenuNetGame,
+};
+
+
+
+
 
 
 
@@ -142,6 +275,14 @@ do_again:
 	CalcFramesPerSecond();
 	ReadKeyboard();
 
+	int outcome = StartMenuTree(
+		gMainMenuTree,
+		NULL,
+		NULL,
+		DrawMainMenuCallback
+	);
+
+#if 0
 	while(true)
 	{
 			/* SEE IF MAKE SELECTION */
@@ -169,6 +310,7 @@ do_again:
 			}
 		}
 	}
+#endif
 
 			/* CLEANUP */
 
@@ -249,9 +391,6 @@ OGLVector3D			fillDirection1 = { .9, -.7, -1 };
 OGLVector3D			fillDirection2 = { -1, -.2, -.5 };
 
 
-//	if (gOSX)							//------- remove network option from menu
-//		gNumMenuItems[MENU_ID_PLAY] = 2;
-
 			/**************/
 			/* SETUP VIEW */
 			/**************/
@@ -300,7 +439,7 @@ OGLVector3D			fillDirection2 = { -1, -.2, -.5 };
 
 			/* SETUP TITLE MENU */
 
-	BuildMenu(MENU_ID_TITLE);
+//	BuildMenu(MENU_ID_TITLE);
 
 	MakeFadeEvent(true);
 }
@@ -315,7 +454,6 @@ static void DrawMainMenuCallback(OGLSetupOutputType *info)
 }
 
 
-
 /********************** FREE MAINMENU ART **********************/
 
 static void FreeMainMenuArt(void)
@@ -325,411 +463,6 @@ static void FreeMainMenuArt(void)
 	DisposeAllSpriteGroups();
 	TextMesh_DisposeFont();
 	OGL_DisposeWindowSetup(&gGameViewInfoPtr);
-}
-
-
-#pragma mark -
-
-
-/**************************** BUILD MENU *********************************/
-
-static void BuildMenu(short menuNum)
-{
-short	i;
-
-	gMainMenuSelection = 0;
-	gWhichMenu = menuNum;
-
-	DeleteAllObjects();
-
-			/* COUNT MENU ITEMS */
-
-	gNumMenuItems = 0;
-	while (gNumMenuItems < MAX_ITEMS_PER_MENU)
-	{
-		if (0 == gMenuItemStrings[menuNum][gNumMenuItems])
-			break;
-		
-		gNumMenuItems++;
-	}
-
-			/* BUILD NEW MENU STRINGS */
-
-	gNewObjectDefinition.coord.x 	= 0;
-	gNewObjectDefinition.coord.y 	= -.1 + (float)gNumMenuItems * LINE_SPACING/2;
-	gNewObjectDefinition.coord.z 	= 0;
-	gNewObjectDefinition.flags 		= 0;
-	gNewObjectDefinition.slot 		= SPRITE_SLOT;
-	gNewObjectDefinition.moveCall 	= nil;
-	gNewObjectDefinition.rot 		= 0;
-	gNewObjectDefinition.scale 	    = MAINMENU_ICON_SCALE;
-
-	for (i = 0; i < gNumMenuItems; i++)
-	{
-		const char* s = Localize(gMenuItemStrings[menuNum][i]);
-
-		gIcons[i] = TextMesh_New(s, kTextMeshAlignCenter, &gNewObjectDefinition);
-
-		gNewObjectDefinition.coord.y 	-= LINE_SPACING;
-
-		if (i != gMainMenuSelection)
-		{
-			gIcons[i]->ColorFilter = gMainMenuNormalColor;									// normal
-		}
-		else
-		{
-			gIcons[i]->ColorFilter = gMainMenuHiliteColor;										// hilite
-		}
-
-	}
-
-
-			/* INIT SOME STUFF FOR EACH MENU TYPE */
-
-	switch(menuNum)
-	{
-		case	MENU_ID_TITLE:
-				gGameMode = -1;										// no game mode selected yet
-				break;
-
-		case	MENU_ID_PLAY:
-				gIsNetworkHost = false;								// assume I'm not hosting
-				gIsNetworkClient = false;							// assume I'm not joining either
-				gNetGameInProgress = false;
-				gNumLocalPlayers = 1;								// assume just 1 local player on this machine
-				gNumRealPlayers = 1;
-				break;
-
-		case	MENU_ID_NETGAME:
-				gIsNetworkHost = false;								// assume I'm not hosting
-				gIsNetworkClient = false;							// assume I'm not joining either
-				break;
-
-		case	MENU_ID_TOURNAMENT:									// see if need to disable any of the ages
-				if ((gPlayerSaveData.numAgesCompleted & AGE_MASK_AGE) == 0)
-				{
-					gIcons[1]->ColorFilter.a = .5;
-					gIcons[2]->ColorFilter.a = .5;
-				}
-				else
-				if ((gPlayerSaveData.numAgesCompleted & AGE_MASK_AGE) == 1)
-				{
-					gIcons[2]->ColorFilter.a = .5;
-				}
-				break;
-
-	}
-
-}
-
-
-/*********************** NAVIGATE MENU **************************/
-
-static Boolean NavigateMenu(void)
-{
-short	i;
-Boolean	startGame = false;
-short	max;
-
-				/* GET # LINES IN THIS MENU */
-
-	if (gWhichMenu == MENU_ID_TOURNAMENT)
-		max = gNumTracksUnlocked[gPlayerSaveData.numAgesCompleted & AGE_MASK_AGE]/3;
-	else
-		max = gNumMenuItems;
-
-
-
-		/* SEE IF CHANGE PART SELECTION */
-
-	if (GetNewNeedStateAnyP(kNeed_UIUp) && (gMainMenuSelection > 0))
-	{
-		gMainMenuSelection--;
-		PlayEffect_Parms(EFFECT_SELECTCLICK, FULL_CHANNEL_VOLUME, FULL_CHANNEL_VOLUME, NORMAL_CHANNEL_RATE + (MyRandomLong() & 0xff));
-		gTimeUntilDemo = DEMO_DELAY;
-	}
-	else
-	if (GetNewNeedStateAnyP(kNeed_UIDown))
-	{
-		if (gMainMenuSelection < (max-1))
-		{
-			gMainMenuSelection++;
-			PlayEffect_Parms(EFFECT_SELECTCLICK, FULL_CHANNEL_VOLUME, FULL_CHANNEL_VOLUME, NORMAL_CHANNEL_RATE + (MyRandomLong() & 0xff));
-			gTimeUntilDemo = DEMO_DELAY;
-		}
-		else
-			PlayEffect(EFFECT_BADSELECT);
-	}
-
-		/* SET APPROPRIATE FRAMES FOR ICONS */
-
-	for (i = 0; i < gNumMenuItems; i++)
-	{
-
-		if (i != gMainMenuSelection)
-		{
-			gIcons[i]->ColorFilter	= gMainMenuNormalColor;									// normal
-		}
-		else
-		{
-			gIcons[i]->ColorFilter = gMainMenuHiliteColor;										// hilite
-		}
-	}
-
-
-			/* SET SOME STUFF  */
-
-	switch(gWhichMenu)
-	{
-		case	MENU_ID_TOURNAMENT:									// see if need to disable any of the ages
-				if ((gPlayerSaveData.numAgesCompleted & AGE_MASK_AGE) == 0)
-				{
-					gIcons[1]->ColorFilter.a = .5;
-					gIcons[2]->ColorFilter.a = .5;
-				}
-				else
-				if ((gPlayerSaveData.numAgesCompleted & AGE_MASK_AGE) == 1)
-				{
-					gIcons[2]->ColorFilter.a = .5;
-				}
-				break;
-
-	}
-
-
-			/***************************/
-			/* SEE IF MAKE A SELECTION */
-			/***************************/
-
-	if (GetNewNeedStateAnyP(kNeed_UIConfirm))
-	{
-		gTimeUntilDemo = DEMO_DELAY;
-
-		PlayEffect_Parms(EFFECT_SELECTCLICK, FULL_CHANNEL_VOLUME, FULL_CHANNEL_VOLUME, NORMAL_CHANNEL_RATE * 2/3);
-		switch(gWhichMenu)
-		{
-			case	MENU_ID_TITLE:
-					switch(gMainMenuSelection)
-					{
-						case	0:								// PLAY GAME
-								BuildMenu(MENU_ID_PLAY);
-								break;
-
-						case	1:								// SAVED GAME
-								DoSavedPlayerDialog();
-								break;
-
-						case	2:								// OPTIONS
-
-								BuildMenu(MENU_ID_OPTIONS);
-								break;
-
-						case	3:								// QUIT
-								CleanQuit();
-								break;
-
-					}
-					break;
-
-			case	MENU_ID_PLAY:
-					switch(gMainMenuSelection)
-					{
-						case	0:								// 1 PLAYER
-								gNumRealPlayers = 1;
-								gNumLocalPlayers = 1;
-								BuildMenu(MENU_ID_1PLAYERGAMETYPE);
-								break;
-
-						case	1:								// 2 PLAYER
-								gNumRealPlayers = 2;
-								gNumLocalPlayers = 2;
-//								gNumRealPlayers = 1;
-//								gNumLocalPlayers = 1;
-								BuildMenu(MENU_ID_MULTIPLAYERGAMETYPE);
-								break;
-
-						case	2:								// NETGAME
-								gNumRealPlayers = 1;
-								gNetGameInProgress = true;
-								BuildMenu(MENU_ID_NETGAME);
-								break;
-					}
-					break;
-
-
-			case	MENU_ID_OPTIONS:
-					switch(gMainMenuSelection)
-					{
-						case	0:								// SETTINGS
-								DoGameSettingsDialog();
-								BuildMenu(gWhichMenu);			// rebuild menu in case language changed
-								break;
-
-						case	1:								// HELP
-								FreeMainMenuArt();
-								DoHelpScreen();
-								SetupMainMenuScreen();
-								BuildMenu(gWhichMenu);
-								MakeFadeEvent(true);
-								break;
-
-						case	2:								// CREDITS
-								FreeMainMenuArt();
-								DoCreditsScreen();
-								SetupMainMenuScreen();
-								BuildMenu(gWhichMenu);
-								break;
-
-						case	3:								// PHYSICS EDITOR
-								DoPhysicsEditor();
-								BuildMenu(gWhichMenu);
-								break;
-					}
-					break;
-
-
-			case	MENU_ID_1PLAYERGAMETYPE:
-					switch(gMainMenuSelection)
-					{
-						case	0:								// PRACTICE
-								gGameMode = GAME_MODE_PRACTICE;
-								startGame = true;
-								break;
-
-						case	1:								// TOURNAMENT
-								gGameMode = GAME_MODE_TOURNAMENT;
-								DoSavedPlayerDialog();
-
-//								if (!gSavedPlayerIsLoaded)		// must have loaded a player to do this
-//								{
-//									DoSavedPlayerDialog();
-//								}
-//								else
-								{
-									BuildMenu(MENU_ID_TOURNAMENT);
-								}
-								break;
-					}
-					break;
-
-
-			case	MENU_ID_MULTIPLAYERGAMETYPE:
-					switch(gMainMenuSelection)
-					{
-						case	0:								// RACE
-								gGameMode = GAME_MODE_MULTIPLAYERRACE;
-								startGame = true;
-								break;
-
-						case	1:								// TAG 1
-								gGameMode = GAME_MODE_TAG1;
-								startGame = true;
-								break;
-
-						case	2:								// TAG 2
-								gGameMode = GAME_MODE_TAG2;
-								startGame = true;
-								break;
-
-						case	3:								// SURVIVAL
-								gGameMode = GAME_MODE_SURVIVAL;
-								startGame = true;
-								break;
-
-						case	4:								// CAPTURE FLAG
-								gGameMode = GAME_MODE_CAPTUREFLAG;
-								startGame = true;
-								break;
-					}
-					break;
-
-
-
-
-			case	MENU_ID_TOURNAMENT:
-					switch(gMainMenuSelection)
-					{
-						case	0:								// STONE AGE
-								gTheAge = STONE_AGE;
-								startGame = true;
-								break;
-
-						case	1:								// BRONZE AGE
-								gTheAge = BRONZE_AGE;
-								startGame = true;
-								break;
-
-						case	2:								// IRON AGE
-								gTheAge = IRON_AGE;
-								startGame = true;
-								break;
-					}
-					break;
-
-
-			case	MENU_ID_NETGAME:
-					switch(gMainMenuSelection)
-					{
-						case	0:								// HOST NET GAME
-								gIsNetworkHost = true;
-								BuildMenu(MENU_ID_MULTIPLAYERGAMETYPE);	// host gets to select the game type
-								break;
-
-						case	1:								// JOIN NET GAME
-								gIsNetworkClient = true;
-								startGame = true;
-								break;
-					}
-					break;
-
-		}
-	}
-
-			/*****************************/
-			/* SEE IF CANCEL A SELECTION */
-			/*****************************/
-			//
-			// If cancel on any menu, always go back to previous menu
-			//
-	else
-	if (GetNewNeedStateAnyP(kNeed_UIBack))
-	{
-		gTimeUntilDemo = DEMO_DELAY;
-
-		PlayEffect_Parms(EFFECT_SELECTCLICK, FULL_CHANNEL_VOLUME, FULL_CHANNEL_VOLUME, NORMAL_CHANNEL_RATE * 2/3);
-		switch(gWhichMenu)
-		{
-			case	MENU_ID_PLAY:
-			case	MENU_ID_OPTIONS:
-					BuildMenu(MENU_ID_TITLE);
-					break;
-
-			case	MENU_ID_1PLAYERGAMETYPE:
-			case	MENU_ID_NETGAME:
-					BuildMenu(MENU_ID_PLAY);
-					break;
-
-			case	MENU_ID_MULTIPLAYERGAMETYPE:
-					if (gNetGameInProgress)
-						BuildMenu(MENU_ID_NETGAME);
-					else
-						BuildMenu(MENU_ID_PLAY);
-					break;
-
-
-			case	MENU_ID_TOURNAMENT:
-					if (gNetGameInProgress)
-						BuildMenu(MENU_ID_MULTIPLAYERGAMETYPE);
-					else
-						BuildMenu(MENU_ID_1PLAYERGAMETYPE);
-					break;
-
-
-		}
-	}
-
-
-	return(startGame);
 }
 
 

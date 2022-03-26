@@ -1,3 +1,5 @@
+#if 0
+
 // CRO-MAG RALLY SETTINGS
 // (C) 2021 Iliyas Jorio
 // This file is part of Cro-Mag Rally. https://github.com/jorio/CroMagRally
@@ -381,7 +383,7 @@ static const MenuItem gSettingsMenu[] =
 	{
 		.type = kMenuItem_Submenu,
 		.text = STR_VIDEO_SETTINGS,
-		.submenu = {.menu = gVideoMenu},
+//		.submenu = {.menu = gVideoMenu},
 	},
 
 	{ .type = kMenuItem_Spacer },
@@ -389,7 +391,7 @@ static const MenuItem gSettingsMenu[] =
 	{
 		.type = kMenuItem_Submenu,
 		.text = STR_CONFIGURE_KEYBOARD,
-		.submenu = {.menu = gKeybindingMenu},
+//		.submenu = {.menu = gKeybindingMenu},
 	},
 
 #if 0
@@ -403,7 +405,7 @@ static const MenuItem gSettingsMenu[] =
 	{
 		.type = kMenuItem_Submenu,
 		.text = STR_CONFIGURE_GAMEPAD,
-		.submenu = {.menu = gGamepadMenu},
+//		.submenu = {.menu = gGamepadMenu},
 	},
 
 	{ .type = kMenuItem_Spacer },
@@ -454,7 +456,8 @@ void DoSettingsOverlay(void (*updateRoutine)(void),
 
 	PrefsType gPreviousPrefs = gGamePrefs;
 
-	StartMenu(gSettingsMenu, nil, updateRoutine, backgroundDrawRoutine);
+puts("TODO: adapt to tree structure");
+//	StartMenu(gSettingsMenu, nil, updateRoutine, backgroundDrawRoutine);
 
 	// Save prefs if any changes
 	if (0 != memcmp(&gGamePrefs, &gPreviousPrefs, sizeof(gGamePrefs)))
@@ -465,7 +468,7 @@ void DoSettingsOverlay(void (*updateRoutine)(void),
 	// If user changed antialiasing setting, show warning
 	if (gPreviousPrefs.antialiasingLevel != gGamePrefs.antialiasingLevel)
 	{
-		StartMenu(kAntialiasingWarning, nil, updateRoutine, backgroundDrawRoutine);
+//		StartMenu(kAntialiasingWarning, nil, updateRoutine, backgroundDrawRoutine);
 	}
 
 #if 0
@@ -476,3 +479,5 @@ void DoSettingsOverlay(void (*updateRoutine)(void),
 	}
 #endif
 }
+
+#endif

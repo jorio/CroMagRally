@@ -25,7 +25,9 @@ enum
 	GAME_MODE_TAG1,				// player does NOT want to be it
 	GAME_MODE_TAG2,				// player DOES want to be it
 	GAME_MODE_SURVIVAL,
-	GAME_MODE_CAPTUREFLAG
+	GAME_MODE_CAPTUREFLAG,
+
+	NUM_GAME_MODES
 };
 
 
