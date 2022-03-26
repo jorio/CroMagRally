@@ -58,9 +58,12 @@ typedef struct
 	Byte	desiredSplitScreenMode;
 	Byte	language;
 	Byte	tagDuration;
+	Byte	antialiasingLevel;
+	Boolean	fullscreen;
+	Boolean	music;
 	Byte	monitorNum;
 
-	KeyBinding keySettings[NUM_CONTROL_NEEDS][MAX_LOCAL_PLAYERS];
+	KeyBinding keys[NUM_CONTROL_NEEDS][MAX_LOCAL_PLAYERS];
 	Boolean	gamepadRumble;
 }PrefsType;
 

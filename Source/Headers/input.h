@@ -63,9 +63,13 @@ enum
 	kNeed_UIRight,
 	kNeed_UIUp,
 	kNeed_UIDown,
+	kNeed_UIPrev,
+	kNeed_UINext,
 	kNeed_UIConfirm,
 	kNeed_UIBack,
+	kNeed_UIDelete,
 	kNeed_UIPause,
+	kNeed_UIStart,
 	NUM_CONTROL_NEEDS
 };
 
@@ -150,6 +154,7 @@ Boolean GetKeyState(uint16_t sdlScancode);
 Boolean GetNewKeyState(uint16_t sdlScancode);
 
 Boolean GetNeedState(int needID, int playerID);
+Boolean GetNeedStateAnyP(int needID);
 Boolean GetNewNeedState(int needID, int playerID);
 Boolean GetNewNeedStateAnyP(int needID);
 
@@ -173,3 +178,5 @@ void PushKeys(void);
 void PopKeys(void);
 
 void DoSDLMaintenance(void);
+
+void Rumble(float strength, uint32_t ms);

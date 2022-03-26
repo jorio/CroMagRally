@@ -64,7 +64,7 @@ extern	Byte		gActiveSplitScreenMode;
 //extern	const uint16_t	gUserKeySettings_Defaults[];
 extern  FSSpec		gDataSpec;
 
-extern const KeyBinding kDefaultKeyBindings_P1[NUM_CONTROL_NEEDS];
+extern const KeyBinding kDefaultKeyBindings[NUM_CONTROL_NEEDS];
 extern const KeyBinding kDefaultKeyBindings_P2[NUM_CONTROL_NEEDS];
 
 
@@ -217,8 +217,8 @@ void InitDefaultPrefs(void)
 //		gGamePrefs.keySettings[i][0] = gUserKeySettings_Defaults[i];
 	for (int i = 0; i < NUM_CONTROL_NEEDS; i++)
 	{
-		gGamePrefs.keySettings[i][0] = kDefaultKeyBindings_P1[i];
-		gGamePrefs.keySettings[i][1] = kDefaultKeyBindings_P2[i];
+		gGamePrefs.keys[i][0] = kDefaultKeyBindings[i];
+		gGamePrefs.keys[i][1] = kDefaultKeyBindings_P2[i];
 	}
 }
 

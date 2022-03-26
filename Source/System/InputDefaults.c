@@ -25,7 +25,7 @@
 #define CAMINUS(x)	{kInputTypeAxisMinus, SDL_CONTROLLER_AXIS_##x}
 #define CBNULL()	{kInputTypeUnbound, 0}
 
-const KeyBinding kDefaultKeyBindings_P1[NUM_CONTROL_NEEDS] =
+const KeyBinding kDefaultKeyBindings[NUM_CONTROL_NEEDS] =
 {
 //Need-------------------     Keys---------------------------  Mouse--------  Gamepad----------------------------------------
 [kNeed_ThrowForward		] = { { SC_THROWF1  , SC_THROWF2	}, 0            , { CB(LEFTSHOULDER)	, CBNULL()				} },
@@ -41,11 +41,11 @@ const KeyBinding kDefaultKeyBindings_P1[NUM_CONTROL_NEEDS] =
 [kNeed_UIDown			] = { { SC(DOWN)	, 0				}, 0			, { CB(DPAD_DOWN)		, CAPLUS(LEFTY)			} },
 [kNeed_UILeft			] = { { SC(LEFT)	, 0				}, 0			, { CB(DPAD_LEFT)		, CAMINUS(LEFTX)		} },
 [kNeed_UIRight			] = { { SC(RIGHT)	, 0				}, 0			, { CB(DPAD_RIGHT)		, CAPLUS(LEFTX)			} },
-//[kNeed_UIPrev			] = { { 0			, 0				}, 0			, { CB(LEFTSHOULDER)	, CBNULL()				} },
-//[kNeed_UINext			] = { { 0			, 0				}, 0			, { CB(RIGHTSHOULDER)	, CBNULL()				} },
+[kNeed_UIPrev			] = { { 0			, 0				}, 0			, { CB(LEFTSHOULDER)	, CBNULL()				} },
+[kNeed_UINext			] = { { 0			, 0				}, 0			, { CB(RIGHTSHOULDER)	, CBNULL()				} },
 [kNeed_UIConfirm		] = { { SC(RETURN)	, SC(SPACE)		}, 0			, { CB(A)				, CBNULL()				} },
-//[kNeed_UIDelete			] = { { SC(DELETE)	, SC(BACKSPACE)	}, 0			, { CB(X)				, CBNULL()				} },
-//[kNeed_UIStart			] = { { 0			, 0				}, 0			, { CB(START)			, CBNULL()				} },
+[kNeed_UIDelete			] = { { SC(DELETE)	, SC(BACKSPACE)	}, 0			, { CB(X)				, CBNULL()				} },
+[kNeed_UIStart			] = { { 0			, 0				}, 0			, { CB(START)			, CBNULL()				} },
 [kNeed_UIBack			] = { { SC(ESCAPE)	, 0				}, MB(X1)		, { CB(B)				, CB(BACK)				} },
 [kNeed_UIPause			] = { { SC(ESCAPE)	, 0				}, 0			, { CB(START)			, CBNULL()				} },
 

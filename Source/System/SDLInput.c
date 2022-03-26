@@ -220,7 +220,7 @@ void DoSDLMaintenance(void)
 
 	for (int i = 0; i < NUM_CONTROL_NEEDS; i++)
 	{
-		const KeyBinding* kb = &gGamePrefs.keySettings[i][0];
+		const KeyBinding* kb = &gGamePrefs.keys[i][0];
 
 		bool downNow = false;
 
@@ -371,6 +371,12 @@ Boolean GetNeedState(int needID, int playerID)
 {
 	GAME_ASSERT_MESSAGE(playerID == 0, "TODO: Implement player 2 input");
 	return 0 != (gNeedStates[needID] & KEYSTATE_ACTIVE_BIT);
+}
+
+Boolean GetNeedStateAnyP(int needID)
+{
+	// TODO: check other players...
+	return GetNeedState(needID, 0);
 }
 
 Boolean GetNewNeedState(int needID, int playerID)

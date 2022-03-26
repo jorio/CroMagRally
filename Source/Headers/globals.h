@@ -14,14 +14,11 @@
 			/* SOME FLOATING POINT HELPERS */
 
 #define EPS .0001					// a very small number which is useful for FP compares close to 0
-#define	IS_ZERO(_x)  (fabs(_x) < EPS)
 
-		/* CLOSE ENOUGH TO ZERO */
-		//
-		// If float value is close enough to 0, then make it 0
-		//
-
-#define	CLOSE_ENOUGH_TO_ZERO(theFloat)	if (fabs(theFloat) < EPS) theFloat = 0;
+#define GAME_CLAMP(x, lo, hi) ( (x) < (lo) ? (lo) : ( (x) > (hi) ? (hi) : (x) ) )
+#define GAME_MIN(a, b) ( (a) < (b) ? (a) : (b) )
+#define GAME_MAX(a, b) ( (a) > (b) ? (a) : (b) )
+#define	SQUARED(x)					((x)*(x))
 
 
 		/*******************/

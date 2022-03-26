@@ -16,6 +16,7 @@ extern	Handle	AllocHandle(long size);
 extern	void *AllocPtr(long size);
 void *AllocPtrClear(long size);
 extern	void InitMyRandomSeed(void);
+int PositiveModulo(int value, unsigned int m);
 extern	void VerifySystem(void);
 extern	float RandomFloat(void);
 uint16_t	RandomRange(unsigned short min, unsigned short max);
