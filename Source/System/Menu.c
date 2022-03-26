@@ -100,7 +100,7 @@ const MenuStyle kDefaultMenuStyle =
 	.highlightColor		= {0.3f, 0.5f, 0.2f, 1.0f},
 	.inactiveColor		= {1.0f, 1.0f, 1.0f, 1.0f},
 	.inactiveColor2		= {0.8f, 0.0f, 0.5f, 0.5f},
-	.standardScale		= .5f,
+	.standardScale		= .45f,
 	.titleScale			= 1.25f,
 	.subtitleScale		= .5f,
 	.rowHeight			= 0.15f,
@@ -108,6 +108,7 @@ const MenuStyle kDefaultMenuStyle =
 	.playMenuChangeSounds	= true,
 	.startButtonExits	= false,
 	.isInteractive		= true,
+	.canBackOutOfRootMenu	= false,
 };
 
 /*********************/
@@ -423,7 +424,7 @@ void MenuCallback_Back(const MenuItem* mi)
 	{
 		LayOutMenu(gNav->rootMenu);
 	}
-	else
+	else if (gNav->style.canBackOutOfRootMenu)
 	{
 		gNav->menuState = kMenuStateFadeOut;
 	}
@@ -1144,7 +1145,7 @@ static void LayOutMenu(const MenuItem* menu)
 		totalHeight += kMenuItemHeightMultipliers[menu[row].type] * gNav->style.rowHeight;
 	}
 
-	float y = totalHeight/2.0f;
+	float y = -0.1f + totalHeight/2.0f;
 
 	float sweepFactor = 0.0f;
 
@@ -1327,7 +1328,7 @@ int StartMenuTree(
 	{
 		UpdateInput();
 
-		if (gNav->style.startButtonExits && GetNewNeedStateAnyP(kNeed_UIStart))
+		if (gNav->style.startButtonExits && gNav->style.canBackOutOfRootMenu && GetNewNeedStateAnyP(kNeed_UIStart))
 			gNav->menuState = kMenuStateFadeOut;
 
 		switch (gNav->menuState)

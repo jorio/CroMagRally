@@ -72,6 +72,7 @@ typedef struct MenuStyle
 	float			darkenPaneOpacity;
 	bool			startButtonExits;
 	bool			isInteractive;
+	bool			canBackOutOfRootMenu;
 } MenuStyle;
 
 int StartMenuTree(

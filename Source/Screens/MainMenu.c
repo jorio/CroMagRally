@@ -68,19 +68,17 @@ static void DoPhysicsEditor(void);
 /*    CONSTANTS             */
 /****************************/
 
-#define	MAINMENU_ICON_SCALE	.55f
-
-#define	MAX_LINES		5
-
 enum
 {
 	MENU_ID_TITLE,
 	MENU_ID_PLAY,
 	MENU_ID_OPTIONS,
+	MENU_ID_EXTRAS,
 	MENU_ID_MULTIPLAYERGAMETYPE,
 	MENU_ID_1PLAYERGAMETYPE,
 	MENU_ID_TOURNAMENT,
 	MENU_ID_NETGAME,
+	MENU_ID_SETTINGS,
 	NUM_MENU_IDS
 };
 
@@ -184,6 +182,7 @@ static const MenuItem
 		{ kMenuItem_Pick, STR_NEW_GAME, .gotoMenu=MENU_ID_PLAY, },
 //		{ kMenuItem_Pick, STR_LOAD_GAME },  // DoSavedPlayerDialog
 		{ kMenuItem_Pick, STR_OPTIONS, .gotoMenu=MENU_ID_OPTIONS, },
+		{ kMenuItem_Pick, .rawText="EXTRAS", .gotoMenu=MENU_ID_EXTRAS, },
 		{ kMenuItem_Pick, STR_QUIT, .callback=OnPickQuit, .gotoMenu=-1 },  // Quit
 		{ kMenuItem_END_SENTINEL },
 	},
@@ -198,10 +197,18 @@ static const MenuItem
 
 	gMenuOptions[] =
 	{
-		{ kMenuItem_Pick, STR_SETTINGS, .gotoMenu=0 },
-		{ kMenuItem_Pick, STR_HELP, .gotoMenu=0 },		// FreeMainMenuArt, DoHelpScreen, SetupMainMenuScreen, BuildMenu, MakeFadeEvent
-		{ kMenuItem_Pick, STR_CREDITS, .gotoMenu=0 },	// FreeMainMenuArt, DoCreditsScreen, SetupMainMenuScreen, BuildMenu, MakeFadeEvent
-		{ kMenuItem_Pick, STR_PHYSICS_EDITOR, .gotoMenu=0 },	// DoPhysicsEditor
+		{ kMenuItem_Pick, .rawText="GAME SETTINGS", .gotoMenu=MENU_ID_SETTINGS },
+		{ kMenuItem_Pick, .rawText="KEYBOARD CONTROLS", .gotoMenu=MENU_ID_SETTINGS },
+		{ kMenuItem_Pick, .rawText="GAMEPAD CONTROLS", .gotoMenu=MENU_ID_SETTINGS },
+		{ kMenuItem_Pick, .rawText="CLEAR SAVED PROGRESS" },
+		{ kMenuItem_END_SENTINEL },
+	},
+
+	gMenuExtras[] =
+	{
+		{ kMenuItem_Pick, STR_HELP, .id=1000, .gotoMenu=-1 },		// FreeMainMenuArt, DoHelpScreen, SetupMainMenuScreen, BuildMenu, MakeFadeEvent
+		{ kMenuItem_Pick, STR_CREDITS, .id=1001, .gotoMenu=-1 },	// FreeMainMenuArt, DoCreditsScreen, SetupMainMenuScreen, BuildMenu, MakeFadeEvent
+		{ kMenuItem_Pick, STR_PHYSICS_EDITOR, .id=1002, .gotoMenu=0 },	// DoPhysicsEditor
 		{ kMenuItem_END_SENTINEL },
 	},
 
@@ -236,7 +243,18 @@ static const MenuItem
 		{ kMenuItem_Pick, STR_HOST_NET_GAME, .callback=OnPickHostOrJoin, .id=0, .gotoMenu=MENU_ID_MULTIPLAYERGAMETYPE }, // host gets to select game type
 		{ kMenuItem_Pick, STR_JOIN_NET_GAME, .callback=OnPickHostOrJoin, .id=1, .gotoMenu=-1 },
 		{ kMenuItem_END_SENTINEL },
-	};
+	},
+
+	gMenuSettings[] =
+	{
+		{ kMenuItem_Pick, .rawText="LANGUAGE: ENGLISH" },
+		{ kMenuItem_Pick, .rawText="DIFFICULTY: MEDIUM" },
+		{ kMenuItem_Pick, .rawText="TAG DURATION: 3'" },
+		{ kMenuItem_Pick, .rawText="MUSIC: ON" },
+		{ kMenuItem_Pick, .rawText="FULLSCREEN: ON" },
+		{ kMenuItem_END_SENTINEL },
+	}
+	;
 
 
 
@@ -245,10 +263,12 @@ static const MenuItem* gMainMenuTree[NUM_MENU_IDS] =
 	[MENU_ID_TITLE] = gMenuTitle,
 	[MENU_ID_PLAY] = gMenuPlay,
 	[MENU_ID_OPTIONS] = gMenuOptions,
+	[MENU_ID_EXTRAS] = gMenuExtras,
 	[MENU_ID_MULTIPLAYERGAMETYPE] = gMenuMPGameModes,
 	[MENU_ID_1PLAYERGAMETYPE] = gMenu1PGameModes,
 	[MENU_ID_TOURNAMENT] = gMenuTournament,
 	[MENU_ID_NETGAME] = gMenuNetGame,
+	[MENU_ID_SETTINGS] = gMenuSettings,
 };
 
 
@@ -315,6 +335,22 @@ do_again:
 			/* CLEANUP */
 
 	FreeMainMenuArt();
+
+
+	switch (outcome)
+	{
+		case 1000:
+			DoHelpScreen();
+			goto do_again;
+
+		case 1001:
+			DoCreditsScreen();
+			goto do_again;
+		
+		case 1002:
+			DoPhysicsEditor();
+			goto do_again;
+	}
 
 			/* PRIME SELF-RUNNING DEMO */
 
