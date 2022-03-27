@@ -19,7 +19,7 @@ static GameLanguageID	gCurrentStringsLanguage = LANGUAGE_ILLEGAL;
 static Ptr				gStringsBuffer = nil;
 static const char*		gStringsTable[MAX_STRINGS];
 
-static const char kLanguageCodesISO639_1[MAX_LANGUAGES][3] =
+static const char kLanguageCodesISO639_1[NUM_LANGUAGES][3] =
 {
 	[LANGUAGE_ENGLISH	] = "en",
 	[LANGUAGE_FRENCH	] = "fr",
@@ -45,7 +45,7 @@ void LoadLocalizedStrings(GameLanguageID languageID)
 	}
 
 	GAME_ASSERT(languageID >= 0);
-	GAME_ASSERT(languageID < MAX_LANGUAGES);
+	GAME_ASSERT(languageID < NUM_LANGUAGES);
 
 	FSSpec spec;
 	FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, CSV_PATH, &spec);
@@ -65,9 +65,11 @@ void LoadLocalizedStrings(GameLanguageID languageID)
 
 	for (int i = 0; i < MAX_STRINGS; i++)
 		gStringsTable[i] = nil;
+	gStringsTable[STR_NULL] = "???";
+	GAME_ASSERT(STR_NULL == 0);
 
 	int col = 0;
-	int row = 0;
+	int row = 1;	// start row at 1, so that 0 is an illegal index (STR_NULL)
 	bool rowIsEmpty = true;
 
 	char* currentString = gStringsBuffer;
@@ -150,7 +152,7 @@ GameLanguageID GetBestLanguageIDFromSystemLocale(void)
 
 	for (SDL_Locale* locale = localeList; locale->language; locale++)
 	{
-		for (int i = 0; i < MAX_LANGUAGES; i++)
+		for (int i = 0; i < NUM_LANGUAGES; i++)
 		{
 			if (0 == strncmp(locale->language, kLanguageCodesISO639_1[i], 2))
 			{
