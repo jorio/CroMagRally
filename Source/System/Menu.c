@@ -145,6 +145,8 @@ typedef struct
 	int					mouseHoverColumn;
 	SDL_Cursor*			handCursor;
 	SDL_Cursor*			standardCursor;
+
+	float				idleTime;
 } MenuNavigation;
 
 static MenuNavigation* gNav = NULL;
@@ -168,6 +170,25 @@ void DisposeMenuNavigation(void)
 {
 	SafeDisposePtr((Ptr) gNav);
 	gNav = nil;
+}
+
+const MenuItem* GetCurrentMenu(void)
+{
+	return gNav->menu;
+}
+
+float GetMenuIdleTime(void)
+{
+	return gNav->idleTime;
+}
+
+void KillMenu(int returnCode)
+{
+	if (gNav->menuState == kMenuStateReady)
+	{
+		gNav->menuPick = returnCode;
+		gNav->menuState = kMenuStateFadeOut;
+	}
 }
 
 /****************************/
@@ -465,7 +486,7 @@ static void NavigateSettingEntriesVertically(int delta)
 		}
 	} while (skipEntry);
 
-	gNav->timeInactive = 0;
+	gNav->idleTime = 0;
 	if (makeSound)
 		PlayEffect(kSfxNavigate);
 	gNav->mouseHoverValidRow = false;
@@ -555,6 +576,8 @@ static void NavigatePick(const MenuItem* entry)
 {
 	if (GetNewNeedStateAnyP(kNeed_UIConfirm) || (gNav->mouseHoverValidRow && FlushMouseButtonPress(SDL_BUTTON_LEFT)))
 	{
+		gNav->idleTime = 0;
+
 		if (entry->callback != MenuCallback_Back)
 			PlayEffect(kSfxCycle);
 		else if (gNav->style.playMenuChangeSounds)
@@ -631,6 +654,7 @@ static void NavigateCycler(const MenuItem* entry)
 
 	if (delta != 0)
 	{
+		gNav->idleTime = 0;
 		PlayEffect_Parms(kSfxCycle, FULL_CHANNEL_VOLUME, FULL_CHANNEL_VOLUME, NORMAL_CHANNEL_RATE + (RandomFloat2() * 0x3000));
 
 		if (entry->cycler.valuePtr && !entry->cycler.callbackSetsValue)
@@ -662,6 +686,7 @@ static void NavigateKeyBinding(const MenuItem* entry)
 
 	if (GetNewNeedStateAnyP(kNeed_UILeft) || GetNewNeedStateAnyP(kNeed_UIPrev))
 	{
+		gNav->idleTime = 0;
 		gNav->keyColumn = PositiveModulo(gNav->keyColumn - 1, KEYBINDING_MAX_KEYS);
 		PlayEffect(kSfxNavigate);
 		gNav->mouseHoverValidRow = false;
@@ -670,6 +695,7 @@ static void NavigateKeyBinding(const MenuItem* entry)
 
 	if (GetNewNeedStateAnyP(kNeed_UIRight) || GetNewNeedStateAnyP(kNeed_UINext))
 	{
+		gNav->idleTime = 0;
 		gNav->keyColumn = PositiveModulo(gNav->keyColumn + 1, KEYBINDING_MAX_KEYS);
 		PlayEffect(kSfxNavigate);
 		gNav->mouseHoverValidRow = false;
@@ -685,6 +711,7 @@ static void NavigateKeyBinding(const MenuItem* entry)
 	if (GetNewNeedStateAnyP(kNeed_UIDelete)
 		|| (gNav->mouseHoverValidRow && FlushMouseButtonPress(SDL_BUTTON_MIDDLE)))
 	{
+		gNav->idleTime = 0;
 		gGamePrefs.keys[entry->kb][0].key[gNav->keyColumn] = 0;
 		PlayEffect(kSfxDelete);
 		MakeTextAtRowCol(Localize(STR_UNBOUND_PLACEHOLDER), gNav->menuRow, gNav->keyColumn+1);
@@ -694,6 +721,7 @@ static void NavigateKeyBinding(const MenuItem* entry)
 	if (GetNewKeyState(SDL_SCANCODE_RETURN)
 		|| (gNav->mouseHoverValidRow && FlushMouseButtonPress(SDL_BUTTON_LEFT)))
 	{
+		gNav->idleTime = 0;
 		gNav->menuState = kMenuStateAwaitingKeyPress;
 		MakeTextAtRowCol(Localize(STR_PRESS), gNav->menuRow, gNav->keyColumn+1);
 
@@ -711,6 +739,7 @@ static void NavigatePadBinding(const MenuItem* entry)
 
 	if (GetNewNeedStateAnyP(kNeed_UILeft) || GetNewNeedStateAnyP(kNeed_UIPrev))
 	{
+		gNav->idleTime = 0;
 		gNav->padColumn = PositiveModulo(gNav->padColumn - 1, KEYBINDING_MAX_GAMEPAD_BUTTONS);
 		PlayEffect(kSfxNavigate);
 		gNav->mouseHoverValidRow = false;
@@ -719,6 +748,7 @@ static void NavigatePadBinding(const MenuItem* entry)
 
 	if (GetNewNeedStateAnyP(kNeed_UIRight) || GetNewNeedStateAnyP(kNeed_UINext))
 	{
+		gNav->idleTime = 0;
 		gNav->padColumn = PositiveModulo(gNav->padColumn + 1, KEYBINDING_MAX_GAMEPAD_BUTTONS);
 		PlayEffect(kSfxNavigate);
 		gNav->mouseHoverValidRow = false;
@@ -728,6 +758,7 @@ static void NavigatePadBinding(const MenuItem* entry)
 	if (GetNewNeedStateAnyP(kNeed_UIDelete)
 		|| (gNav->mouseHoverValidRow && FlushMouseButtonPress(SDL_BUTTON_MIDDLE)))
 	{
+		gNav->idleTime = 0;
 		gGamePrefs.keys[entry->kb][0].gamepad[gNav->padColumn].type = kInputTypeUnbound;
 		PlayEffect(kSfxDelete);
 		MakeTextAtRowCol(Localize(STR_UNBOUND_PLACEHOLDER), gNav->menuRow, gNav->padColumn+1);
@@ -737,6 +768,7 @@ static void NavigatePadBinding(const MenuItem* entry)
 	if (GetNewNeedStateAnyP(kNeed_UIConfirm)
 		|| (gNav->mouseHoverValidRow && FlushMouseButtonPress(SDL_BUTTON_LEFT)))
 	{
+		gNav->idleTime = 0;
 		while (GetNeedStateAnyP(kNeed_UIConfirm))
 		{
 			UpdateInput();
@@ -758,6 +790,7 @@ static void NavigateMouseBinding(const MenuItem* entry)
 	if (GetNewNeedStateAnyP(kNeed_UIDelete)
 		|| (gNav->mouseHoverValidRow && FlushMouseButtonPress(SDL_BUTTON_MIDDLE)))
 	{
+		gNav->idleTime = 0;
 		gGamePrefs.keys[entry->kb][0].mouseButton = 0;
 		PlayEffect(kSfxDelete);
 		MakeTextAtRowCol(Localize(STR_UNBOUND_PLACEHOLDER), gNav->menuRow, 1);
@@ -767,6 +800,7 @@ static void NavigateMouseBinding(const MenuItem* entry)
 	if (GetNewNeedStateAnyP(kNeed_UIConfirm)
 		|| (gNav->mouseHoverValidRow && FlushMouseButtonPress(SDL_BUTTON_LEFT)))
 	{
+		gNav->idleTime = 0;
 		while (GetNeedStateAnyP(kNeed_UIConfirm))
 		{
 			UpdateInput();
@@ -784,13 +818,19 @@ static void NavigateMenu(void)
 	GAME_ASSERT(gNav->style.isInteractive);
 
 	if (GetNewNeedStateAnyP(kNeed_UIBack))
+	{
 		MenuCallback_Back(NULL);
+	}
 
 	if (GetNewNeedStateAnyP(kNeed_UIUp))
+	{
 		NavigateSettingEntriesVertically(-1);
+	}
 
 	if (GetNewNeedStateAnyP(kNeed_UIDown))
+	{
 		NavigateSettingEntriesVertically(1);
+	}
 
 	NavigateSettingEntriesMouseHover();
 
@@ -916,6 +956,7 @@ static void AwaitKeyPress(void)
 			kb->key[gNav->keyColumn] = scancode;
 			MakeTextAtRowCol(GetKeyBindingName(gNav->menuRow, gNav->keyColumn), gNav->menuRow, gNav->keyColumn+1);
 			gNav->menuState = kMenuStateReady;
+			gNav->idleTime = 0;
 			PlayEffect(kSfxCycle);
 			ReplaceMenuText(STR_CONFIGURE_KEYBOARD_HELP, STR_CONFIGURE_KEYBOARD_HELP);
 			return;
@@ -958,6 +999,7 @@ static void AwaitPadPress(void)
 			kb->gamepad[gNav->padColumn].id = button;
 			MakeTextAtRowCol(GetPadBindingName(gNav->menuRow, gNav->padColumn), gNav->menuRow, gNav->padColumn+1);
 			gNav->menuState = kMenuStateReady;
+			gNav->idleTime = 0;
 			PlayEffect(kSfxCycle);
 			ReplaceMenuText(STR_CONFIGURE_GAMEPAD_HELP, STR_CONFIGURE_GAMEPAD_HELP);
 			return;
@@ -984,6 +1026,7 @@ static void AwaitPadPress(void)
 			kb->gamepad[gNav->padColumn].id = axis;
 			MakeTextAtRowCol(GetPadBindingName(gNav->menuRow, gNav->padColumn), gNav->menuRow, gNav->padColumn+1);
 			gNav->menuState = kMenuStateReady;
+			gNav->idleTime = 0;
 			PlayEffect(kSfxCycle);
 			ReplaceMenuText(STR_CONFIGURE_GAMEPAD_HELP_CANCEL, STR_CONFIGURE_GAMEPAD_HELP);
 			return;
@@ -997,6 +1040,7 @@ static void AwaitMouseClick(void)
 	{
 		MakeTextAtRowCol(GetMouseBindingName(gNav->menuRow), gNav->menuRow, 1);
 		gNav->menuState = kMenuStateReady;
+		gNav->idleTime = 0;
 		PlayEffect(kSfxError);
 		return;
 	}
@@ -1011,6 +1055,7 @@ static void AwaitMouseClick(void)
 			kb->mouseButton = mouseButton;
 			MakeTextAtRowCol(GetMouseBindingName(gNav->menuRow), gNav->menuRow, 1);
 			gNav->menuState = kMenuStateReady;
+			gNav->idleTime = 0;
 			PlayEffect(kSfxCycle);
 			return;
 		}
@@ -1180,6 +1225,7 @@ static void LayOutMenu(const MenuItem* menu)
 	gNav->menu			= menu;
 	gNav->numMenuEntries	= 0;
 	gNav->menuPick		= -1;
+	gNav->idleTime	= 0;
 
 	// Restore old row
 	gNav->menuRow = gNav->history[gNav->historyPos].row;
@@ -1382,6 +1428,8 @@ int StartMenuTree(
 	while (gNav->menuState != kMenuStateOff)
 	{
 		UpdateInput();
+
+		gNav->idleTime += gFramesPerSecondFrac;
 
 		if (gNav->style.startButtonExits && gNav->style.canBackOutOfRootMenu && GetNewNeedStateAnyP(kNeed_UIStart))
 			gNav->menuState = kMenuStateFadeOut;

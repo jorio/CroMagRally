@@ -80,4 +80,7 @@ int StartMenuTree(
 		void (*updateRoutine)(void),
 		void (*backgroundDrawRoutine)(OGLSetupOutputType *));
 void LayoutCurrentMenuAgain(void);
+const MenuItem* GetCurrentMenu(void);
+float GetMenuIdleTime(void);
+void KillMenu(int returnCode);
 void MenuCallback_Back(const MenuItem* mi);

@@ -83,12 +83,32 @@ enum
 };
 
 
+enum
+{
+	MENU_EXITCODE_HELP		= 1000,
+	MENU_EXITCODE_CREDITS,
+	MENU_EXITCODE_PHYSICS,
+	MENU_EXITCODE_SELFRUNDEMO,
+};
+
+
 #define	DEMO_DELAY	20.0f			// # seconds of idle until self-running demo kicks in
 
 
 /*********************/
 /*    VARIABLES      */
 /*********************/
+
+static void PrimeSelfRunningDemo(void)
+{
+	gIsSelfRunningDemo = true;
+	gIsNetworkHost = false;								// assume I'm not hosting
+	gIsNetworkClient = false;							// assume I'm not joining either
+	gNetGameInProgress = false;
+	gNumLocalPlayers = 1;								// assume just 1 local player on this machine
+	gNumRealPlayers = 1;
+	gGameMode = GAME_MODE_PRACTICE;
+}
 
 static void OnConfirmPlayMenu(const MenuItem* mi)
 {
@@ -100,6 +120,7 @@ static void OnConfirmPlayMenu(const MenuItem* mi)
 			gNetGameInProgress = false;
 			gNumLocalPlayers = 1;								// assume just 1 local player on this machine
 			gNumRealPlayers = 1;
+			gGameMode = -1;										// no game mode selected yet
 			break;
 		
 		case 2:
@@ -108,6 +129,7 @@ static void OnConfirmPlayMenu(const MenuItem* mi)
 			gNetGameInProgress = false;
 			gNumLocalPlayers = 2;								// assume just 1 local player on this machine
 			gNumRealPlayers = 2;
+			gGameMode = -1;										// no game mode selected yet
 			break;
 
 		case 3:
@@ -116,6 +138,7 @@ static void OnConfirmPlayMenu(const MenuItem* mi)
 			gNetGameInProgress = true;
 			gNumRealPlayers = 1;
 			gNumLocalPlayers = 1;
+			gGameMode = -1;										// no game mode selected yet
 			break;
 	}
 }
@@ -155,13 +178,6 @@ static void OnPickLanguage(const MenuItem* mi)
 	LoadLocalizedStrings(gGamePrefs.language);
 	LayoutCurrentMenuAgain();
 }
-
-//static short	gMainMenuSelection,gWhichMenu;
-
-static const OGLColorRGBA gMainMenuHiliteColor = {.3,.5,.2,1};
-static const OGLColorRGBA gMainMenuNormalColor = {1,1,1,1};
-
-static float	gTimeUntilDemo;
 
 static bool IsTournamentAgeAvailable(const MenuItem* mi)
 {
@@ -211,9 +227,9 @@ static const MenuItem
 
 	gMenuExtras[] =
 	{
-		{ kMenuItem_Pick, STR_HELP, .id=1000, .gotoMenu=-1 },		// FreeMainMenuArt, DoHelpScreen, SetupMainMenuScreen, BuildMenu, MakeFadeEvent
-		{ kMenuItem_Pick, STR_CREDITS, .id=1001, .gotoMenu=-1 },	// FreeMainMenuArt, DoCreditsScreen, SetupMainMenuScreen, BuildMenu, MakeFadeEvent
-		{ kMenuItem_Pick, STR_PHYSICS_EDITOR, .id=1002, .gotoMenu=0 },	// DoPhysicsEditor
+		{ kMenuItem_Pick, STR_HELP, .id=MENU_EXITCODE_HELP, .gotoMenu=-1 },
+		{ kMenuItem_Pick, STR_CREDITS, .id=MENU_EXITCODE_CREDITS, .gotoMenu=-1 },
+		{ kMenuItem_Pick, STR_PHYSICS_EDITOR, .id=MENU_EXITCODE_PHYSICS, .gotoMenu=0 },
 		{ kMenuItem_END_SENTINEL },
 	},
 
@@ -323,10 +339,18 @@ static const MenuItem* gMainMenuTree[NUM_MENU_IDS] =
 
 /********************** DO MAINMENU SCREEN **************************/
 
+static void UpdateMainMenuScreen(void)
+{
+	if (//GetCurrentMenu() == gMenuTitle &&
+		GetMenuIdleTime() > DEMO_DELAY && gNumLocalPlayers < 2)
+	{
+		KillMenu(MENU_EXITCODE_SELFRUNDEMO);
+	}
+}
+
+
 void DoMainMenuScreen(void)
 {
-	gTimeUntilDemo = DEMO_DELAY;
-
 do_again:
 	SetupMainMenuScreen();
 
@@ -339,71 +363,30 @@ do_again:
 	CalcFramesPerSecond();
 	ReadKeyboard();
 
-	int outcome = StartMenuTree(
-		gMainMenuTree,
-		NULL,
-		NULL,
-		DrawMainMenuCallback
-	);
-
-#if 0
-	while(true)
-	{
-			/* SEE IF MAKE SELECTION */
-
-		if (NavigateMenu())
-			break;
-
-			/* DRAW STUFF */
-
-		CalcFramesPerSecond();
-		ReadKeyboard();
-		MoveObjects();
-		OGL_DrawScene(gGameViewInfoPtr, DrawMainMenuCallback);
-
-
-		/* CHECK IF SELF-RUNNING DEMO */
-
-		if (gNumLocalPlayers < 2)
-		{
-			gTimeUntilDemo -= gFramesPerSecondFrac;
-			if (gTimeUntilDemo <= 0.0f)
-			{
-				gIsSelfRunningDemo = true;
-				break;
-			}
-		}
-	}
-#endif
+	int outcome = StartMenuTree(gMainMenuTree, NULL, UpdateMainMenuScreen, DrawMainMenuCallback);
 
 			/* CLEANUP */
 
 	FreeMainMenuArt();
 
-
 	switch (outcome)
 	{
-		case 1000:
+		case MENU_EXITCODE_HELP:
 			DoHelpScreen();
 			goto do_again;
 
-		case 1001:
+		case MENU_EXITCODE_CREDITS:
 			DoCreditsScreen();
 			goto do_again;
 		
-		case 1002:
+		case MENU_EXITCODE_PHYSICS:
 			DoPhysicsEditor();
 			goto do_again;
+		
+		case MENU_EXITCODE_SELFRUNDEMO:
+			PrimeSelfRunningDemo();
+			break;
 	}
-
-			/* PRIME SELF-RUNNING DEMO */
-
-	if (gIsSelfRunningDemo)
-	{
-		gNetGameInProgress = false;
-		gGameMode = GAME_MODE_PRACTICE;
-	}
-
 
 		/******************************/
 		/* HANDLE GAME MODE SPECIFICS */
@@ -425,7 +408,6 @@ do_again:
 						goto do_again;
 				}
 				break;
-
 	}
 
 
