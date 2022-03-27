@@ -123,6 +123,7 @@ add_compile_definitions(
 
 target_compile_definitions(${GAME_TARGET} PRIVATE
 	HQ_TERRAIN=1
+	ENABLE_LOADING_SCREEN=0
 	GL_SILENCE_DEPRECATION)
 
 if(NOT MSVC)

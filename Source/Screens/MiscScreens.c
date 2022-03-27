@@ -244,10 +244,12 @@ static const char*	names[NUM_AGES] =
 
 void ShowLoadingPicture(void)
 {
+#if ENABLE_LOADING_SCREEN
 FSSpec	spec;
 
 	FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":images:Loading1.jpg", &spec);
 	DisplayPicture(&spec, true, false);
+#endif
 }
 
 
