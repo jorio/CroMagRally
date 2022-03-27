@@ -59,6 +59,7 @@ static ObjNode* LayOutCyclerValueText(int row);
 
 #define SpecialRow					Special[0]
 #define SpecialCol					Special[1]
+#define SpecialMuted				Special[2]
 #define SpecialPulsateTimer			SpecialF[0]
 #define SpecialSweepTimer			SpecialF[1]
 
@@ -303,19 +304,27 @@ static const char* GetMouseBindingName(int row)
 	}
 }
 
-static bool IsMenuItemTypeSelectable(int type)
+static bool IsMenuItemSelectable(const MenuItem* mi)
 {
-	switch (type)
+	switch (mi->type)
 	{
 		case kMenuItem_Spacer:
 		case kMenuItem_Label:
 		case kMenuItem_Title:
 		case kMenuItem_Subtitle:
 			return false;
-
+		
 		default:
-			return true;
+			if (mi->enableIf != NULL)
+			{
+				return mi->enableIf(mi);
+			}
+			else
+			{
+				return true;
+			}
 	}
+
 }
 
 static void ReplaceMenuText(LocStrID originalTextInMenuDefinition, LocStrID newText)
@@ -361,8 +370,12 @@ static void MoveGenericMenuItem(ObjNode* node)
 	}
 	else
 	{
+		node->ColorFilter.a = 1;
 		UpdateObjectTransforms(node);
 	}
+
+	if (node->SpecialMuted)
+		node->ColorFilter.a *= .5f;
 }
 
 static void MoveLabel(ObjNode* node)
@@ -477,7 +490,7 @@ static void NavigateSettingEntriesVertically(int delta)
 		gNav->menuRow += delta;
 		gNav->menuRow = PositiveModulo(gNav->menuRow, (unsigned int)gNav->numMenuEntries);
 
-		skipEntry = !IsMenuItemTypeSelectable(gNav->menu[gNav->menuRow].type);
+		skipEntry = !IsMenuItemSelectable(&gNav->menu[gNav->menuRow]);
 
 		if (browsed++ > gNav->numMenuEntries)
 		{
@@ -1295,6 +1308,7 @@ static void LayOutMenu(const MenuItem* menu)
 				ObjNode* node = MakeTextAtRowCol(GetMenuItemLabel(entry), row, 0);
 				node->MoveCall = MoveAction;
 				node->SpecialSweepTimer = sweepFactor;
+				node->SpecialMuted = !IsMenuItemSelectable(entry);
 				break;
 			}
 
