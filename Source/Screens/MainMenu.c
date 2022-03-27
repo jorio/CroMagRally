@@ -89,6 +89,7 @@ enum
 	MENU_EXITCODE_CREDITS,
 	MENU_EXITCODE_PHYSICS,
 	MENU_EXITCODE_SELFRUNDEMO,
+	MENU_EXITCODE_QUITGAME,
 };
 
 
@@ -184,19 +185,6 @@ static bool IsTournamentAgeAvailable(const MenuItem* mi)
 	return mi->id < (gPlayerSaveData.numAgesCompleted & AGE_MASK_AGE);
 }
 
-enum
-{
-	kPick_QuitGame,
-	kPick_MPRace,
-	kPick_MPKeepAwayTag,
-	kPick_MPStampedeTag,
-};
-
-static void OnPickQuit(const MenuItem* mi)
-{
-	CleanQuit();
-}
-
 static const MenuItem
 	gMenuTitle[] =
 	{
@@ -204,7 +192,7 @@ static const MenuItem
 //		{ kMenuItem_Pick, STR_LOAD_GAME },  // DoSavedPlayerDialog
 		{ kMenuItem_Pick, STR_OPTIONS, .gotoMenu=MENU_ID_OPTIONS, },
 		{ kMenuItem_Pick, .rawText="EXTRAS", .gotoMenu=MENU_ID_EXTRAS, },
-		{ kMenuItem_Pick, STR_QUIT, .callback=OnPickQuit, .gotoMenu=-1 },  // Quit
+		{ kMenuItem_Pick, STR_QUIT, .id=MENU_EXITCODE_QUITGAME, .gotoMenu=-1 },
 		{ kMenuItem_END_SENTINEL },
 	},
 
@@ -363,7 +351,18 @@ do_again:
 	CalcFramesPerSecond();
 	ReadKeyboard();
 
+	PrefsType oldPrefs;
+	memcpy(&oldPrefs, &gGamePrefs, sizeof(oldPrefs));
+
 	int outcome = StartMenuTree(gMainMenuTree, NULL, UpdateMainMenuScreen, DrawMainMenuCallback);
+
+			/* SAVE PREFS IF THEY CHANGED */
+	
+	if (0 != memcmp(&oldPrefs, &gGamePrefs, sizeof(oldPrefs)))
+	{
+		puts("Saving prefs");
+		SavePrefs();
+	}
 
 			/* CLEANUP */
 
@@ -385,6 +384,10 @@ do_again:
 		
 		case MENU_EXITCODE_SELFRUNDEMO:
 			PrimeSelfRunningDemo();
+			break;
+		
+		case MENU_EXITCODE_QUITGAME:
+			CleanQuit();
 			break;
 	}
 

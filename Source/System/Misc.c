@@ -371,7 +371,7 @@ long createdDirID;
 	if (iErr != noErr)
 		DoAlert("Warning: Cannot locate the Preferences folder.");
 
-	iErr = DirCreate(gPrefsFolderVRefNum,gPrefsFolderDirID,"CroMag",&createdDirID);		// make folder in there
+	iErr = DirCreate(gPrefsFolderVRefNum,gPrefsFolderDirID,PREFS_FOLDER_NAME,&createdDirID);		// make folder in there
 }
 
 

@@ -68,7 +68,8 @@ typedef struct
 }PrefsType;
 
 #define PREFS_MAGIC "CMR Prefs v0"
-#define PREFS_FILE_PATH ":CroMagRally:Prefs"
+#define PREFS_FOLDER_NAME "CroMagRally"
+#define PREFS_FILE_PATH (":" PREFS_FOLDER_NAME ":Prefs")
 
 
 		/* SAVE PLAYER */
