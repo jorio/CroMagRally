@@ -122,11 +122,9 @@ typedef struct
 	const MenuItem*		menu;
 	const MenuItem*		rootMenu;
 	MenuStyle			style;
-	const MenuItem*		menuStack[MAX_STACK_LENGTH];
-	int					menuStackPos;
+
 	int					numMenuEntries;
 	int					menuRow;
-	int					lastRowOnRootMenu;
 	int					keyColumn;
 	int					padColumn;
 	float				menuColXs[MAX_MENU_COLS];
@@ -135,6 +133,13 @@ typedef struct
 	int					menuState;
 	int					menuPick;
 	ObjNode*			menuObjects[MAX_MENU_ROWS][MAX_MENU_COLS];
+
+	struct
+	{
+		const MenuItem* menu;
+		int row;
+	} history[MAX_STACK_LENGTH];
+	int					historyPos;
 
 	bool				mouseHoverValidRow;
 	int					mouseHoverColumn;
@@ -149,7 +154,6 @@ void InitMenuNavigation(void)
 	GAME_ASSERT(gNav == NULL);
 	gNav = (MenuNavigation*) AllocPtrClear(sizeof(MenuNavigation));
 	memcpy(&gNav->style, &kDefaultMenuStyle, sizeof(MenuStyle));
-	gNav->lastRowOnRootMenu = -1;
 	gNav->menuColXs[0] = 0;
 	gNav->menuColXs[1] = 170;
 	gNav->menuColXs[2] = 300;
@@ -421,10 +425,10 @@ void MenuCallback_Back(const MenuItem* mi)
 {
 	MyFlushEvents();
 
-	if (gNav->menuStackPos != 0)
+	if (gNav->historyPos != 0)
 	{
-		gNav->menuStackPos--;
-		LayOutMenu(gNav->menuStack[gNav->menuStackPos]);
+		gNav->historyPos--;
+		LayOutMenu(gNav->history[gNav->historyPos].menu);
 	}
 	else if (gNav->style.canBackOutOfRootMenu)
 	{
@@ -443,6 +447,7 @@ void MenuCallback_Back(const MenuItem* mi)
 
 static void NavigateSettingEntriesVertically(int delta)
 {
+	bool makeSound = gNav->menuRow >= 0;
 	int browsed = 0;
 	bool skipEntry = false;
 
@@ -460,7 +465,9 @@ static void NavigateSettingEntriesVertically(int delta)
 		}
 	} while (skipEntry);
 
-	PlayEffect(kSfxNavigate);
+	gNav->timeInactive = 0;
+	if (makeSound)
+		PlayEffect(kSfxNavigate);
 	gNav->mouseHoverValidRow = false;
 }
 
@@ -562,8 +569,12 @@ static void NavigatePick(const MenuItem* entry)
 		{
 			const MenuItem* newMenu = gNav->menuTree[entry->gotoMenu];
 
-			gNav->menuStackPos++;
-			gNav->menuStack[gNav->menuStackPos] = newMenu;
+			gNav->history[gNav->historyPos].row = gNav->menuRow;  // remember which row we were on
+
+			// advance history
+			gNav->historyPos++;
+			gNav->history[gNav->historyPos].menu = newMenu;
+			gNav->history[gNav->historyPos].row = 0;  // don't reuse stale row value
 
 			LayOutMenu(newMenu);
 		}
@@ -1163,23 +1174,15 @@ static void LayOutMenu(const MenuItem* menu)
 {
 	DECLARE_WORKBUF(buf, bufSize);
 
-	bool enteringNewMenu = menu != gNav->menu;
+	// Remember we've been to this menu
+	gNav->history[gNav->historyPos].menu = menu;
 
-	if (gNav->menu == gNav->rootMenu)				// save position in root menu
-		gNav->lastRowOnRootMenu = gNav->menuRow;
-
-	gNav->menuStack[gNav->menuStackPos] = menu;
 	gNav->menu			= menu;
 	gNav->numMenuEntries	= 0;
 	gNav->menuPick		= -1;
 
-	if (enteringNewMenu)
-	{
-		gNav->menuRow		= -1;
-
-		if (menu == gNav->rootMenu && gNav->lastRowOnRootMenu >= 0)				// restore position in root menu
-			gNav->menuRow = gNav->lastRowOnRootMenu;
-	}
+	// Restore old row
+	gNav->menuRow = gNav->history[gNav->historyPos].row;
 
 	DeleteAllText();
 
@@ -1327,7 +1330,7 @@ static void LayOutMenu(const MenuItem* menu)
 		GAME_ASSERT(gNav->numMenuEntries < MAX_MENU_ROWS);
 	}
 
-	if (gNav->menuRow < 0)
+	if (gNav->menuRow <= 0)
 	{
 		// Scroll down to first pickable entry
 		gNav->menuRow = -1;
@@ -1362,7 +1365,6 @@ int StartMenuTree(
 	gNav->menuState			= kMenuStateFadeIn;
 	gNav->menuFadeAlpha		= 0;
 	gNav->menuRow			= -1;
-	gNav->lastRowOnRootMenu	= -1;
 
 		/* LAY OUT MENU COMPONENTS */
 
