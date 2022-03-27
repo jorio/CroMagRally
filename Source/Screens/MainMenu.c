@@ -150,6 +150,11 @@ static void OnPickHostOrJoin(const MenuItem* mi)
 	}
 }
 
+static void OnPickLanguage(const MenuItem* mi)
+{
+	LoadLocalizedStrings(gGamePrefs.language);
+	LayoutCurrentMenuAgain();
+}
 
 //static short	gMainMenuSelection,gWhichMenu;
 
@@ -247,11 +252,50 @@ static const MenuItem
 
 	gMenuSettings[] =
 	{
-		{ kMenuItem_Pick, .rawText="LANGUAGE: ENGLISH" },
-		{ kMenuItem_Pick, .rawText="DIFFICULTY: MEDIUM" },
-		{ kMenuItem_Pick, .rawText="TAG DURATION: 3'" },
-		{ kMenuItem_Pick, .rawText="MUSIC: ON" },
-		{ kMenuItem_Pick, .rawText="FULLSCREEN: ON" },
+		{ 
+			kMenuItem_CMRCycler, STR_LANGUAGE, .cycler=
+			{
+				.valuePtr=&gGamePrefs.language, .choices=
+				{
+					{STR_LANGUAGE_NAME, LANGUAGE_ENGLISH},
+					{STR_LANGUAGE_NAME, LANGUAGE_FRENCH},
+					{STR_LANGUAGE_NAME, LANGUAGE_GERMAN},
+					{STR_LANGUAGE_NAME, LANGUAGE_SPANISH},
+					{STR_LANGUAGE_NAME, LANGUAGE_ITALIAN},
+					{STR_LANGUAGE_NAME, LANGUAGE_SWEDISH},
+				}
+			},
+			.callback=OnPickLanguage,
+		},
+
+		{ 
+			kMenuItem_CMRCycler, STR_DIFFICULTY, .cycler=
+			{
+				.valuePtr=&gGamePrefs.difficulty, .choices=
+				{
+					{STR_DIFFICULTY_1, DIFFICULTY_SIMPLISTIC},
+					{STR_DIFFICULTY_2, DIFFICULTY_EASY},
+					{STR_DIFFICULTY_3, DIFFICULTY_MEDIUM},
+					{STR_DIFFICULTY_4, DIFFICULTY_HARD},
+				}
+			}
+		},
+
+		{ 
+			kMenuItem_CMRCycler, STR_TAG_DURATION, .cycler=
+			{
+				.valuePtr=&gGamePrefs.tagDuration, .choices=
+				{
+					{STR_2_MINUTES, 2},
+					{STR_3_MINUTES, 3},
+					{STR_4_MINUTES, 4},
+				},
+			}
+		},
+
+		{ kMenuItem_CMRCycler, STR_MUSIC, .cycler={ .valuePtr=&gGamePrefs.music, .choices={ {STR_OFF, 0}, {STR_ON, 1} } } },
+		{ kMenuItem_CMRCycler, STR_FULLSCREEN, .cycler={ .valuePtr=&gGamePrefs.fullscreen, .choices={ {STR_OFF, 0}, {STR_ON, 1} } } },
+
 		{ kMenuItem_END_SENTINEL },
 	}
 	;

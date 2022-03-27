@@ -54,6 +54,7 @@ extern	SDL_GameController* gSDLController;
 
 static ObjNode* MakeTextAtRowCol(const char* text, int row, int col);
 static void LayOutMenu(const MenuItem* menu);
+static void LayOutCMRCycler(int row, float sweepFactor);
 static ObjNode* LayOutCyclerValueText(int row);
 
 #define SpecialRow					Special[0]
@@ -560,6 +561,31 @@ static void NavigatePick(const MenuItem* entry)
 	}
 }
 
+static int GetCyclerNumChoices(const MenuItem* entry)
+{
+	for (int i = 0; i < MAX_MENU_CYCLER_CHOICES; i++)
+	{
+		if (entry->cycler.choices[i].text == STR_NULL)
+			return i;
+	}
+
+	return MAX_MENU_CYCLER_CHOICES;
+}
+
+static int GetValueIndexInCycler(const MenuItem* entry, uint8_t value)
+{
+	for (int i = 0; i < MAX_MENU_CYCLER_CHOICES; i++)
+	{
+		if (entry->cycler.choices[i].text == STR_NULL)
+			break;
+
+		if (entry->cycler.choices[i].value == value)
+			return i;
+	}
+
+	return -1;
+}
+
 static void NavigateCycler(const MenuItem* entry)
 {
 	int delta = 0;
@@ -585,14 +611,22 @@ static void NavigateCycler(const MenuItem* entry)
 		if (entry->cycler.valuePtr && !entry->cycler.callbackSetsValue)
 		{
 			unsigned int value = (unsigned int)*entry->cycler.valuePtr;
-			value = PositiveModulo(value + delta, entry->cycler.generateNumChoices? entry->cycler.generateNumChoices(): entry->cycler.numChoices);
-			*entry->cycler.valuePtr = value;
+
+			int index = GetValueIndexInCycler(entry, *entry->cycler.valuePtr);
+			if (index >= 0)
+				index = PositiveModulo(index + delta, GetCyclerNumChoices(entry));
+			else
+				index = 0;
+			*entry->cycler.valuePtr = entry->cycler.choices[index].value;
 		}
 
 		if (entry->callback)
 			entry->callback(entry);
 
-		LayOutCyclerValueText(gNav->menuRow);
+		if (entry->type == kMenuItem_CMRCycler)
+			LayOutCMRCycler(gNav->menuRow, 0);
+		else
+			LayOutCyclerValueText(gNav->menuRow);
 	}
 }
 
@@ -752,6 +786,7 @@ static void NavigateMenu(void)
 //			break;
 
 		case kMenuItem_Cycler:
+		case kMenuItem_CMRCycler:
 			NavigateCycler(entry);
 			break;
 
@@ -1048,6 +1083,7 @@ static const float kMenuItemHeightMultipliers[kMenuItem_NUM_ITEM_TYPES] =
 //	[kMenuItem_Submenu]      = 1,
 	[kMenuItem_Spacer]       = 0.5f,
 	[kMenuItem_Cycler]       = 1,
+	[kMenuItem_CMRCycler]    = 1,
 	[kMenuItem_Pick]         = 1,
 	[kMenuItem_KeyBinding]   = 1,
 	[kMenuItem_PadBinding]   = 1,
@@ -1064,39 +1100,23 @@ static const char* GetMenuItemLabel(const MenuItem* entry)
 		return Localize(entry->text);
 }
 
+static const char* GetCyclerValueText(int row)
+{
+	const MenuItem* entry = &gNav->menu[row];
+	int index = GetValueIndexInCycler(entry, *entry->cycler.valuePtr);
+	if (index >= 0)
+		return Localize(entry->cycler.choices[index].text);
+	return "VALUE NOT FOUND???";
+}
+
 static ObjNode* LayOutCyclerValueText(int row)
 {
-	DECLARE_WORKBUF(buf, bufSize);
-	const MenuItem* entry = &gNav->menu[row];
-
-	int numChoices = entry->cycler.numChoices;
-	if (entry->cycler.generateNumChoices)
-		numChoices = entry->cycler.generateNumChoices();
-
-	if (numChoices <= 0)
-		return NULL;
-
-	Byte value = *entry->cycler.valuePtr;
-	const char* valueText = NULL;
-
-	if (entry->cycler.generateChoiceString)
-	{
-		valueText = entry->cycler.generateChoiceString(buf, bufSize, value);
-	}
-	else
-	{
-		GAME_ASSERT(numChoices <= MAX_MENU_CYCLER_CHOICES);
-		valueText = Localize(entry->cycler.choices[value]);
-	}
-
-	ObjNode* node2 = MakeTextAtRowCol(valueText, row, 1);
+	ObjNode* node2 = MakeTextAtRowCol(GetCyclerValueText(row), row, 1);
 	node2->MoveCall = MoveAction;
 	return node2;
 }
 
-static void LayOutCycler(
-		int row,
-		float sweepFactor)
+static void LayOutCycler(int row, float sweepFactor)
 {
 	DECLARE_WORKBUF(buf, bufSize);
 
@@ -1110,6 +1130,19 @@ static void LayOutCycler(
 
 	ObjNode* node2 = LayOutCyclerValueText(row);
 	node2->SpecialSweepTimer = sweepFactor;
+}
+
+static void LayOutCMRCycler(int row, float sweepFactor)
+{
+	DECLARE_WORKBUF(buf, bufSize);
+
+	const MenuItem* entry = &gNav->menu[row];
+
+	snprintf(buf, bufSize, "%s: %s", GetMenuItemLabel(entry), GetCyclerValueText(row));
+
+	ObjNode* node = MakeTextAtRowCol(buf, row, 0);
+	node->MoveCall = MoveAction;
+	node->SpecialSweepTimer = sweepFactor;
 }
 
 static void LayOutMenu(const MenuItem* menu)
@@ -1205,6 +1238,12 @@ static void LayOutMenu(const MenuItem* menu)
 			case kMenuItem_Cycler:
 			{
 				LayOutCycler(row, sweepFactor);
+				break;
+			}
+
+			case kMenuItem_CMRCycler:
+			{
+				LayOutCMRCycler(row, sweepFactor);
 				break;
 			}
 

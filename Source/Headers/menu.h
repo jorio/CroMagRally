@@ -15,6 +15,7 @@ typedef enum
 //	kMenuItem_Submenu,
 	kMenuItem_Spacer,
 	kMenuItem_Cycler,
+	kMenuItem_CMRCycler,
 	kMenuItem_KeyBinding,
 	kMenuItem_PadBinding,
 	kMenuItem_MouseBinding,
@@ -40,14 +41,12 @@ typedef struct MenuItem
 	{
 		Byte*			valuePtr;
 		bool			callbackSetsValue;
-
-		uint8_t			numChoices;
-		LocStrID		choices[MAX_MENU_CYCLER_CHOICES];	// localizable strings
-
-		uint8_t			(*generateNumChoices)(void);
-		const char*		(*generateChoiceString)(char* buf, int bufSize, Byte value);
+		struct
+		{
+			LocStrID	text;
+			uint8_t		value;
+		} choices[MAX_MENU_CYCLER_CHOICES];
 	} cycler;
-
 
 	int 				kb;  // keybinding
 } MenuItem;
