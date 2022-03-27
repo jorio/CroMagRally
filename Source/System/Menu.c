@@ -122,7 +122,7 @@ typedef struct
 	const MenuItem*		menu;
 	const MenuItem*		rootMenu;
 	MenuStyle			style;
-	int					menuStack[MAX_STACK_LENGTH];
+	const MenuItem*		menuStack[MAX_STACK_LENGTH];
 	int					menuStackPos;
 	int					numMenuEntries;
 	int					menuRow;
@@ -421,13 +421,18 @@ void MenuCallback_Back(const MenuItem* mi)
 {
 	MyFlushEvents();
 
-	if (gNav->menu != gNav->rootMenu)
+	if (gNav->menuStackPos != 0)
 	{
-		LayOutMenu(gNav->rootMenu);
+		gNav->menuStackPos--;
+		LayOutMenu(gNav->menuStack[gNav->menuStackPos]);
 	}
 	else if (gNav->style.canBackOutOfRootMenu)
 	{
 		gNav->menuState = kMenuStateFadeOut;
+	}
+	else
+	{
+		PlayEffect(EFFECT_BADSELECT);
 	}
 }
 
@@ -461,7 +466,12 @@ static void NavigateSettingEntriesVertically(int delta)
 
 static void NavigateSettingEntriesMouseHover(void)
 {
-	puts(__func__);
+	static bool todoShown = false;
+	if (!todoShown)
+	{
+		printf("TODO: %s\n", __func__);
+		todoShown = true;
+	}
 #if 0
 	if (!gMouseMotionNow)
 		return;
@@ -550,8 +560,12 @@ static void NavigatePick(const MenuItem* entry)
 
 		if (entry->gotoMenu > 0)
 		{
-			LayOutMenu(gNav->menuTree[entry->gotoMenu]);
-			//MenuCallback_Back(entry);
+			const MenuItem* newMenu = gNav->menuTree[entry->gotoMenu];
+
+			gNav->menuStackPos++;
+			gNav->menuStack[gNav->menuStackPos] = newMenu;
+
+			LayOutMenu(newMenu);
 		}
 		else if (entry->gotoMenu < 0)
 		{
@@ -1154,6 +1168,7 @@ static void LayOutMenu(const MenuItem* menu)
 	if (gNav->menu == gNav->rootMenu)				// save position in root menu
 		gNav->lastRowOnRootMenu = gNav->menuRow;
 
+	gNav->menuStack[gNav->menuStackPos] = menu;
 	gNav->menu			= menu;
 	gNav->numMenuEntries	= 0;
 	gNav->menuPick		= -1;
@@ -1229,7 +1244,6 @@ static void LayOutMenu(const MenuItem* menu)
 //			case kMenuItem_Submenu:
 			{
 				ObjNode* node = MakeTextAtRowCol(GetMenuItemLabel(entry), row, 0);
-				puts(GetMenuItemLabel(entry));
 				node->MoveCall = MoveAction;
 				node->SpecialSweepTimer = sweepFactor;
 				break;
