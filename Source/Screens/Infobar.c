@@ -629,11 +629,7 @@ float		x,y,scale, spacing, fontScale;
 	snprintf(s, sizeof(s), "%d", q);
 
 	x += spacing;
-	for (int i = 0; s[i]; i++)
-	{
-		TextMesh_DrawImmediate(s[i], x, y, fontScale, 0, 0, setupInfo);
-		x += FONT_WIDTH * fontScale;
-	}
+	TextMesh_DrawImmediate(s, x, y, fontScale, 0, 0, setupInfo);
 
 
 	gGlobalColorFilter.r = 1;
@@ -825,11 +821,7 @@ static const OGLColorRGB noTint = {1,1,1};
 		snprintf(s, sizeof(s), "%d", (int) (timer+.5f));
 
 		x2 = x + spacing;
-		for (int n = 0; s[n]; n++)
-		{
-			TextMesh_DrawImmediate(s[n], x2, y, fontScale, 0, 0, setupInfo);
-			x2 += FONT_WIDTH * fontScale;
-		}
+		TextMesh_DrawImmediate(s, x2, y, fontScale, 0, 0, setupInfo);
 
 		y -= lineSpacing;												// move down to prep for next item
 
@@ -856,11 +848,7 @@ static const OGLColorRGB noTint = {1,1,1};
 		snprintf(s, sizeof(s), "%d", (int) (timer+.5f));
 
 		x2 = x + spacing;
-		for (int n = 0; s[n]; n++)
-		{
-			TextMesh_DrawImmediate(s[n], x2, y, fontScale, 0, 0, setupInfo);
-			x2 += FONT_WIDTH * fontScale;
-		}
+		TextMesh_DrawImmediate(s, x2, y, fontScale, 0, 0, setupInfo);
 		gGlobalColorFilter = noTint;
 
 		y -= lineSpacing;												// move down to prep for next item
@@ -886,11 +874,7 @@ static const OGLColorRGB noTint = {1,1,1};
 		snprintf(s, sizeof(s), "%d", (int) (timer+.5f));
 
 		x2 = x + spacing;
-		for (int n = 0; s[n]; n++)
-		{
-			TextMesh_DrawImmediate(s[n], x2, y, fontScale, 0, 0, setupInfo);
-			x2 += FONT_WIDTH * fontScale;
-		}
+		TextMesh_DrawImmediate(s, x2, y, fontScale, 0, 0, setupInfo);
 		gGlobalColorFilter = noTint;
 
 		y -= lineSpacing;												// move down to prep for next item
@@ -916,11 +900,7 @@ static const OGLColorRGB noTint = {1,1,1};
 		snprintf(s, sizeof(s), "%d", (int) (timer+.5f));
 
 		x2 = x + spacing;
-		for (int n = 0; s[n]; n++)
-		{
-			TextMesh_DrawImmediate(s[n], x2, y, fontScale, 0, 0, setupInfo);
-			x2 += FONT_WIDTH * fontScale;
-		}
+		TextMesh_DrawImmediate(s, x2, y, fontScale, 0, 0, setupInfo);
 		gGlobalColorFilter = noTint;
 
 		y -= lineSpacing;												// move down to prep for next item
@@ -946,11 +926,7 @@ static const OGLColorRGB noTint = {1,1,1};
 		snprintf(s, sizeof(s), "%d", (int) (timer+.5f));
 
 		x2 = x + spacing;
-		for (int n = 0; s[n]; n++)
-		{
-			TextMesh_DrawImmediate(s[n], x2, y, fontScale, 0, 0, setupInfo);
-			x2 += FONT_WIDTH * fontScale;
-		}
+		TextMesh_DrawImmediate(s, x2, y, fontScale, 0, 0, setupInfo);
 		gGlobalColorFilter = noTint;
 
 		y -= lineSpacing;												// move down to prep for next item
@@ -976,11 +952,7 @@ static const OGLColorRGB noTint = {1,1,1};
 		snprintf(s, sizeof(s), "%d", (int) (timer+.5f));
 
 		x2 = x + spacing;
-		for (int n = 0; s[n]; n++)
-		{
-			TextMesh_DrawImmediate(s[n], x2, y, fontScale, 0, 0, setupInfo);
-			x2 += FONT_WIDTH * fontScale;
-		}
+		TextMesh_DrawImmediate(s, x2, y, fontScale, 0, 0, setupInfo);
 		gGlobalColorFilter = noTint;
 
 		y -= lineSpacing;												// move down to prep for next item

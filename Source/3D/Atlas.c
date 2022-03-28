@@ -643,7 +643,7 @@ void TextMesh_DrawExtents(ObjNode* textNode)
 	OGL_PopState();
 }
 
-void TextMesh_DrawImmediate(int codepoint, float x, float y, float scale, float rot, uint32_t flags, const OGLSetupOutputType *setupInfo)
+void TextMesh_DrawImmediate(const char* text, float x, float y, float scale, float rot, uint32_t flags, const OGLSetupOutputType *setupInfo)
 {
 			/* SET STATE */
 
@@ -660,13 +660,10 @@ void TextMesh_DrawImmediate(int codepoint, float x, float y, float scale, float 
 	if (flags & SPRITE_FLAG_GLOW)
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE);
 
-	const AtlasGlyph* glyph = GetGlyphFromCodepoint(codepoint);
-
-	float spriteAspectRatio = glyph->h / (float)glyph->w;
-	float scaleBasis = glyph->w  *  (1.0f/SPRITE_SCALE_BASIS_DENOMINATOR);		// calculate a scale basis to keep things scaled relative to texture size
-
 	glTranslatef(x,y,0);
-	glScalef(scale * scaleBasis, scale * gCurrentAspectRatio * spriteAspectRatio * scaleBasis, 1);
+
+	float scaleBasis = 2.0f / SPRITE_SCALE_BASIS_DENOMINATOR;
+	glScalef(scale * scaleBasis, scale * gCurrentAspectRatio * scaleBasis, 1);
 
 	if (rot != 0.0f)
 		glRotatef(OGLMath_RadiansToDegrees(rot), 0, 0, 1);											// remember:  rotation is in degrees, not radians!
@@ -676,34 +673,49 @@ void TextMesh_DrawImmediate(int codepoint, float x, float y, float scale, float 
 
 	MO_DrawMaterial(gFontMaterial, setupInfo);
 
-    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);						// set clamp mode after each texture set since OGL just likes it that way
-    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);						// set clamp mode after each texture set since OGL just likes it that way
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
 
 			/* DRAW IT */
 
 	const float invAtlasW = 1.0f / gFontAtlasWidth;
 	const float invAtlasH = 1.0f / gFontAtlasHeight;
-	const float gl = invAtlasW * glyph->x;
-	const float gt = invAtlasH * glyph->y;
-	const float gr = invAtlasW * (glyph->x + glyph->w);
-	const float gb = invAtlasH * (glyph->y + glyph->h);
 
 	glBegin(GL_QUADS);
-	glTexCoord2f(gl,gt);	glVertex3f(-1,  1, 0);
-	glTexCoord2f(gr,gt);	glVertex3f(1,   1, 0);
-	glTexCoord2f(gr,gb);	glVertex3f(1,  -1, 0);
-	glTexCoord2f(gl,gb);	glVertex3f(-1, -1, 0);
-	glEnd();
+	float cx = -32;  // hack to make text origin fit where CMR infobar expects it
+	float cy = -32;
+	for (const char* utftext = text; *utftext; )
+	{
+		uint32_t codepoint = ReadNextCodepointFromUTF8(&utftext);
+		const AtlasGlyph* glyph = GetGlyphFromCodepoint(codepoint);
 
+		const float gl = invAtlasW * glyph->x;
+		const float gt = invAtlasH * glyph->y;
+		const float gr = invAtlasW * (glyph->x + glyph->w);
+		const float gb = invAtlasH * (glyph->y + glyph->h);
+
+		float halfw = .5f * glyph->w;
+		float halfh = .5f * glyph->h;
+		float qx = cx + (glyph->xoff + halfw);
+		float qy = cy + (glyph->yoff + halfh);
+
+		glTexCoord2f(gl,gt);	glVertex3f(qx - halfw, qy + halfh, 0);
+		glTexCoord2f(gr,gt);	glVertex3f(qx + halfw, qy + halfh, 0);
+		glTexCoord2f(gr,gb);	glVertex3f(qx + halfw, qy - halfh, 0);
+		glTexCoord2f(gl,gb);	glVertex3f(qx - halfw, qy - halfh, 0);
+
+		cx += glyph->xadv * Kern(codepoint, *utftext);
+
+		gPolysThisFrame += 2;						// 2 tris drawn
+	}
+	glEnd();
 
 		/* CLEAN UP */
 
-    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);						// set this back to normal
-    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);						// set this back to normal
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
 
 	OGL_PopState();									// restore state
-
-	gPolysThisFrame += 2;						// 2 tris drawn
 }

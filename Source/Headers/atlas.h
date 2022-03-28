@@ -19,4 +19,4 @@ void TextMesh_Update(const char* text, int align, ObjNode* textNode);
 float TextMesh_GetCharX(const char* text, int n);
 OGLRect TextMesh_GetExtents(ObjNode* textNode);
 void TextMesh_DrawExtents(ObjNode* textNode);
-void TextMesh_DrawImmediate(int codepoint, float x, float y, float scale, float rot, uint32_t flags, const OGLSetupOutputType *setupInfo);
+void TextMesh_DrawImmediate(const char* text, float x, float y, float scale, float rot, uint32_t flags, const OGLSetupOutputType *setupInfo);
