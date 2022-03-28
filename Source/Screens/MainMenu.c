@@ -496,14 +496,7 @@ OGLVector3D			fillDirection2 = { -1, -.2, -.5 };
 		DoFatalAlert("SetupMainMenuScreen: MO_CreateNewObjectOfType failed");
 
 
-			/* LOAD SPRITES */
-
-	TextMesh_LoadFont(gGameViewInfoPtr, "wallfont");
-
-
 			/* SETUP TITLE MENU */
-
-//	BuildMenu(MENU_ID_TITLE);
 
 	MakeFadeEvent(true);
 }
@@ -525,7 +518,6 @@ static void FreeMainMenuArt(void)
 	DeleteAllObjects();
 	MO_DisposeObjectReference(gBackgoundPicture);
 	DisposeAllSpriteGroups();
-	TextMesh_DisposeFont();
 	OGL_DisposeWindowSetup(&gGameViewInfoPtr);
 }
 

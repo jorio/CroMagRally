@@ -113,6 +113,7 @@ OGLSetupInputType	viewDef;
 	viewDef.view.clearColor.b		= 0;
 	viewDef.styles.useFog			= false;
 	viewDef.view.pillarbox4x3		= true;
+	viewDef.view.fontName			= "rockfont";
 
 	OGL_SetupWindow(&viewDef, &gGameViewInfoPtr);
 
@@ -126,8 +127,6 @@ OGLSetupInputType	viewDef;
 
 
 			/* CREATE TEXT */
-
-	TextMesh_LoadFont(gGameViewInfoPtr, "rockfont");
 
 	if (doKeyText)
 	{
@@ -192,8 +191,6 @@ OGLSetupInputType	viewDef;
 	DeleteAllObjects();
 	MO_DisposeObjectReference(gBackgoundPicture);
 	DisposeAllSpriteGroups();
-
-	TextMesh_DisposeFont();
 
 
 			/* FADE OUT */
@@ -396,8 +393,6 @@ static const char* names[] =
 
 			/* LOAD SPRITES */
 
-	TextMesh_LoadFont(gGameViewInfoPtr, "wallfont");
-
 	InitParticleSystem(gGameViewInfoPtr);
 
 
@@ -447,7 +442,6 @@ static void FreeConqueredScreen(void)
 	MO_DisposeObjectReference(gBackgoundPicture);
 	DisposeAllSpriteGroups();
 	DisposeAllBG3DContainers();
-	TextMesh_DisposeFont();
 	OGL_DisposeWindowSetup(&gGameViewInfoPtr);
 }
 
@@ -587,8 +581,6 @@ OGLSetupInputType	viewDef;
 
 			/* LOAD SPRITES */
 
-	TextMesh_LoadFont(gGameViewInfoPtr, "wallfont");
-
 	InitParticleSystem(gGameViewInfoPtr);
 
 
@@ -670,7 +662,6 @@ static void FreeWinScreen(void)
 	DisposeAllSpriteGroups();
 	FreeAllSkeletonFiles(-1);
 	DisposeAllBG3DContainers();
-	TextMesh_DisposeFont();
 	OGL_DisposeWindowSetup(&gGameViewInfoPtr);
 }
 
@@ -926,6 +917,7 @@ static const float sizes[] =
 	viewDef.camera.from[0].y		= 0;
 	viewDef.view.clearColor 		= (OGLColorRGBA) { .49f, .39f, .29f, 1 };
 	viewDef.view.pillarbox4x3		= true;
+	viewDef.view.fontName			= "rockfont";
 
 	OGL_SetupWindow(&viewDef, &gGameViewInfoPtr);
 
@@ -944,10 +936,6 @@ static const float sizes[] =
 	if (!gBackgoundPicture)
 		DoFatalAlert("SetupCreditsScreen: MO_CreateNewObjectOfType failed");
 
-
-			/* LOAD SPRITES */
-
-	TextMesh_LoadFont(gGameViewInfoPtr, "rockfont");
 
 
 			/*****************/
@@ -1008,7 +996,6 @@ static void FreeCreditsScreen(void)
 	DeleteAllObjects();
 	MO_DisposeObjectReference(gBackgoundPicture);
 	DisposeAllSpriteGroups();
-	TextMesh_DisposeFont();
 	DisposeAllBG3DContainers();
 	OGL_DisposeWindowSetup(&gGameViewInfoPtr);
 }

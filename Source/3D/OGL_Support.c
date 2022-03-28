@@ -25,6 +25,7 @@
 #include "file.h"
 #include "sound2.h"
 #include "stb_image.h"
+#include "atlas.h"
 #include <string.h>
 
 extern SDL_Window*		gSDLWindow;
@@ -146,6 +147,8 @@ static OGLVector3D			fillDirection2 = { -1, -.3, -.3 };
 	viewDef->view.clip.bottom 	= 0;
 	viewDef->view.numPanes	 	= 1;				// assume only 1 pane
 	viewDef->view.clearBackBuffer = true;
+	viewDef->view.pillarbox4x3	= true;
+	viewDef->view.fontName		= "wallfont";
 
 	for (int i = 0; i < MAX_SPLITSCREENS; i++)
 	{
@@ -227,7 +230,7 @@ OGLSetupOutputType	*outputPtr;
 	*outputHandle = outputPtr;											// return value to caller
 
 
-//	TextMesh_InitMaterial(outputPtr, setupDefPtr->styles.redFont);
+	TextMesh_LoadFont(outputPtr, setupDefPtr->view.fontName);
 	OGL_InitFont();
 
 	if (outputPtr->pillarbox4x3)
@@ -255,7 +258,7 @@ OGLSetupOutputType	*data;
 
 			/* KILL FONT MATERIAL */
 
-//	TextMesh_DisposeMaterial();
+	TextMesh_DisposeFont();
 
 			/* KILL PILLARBOX TEXTURE, IF ANY */
 	

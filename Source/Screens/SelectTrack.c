@@ -213,8 +213,6 @@ OGLSetupInputType	viewDef;
 
 			/* LOAD SPRITES */
 
-	TextMesh_LoadFont(gGameViewInfoPtr, "wallfont");
-
 	switch(gGameMode)
 	{
 		case	GAME_MODE_PRACTICE:
@@ -302,7 +300,6 @@ static void FreeTrackSelectArt(void)
 	DeleteAllObjects();
 	MO_DisposeObjectReference(gBackgoundPicture);
 	DisposeAllSpriteGroups();
-	TextMesh_DisposeFont();
 }
 
 

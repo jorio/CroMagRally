@@ -156,6 +156,7 @@ typedef	struct
 	Rect					clip;			// left = amount to clip off left, etc.
 	int						numPanes;
 	Boolean					pillarbox4x3;
+	const char*				fontName;
 }OGLViewDefType;
 
 

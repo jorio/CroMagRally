@@ -1184,12 +1184,10 @@ short				numPanes;
 	viewDef.view.clearColor.r 		= 0;
 	viewDef.view.clearColor.g 		= 0;
 	viewDef.view.clearColor.b		= 0;
+	viewDef.view.clearBackBuffer	= true;
 	viewDef.view.numPanes			= numPanes;
-
-//	if (gTrackNum == TRACK_NUM_CHINA)
-		viewDef.view.clearBackBuffer	= true;
-//	else
-//		viewDef.view.clearBackBuffer	= false;
+	viewDef.view.pillarbox4x3		= false;
+	viewDef.view.fontName			= "rockfont";
 
 	viewDef.styles.useFog			= false;
 	viewDef.styles.fogStart			= viewDef.camera.yon * .1f;
@@ -1352,7 +1350,6 @@ short				numPanes;
 			// NOTE: only call this *after* draw context is created!
 			//
 
-	TextMesh_LoadFont(gGameViewInfoPtr, "rockfont");
 	LoadLevelArt(gGameViewInfoPtr);
 	InitInfobar(gGameViewInfoPtr);
 
@@ -1401,7 +1398,6 @@ static void CleanupLevel(void)
 	DisposeInfobar();
 	DisposeParticleSystem();
 	DisposeAllSpriteGroups();
-	TextMesh_DisposeFont();
 	DisposeFences();
 
 	DisposeAllBG3DContainers();

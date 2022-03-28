@@ -194,8 +194,6 @@ ObjNode	*newObj;
 
 			/* LOAD SPRITES */
 
-	TextMesh_LoadFont(gGameViewInfoPtr, "wallfont");
-
 	FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":sprites:charselect.sprites", &spec);
 	LoadSpriteFile(&spec, SPRITE_GROUP_CHARACTERSELECTSCREEN, gGameViewInfoPtr);
 
@@ -278,7 +276,6 @@ static void FreeCharacterSelectArt(void)
 	MO_DisposeObjectReference(gBackgoundPicture);
 	FreeAllSkeletonFiles(-1);
 	DisposeAllSpriteGroups();
-	TextMesh_DisposeFont();
 	DisposeAllBG3DContainers();
 }
 

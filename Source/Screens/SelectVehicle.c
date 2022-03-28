@@ -282,8 +282,6 @@ uint32_t				n;
 	FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":sprites:vehicleselect.sprites", &spec);
 	LoadSpriteFile(&spec, SPRITE_GROUP_VEHICLESELECTSCREEN, gGameViewInfoPtr);
 
-	TextMesh_LoadFont(gGameViewInfoPtr, "wallfont");
-
 
 			/* LOAD MODELS */
 
@@ -415,7 +413,6 @@ static void FreeVehicleSelectArt(void)
 	MO_DisposeObjectReference(gBackgoundPicture);
 	DisposeAllSpriteGroups();
 	DisposeAllBG3DContainers();
-	TextMesh_DisposeFont();
 	OGL_DisposeWindowSetup(&gGameViewInfoPtr);
 }
 
