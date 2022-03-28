@@ -26,9 +26,8 @@ typedef void* NSpPlayerLeftMessage;
 extern	short	gNumRealPlayers,gMyNetworkPlayerNum,gNumTotalPlayers;
 extern	float	gFramesPerSecond,gFramesPerSecondFrac;
 extern	PlayerInfoType	gPlayerInfo[];
-extern	Boolean	gGameOver,gSavedPlayerIsLoaded;
+extern	Boolean	gGameOver;
 extern	int		gGameMode,gTheAge,gTrackNum;
-extern	SavePlayerType	gPlayerSaveData;
 extern	Boolean						gSongPlayingFlag;
 extern	PrefsType			gGamePrefs;
 
@@ -872,6 +871,8 @@ got_config:
 
 static void HandleGameConfigMessage(NetConfigMessageType *inMessage)
 {
+	IMPLEMENT_ME_SOFT();
+#if 0
 	gGameMode 			= inMessage->gameMode;
 	gTheAge 			= inMessage->age;
 	gTrackNum 			= inMessage->trackNum;
@@ -880,9 +881,10 @@ static void HandleGameConfigMessage(NetConfigMessageType *inMessage)
 	gGamePrefs.difficulty = inMessage->difficulty;
 	gGamePrefs.tagDuration = inMessage->tagDuration;
 
-	if ((inMessage->numAgesCompleted & AGE_MASK_AGE) > (gPlayerSaveData.numAgesCompleted & AGE_MASK_AGE))	// if better than our current game, then pseudo-logout that saved game
+	if ((inMessage->numAgesCompleted & AGE_MASK_AGE) > GetNumAgesCompleted())	// if better than our current game, then pseudo-logout that saved game
 		gSavedPlayerIsLoaded = false;
 	gPlayerSaveData.numAgesCompleted = inMessage->numAgesCompleted;
+#endif
 }
 
 

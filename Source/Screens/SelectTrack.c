@@ -44,7 +44,6 @@ extern	Boolean					gNetGameInProgress,gIsNetworkClient;
 extern	OGLSetupOutputType		*gGameViewInfoPtr;
 extern	OGLVector3D		gDelta;
 extern	int				gTrackNum, gGameMode;
-extern	SavePlayerType	gPlayerSaveData;
 
 
 /****************************/
@@ -354,7 +353,7 @@ short				highestUnlocked;
 	switch(gGameMode)
 	{
 		case	GAME_MODE_PRACTICE:
-				highestUnlocked = gNumTracksUnlocked[gPlayerSaveData.numAgesCompleted & AGE_MASK_AGE]-1;
+				highestUnlocked = gNumTracksUnlocked[GetNumAgesCompleted()]-1;
 				break;
 
 		default:
@@ -379,7 +378,7 @@ static Boolean DoTrackSelectControls(void)
 short				highestUnlocked;
 
 	if (gGameMode ==	GAME_MODE_PRACTICE)
-		highestUnlocked = gNumTracksUnlocked[gPlayerSaveData.numAgesCompleted & AGE_MASK_AGE]-1;
+		highestUnlocked = gNumTracksUnlocked[GetNumAgesCompleted()] - 1;
 	else
 		highestUnlocked = 1000;
 

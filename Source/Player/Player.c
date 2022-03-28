@@ -45,7 +45,6 @@ extern	long					gNumCheckpoints;
 extern	int						gGameMode,gTrackNum,gNumSplitScreenPanes;
 extern	Boolean				gTrackCompleted;
 extern	float				gTrackCompletedCoolDownTimer;
-extern	SavePlayerType		gPlayerSaveData;
 extern	PrefsType			gGamePrefs;
 
 /****************************/
@@ -198,7 +197,7 @@ Boolean	taken[MAX_CAR_TYPES];
 	}
 
 
-	i = gPlayerSaveData.numAgesCompleted & AGE_MASK_AGE;
+	i = GetNumAgesCompleted();
 	if (i > 2)														// dont get extra cars after winning, so pin @ 2
 		i = 2;
 	type = 6 + (i * 2)-1;											// start @ end of usable cars so it will pick best cars

@@ -54,6 +54,10 @@ typedef struct
 
 typedef struct
 {
+	char	playerName[64];
+	Byte	numAgesCompleted;
+	Byte	numStagesCompleted;
+
 	Byte	difficulty;
 	Byte	desiredSplitScreenMode;
 	Byte	language;
@@ -71,33 +75,21 @@ typedef struct
 #define PREFS_FOLDER_NAME "CroMagRally"
 #define PREFS_FILE_PATH (":" PREFS_FOLDER_NAME ":Prefs")
 
-
-		/* SAVE PLAYER */
-
-typedef struct
-{
-	Byte		numAgesCompleted;		// encode # ages in lower 4 bits, and stage in upper 4 bits
-	Str255		playerName;
-}SavePlayerType;
-
-
-
-
-
 //=================================================
 
 SkeletonDefType *LoadSkeletonFile(short skeletonType, OGLSetupOutputType *setupInfo);
 extern	void	OpenGameFile(Str255 filename,short *fRefNumPtr, Str255 errString);
 extern	OSErr LoadPrefs(PrefsType *prefBlock);
 void SavePrefs(void);
-
 void LoadPlayfield(FSSpec *specPtr);
 void LoadLevelArt(OGLSetupOutputType *setupInfo);
 void SetDefaultDirectory(void);
 
 void SetDefaultPlayerSaveData(void);
-void DoSavedPlayerDialog(void);
 void SavePlayerFile(void);
+int GetNumAgesCompleted(void);
+int GetNumStagesCompleted(void);
+void SetPlayerProgression(int age, int stage);
 
 Ptr LoadFileData(const FSSpec* spec, long* outLength);
 

@@ -57,7 +57,6 @@ extern	float		gGlobalTransparency;
 extern	signed char	gNumEnemyOfKind[];
 extern	int			gMaxItemsAllocatedInAPass,gNumObjectNodes;
 extern	PlayerInfoType	gPlayerInfo[];
-extern	SavePlayerType	gPlayerSaveData;
 extern	PrefsType	gGamePrefs;
 extern	Boolean		gAutoPilot;
 extern	Byte		gActiveSplitScreenMode;
@@ -308,7 +307,7 @@ select_track:
 
 	if (gIsSelfRunningDemo)									// auto-pick if SRD
 	{
-		switch(gPlayerSaveData.numAgesCompleted & AGE_MASK_AGE)
+		switch (GetNumAgesCompleted())
 		{
 			case	0:
 					gTrackNum = RandomRange(0,2);			// randomly pick tracks 0..2
@@ -345,7 +344,7 @@ select_sex:
 	{
 		gPlayerInfo[0].sex = MyRandomLong() & 1;
 
-		switch(gPlayerSaveData.numAgesCompleted & AGE_MASK_AGE)
+		switch (GetNumAgesCompleted())
 		{
 			case	0:
 					gPlayerInfo[0].vehicleType = RandomRange(0, 5);
@@ -451,13 +450,13 @@ short	placeToWin,startStage;
 					/* PLAY EACH  LEVEL OF THIS AGE */
 					/********************************/
 
-		if ((gPlayerSaveData.numAgesCompleted & AGE_MASK_AGE) == 3)					// if won game, then start stage @ 0
+		if (GetNumAgesCompleted() >= 3)					// if won game, then start stage @ 0
 			startStage = 0;
 		else
 		if (gGamePrefs.difficulty >= DIFFICULTY_HARD)								// always start @ stage 0 in hard modes
 			startStage = 0;
 		else
-			startStage = (gPlayerSaveData.numAgesCompleted & AGE_MASK_STAGE) >> 4;	// otherwise start were we last were
+			startStage = GetNumStagesCompleted();									// otherwise start where we last were
 
 		for (gTournamentStage = startStage; gTournamentStage < 3; gTournamentStage++)
 		{
@@ -497,12 +496,11 @@ short	placeToWin,startStage;
 
 			if (!gGameOver)																// dont do anything if we failed or bailed
 			{
-				if (gTheAge == (gPlayerSaveData.numAgesCompleted & AGE_MASK_AGE))		// only if this is the age we're working on winning
+				if (gTheAge == GetNumAgesCompleted())									// only if this is the age we're working on winning
 				{
 					if (gTournamentStage < 2)											// inc stage counter if needed
 					{
-						gPlayerSaveData.numAgesCompleted &= AGE_MASK_AGE;				// clear stage nibble
-						gPlayerSaveData.numAgesCompleted |= (gTournamentStage+1) << 4;	// insert incremented counter
+						SetPlayerProgression(gTheAge, gTournamentStage + 1);
 						SavePlayerFile();
 					}
 				}
@@ -521,9 +519,9 @@ short	placeToWin,startStage;
 
 			/* NEXT AGE */
 
-		if (gTheAge >= (gPlayerSaveData.numAgesCompleted & AGE_MASK_AGE))	// inc player's age completion value
+		if (gTheAge >= GetNumAgesCompleted())								// inc player's age completion value
 		{
-			gPlayerSaveData.numAgesCompleted = gTheAge + 1;					// also resets STAGE back to 0
+			SetPlayerProgression(gTheAge + 1, 0);
 			SavePlayerFile();
 		}
 

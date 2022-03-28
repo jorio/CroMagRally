@@ -37,7 +37,7 @@
 extern	float				gFramesPerSecondFrac,gFramesPerSecond;
 extern	WindowPtr			gCoverWindow;
 extern	FSSpec		gDataSpec;
-extern	Boolean		gNetGameInProgress,gSavedPlayerIsLoaded,gIsSelfRunningDemo;
+extern	Boolean		gNetGameInProgress,gIsSelfRunningDemo;
 extern	KeyMap gKeyMap,gNewKeys;
 extern	short		gNumRealPlayers,gNumLocalPlayers, gMyNetworkPlayerNum;
 extern	NewObjectDefinitionType	gNewObjectDefinition;
@@ -48,7 +48,6 @@ extern	MOPictureObject 	*gBackgoundPicture;
 extern	OGLSetupOutputType		*gGameViewInfoPtr;
 extern	int			gGameMode,gTheAge;
 extern	Byte		gActiveSplitScreenMode;
-extern	SavePlayerType	gPlayerSaveData;
 extern	const short gNumTracksUnlocked[];
 extern	int		gVehicleParameters[MAX_CAR_TYPES+1][NUM_VEHICLE_PARAMETERS];
 extern	float	gSteeringResponsiveness,gCarMaxTightTurn,gCarTurningRadius,gTireTractionConstant,gTireFrictionConstant,gCarGravity,gSlopeRatioAdjuster;
@@ -182,7 +181,7 @@ static void OnPickLanguage(const MenuItem* mi)
 
 static bool IsTournamentAgeAvailable(const MenuItem* mi)
 {
-	return mi->id < (gPlayerSaveData.numAgesCompleted & AGE_MASK_AGE);
+	return mi->id < GetNumAgesCompleted();
 }
 
 static const MenuItem

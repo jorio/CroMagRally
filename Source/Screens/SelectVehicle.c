@@ -44,7 +44,6 @@ extern	Boolean					gNetGameInProgress,gIsNetworkClient;
 extern	OGLSetupOutputType		*gGameViewInfoPtr;
 extern	OGLVector3D		gDelta;
 extern	PlayerInfoType	gPlayerInfo[];
-extern	SavePlayerType	gPlayerSaveData;
 extern	int				gTrackNum,gGameMode;
 
 
@@ -228,7 +227,7 @@ uint32_t				n;
 	gVehicleName = nil;
 	gSelectedVehicleIndex = 0;
 
-	i = gPlayerSaveData.numAgesCompleted & AGE_MASK_AGE;
+	i = GetNumAgesCompleted();
 	if (i > 2)												// prevent extra cars after winning Iron Age
 		i = 2;
 	gNumVehiclesToChooseFrom = 6 + (i * 2);					// set # cars we can pick from
