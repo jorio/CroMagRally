@@ -42,7 +42,7 @@ extern	float	g2DLogicalHeight;
 extern	SDL_GameController* gSDLController;
 
 #define DECLARE_WORKBUF(buf, bufSize) char (buf)[256]; const int (bufSize) = 256
-#define DECLARE_STATIC_WORKBUF(buf, bufSize) static char (buf)[256]; static const int (bufSize) 
+#define DECLARE_STATIC_WORKBUF(buf, bufSize) static char (buf)[256]; static const int (bufSize) = 256
 
 #define UpdateInput() DoSDLMaintenance()
 #define UserWantsOut() AreAnyNewKeysPressed()
@@ -672,8 +672,6 @@ static void NavigateCycler(const MenuItem* entry)
 
 		if (entry->cycler.valuePtr && !entry->cycler.callbackSetsValue)
 		{
-			unsigned int value = (unsigned int)*entry->cycler.valuePtr;
-
 			int index = GetValueIndexInCycler(entry, *entry->cycler.valuePtr);
 			if (index >= 0)
 				index = PositiveModulo(index + delta, GetCyclerNumChoices(entry));
@@ -1410,7 +1408,7 @@ int StartMenuTree(
 		void (*updateRoutine)(void),
 		void (*backgroundDrawRoutine)(OGLSetupOutputType *))
 {
-	int cursorStateBeforeMenu = SDL_ShowCursor(-1);
+//	int cursorStateBeforeMenu = SDL_ShowCursor(-1);
 //	gStandardCursor = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_ARROW);
 //	gHandCursor = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_HAND);
 	SDL_ShowCursor(1);
