@@ -26,6 +26,7 @@
 #include "sound2.h"
 #include "stb_image.h"
 #include "atlas.h"
+#include "objects.h"
 #include <string.h>
 
 extern SDL_Window*		gSDLWindow;
@@ -106,6 +107,7 @@ int			gVRAMUsedThisFrame = 0;
 Boolean		gMyState_Lighting;
 
 static ObjNode* gDebugText;
+static char gDebugTextBuffer[256];
 
 
 /******************** OGL BOOT *****************/
@@ -746,60 +748,31 @@ void OGL_DrawScene(OGLSetupOutputType *setupInfo, void (*drawRoutine)(OGLSetupOu
 
 	if (gDebugMode > 0)
 	{
-		IMPLEMENT_ME_SOFT();
-#if 0
-		int		y = 200;
-		int		mem = FreeMem();
-
-		if (mem < gMinRAM)		// poll for lowest RAM free
-			gMinRAM = mem;
-
-		OGL_DrawString("fps:", 20,y);
-		OGL_DrawInt(gFramesPerSecond+.5f, 100,y);
-		y += 15;
-
-		OGL_DrawString("#tri:", 20,y);
-		OGL_DrawInt(gPolysThisFrame, 100,y);
-		y += 15;
-
-		OGL_DrawString("tri/sec:", 20,y);
-		OGL_DrawInt((float)gPolysThisFrame * gFramesPerSecond, 100,y);
-		y += 15;
-
-		OGL_DrawString("#pgroups:", 20,y);
-		OGL_DrawInt(gNumActiveParticleGroups, 100,y);
-		y += 15;
-
-		OGL_DrawString("#objNodes:", 20,y);
-		OGL_DrawInt(gNumObjectNodes, 100,y);
-		y += 15;
-
-//		OGL_DrawString("#fences:", 20,y);
-//		OGL_DrawInt(gNumFencesDrawn, 100,y);
-//		y += 15;
-
-		OGL_DrawString("#free RAM:", 20,y);
-		OGL_DrawInt(mem, 100,y);
-		y += 15;
-
-		OGL_DrawString("min RAM:", 20,y);
-		OGL_DrawInt(gMinRAM, 100,y);
-		y += 15;
-
-		OGL_DrawString("used VRAM:", 20,y);
-		OGL_DrawInt(gVRAMUsedThisFrame, 100,y);
-		y += 15;
-
-		OGL_DrawString("OGL Mem:", 20,y);
-		OGL_DrawInt(glmGetInteger(GLM_CURRENT_MEMORY), 100,y);
-		y += 15;
-
-//		OGL_DrawString("# pointers:", 20,y);
-//		OGL_DrawInt(gNumPointers, 100,y);
-//		y += 15;
-
-
-#endif
+		snprintf(gDebugTextBuffer, sizeof(gDebugTextBuffer),
+			"FPS: %d"
+			"\nTRIS: %d"
+			//"\nTRI/SEC: %d"
+			//"\nPGROUPS: %d"
+			"\nOBJS: %d"
+			//"\nFENCES: %d"
+			"\nVRAM: %dK"
+			"\nPTRS: %d"
+			,
+			(int)(gFramesPerSecond + .5f),
+			gPolysThisFrame,
+			//(int)((float)gPolysThisFrame * gFramesPerSecond),
+			//gNumActiveParticleGroups,
+			gNumObjectNodes,
+			//gNumFencesDrawn,
+			gVRAMUsedThisFrame / 1024,
+			gNumPointers
+		);
+		TextMesh_Update(gDebugTextBuffer, 1, gDebugText);
+		gDebugText->StatusBits &= ~STATUS_BIT_HIDDEN;
+	}
+	else
+	{
+		gDebugText->StatusBits |= STATUS_BIT_HIDDEN;
 	}
 
 
@@ -1330,16 +1303,13 @@ void OGL_DisableLighting(void)
 
 static void OGL_InitFont(void)
 {
-IMPLEMENT_ME_SOFT();
-#if 0
 	NewObjectDefinitionType newObjDef;
 	memset(&newObjDef, 0, sizeof(newObjDef));
 	newObjDef.flags = STATUS_BIT_HIDDEN;
-	newObjDef.slot = DEBUGOVERLAY_SLOT;
-	newObjDef.scale = 0.45f;
-	newObjDef.coord = (OGLPoint3D) { -320, -100, 0 };
-	gDebugText = TextMesh_NewEmpty(2048, &newObjDef);
-#endif
+	newObjDef.slot = SPRITE_SLOT + 100;
+	newObjDef.scale = 0.25f;
+	newObjDef.coord = (OGLPoint3D) { -1, 0, 0 };
+	gDebugText = TextMesh_NewEmpty(sizeof(gDebugTextBuffer), &newObjDef);
 }
 
 

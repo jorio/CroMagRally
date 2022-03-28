@@ -507,7 +507,7 @@ void TextMesh_Update(const char* text, int align, ObjNode* textNode)
 		if (codepoint == '\n')
 		{
 			x = x0;
-			y += gFontLineHeight * S;
+			y -= gFontLineHeight * S;
 			continue;
 		}
 
