@@ -51,6 +51,7 @@ extern	Byte		gActiveSplitScreenMode;
 extern	const short gNumTracksUnlocked[];
 extern	int		gVehicleParameters[MAX_CAR_TYPES+1][NUM_VEHICLE_PARAMETERS];
 extern	float	gSteeringResponsiveness,gCarMaxTightTurn,gCarTurningRadius,gTireTractionConstant,gTireFrictionConstant,gCarGravity,gSlopeRatioAdjuster;
+extern	Boolean		gMuteMusicFlag;
 
 
 /****************************/
@@ -184,6 +185,14 @@ static void OnToggleFullscreen(const MenuItem* mi)
 	SetFullscreenMode(true);
 }
 
+static void OnToggleMusic(const MenuItem* mi)
+{
+	if ((!gMuteMusicFlag) != gGamePrefs.music)
+	{
+		ToggleMusic();
+	}
+}
+
 static bool IsTournamentAgeAvailable(const MenuItem* mi)
 {
 	return mi->id <= GetNumAgesCompleted();
@@ -301,7 +310,15 @@ static const MenuItem
 			}
 		},
 
-		{ kMenuItem_CMRCycler, STR_MUSIC, .cycler={ .valuePtr=&gGamePrefs.music, .choices={ {STR_OFF, 0}, {STR_ON, 1} } } },
+		{
+			kMenuItem_CMRCycler, STR_MUSIC,
+			.callback=OnToggleMusic,
+			.cycler=
+			{
+				.valuePtr=&gGamePrefs.music,
+				.choices={ {STR_OFF, 0}, {STR_ON, 1} }
+			}
+		},
 
 		{
 			kMenuItem_CMRCycler, STR_FULLSCREEN,

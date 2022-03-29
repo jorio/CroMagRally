@@ -486,6 +486,10 @@ float	volumeTweak;
 	KillSong();
 	DoSoundMaintenance();
 
+		/* ENFORCE MUTE PREF */
+
+	gMuteMusicFlag = !gGamePrefs.music;
+
 			/******************************/
 			/* OPEN APPROPRIATE AIFF FILE */
 			/******************************/
@@ -566,13 +570,8 @@ float	volumeTweak;
 			/* SEE IF WANT TO MUTE THE MUSIC */
 
 	if (gMuteMusicFlag)
-	{
-		IMPLEMENT_ME_SOFT();
-#if 0
-		if (gSongMovie)
-			StopMovie(gSongMovie);
-#endif
-	}
+		SndPauseFilePlay(gMusicChannel);						// pause it	
+
 }
 
 
@@ -589,11 +588,7 @@ void KillSong(void)
 
 	gSongPlayingFlag = false;											// tell callback to do nothing
 
-	IMPLEMENT_ME_SOFT();
-#if 0
-	StopMovie(gSongMovie);
-	DisposeMovie(gSongMovie);
-#endif
+	SndStopFilePlay(gMusicChannel, true);								// stop it
 }
 
 /******************** TOGGLE MUSIC *********************/
@@ -602,16 +597,10 @@ void ToggleMusic(void)
 {
 	gMuteMusicFlag = !gMuteMusicFlag;
 
-	IMPLEMENT_ME_SOFT();
-#if 0
-	if (gSongMovie)
+	if (gSongPlayingFlag)
 	{
-		if (gMuteMusicFlag)
-			StopMovie(gSongMovie);
-		else
-			StartMovie(gSongMovie);
+		SndPauseFilePlay(gMusicChannel);			// pause it
 	}
-#endif
 }
 
 

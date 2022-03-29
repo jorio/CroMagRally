@@ -309,7 +309,7 @@ void PlaySong(short songNum, Boolean loopFlag);
 extern void	KillSong(void);
 extern	short PlayEffect(short effectNum);
 short PlayEffect_Parms3D(short effectNum, const OGLPoint3D *where, uint32_t rateMultiplier, float volumeAdjust);
-extern void	ToggleMusic(void);
+void	ToggleMusic(void);
 extern void	DoSoundMaintenance(void);
 extern	void LoadSoundBank(FSSpec *spec, long bankNum);
 extern	void WaitEffectsSilent(void);
