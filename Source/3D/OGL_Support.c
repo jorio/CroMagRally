@@ -353,6 +353,7 @@ GLint			maxTexSize;
 		DoFatalAlert("Your video card cannot do 1024x1024 textures, so it is below the game's minimum system requirements.");
 
 
+#if 0
 				/* CLEAR BACK BUFFER ENTIRELY */
 
 	glClearColor(0,0,0, 1.0);
@@ -361,6 +362,7 @@ GLint			maxTexSize;
 	SDL_GL_SwapWindow(gSDLWindow);
 	glClear(GL_COLOR_BUFFER_BIT);
 	glClearColor(viewDefPtr->clearColor.r, viewDefPtr->clearColor.g, viewDefPtr->clearColor.b, 1.0);
+#endif
 
 }
 

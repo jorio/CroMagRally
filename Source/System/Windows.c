@@ -132,10 +132,39 @@ float		w,h;
 #pragma mark -
 
 
+static void DrawFadePane(ObjNode* theNode, const OGLSetupOutputType* setupInfo)
+{
+	OGL_PushState();
+
+	glMatrixMode(GL_PROJECTION);					// init projection matrix
+	glLoadIdentity();
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();								// init MODELVIEW matrix
+	OGL_DisableLighting();
+	glDisable(GL_CULL_FACE);
+	glDisable(GL_DEPTH_TEST);
+	glDisable(GL_TEXTURE_2D);
+	glEnable(GL_BLEND);
+
+	glColor4f(0, 0, 0, 1.0f - gGammaFadePercent/100.0f);
+	glBegin(GL_QUADS);
+	glVertex3f(-1, +1, 0);
+	glVertex3f(+1, +1, 0);
+	glVertex3f(+1, -1, 0);
+	glVertex3f(-1, -1, 0);
+	glEnd();
+	glDisable(GL_BLEND);
+
+	OGL_PopState();
+}
+
+
 /**************** GAMMA FADE IN *************************/
 
 void GammaFadeIn(void)
 {
+	gGammaFadePercent = 100;
+#if 0
 	if (1)//gDisplayContext)
 	{
 		while(gGammaFadePercent < 100.0f)
@@ -145,19 +174,22 @@ void GammaFadeIn(void)
 				gGammaFadePercent = 100.0f;
 
 #if ALLOW_FADE
-			SDL_SetWindowBrightness(gSDLWindow, gGammaFadePercent / 100.0f);
+//			SDL_SetWindowBrightness(gSDLWindow, gGammaFadePercent / 100.0f);
 #endif
 
 			Wait(1);
 
 		}
 	}
+#endif
 }
 
 /**************** GAMMA FADE OUT *************************/
 
 void GammaFadeOut(void)
 {
+	gGammaFadePercent = 0;
+#if 0
 	if (1)//gDisplayContext)
 	{
 		while(gGammaFadePercent > 0.0f)
@@ -167,13 +199,14 @@ void GammaFadeOut(void)
 				gGammaFadePercent = 0.0f;
 
 #if ALLOW_FADE
-			SDL_SetWindowBrightness(gSDLWindow, gGammaFadePercent / 100.0f);
+//			SDL_SetWindowBrightness(gSDLWindow, gGammaFadePercent / 100.0f);
 #endif
 
 			Wait(1);
 
 		}
 	}
+#endif
 
 }
 
@@ -186,7 +219,7 @@ void GammaOn(void)
 		if (gGammaFadePercent != 100.0f)
 		{
 #if ALLOW_FADE
-			SDL_SetWindowBrightness(gSDLWindow, gGammaFadePercent / 100.0f);
+//			SDL_SetWindowBrightness(gSDLWindow, gGammaFadePercent / 100.0f);
 #endif
 			gGammaFadePercent = 100.0f;
 		}
@@ -260,12 +293,12 @@ ObjNode		*thisNodePtr;
 
 		/* MAKE NEW FADE EVENT */
 
-	gNewObjectDefinition.genre = EVENT_GENRE;
+	gNewObjectDefinition.genre = CUSTOM_GENRE;
 	gNewObjectDefinition.flags = 0;
 	gNewObjectDefinition.slot = SLOT_OF_DUMB + 1000;
 	gNewObjectDefinition.moveCall = MoveFadeEvent;
 	newObj = MakeNewObject(&gNewObjectDefinition);
-
+	newObj->CustomDrawFunction = DrawFadePane;
 	newObj->Flag[0] = fadeIn;
 }
 
@@ -287,7 +320,7 @@ float	fps = gFramesPerSecondFrac;
 			DeleteObject(theNode);
 		}
 #if ALLOW_FADE
-		SDL_SetWindowBrightness(gSDLWindow, gGammaFadePercent / 100.0f);
+//		SDL_SetWindowBrightness(gSDLWindow, gGammaFadePercent / 100.0f);
 #endif
 	}
 
@@ -301,7 +334,7 @@ float	fps = gFramesPerSecondFrac;
 			DeleteObject(theNode);
 		}
 #if ALLOW_FADE
-		SDL_SetWindowBrightness(gSDLWindow, gGammaFadePercent / 100.0f);
+//		SDL_SetWindowBrightness(gSDLWindow, gGammaFadePercent / 100.0f);
 #endif
 	}
 }
