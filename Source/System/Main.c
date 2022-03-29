@@ -194,8 +194,6 @@ OSErr		iErr;
 
 	SetFullscreenMode(true);
 
-	SetDefaultPlayerSaveData();							// set default player info
-
 	SetDefaultPhysics();								// set all physics to defaults
 }
 
@@ -205,6 +203,8 @@ OSErr		iErr;
 void InitDefaultPrefs(void)
 {
 	memset(&gGamePrefs, 0, sizeof(gGamePrefs));
+
+	SetDefaultPlayerSaveData();
 
 	gGamePrefs.language				= GetBestLanguageIDFromSystemLocale();
 	gGamePrefs.difficulty			= DIFFICULTY_MEDIUM;
@@ -219,8 +219,9 @@ void InitDefaultPrefs(void)
 		gGamePrefs.keys[i][0] = kDefaultKeyBindings[i];
 		gGamePrefs.keys[i][1] = kDefaultKeyBindings_P2[i];
 	}
-}
 
+	
+}
 
 
 

@@ -186,7 +186,7 @@ static void OnToggleFullscreen(const MenuItem* mi)
 
 static bool IsTournamentAgeAvailable(const MenuItem* mi)
 {
-	return mi->id < GetNumAgesCompleted();
+	return mi->id <= GetNumAgesCompleted();
 }
 
 static const MenuItem
