@@ -385,6 +385,7 @@ OGLVector3D	v,up = {0,1,0};
 	switch(cameraMode)
 	{
 		case	0:
+		default:
 				cameraRadius = 1000.0;
 				break;
 

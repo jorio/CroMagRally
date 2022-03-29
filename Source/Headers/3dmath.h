@@ -320,8 +320,8 @@ static inline float CalcQuickDistance(float x1, float y1, float x2, float y2)
 {
 float	diffX,diffY;
 
-	diffX = fabs(x1-x2);
-	diffY = fabs(y1-y2);
+	diffX = fabsf(x1-x2);
+	diffY = fabsf(y1-y2);
 
 	if (diffX > diffY)
 	{
