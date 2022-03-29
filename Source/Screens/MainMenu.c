@@ -179,6 +179,11 @@ static void OnPickLanguage(const MenuItem* mi)
 	LayoutCurrentMenuAgain();
 }
 
+static void OnToggleFullscreen(const MenuItem* mi)
+{
+	SetFullscreenMode(true);
+}
+
 static bool IsTournamentAgeAvailable(const MenuItem* mi)
 {
 	return mi->id < GetNumAgesCompleted();
@@ -297,7 +302,16 @@ static const MenuItem
 		},
 
 		{ kMenuItem_CMRCycler, STR_MUSIC, .cycler={ .valuePtr=&gGamePrefs.music, .choices={ {STR_OFF, 0}, {STR_ON, 1} } } },
-		{ kMenuItem_CMRCycler, STR_FULLSCREEN, .cycler={ .valuePtr=&gGamePrefs.fullscreen, .choices={ {STR_OFF, 0}, {STR_ON, 1} } } },
+
+		{
+			kMenuItem_CMRCycler, STR_FULLSCREEN,
+			.callback=OnToggleFullscreen,
+			.cycler=
+			{
+				.valuePtr=&gGamePrefs.fullscreen,
+				.choices={ {STR_OFF, 0}, {STR_ON, 1} },
+			}
+		},
 
 		{ kMenuItem_END_SENTINEL },
 	}

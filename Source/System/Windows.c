@@ -9,6 +9,7 @@
 /* EXTERNALS   */
 /***************/
 
+#include	<SDL.h>
 #include 	<stdlib.h>
 #include	"globals.h"
 #include	"window.h"
@@ -26,6 +27,7 @@ extern	short	gPrefsFolderVRefNum;
 extern	long	gPrefsFolderDirID;
 extern	PrefsType			gGamePrefs;
 extern	Boolean			gSongPlayingFlag,gMuteMusicFlag;
+extern	SDL_Window* gSDLWindow;
 
 /****************************/
 /*    PROTOTYPES            */
@@ -509,3 +511,67 @@ long	start;
 
 }
 
+
+
+
+/******************** MOVE WINDOW TO PREFERRED DISPLAY *******************/
+//
+// This works best in windowed mode.
+// Turn off fullscreen before calling this!
+//
+
+static void MoveToPreferredDisplay(void)
+{
+#if !(__APPLE__)
+	int currentDisplay = SDL_GetWindowDisplayIndex(gSDLWindow);
+
+	if (currentDisplay != gGamePrefs.monitorNum)
+	{
+		SDL_SetWindowPosition(
+			gSDLWindow,
+			SDL_WINDOWPOS_CENTERED_DISPLAY(gGamePrefs.monitorNum),
+			SDL_WINDOWPOS_CENTERED_DISPLAY(gGamePrefs.monitorNum));
+	}
+#endif
+}
+
+/*********************** SET FULLSCREEN MODE **********************/
+
+void SetFullscreenMode(bool enforceDisplayPref)
+{
+	if (!gGamePrefs.fullscreen)
+	{
+		SDL_SetWindowFullscreen(gSDLWindow, 0);
+
+		if (enforceDisplayPref)
+		{
+			MoveToPreferredDisplay();
+		}
+	}
+	else
+	{
+#if !(__APPLE__)
+		if (enforceDisplayPref)
+		{
+			int currentDisplay = SDL_GetWindowDisplayIndex(gSDLWindow);
+
+			if (currentDisplay != gGamePrefs.monitorNum)
+			{
+				// We must switch back to windowed mode for the preferred monitor to take effect
+				SDL_SetWindowFullscreen(gSDLWindow, 0);
+				MoveToPreferredDisplay();
+			}
+		}
+#endif
+
+		// Enter fullscreen mode
+		SDL_SetWindowFullscreen(gSDLWindow, SDL_WINDOW_FULLSCREEN_DESKTOP);
+	}
+
+	// Ensure the clipping pane gets resized properly after switching in or out of fullscreen mode
+//	int width, height;
+//	SDL_GetWindowSize(gSDLWindow, &width, &height);
+//	QD3D_OnWindowResized(width, height);
+
+	SDL_ShowCursor(gGamePrefs.fullscreen ? 0 : 1);
+}

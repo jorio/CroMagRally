@@ -192,7 +192,7 @@ OSErr		iErr;
 
 			/* DO BOOT CHECK FOR SCREEN MODE */
 
-//	DoScreenModeDialog();
+	SetFullscreenMode(true);
 
 	SetDefaultPlayerSaveData();							// set default player info
 

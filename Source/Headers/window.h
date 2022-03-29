@@ -2,9 +2,7 @@
 // window.h
 //
 
-//#define	USE_DSP			1
-#define	USE_DSP			0
-#define	ALLOW_FADE		(1 && USE_DSP)
+#define	ALLOW_FADE		(0)
 
 extern void	InitWindowStuff(void);
 extern void	DumpGWorld2(GWorldPtr, WindowPtr, Rect *);
@@ -24,4 +22,5 @@ void DoLockPixels(GWorldPtr world);
 
 void ChangeWindowScale(void);
 void Wait(long ticks);
-void DoScreenModeDialog(void);
+
+void SetFullscreenMode(bool enforceDisplayPref);
