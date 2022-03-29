@@ -62,31 +62,11 @@ typedef struct
 /*     VARIABLES      */
 /**********************/
 
-static	Boolean	gOldISpFlag;
-
 static	Boolean			gOldMuteMusic;
-
-static GDHandle				gOurDevice = nil;
-
-
-static short				gNumVideoModes = 0;
-static VideoModeType		gVideoModeList[MAX_VIDEO_MODES];
-
-long					gScreenXOffset,gScreenYOffset;
-WindowPtr				gCoverWindow = nil;
-void* /*DSpContextReference*/ 	gDisplayContext = nil;
-Boolean					gLoadedDrawSprocket = false;
-
 static unsigned long	gVideoModeTimoutCounter;
 static Boolean			gVideoModeTimedOut;
-
-
 float		gGammaFadePercent;
-
 int				gGameWindowWidth, gGameWindowHeight;
-
-CGrafPtr				gDisplayContextGrafPtr = nil;
-
 short			g2DStackDepth = 0;
 
 
@@ -156,7 +136,7 @@ float		w,h;
 
 void GammaFadeIn(void)
 {
-	if (gDisplayContext)
+	if (1)//gDisplayContext)
 	{
 		while(gGammaFadePercent < 100.0f)
 		{
@@ -165,7 +145,7 @@ void GammaFadeIn(void)
 				gGammaFadePercent = 100.0f;
 
 #if ALLOW_FADE
-			DSpContext_FadeGamma(gDisplayContext,gGammaFadePercent,nil);
+			SDL_SetWindowBrightness(gSDLWindow, gGammaFadePercent / 100.0f);
 #endif
 
 			Wait(1);
@@ -178,7 +158,7 @@ void GammaFadeIn(void)
 
 void GammaFadeOut(void)
 {
-	if (gDisplayContext)
+	if (1)//gDisplayContext)
 	{
 		while(gGammaFadePercent > 0.0f)
 		{
@@ -187,7 +167,7 @@ void GammaFadeOut(void)
 				gGammaFadePercent = 0.0f;
 
 #if ALLOW_FADE
-			DSpContext_FadeGamma(gDisplayContext,gGammaFadePercent,nil);
+			SDL_SetWindowBrightness(gSDLWindow, gGammaFadePercent / 100.0f);
 #endif
 
 			Wait(1);
@@ -201,13 +181,12 @@ void GammaFadeOut(void)
 
 void GammaOn(void)
 {
-
-	if (gDisplayContext)
+	if (1)//gDisplayContext)
 	{
 		if (gGammaFadePercent != 100.0f)
 		{
 #if ALLOW_FADE
-			DSpContext_FadeGamma(MONITORS_TO_FADE,100,nil);
+			SDL_SetWindowBrightness(gSDLWindow, gGammaFadePercent / 100.0f);
 #endif
 			gGammaFadePercent = 100.0f;
 		}
@@ -308,8 +287,7 @@ float	fps = gFramesPerSecondFrac;
 			DeleteObject(theNode);
 		}
 #if ALLOW_FADE
-		if (gDisplayContext)
-			DSpContext_FadeGamma(gDisplayContext,gGammaFadePercent,nil);
+		SDL_SetWindowBrightness(gSDLWindow, gGammaFadePercent / 100.0f);
 #endif
 	}
 
@@ -323,8 +301,7 @@ float	fps = gFramesPerSecondFrac;
 			DeleteObject(theNode);
 		}
 #if ALLOW_FADE
-		if (gDisplayContext)
-			DSpContext_FadeGamma(gDisplayContext,gGammaFadePercent,nil);
+		SDL_SetWindowBrightness(gSDLWindow, gGammaFadePercent / 100.0f);
 #endif
 	}
 }

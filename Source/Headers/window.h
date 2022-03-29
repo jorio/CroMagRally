@@ -2,7 +2,7 @@
 // window.h
 //
 
-#define	ALLOW_FADE		(0)
+#define	ALLOW_FADE		(1)
 
 extern void	InitWindowStuff(void);
 extern void	DumpGWorld2(GWorldPtr, WindowPtr, Rect *);
