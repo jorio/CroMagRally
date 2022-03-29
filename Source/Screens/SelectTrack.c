@@ -160,7 +160,7 @@ Boolean SelectSingleTrack(void)
 			/* CLEANUP */
 			/***********/
 
-	GammaFadeOut();
+	OGL_FadeOutScene(gGameViewInfoPtr, DrawTrackSelectCallback, NULL);
 	FreeTrackSelectArt();
 	OGL_DisposeWindowSetup(&gGameViewInfoPtr);
 

@@ -124,7 +124,7 @@ Boolean DoCharacterSelectScreen(short whichPlayer, Boolean allowAborting)
 			/* CLEANUP */
 			/***********/
 
-	GammaFadeOut();
+	OGL_FadeOutScene(gGameViewInfoPtr, DrawCharacterSelectCallback, MoveObjects);
 	FreeCharacterSelectArt();
 	OGL_DisposeWindowSetup(&gGameViewInfoPtr);
 

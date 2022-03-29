@@ -8,7 +8,6 @@
 
 void	DoAlert(const char* format, ...);
 _Noreturn void DoFatalAlert(const char* format, ...);
-extern void	Wait(long);
 _Noreturn void CleanQuit(void);
 extern	void SetMyRandomSeed(unsigned long seed);
 extern	unsigned long MyRandomLong(void);

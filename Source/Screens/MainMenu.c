@@ -419,7 +419,6 @@ do_again:
 		case	GAME_MODE_CAPTUREFLAG:
 				if (!gIsNetworkClient)				// clients dont select tracks since they get the info when they join
 				{
-					GammaFadeOut();
 					if (SelectSingleTrack())
 						goto do_again;
 				}
@@ -451,8 +450,6 @@ do_again:
 	}
 	else
 		gMyNetworkPlayerNum = 0;
-
-	GammaFadeOut();
 }
 
 

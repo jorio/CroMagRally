@@ -56,6 +56,7 @@ typedef struct MenuStyle
 	bool			darkenPane;
 	float			fadeInSpeed;
 	bool			asyncFadeOut;
+	bool			fadeOutSceneOnExit;
 	bool			centeredText;
 	OGLColorRGBA	titleColor;
 	OGLColorRGBA	highlightColor;

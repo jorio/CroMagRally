@@ -97,6 +97,7 @@ const MenuStyle kDefaultMenuStyle =
 	.darkenPaneOpacity	= .8f,
 	.fadeInSpeed		= 3.0f,
 	.asyncFadeOut		= true,
+	.fadeOutSceneOnExit	= true,
 	.centeredText		= true,
 	.titleColor			= {1.0f, 1.0f, 0.7f, 1.0f},
 	.highlightColor		= {0.3f, 0.5f, 0.2f, 1.0f},
@@ -1508,6 +1509,15 @@ int StartMenuTree(
 			updateRoutine();
 		OGL_DrawScene(gGameViewInfoPtr, backgroundDrawRoutine);
 	}
+
+
+		/* FADE OUT */
+
+	if (gNav->style.fadeOutSceneOnExit)
+	{
+		OGL_FadeOutScene(gGameViewInfoPtr, backgroundDrawRoutine, NULL);
+	}
+
 
 
 		/* CLEANUP */

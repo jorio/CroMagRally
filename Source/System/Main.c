@@ -388,9 +388,7 @@ select_sex:
 
 		/* CLEANUP LEVEL */
 
-	GammaFadeOut();
 	CleanupLevel();
-	GameScreenToBlack();
 
 	gAutoPilot = false;										// make sure we turn this off!!
 	gIsSelfRunningDemo = false;								// and disble SRD
@@ -509,9 +507,7 @@ short	placeToWin,startStage;
 
 				/* CLEANUP TRACK */
 
-			GammaFadeOut();
 			CleanupLevel();
-			GameScreenToBlack();
 
 			if (gGameOver)													// see if its over
 				return(false);
@@ -580,9 +576,7 @@ static void PlayGame_MultiplayerRace(void)
 
 			/* CLEANUP LEVEL */
 
-	GammaFadeOut();
 	CleanupLevel();
-	GameScreenToBlack();
 }
 
 
@@ -632,9 +626,7 @@ static void PlayGame_Tag(void)
 
 		/* CLEANUP LEVEL */
 
-	GammaFadeOut();
 	CleanupLevel();
-	GameScreenToBlack();
 }
 
 
@@ -676,9 +668,7 @@ static void PlayGame_Survival(void)
 
 		/* CLEANUP LEVEL */
 
-	GammaFadeOut();
 	CleanupLevel();
-	GameScreenToBlack();
 }
 
 
@@ -721,9 +711,7 @@ static void PlayGame_CaptureTheFlag(void)
 
 		/* CLEANUP LEVEL */
 
-	GammaFadeOut();
 	CleanupLevel();
-	GameScreenToBlack();
 }
 
 #pragma mark -
@@ -860,12 +848,6 @@ Boolean	done = false;
 
 static void PlayArea(void)
 {
-#if __profile__
-	if (ProfilerInit(collectDetailed, bestTimeBase, 2000, 100) != noErr)
-		DoFatalAlert("ProfilerInit failed!");
-#endif
-
-
 	/* IF DOING NET GAME THEN WAIT FOR SYNC */
 	//
 	// Need to wait for other players to finish loading art and when
@@ -1058,6 +1040,9 @@ static void PlayArea(void)
 		}
 	}
 
+			/* FADE OUT */
+
+	OGL_FadeOutScene(gGameViewInfoPtr, DrawTerrain, DoPlayerTerrainUpdate);		// need to keep supertiles alive
 }
 
 /******************** MOVE EVERYTHING ************************/
@@ -1377,10 +1362,6 @@ short				numPanes;
 			/* INIT CAMERAS */
 
 	InitCameras();
-
-//	HideCursor();								// do this again to be sure!
-
-	GammaFadeOut();
  }
 
 

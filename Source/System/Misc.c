@@ -65,7 +65,6 @@ int		gNumPointers = 0;
 
 void DoAlert(const char* format, ...)
 {
-	GammaOn();
 	Enter2D(true);
 
 	char message[1024];
@@ -86,7 +85,6 @@ void DoAlert(const char* format, ...)
 
 void DoFatalAlert(const char* format, ...)
 {
-	GammaOn();
 	Enter2D(true);
 
 	char message[1024];
@@ -130,9 +128,6 @@ static Boolean	beenHere = false;
 		ShutdownSound();								// cleanup sound stuff
 	}
 
-
-	GameScreenToBlack();
-	CleanupDisplay();								// unloads Draw Sprocket
 
 	UseResFile(gMainAppRezFile);
 

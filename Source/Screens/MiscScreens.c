@@ -156,7 +156,8 @@ OGLSetupInputType	viewDef;
 
 		for (i = 0; i < 10; i++)
 			OGL_DrawScene(gGameViewInfoPtr, DisplayPicture_Draw);
-		GammaFadeIn();
+
+		// TODO: Fade in, I guess?
 	}
 	else
 	{
@@ -169,7 +170,7 @@ OGLSetupInputType	viewDef;
 
 					/* MAIN LOOP */
 
-		while (1) //!Button())
+		while (timeout > 0)
 		{
 			CalcFramesPerSecond();
 			MoveObjects();
@@ -180,10 +181,11 @@ OGLSetupInputType	viewDef;
 				break;
 
 			timeout -= gFramesPerSecondFrac;
-			if (timeout < 0.0f)
-				break;
 		}
 
+				/* FADE OUT */
+
+		OGL_FadeOutScene(gGameViewInfoPtr, DisplayPicture_Draw, NULL);
 	}
 
 			/* CLEANUP */
@@ -193,15 +195,7 @@ OGLSetupInputType	viewDef;
 	DisposeAllSpriteGroups();
 
 
-			/* FADE OUT */
-
-	if (!showAndBail)
-		GammaFadeOut();
-
-
 	OGL_DisposeWindowSetup(&gGameViewInfoPtr);
-
-
 }
 
 
@@ -233,7 +227,6 @@ static const char*	names[NUM_AGES] =
 	FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, names[age], &spec);
 
 	DisplayPicture(&spec, false, true);
-//	GammaFadeOut();
 }
 
 
@@ -266,7 +259,6 @@ FSSpec	spec;
 
 
 	DisplayPicture(&spec, false, false);
-//	GammaFadeOut();
 
 
 			/* DO TITLE SCREEN */
@@ -275,7 +267,6 @@ FSSpec	spec;
 		DoFatalAlert("DoTitleScreen: TitleScreen pict not found.");
 
 	DisplayPicture(&spec, false, false);
-//	GammaFadeOut();
 }
 
 
@@ -313,12 +304,14 @@ void DoAgeConqueredScreen(void)
 			break;
 	}
 
+			/* FADE OUT */
+
+	OGL_FadeOutScene(gGameViewInfoPtr, DrawConqueredCallback, MoveObjects);
+
 
 			/* CLEANUP */
 
-	GammaFadeOut();
 	FreeConqueredScreen();
-
 }
 
 /***************** DRAW CONQUERED CALLBACK *******************/
@@ -501,15 +494,16 @@ float	timer = 0;
 		OGL_DrawScene(gGameViewInfoPtr, DrawWinCallback);
 
 		timer += gFramesPerSecondFrac;
-		if (timer > 10.0f)
-			if (AreAnyNewKeysPressed())
-				break;
+		if (timer > 10.0f && AreAnyNewKeysPressed())
+		{
+			break;
+		}
 	}
 
 
 			/* CLEANUP */
 
-	GammaFadeOut();
+	OGL_FadeOutScene(gGameViewInfoPtr, DrawWinCallback, MoveObjects);
 	FreeWinScreen();
 
 }
@@ -769,7 +763,7 @@ float	timer = 63.0f;
 	CalcFramesPerSecond();
 	ReadKeyboard();
 
-	while(true)
+	while (timer > 0)
 	{
 			/* DRAW STUFF */
 
@@ -782,9 +776,7 @@ float	timer = 63.0f;
 		if (AreAnyNewKeysPressed())
 			break;
 
-		if ((timer -= gFramesPerSecondFrac) < 0.0f)
-			break;
-
+		timer -= gFramesPerSecondFrac;
 	}
 
 

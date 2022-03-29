@@ -40,14 +40,6 @@ static void MoveFadeEvent(ObjNode *theNode);
 /****************************/
 
 
-
-#if 0
-#define MONITORS_TO_FADE	gDisplayContext
-#else
-#define MONITORS_TO_FADE	nil
-#endif
-
-
 typedef struct
 {
 	int		rezH,rezV;
@@ -132,7 +124,7 @@ float		w,h;
 #pragma mark -
 
 
-static void DrawFadePane(ObjNode* theNode, const OGLSetupOutputType* setupInfo)
+static void DrawFadePane(ObjNode* theNode, OGLSetupOutputType* setupInfo)
 {
 	OGL_PushState();
 
@@ -159,112 +151,7 @@ static void DrawFadePane(ObjNode* theNode, const OGLSetupOutputType* setupInfo)
 }
 
 
-/**************** GAMMA FADE IN *************************/
 
-void GammaFadeIn(void)
-{
-	gGammaFadePercent = 100;
-#if 0
-	if (1)//gDisplayContext)
-	{
-		while(gGammaFadePercent < 100.0f)
-		{
-			gGammaFadePercent += 7.0f;
-			if (gGammaFadePercent > 100.0f)
-				gGammaFadePercent = 100.0f;
-
-#if ALLOW_FADE
-//			SDL_SetWindowBrightness(gSDLWindow, gGammaFadePercent / 100.0f);
-#endif
-
-			Wait(1);
-
-		}
-	}
-#endif
-}
-
-/**************** GAMMA FADE OUT *************************/
-
-void GammaFadeOut(void)
-{
-	gGammaFadePercent = 0;
-#if 0
-	if (1)//gDisplayContext)
-	{
-		while(gGammaFadePercent > 0.0f)
-		{
-			gGammaFadePercent -= 7.0f;
-			if (gGammaFadePercent < 0.0f)
-				gGammaFadePercent = 0.0f;
-
-#if ALLOW_FADE
-//			SDL_SetWindowBrightness(gSDLWindow, gGammaFadePercent / 100.0f);
-#endif
-
-			Wait(1);
-
-		}
-	}
-#endif
-
-}
-
-/********************** GAMMA ON *********************/
-
-void GammaOn(void)
-{
-	if (1)//gDisplayContext)
-	{
-		if (gGammaFadePercent != 100.0f)
-		{
-#if ALLOW_FADE
-//			SDL_SetWindowBrightness(gSDLWindow, gGammaFadePercent / 100.0f);
-#endif
-			gGammaFadePercent = 100.0f;
-		}
-	}
-}
-
-
-/****************** CLEANUP DISPLAY *************************/
-
-void CleanupDisplay(void)
-{
-	IMPLEMENT_ME_SOFT();
-#if 0
-OSStatus 		theError;
-
-	if(gDisplayContext != nil)
-	{
-#if ALLOW_FADE
-		GammaFadeOut();
-#endif
-
-
-		DSpContext_SetState( gDisplayContext, kDSpContextState_Inactive );	// deactivate
-
-
-#if ALLOW_FADE
-		DSpContext_FadeGamma(MONITORS_TO_FADE,100,nil);						// gamme on all
-#endif
-		DSpContext_Release( gDisplayContext );								// release
-
-		gDisplayContext = nil;
-	}
-
-
-	/* shutdown draw sprocket */
-
-	if (gLoadedDrawSprocket)
-	{
-		theError = DSpShutdown();
-		gLoadedDrawSprocket = false;
-	}
-
-	gDisplayContextGrafPtr = nil;
-#endif
-}
 
 /******************** MAKE FADE EVENT *********************/
 //
@@ -319,9 +206,6 @@ float	fps = gFramesPerSecondFrac;
 			gGammaFadePercent = 100.0f;
 			DeleteObject(theNode);
 		}
-#if ALLOW_FADE
-//		SDL_SetWindowBrightness(gSDLWindow, gGammaFadePercent / 100.0f);
-#endif
 	}
 
 			/* FADE OUT */
@@ -333,30 +217,47 @@ float	fps = gFramesPerSecondFrac;
 			gGammaFadePercent = 0;
 			DeleteObject(theNode);
 		}
-#if ALLOW_FADE
-//		SDL_SetWindowBrightness(gSDLWindow, gGammaFadePercent / 100.0f);
-#endif
 	}
 }
 
 
-/************************ GAME SCREEN TO BLACK ************************/
+/***************** FREEZE-FRAME FADE OUT ********************/
 
-void GameScreenToBlack(void)
+void OGL_FadeOutScene(
+	OGLSetupOutputType* setupInfo,
+	void (*drawRoutine)(OGLSetupOutputType*),
+	void (*updateRoutine)(void))
 {
-	IMPLEMENT_ME_SOFT();
-#if 0
-Rect	r;
+	gNewObjectDefinition.genre = CUSTOM_GENRE;
+	gNewObjectDefinition.flags = 0;
+	gNewObjectDefinition.slot = SLOT_OF_DUMB + 100;		// TODO: Draw over infobar
+	ObjNode* newObj = MakeNewObject(&gNewObjectDefinition);
+	newObj->CustomDrawFunction = DrawFadePane;
 
-	if (!gDisplayContextGrafPtr)
-		return;
+	extern float gFramesPerSecondFrac;
+	gFramesPerSecondFrac = 1;
+	const float duration = 0.25f;
+	float timer = duration;
+	while (timer >= 0)
+	{
+		gGammaFadePercent = 100.0f * timer / duration;
 
-	SetPort(gDisplayContextGrafPtr);
-	BackColor(blackColor);
+		CalcFramesPerSecond();
+		DoSDLMaintenance();
 
-	GetPortBounds(gDisplayContextGrafPtr, &r);
-	EraseRect(&r);
-#endif
+		if (updateRoutine)
+			updateRoutine();
+
+		OGL_DrawScene(setupInfo, drawRoutine);
+
+		timer -= gFramesPerSecondFrac;
+	}
+
+	gGammaFadePercent = 0;
+
+	CalcFramesPerSecond();
+	DoSDLMaintenance();
+	OGL_DrawScene(setupInfo, drawRoutine);
 }
 
 
@@ -492,36 +393,6 @@ Rect			r;
 	SetGWorld(oldGW,oldGD);								// restore gworld
 #endif
 }
-
-
-/******************* DO LOCK PIXELS **************/
-
-void DoLockPixels(GWorldPtr world)
-{
-	IMPLEMENT_ME_SOFT();
-#if 0
-PixMapHandle pm;
-
-	pm = GetGWorldPixMap(world);
-	if (LockPixels(pm) == false)
-		DoFatalAlert("PixMap Went Bye,Bye?!");
-#endif
-}
-
-
-/********************** WAIT **********************/
-
-void Wait(long ticks)
-{
-long	start;
-
-	start = TickCount();
-
-	while (TickCount()-start < ticks);
-
-}
-
-
 
 
 /******************** MOVE WINDOW TO PREFERRED DISPLAY *******************/
