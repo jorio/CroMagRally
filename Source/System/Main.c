@@ -449,13 +449,14 @@ short	placeToWin,startStage;
 					/* PLAY EACH  LEVEL OF THIS AGE */
 					/********************************/
 
-		if (GetNumAgesCompleted() >= 3)					// if won game, then start stage @ 0
+		if (GetNumAgesCompleted() >= NUM_AGES)					// if won game, then start stage @ 0
 			startStage = 0;
-		else
-		if (gGamePrefs.difficulty >= DIFFICULTY_HARD)								// always start @ stage 0 in hard modes
+		else if (gGamePrefs.difficulty >= DIFFICULTY_HARD)		// always start @ stage 0 in hard modes
 			startStage = 0;
-		else
-			startStage = GetNumStagesCompleted();									// otherwise start where we last were
+		else if (gTheAge == GetNumAgesCompleted())				// if it's the age we're working on completing, start where we last were
+			startStage = GetNumStagesCompleted();
+		else													// picked an age we've already completed, start @ stage 0
+			startStage = 0;
 
 		for (gTournamentStage = startStage; gTournamentStage < 3; gTournamentStage++)
 		{
@@ -493,16 +494,14 @@ short	placeToWin,startStage;
 
 				/* IF JUST COMPLETED SOMETHING NEW THEN INC THE STAGE COUNTER */
 
-			if (!gGameOver)																// dont do anything if we failed or bailed
+			if (!gGameOver															// dont do anything if we failed or bailed
+				&& gTheAge == GetNumAgesCompleted()									// only if this is the age we're working on winning
+				&& gTournamentStage < 2												// completing third stage bumps the age
+				&& gTournamentStage > GetNumStagesCompleted()						// only if it's better than current progress
+			   )
 			{
-				if (gTheAge == GetNumAgesCompleted())									// only if this is the age we're working on winning
-				{
-					if (gTournamentStage < 2)											// inc stage counter if needed
-					{
-						SetPlayerProgression(gTheAge, gTournamentStage + 1);
-						SavePlayerFile();
-					}
-				}
+				SetPlayerProgression(gTheAge, gTournamentStage + 1);
+				SavePlayerFile();
 			}
 
 				/* CLEANUP TRACK */
@@ -512,7 +511,6 @@ short	placeToWin,startStage;
 
 			if (gGameOver)													// see if its over
 				return(false);
-
 		}
 
 			/* NEXT AGE */
