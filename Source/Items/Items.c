@@ -31,7 +31,6 @@
 extern	float				gFramesPerSecondFrac,gFramesPerSecond;
 extern	OGLPoint3D			gCoord;
 extern	OGLVector3D			gDelta;
-extern	NewObjectDefinitionType	gNewObjectDefinition;
 extern	OGLBoundingBox 		gObjectGroupBBoxList[MAX_BG3D_GROUPS][MAX_OBJECTS_IN_GROUP];
 extern	OGLSetupOutputType	*gGameViewInfoPtr;
 extern	uint32_t				gAutoFadeStatusBits,gInfobarUpdateBits;
@@ -97,20 +96,21 @@ int	i;
 
 void CreateCyclorama(void)
 {
-	gNewObjectDefinition.group	= MODEL_GROUP_LEVELSPECIFIC;
-	gNewObjectDefinition.type 	= 0;						// cyc is always 1st model in level bg3d files
-	gNewObjectDefinition.coord.x = 0;
-	gNewObjectDefinition.coord.y = 0;
-	gNewObjectDefinition.coord.z = 0;
-	gNewObjectDefinition.flags 	= STATUS_BIT_DONTCULL|STATUS_BIT_NOLIGHTING|STATUS_BIT_NOFOG;
-	gNewObjectDefinition.slot 	= 0;
-	gNewObjectDefinition.moveCall = nil;
-	gNewObjectDefinition.rot 	= 0;
-	gNewObjectDefinition.scale 	= gGameViewInfoPtr->yon * .99f;
-	gCycloramaObj = MakeNewDisplayGroupObject(&gNewObjectDefinition);
+	NewObjectDefinitionType def =
+	{
+		.group		= MODEL_GROUP_LEVELSPECIFIC,
+		.type		= 0,						// cyc is always 1st model in level bg3d file!
+		.coord		= {0, 0, 0},
+		.flags		= STATUS_BIT_DONTCULL|STATUS_BIT_NOLIGHTING|STATUS_BIT_NOFOG,
+		.slot		= 0,
+		.moveCall	= nil,
+		.rot		= 0,
+		.scale		= gGameViewInfoPtr->yon * .99f,
+	};
+
+	gCycloramaObj = MakeNewDisplayGroupObject(&def);
 	if (gCycloramaObj == nil)
 		return;
-
 }
 
 
@@ -164,17 +164,19 @@ static const float diameter[] =
 };
 
 
-	gNewObjectDefinition.group 		= MODEL_GROUP_LEVELSPECIFIC;
-	gNewObjectDefinition.type 		= DESERT_ObjType_StartingLine;
-	gNewObjectDefinition.coord.x 	= x;
-	gNewObjectDefinition.coord.z 	= z;
-	gNewObjectDefinition.coord.y 	= y = GetMinTerrainY(x,z, gNewObjectDefinition.group, gNewObjectDefinition.type, 1.0);
-	gNewObjectDefinition.flags 		= STATUS_BIT_NOLIGHTING|gAutoFadeStatusBits;
-	gNewObjectDefinition.slot 		= 100;
-	gNewObjectDefinition.moveCall 	= MoveStaticObject;
-	gNewObjectDefinition.rot 		= PI2 * ((float)itemPtr->parm[0] * (1.0f/8.0f));
-	gNewObjectDefinition.scale 	    = 1;
-	newObj = MakeNewDisplayGroupObject(&gNewObjectDefinition);
+	NewObjectDefinitionType def =
+	{
+		.group 		= MODEL_GROUP_LEVELSPECIFIC,
+		.type 		= DESERT_ObjType_StartingLine,
+		.coord		= {x,0,z},	// y filled in below
+		.flags 		= STATUS_BIT_NOLIGHTING|gAutoFadeStatusBits,
+		.slot 		= 100,
+		.moveCall 	= MoveStaticObject,
+		.rot 		= PI2 * ((float)itemPtr->parm[0] * (1.0f/8.0f)),
+		.scale 	    = 1,
+	};
+	def.coord.y 	= y = GetMinTerrainY(x,z, def.group, def.type, 1.0),
+	newObj = MakeNewDisplayGroupObject(&def);
 	if (newObj == nil)
 		return(false);
 
@@ -362,30 +364,27 @@ static const short aimAtPlayer[NUM_TRACKS][4] =
 
 Boolean	isSolid = itemPtr->parm[3] & 1;
 
-	gNewObjectDefinition.group 		= MODEL_GROUP_LEVELSPECIFIC;
-	gNewObjectDefinition.type 		= types[gTrackNum][itemPtr->parm[0]];
-	gNewObjectDefinition.coord.x 	= x;
-	gNewObjectDefinition.coord.z 	= z;
-	gNewObjectDefinition.coord.y 	= GetTerrainY(x,z);
+	NewObjectDefinitionType def =
+	{
+		.group 		= MODEL_GROUP_LEVELSPECIFIC,
+		.type 		= types[gTrackNum][itemPtr->parm[0]],
+		.coord.x 	= x,
+		.coord.z 	= z,
+		.coord.y 	= GetTerrainY(x,z),
+		.flags 		= gAutoFadeStatusBits|STATUS_BIT_KEEPBACKFACES|STATUS_BIT_NOLIGHTING|STATUS_BIT_NOTEXTUREWRAP|STATUS_BIT_CLIPALPHA,
+		.slot		= isSolid ? 642 : SLOT_OF_DUMB,
+		.moveCall 	= MoveStaticObject,
+		.rot 		= 0,
+		.scale 		= 1.0 + RandomFloat() * .3f,
+	};
 
 	if (itemPtr->parm[3] & (1<<1))											// see if bump up
-		gNewObjectDefinition.coord.y += 500.0f;
+		def.coord.y += 500.0f;
 
-	gNewObjectDefinition.flags 		= gAutoFadeStatusBits|STATUS_BIT_KEEPBACKFACES|STATUS_BIT_NOLIGHTING|STATUS_BIT_NOTEXTUREWRAP|STATUS_BIT_CLIPALPHA;
 	if (aimAtPlayer[gTrackNum][itemPtr->parm[0]])
-	{
-		gNewObjectDefinition.flags |= STATUS_BIT_AIMATCAMERA;
-	}
+		def.flags |= STATUS_BIT_AIMATCAMERA;
 
-	if (isSolid)
-		gNewObjectDefinition.slot 		= 642;
-	else
-		gNewObjectDefinition.slot 		= SLOT_OF_DUMB;
-
-	gNewObjectDefinition.moveCall 	= MoveStaticObject;
-	gNewObjectDefinition.rot 		= 0;
-	gNewObjectDefinition.scale 		= 1.0 + RandomFloat() * .3f;
-	newObj = MakeNewDisplayGroupObject(&gNewObjectDefinition);
+	newObj = MakeNewDisplayGroupObject(&def);
 	if (newObj == nil)
 		return(false);
 
@@ -412,17 +411,20 @@ Boolean AddVine(TerrainItemEntryType *itemPtr, long  x, long z)
 ObjNode	*newObj;
 
 
-	gNewObjectDefinition.group 		= MODEL_GROUP_LEVELSPECIFIC;
-	gNewObjectDefinition.type 		= JUNGLE_ObjType_Vine;
-	gNewObjectDefinition.coord.x 	= x;
-	gNewObjectDefinition.coord.z 	= z;
-	gNewObjectDefinition.coord.y 	= GetTerrainY(x,z);
-	gNewObjectDefinition.flags 		= gAutoFadeStatusBits|STATUS_BIT_NOLIGHTING|STATUS_BIT_CLIPALPHA;
-	gNewObjectDefinition.slot 		= SLOT_OF_DUMB+1;
-	gNewObjectDefinition.moveCall 	= MoveStaticObject;
-	gNewObjectDefinition.rot 		= PI2 * ((float)itemPtr->parm[0] * (1.0f/8.0f));
-	gNewObjectDefinition.scale 		= 1.0;
-	newObj = MakeNewDisplayGroupObject(&gNewObjectDefinition);
+	NewObjectDefinitionType def =
+	{
+		.group 		= MODEL_GROUP_LEVELSPECIFIC,
+		.type 		= JUNGLE_ObjType_Vine,
+		.coord.x 	= x,
+		.coord.z 	= z,
+		.coord.y 	= GetTerrainY(x,z),
+		.flags 		= gAutoFadeStatusBits|STATUS_BIT_NOLIGHTING|STATUS_BIT_CLIPALPHA,
+		.slot 		= SLOT_OF_DUMB+1,
+		.moveCall 	= MoveStaticObject,
+		.rot 		= PI2 * ((float)itemPtr->parm[0] * (1.0f/8.0f)),
+		.scale 		= 1.0,
+	};
+	newObj = MakeNewDisplayGroupObject(&def);
 	if (newObj == nil)
 		return(false);
 
@@ -440,17 +442,19 @@ Boolean AddEasterHead(TerrainItemEntryType *itemPtr, long  x, long z)
 ObjNode	*newObj;
 
 
-	gNewObjectDefinition.group 		= MODEL_GROUP_LEVELSPECIFIC;
-	gNewObjectDefinition.type 		= JUNGLE_ObjType_EasterHead;
-	gNewObjectDefinition.coord.x 	= x;
-	gNewObjectDefinition.coord.z 	= z;
-	gNewObjectDefinition.coord.y 	= GetMinTerrainY(x,z, gNewObjectDefinition.group, gNewObjectDefinition.type, 1.0);
-	gNewObjectDefinition.flags 		= gAutoFadeStatusBits;
-	gNewObjectDefinition.slot 		= 10;
-	gNewObjectDefinition.moveCall 	= MoveStaticObject;
-	gNewObjectDefinition.rot 		= (float)itemPtr->parm[0] / 8.0f * PI2;
-	gNewObjectDefinition.scale 		= 1.0;
-	newObj = MakeNewDisplayGroupObject(&gNewObjectDefinition);
+	NewObjectDefinitionType def =
+	{
+		.group 		= MODEL_GROUP_LEVELSPECIFIC,
+		.type 		= JUNGLE_ObjType_EasterHead,
+		.coord		= {x,0,z},	// y filled in below
+		.flags 		= gAutoFadeStatusBits,
+		.slot 		= 10,
+		.moveCall 	= MoveStaticObject,
+		.rot 		= (float)itemPtr->parm[0] / 8.0f * PI2,
+		.scale 		= 1.0,
+	};
+	def.coord.y 	= GetMinTerrainY(x,z, def.group, def.type, 1.0),
+	newObj = MakeNewDisplayGroupObject(&def);
 	if (newObj == nil)
 		return(false);
 
@@ -569,22 +573,20 @@ static const ColumnInfo info[NUM_TRACKS] =
 Boolean	notSolid = itemPtr->parm[3] & 1;						// see if solid or not
 short	type = itemPtr->parm[0];
 
-	gNewObjectDefinition.group 		= MODEL_GROUP_LEVELSPECIFIC;
-	gNewObjectDefinition.type 		= info[gTrackNum].type[type];
-	gNewObjectDefinition.coord.x 	= x;
-	gNewObjectDefinition.coord.z 	= z;
-	gNewObjectDefinition.coord.y 	= GetMinTerrainY(x,z, gNewObjectDefinition.group, gNewObjectDefinition.type, 1.0);
-	gNewObjectDefinition.flags 		= gAutoFadeStatusBits|STATUS_BIT_CLIPALPHA;
+	NewObjectDefinitionType def =
+	{
+		.group 		= MODEL_GROUP_LEVELSPECIFIC,
+		.type 		= info[gTrackNum].type[type],
+		.coord		= {x,0,z},	// y filled in below
+		.flags 		= gAutoFadeStatusBits|STATUS_BIT_CLIPALPHA,
+		.moveCall 	= MoveStaticObject,
+		.slot		= notSolid? (SLOT_OF_DUMB+2): 90,
+		.rot 		= 0,
+		.scale 		= 1.0,
+	};
+	def.coord.y 	= GetMinTerrainY(x,z, def.group, def.type, 1.0),
 
-	if (notSolid)
-		gNewObjectDefinition.slot 		= SLOT_OF_DUMB+2;
-	else
-		gNewObjectDefinition.slot 		= 90;
-
-	gNewObjectDefinition.moveCall 	= MoveStaticObject;
-	gNewObjectDefinition.rot 		= 0;
-	gNewObjectDefinition.scale 		= 1.0;
-	newObj = MakeNewDisplayGroupObject(&gNewObjectDefinition);
+	newObj = MakeNewDisplayGroupObject(&def);
 	if (newObj == nil)
 		return(false);
 
@@ -611,17 +613,19 @@ Boolean AddPylon(TerrainItemEntryType *itemPtr, long  x, long z)
 ObjNode	*newObj;
 
 
-	gNewObjectDefinition.group 		= MODEL_GROUP_LEVELSPECIFIC;
-	gNewObjectDefinition.type 		= EGYPT_ObjType_Pylon;
-	gNewObjectDefinition.coord.x 	= x;
-	gNewObjectDefinition.coord.z 	= z;
-	gNewObjectDefinition.coord.y 	= GetMinTerrainY(x,z, gNewObjectDefinition.group, gNewObjectDefinition.type, 1.0);
-	gNewObjectDefinition.flags 		= gAutoFadeStatusBits;
-	gNewObjectDefinition.slot 		= 40;
-	gNewObjectDefinition.moveCall 	= MoveStaticObject;
-	gNewObjectDefinition.rot 		= 0;
-	gNewObjectDefinition.scale 		= 1.0;
-	newObj = MakeNewDisplayGroupObject(&gNewObjectDefinition);
+	NewObjectDefinitionType def =
+	{
+		.group 		= MODEL_GROUP_LEVELSPECIFIC,
+		.type 		= EGYPT_ObjType_Pylon,
+		.coord	 	= {x,0,z},	// y filled in later
+		.flags 		= gAutoFadeStatusBits,
+		.slot 		= 40,
+		.moveCall 	= MoveStaticObject,
+		.rot 		= 0,
+		.scale 		= 1.0,
+	};
+	def.coord.y 	= GetMinTerrainY(x,z, def.group, def.type, 1.0),
+	newObj = MakeNewDisplayGroupObject(&def);
 	if (newObj == nil)
 		return(false);
 
@@ -642,53 +646,50 @@ ObjNode	*newObj;
 Boolean AddBoat(TerrainItemEntryType *itemPtr, long  x, long z)
 {
 ObjNode	*newObj;
-float	y;
 Boolean	collision = true;
 
 
-
-	gNewObjectDefinition.group 		= MODEL_GROUP_LEVELSPECIFIC;
+	NewObjectDefinitionType def =
+	{
+		.group 		= MODEL_GROUP_LEVELSPECIFIC,
+		.coord		= {x, GetTerrainY(x,z), z},
+		.flags 		= gAutoFadeStatusBits,
+		.moveCall 	= MoveStaticObject,
+		.rot 		= PI2 * ((float)itemPtr->parm[1] * (1.0f/8.0f)),
+		.scale 		= 1.0,
+	};
 
 	switch(gTrackNum)
 	{
 		case	TRACK_NUM_EGYPT:
-				gNewObjectDefinition.type 		= EGYPT_ObjType_Boat;
-				y = gWaterHeights[gTrackNum][itemPtr->parm[0]];	// put on top of water
+				def.type = EGYPT_ObjType_Boat;
+				def.coord.y = gWaterHeights[gTrackNum][itemPtr->parm[0]];	// put on top of water
 				break;
 
 		case	TRACK_NUM_CRETE:
-				gNewObjectDefinition.type 		= CRETE_ObjType_Boat;
-				y = gWaterHeights[gTrackNum][itemPtr->parm[0]];	// put on top of water
+				def.type = CRETE_ObjType_Boat;
+				def.coord.y = gWaterHeights[gTrackNum][itemPtr->parm[0]];	// put on top of water
 				break;
 
 		case	TRACK_NUM_SCANDINAVIA:
-				gNewObjectDefinition.type 		= SCANDINAVIA_ObjType_VikingShip;
-				y = GetTerrainY(x,z);
-				collision= false;
+				def.type = SCANDINAVIA_ObjType_VikingShip;
+				collision = false;
 				break;
 
 		case	TRACK_NUM_ATLANTIS:
-				gNewObjectDefinition.type 		= ATLANTIS_ObjType_Shipwreck;
-				y = GetTerrainY(x,z);
+				def.type = ATLANTIS_ObjType_Shipwreck;
 				break;
 
 		default:
 				DoFatalAlert("Can't AddBoat in track %d!", gTrackNum);
 	}
 
-	gNewObjectDefinition.coord.x 	= x;
-	gNewObjectDefinition.coord.z 	= z;
-	gNewObjectDefinition.coord.y 	= y;
-	gNewObjectDefinition.flags 		= gAutoFadeStatusBits;
 	if (collision)
-		gNewObjectDefinition.slot 		= 40;
+		def.slot 		= 40;
 	else
-		gNewObjectDefinition.slot 		= SLOT_OF_DUMB + 11;
+		def.slot 		= SLOT_OF_DUMB + 11;
 
-	gNewObjectDefinition.moveCall 	= MoveStaticObject;
-	gNewObjectDefinition.rot 		= PI2 * ((float)itemPtr->parm[1] * (1.0f/8.0f));
-	gNewObjectDefinition.scale 		= 1.0;
-	newObj = MakeNewDisplayGroupObject(&gNewObjectDefinition);
+	newObj = MakeNewDisplayGroupObject(&def);
 	if (newObj == nil)
 		return(false);
 
@@ -739,17 +740,20 @@ static const short types[NUM_TRACKS][2] =
 };
 
 
-	gNewObjectDefinition.group 		= MODEL_GROUP_LEVELSPECIFIC;
-	gNewObjectDefinition.type 		= types[gTrackNum][itemPtr->parm[0]];
-	gNewObjectDefinition.coord.x 	= x;
-	gNewObjectDefinition.coord.z 	= z;
-	gNewObjectDefinition.coord.y 	= GetMinTerrainY(x,z, gNewObjectDefinition.group, gNewObjectDefinition.type, 1.0);
-	gNewObjectDefinition.flags 		= gAutoFadeStatusBits;
-	gNewObjectDefinition.slot 		= 42;
-	gNewObjectDefinition.moveCall 	= MoveStaticObject;
-	gNewObjectDefinition.rot 		= itemPtr->parm[1] * (PI/4);
-	gNewObjectDefinition.scale 		= 1.0;
-	newObj = MakeNewDisplayGroupObject(&gNewObjectDefinition);
+	NewObjectDefinitionType def =
+	{
+		.group 		= MODEL_GROUP_LEVELSPECIFIC,
+		.type 		= types[gTrackNum][itemPtr->parm[0]],
+		.coord.x 	= x,
+		.coord.z 	= z,
+		.flags 		= gAutoFadeStatusBits,
+		.slot 		= 42,
+		.moveCall 	= MoveStaticObject,
+		.rot 		= itemPtr->parm[1] * (PI/4),
+		.scale 		= 1.0,
+	};
+	def.coord.y 	= GetMinTerrainY(x,z, def.group, def.type, 1.0);
+	newObj = MakeNewDisplayGroupObject(&def);
 	if (newObj == nil)
 		return(false);
 
@@ -775,18 +779,20 @@ Boolean AddSphinx(TerrainItemEntryType *itemPtr, long  x, long z)
 {
 ObjNode	*newObj;
 
-
-	gNewObjectDefinition.group 		= MODEL_GROUP_LEVELSPECIFIC;
-	gNewObjectDefinition.type 		= EGYPT_ObjType_Sphinx;
-	gNewObjectDefinition.coord.x 	= x;
-	gNewObjectDefinition.coord.z 	= z;
-	gNewObjectDefinition.coord.y 	= GetTerrainY(x,z) - 100.0f;
-	gNewObjectDefinition.flags 		= gAutoFadeStatusBits;
-	gNewObjectDefinition.slot 		= 50;
-	gNewObjectDefinition.moveCall 	= MoveStaticObject;
-	gNewObjectDefinition.rot 		= itemPtr->parm[0] * (PI/2);
-	gNewObjectDefinition.scale 		= 1.0;
-	newObj = MakeNewDisplayGroupObject(&gNewObjectDefinition);
+	NewObjectDefinitionType def =
+	{
+		.group 		= MODEL_GROUP_LEVELSPECIFIC,
+		.type 		= EGYPT_ObjType_Sphinx,
+		.coord.x 	= x,
+		.coord.z 	= z,
+		.coord.y 	= GetTerrainY(x,z) - 100.0f,
+		.flags 		= gAutoFadeStatusBits,
+		.slot 		= 50,
+		.moveCall 	= MoveStaticObject,
+		.rot 		= itemPtr->parm[0] * (PI/2),
+		.scale 		= 1.0,
+	};
+	newObj = MakeNewDisplayGroupObject(&def);
 	if (newObj == nil)
 		return(false);
 
@@ -812,18 +818,20 @@ Boolean AddSign(TerrainItemEntryType *itemPtr, long  x, long z)
 {
 ObjNode	*newObj;
 
-
-	gNewObjectDefinition.group 		= MODEL_GROUP_GLOBAL;
-	gNewObjectDefinition.type 		= GLOBAL_ObjType_Sign_Fire + itemPtr->parm[0];
-	gNewObjectDefinition.coord.x 	= x;
-	gNewObjectDefinition.coord.z 	= z;
-	gNewObjectDefinition.coord.y 	= GetTerrainY(x,z);
-	gNewObjectDefinition.flags 		= gAutoFadeStatusBits|STATUS_BIT_KEEPBACKFACES|STATUS_BIT_NOTEXTUREWRAP|STATUS_BIT_CLIPALPHA;
-	gNewObjectDefinition.slot 		= 10;
-	gNewObjectDefinition.moveCall 	= MoveStaticObject;
-	gNewObjectDefinition.rot 		= PI2 * ((float)itemPtr->parm[1] * (1.0f/8.0f));
-	gNewObjectDefinition.scale 		= 1.0;
-	newObj = MakeNewDisplayGroupObject(&gNewObjectDefinition);
+	NewObjectDefinitionType def =
+	{
+		.group 		= MODEL_GROUP_GLOBAL,
+		.type 		= GLOBAL_ObjType_Sign_Fire + itemPtr->parm[0],
+		.coord.x 	= x,
+		.coord.z 	= z,
+		.coord.y 	= GetTerrainY(x,z),
+		.flags 		= gAutoFadeStatusBits|STATUS_BIT_KEEPBACKFACES|STATUS_BIT_NOTEXTUREWRAP|STATUS_BIT_CLIPALPHA,
+		.slot 		= 10,
+		.moveCall 	= MoveStaticObject,
+		.rot 		= PI2 * ((float)itemPtr->parm[1] * (1.0f/8.0f)),
+		.scale 		= 1.0,
+	};
+	newObj = MakeNewDisplayGroupObject(&def);
 	if (newObj == nil)
 		return(false);
 
@@ -851,18 +859,19 @@ Boolean AddStump(TerrainItemEntryType *itemPtr, long  x, long z)
 {
 ObjNode	*newObj;
 
-
-	gNewObjectDefinition.group 		= MODEL_GROUP_LEVELSPECIFIC;
-	gNewObjectDefinition.type 		= SCANDINAVIA_ObjType_Stump1 + (MyRandomLong() & 0x3);
-	gNewObjectDefinition.coord.x 	= x;
-	gNewObjectDefinition.coord.z 	= z;
-	gNewObjectDefinition.coord.y 	= GetMinTerrainY(x,z, gNewObjectDefinition.group, gNewObjectDefinition.type, 1.0);
-	gNewObjectDefinition.flags 		= gAutoFadeStatusBits;
-	gNewObjectDefinition.slot 		= 400;
-	gNewObjectDefinition.moveCall 	= MoveStaticObject;
-	gNewObjectDefinition.rot 		= RandomFloat() * PI2;
-	gNewObjectDefinition.scale 		= 1.0;
-	newObj = MakeNewDisplayGroupObject(&gNewObjectDefinition);
+	NewObjectDefinitionType def =
+	{
+		.group 		= MODEL_GROUP_LEVELSPECIFIC,
+		.type 		= SCANDINAVIA_ObjType_Stump1 + (MyRandomLong() & 0x3),
+		.coord		= {x,0,z},
+		.flags 		= gAutoFadeStatusBits,
+		.slot 		= 400,
+		.moveCall 	= MoveStaticObject,
+		.rot 		= RandomFloat() * PI2,
+		.scale 		= 1.0,
+	};
+	def.coord.y 	= GetMinTerrainY(x,z, def.group, def.type, 1.0),
+	newObj = MakeNewDisplayGroupObject(&def);
 	if (newObj == nil)
 		return(false);
 
@@ -884,17 +893,20 @@ Boolean AddVikingFlag(TerrainItemEntryType *itemPtr, long  x, long z)
 ObjNode	*newObj;
 
 
-	gNewObjectDefinition.group 		= MODEL_GROUP_LEVELSPECIFIC;
-	gNewObjectDefinition.type 		= SCANDINAVIA_ObjType_VikingFlag;
-	gNewObjectDefinition.coord.x 	= x;
-	gNewObjectDefinition.coord.z 	= z;
-	gNewObjectDefinition.coord.y 	= GetTerrainY(x,z);
-	gNewObjectDefinition.flags 		= gAutoFadeStatusBits;
-	gNewObjectDefinition.slot 		= 659;
-	gNewObjectDefinition.moveCall 	= MoveStaticObject;
-	gNewObjectDefinition.rot 		= PI2 * ((float)itemPtr->parm[0] * (1.0f/8.0f));
-	gNewObjectDefinition.scale 		= 1.0;
-	newObj = MakeNewDisplayGroupObject(&gNewObjectDefinition);
+	NewObjectDefinitionType def =
+	{
+		.group 		= MODEL_GROUP_LEVELSPECIFIC,
+		.type 		= SCANDINAVIA_ObjType_VikingFlag,
+		.coord.x 	= x,
+		.coord.z 	= z,
+		.coord.y 	= GetTerrainY(x,z),
+		.flags 		= gAutoFadeStatusBits,
+		.slot 		= 659,
+		.moveCall 	= MoveStaticObject,
+		.rot 		= PI2 * ((float)itemPtr->parm[0] * (1.0f/8.0f)),
+		.scale 		= 1.0,
+	};
+	newObj = MakeNewDisplayGroupObject(&def);
 	if (newObj == nil)
 		return(false);
 
@@ -916,18 +928,19 @@ Boolean AddWeaponsRack(TerrainItemEntryType *itemPtr, long  x, long z)
 {
 ObjNode	*newObj;
 
-
-	gNewObjectDefinition.group 		= MODEL_GROUP_LEVELSPECIFIC;
-	gNewObjectDefinition.type 		= SCANDINAVIA_ObjType_WeaponsRack;
-	gNewObjectDefinition.coord.x 	= x;
-	gNewObjectDefinition.coord.z 	= z;
-	gNewObjectDefinition.coord.y 	= GetMinTerrainY(x,z, gNewObjectDefinition.group, gNewObjectDefinition.type, 1.0);
-	gNewObjectDefinition.flags 		= gAutoFadeStatusBits;
-	gNewObjectDefinition.slot 		= 400;
-	gNewObjectDefinition.moveCall 	= MoveStaticObject;
-	gNewObjectDefinition.rot 		= PI2 * ((float)itemPtr->parm[0] * (1.0f/4.0f));
-	gNewObjectDefinition.scale 		= 1.0;
-	newObj = MakeNewDisplayGroupObject(&gNewObjectDefinition);
+	NewObjectDefinitionType def =
+	{
+		.group 		= MODEL_GROUP_LEVELSPECIFIC,
+		.type 		= SCANDINAVIA_ObjType_WeaponsRack,
+		.coord		= {x,0,z},	// y filled in below
+		.flags 		= gAutoFadeStatusBits,
+		.slot 		= 400,
+		.moveCall 	= MoveStaticObject,
+		.rot 		= PI2 * ((float)itemPtr->parm[0] * (1.0f/4.0f)),
+		.scale 		= 1.0,
+	};
+	def.coord.y 	= GetMinTerrainY(x,z, def.group, def.type, 1.0),
+	newObj = MakeNewDisplayGroupObject(&def);
 	if (newObj == nil)
 		return(false);
 
@@ -949,18 +962,19 @@ Boolean AddBaracade(TerrainItemEntryType *itemPtr, long  x, long z)
 {
 ObjNode	*newObj;
 
-
-	gNewObjectDefinition.group 		= MODEL_GROUP_LEVELSPECIFIC;
-	gNewObjectDefinition.type 		= SCANDINAVIA_ObjType_Baracade1 + itemPtr->parm[0];
-	gNewObjectDefinition.coord.x 	= x;
-	gNewObjectDefinition.coord.z 	= z;
-	gNewObjectDefinition.coord.y 	= GetMinTerrainY(x,z, gNewObjectDefinition.group, gNewObjectDefinition.type, 1.0);
-	gNewObjectDefinition.flags 		= gAutoFadeStatusBits;
-	gNewObjectDefinition.slot 		= 300;
-	gNewObjectDefinition.moveCall 	= MoveStaticObject;
-	gNewObjectDefinition.rot 		= PI2 * ((float)itemPtr->parm[1] * (1.0f/4.0f));
-	gNewObjectDefinition.scale 		= 1.0;
-	newObj = MakeNewDisplayGroupObject(&gNewObjectDefinition);
+	NewObjectDefinitionType def =
+	{
+		.group 		= MODEL_GROUP_LEVELSPECIFIC,
+		.type 		= SCANDINAVIA_ObjType_Baracade1 + itemPtr->parm[0],
+		.coord		= {x,0,z},	// y filled in below
+		.flags 		= gAutoFadeStatusBits,
+		.slot 		= 300,
+		.moveCall 	= MoveStaticObject,
+		.rot 		= PI2 * ((float)itemPtr->parm[1] * (1.0f/4.0f)),
+		.scale 		= 1.0,
+	};
+	def.coord.y 	= GetMinTerrainY(x,z, def.group, def.type, 1.0),
+	newObj = MakeNewDisplayGroupObject(&def);
 	if (newObj == nil)
 		return(false);
 
@@ -984,17 +998,20 @@ Boolean AddRock(TerrainItemEntryType *itemPtr, long  x, long z)
 ObjNode	*newObj;
 
 
-	gNewObjectDefinition.group 		= MODEL_GROUP_GLOBAL;
-	gNewObjectDefinition.type 		= GLOBAL_ObjType_GreyRock + itemPtr->parm[0];
-	gNewObjectDefinition.coord.x 	= x;
-	gNewObjectDefinition.coord.z 	= z;
-	gNewObjectDefinition.coord.y 	= GetTerrainY(x,z) + 30.0f;
-	gNewObjectDefinition.flags 		= gAutoFadeStatusBits;
-	gNewObjectDefinition.slot 		= 10;
-	gNewObjectDefinition.moveCall 	= MoveStaticObject;
-	gNewObjectDefinition.rot 		= RandomFloat() * PI2;
-	gNewObjectDefinition.scale 		= 1.0;
-	newObj = MakeNewDisplayGroupObject(&gNewObjectDefinition);
+	NewObjectDefinitionType def =
+	{
+		.group 		= MODEL_GROUP_GLOBAL,
+		.type 		= GLOBAL_ObjType_GreyRock + itemPtr->parm[0],
+		.coord.x 	= x,
+		.coord.z 	= z,
+		.coord.y 	= GetTerrainY(x,z) + 30.0f,
+		.flags 		= gAutoFadeStatusBits,
+		.slot 		= 10,
+		.moveCall 	= MoveStaticObject,
+		.rot 		= RandomFloat() * PI2,
+		.scale 		= 1.0,
+	};
+	newObj = MakeNewDisplayGroupObject(&def);
 	if (newObj == nil)
 		return(false);
 
@@ -1017,18 +1034,20 @@ Boolean AddBrontoNeck(TerrainItemEntryType *itemPtr, long  x, long z)
 {
 ObjNode	*newObj;
 
-
-	gNewObjectDefinition.type 		= SKELETON_TYPE_BRONTONECK;
-	gNewObjectDefinition.animNum	= 0;
-	gNewObjectDefinition.coord.x 	= x;
-	gNewObjectDefinition.coord.z 	= z;
-	gNewObjectDefinition.coord.y 	= GetTerrainY(x,z) + 500.0f;
-	gNewObjectDefinition.flags 		= gAutoFadeStatusBits;
-	gNewObjectDefinition.slot 		= SLOT_OF_DUMB+2;
-	gNewObjectDefinition.moveCall 	= MoveStaticObject;
-	gNewObjectDefinition.rot 		= PI2 * ((float)itemPtr->parm[0] * (1.0f/8.0f));
-	gNewObjectDefinition.scale 		= 50.0;
-	newObj = MakeNewSkeletonObject(&gNewObjectDefinition);
+	NewObjectDefinitionType def =
+	{
+		.type 		= SKELETON_TYPE_BRONTONECK,
+		.animNum	= 0,
+		.coord.x 	= x,
+		.coord.z 	= z,
+		.coord.y 	= GetTerrainY(x,z) + 500.0f,
+		.flags 		= gAutoFadeStatusBits,
+		.slot 		= SLOT_OF_DUMB+2,
+		.moveCall 	= MoveStaticObject,
+		.rot 		= PI2 * ((float)itemPtr->parm[0] * (1.0f/8.0f)),
+		.scale 		= 50.0,
+	};
+	newObj = MakeNewSkeletonObject(&def);
 	if (newObj == nil)
 		return(false);
 
@@ -1045,31 +1064,34 @@ Boolean AddRockOverhang(TerrainItemEntryType *itemPtr, long  x, long z)
 {
 ObjNode	*newObj;
 
+	NewObjectDefinitionType def =
+	{
+		.group 		= MODEL_GROUP_LEVELSPECIFIC,
+		.coord.x 	= x,
+		.coord.z 	= z,
+		.coord.y 	= GetTerrainY(x,z),
+		.flags 		= gAutoFadeStatusBits,
+		.slot 		= SLOT_OF_DUMB+3,
+		.moveCall 	= MoveStaticObject,
+		.rot 		= PI2 * ((float)itemPtr->parm[0] * (1.0f/8.0f)),
+		.scale 		= 1.0,
+	};
+
 	switch(gTrackNum)
 	{
 		case	TRACK_NUM_DESERT:
-				gNewObjectDefinition.type 		= DESERT_ObjType_RockOverhang  + itemPtr->parm[1];
+				def.type 		= DESERT_ObjType_RockOverhang  + itemPtr->parm[1];
 				break;
 
 		case	TRACK_NUM_ICE:
-				gNewObjectDefinition.type 		= ICE_ObjType_IceBridge;
+				def.type 		= ICE_ObjType_IceBridge;
 				break;
 
 		default:
 				return(true);
 	}
 
-
-	gNewObjectDefinition.group 		= MODEL_GROUP_LEVELSPECIFIC;
-	gNewObjectDefinition.coord.x 	= x;
-	gNewObjectDefinition.coord.z 	= z;
-	gNewObjectDefinition.coord.y 	= GetTerrainY(x,z);
-	gNewObjectDefinition.flags 		= gAutoFadeStatusBits;
-	gNewObjectDefinition.slot 		= SLOT_OF_DUMB+3;
-	gNewObjectDefinition.moveCall 	= MoveStaticObject;
-	gNewObjectDefinition.rot 		= PI2 * ((float)itemPtr->parm[0] * (1.0f/8.0f));
-	gNewObjectDefinition.scale 		= 1.0;
-	newObj = MakeNewDisplayGroupObject(&gNewObjectDefinition);
+	newObj = MakeNewDisplayGroupObject(&def);
 	if (newObj == nil)
 		return(false);
 
@@ -1087,18 +1109,20 @@ Boolean AddRickshaw(TerrainItemEntryType *itemPtr, long  x, long z)
 {
 ObjNode	*newObj;
 
-
-	gNewObjectDefinition.group 		= MODEL_GROUP_LEVELSPECIFIC;
-	gNewObjectDefinition.type 		= CHINA_ObjType_Rickshaw;
-	gNewObjectDefinition.coord.x 	= x;
-	gNewObjectDefinition.coord.z 	= z;
-	gNewObjectDefinition.coord.y 	= GetTerrainY(x,z);
-	gNewObjectDefinition.flags 		= gAutoFadeStatusBits;
-	gNewObjectDefinition.slot 		= 108;
-	gNewObjectDefinition.moveCall 	= MoveStaticObject;
-	gNewObjectDefinition.rot 		= 0;
-	gNewObjectDefinition.scale 		= 1.0;
-	newObj = MakeNewDisplayGroupObject(&gNewObjectDefinition);
+	NewObjectDefinitionType def =
+	{
+		.group 		= MODEL_GROUP_LEVELSPECIFIC,
+		.type 		= CHINA_ObjType_Rickshaw,
+		.coord.x 	= x,
+		.coord.z 	= z,
+		.coord.y 	= GetTerrainY(x,z),
+		.flags 		= gAutoFadeStatusBits,
+		.slot 		= 108,
+		.moveCall 	= MoveStaticObject,
+		.rot 		= 0,
+		.scale 		= 1.0,
+	};
+	newObj = MakeNewDisplayGroupObject(&def);
 	if (newObj == nil)
 		return(false);
 
@@ -1120,18 +1144,20 @@ Boolean AddAztecHead(TerrainItemEntryType *itemPtr, long  x, long z)
 {
 ObjNode	*newObj;
 
-
-	gNewObjectDefinition.group 		= MODEL_GROUP_LEVELSPECIFIC;
-	gNewObjectDefinition.type 		= AZTEC_ObjType_StoneHead;
-	gNewObjectDefinition.coord.x 	= x;
-	gNewObjectDefinition.coord.z 	= z;
-	gNewObjectDefinition.coord.y 	= GetTerrainY(x,z);
-	gNewObjectDefinition.flags 		= gAutoFadeStatusBits;
-	gNewObjectDefinition.slot 		= 105;
-	gNewObjectDefinition.moveCall 	= MoveStaticObject;
-	gNewObjectDefinition.rot 		= PI2 * ((float)itemPtr->parm[0] * (1.0f/8.0f));
-	gNewObjectDefinition.scale 		= 1.0;
-	newObj = MakeNewDisplayGroupObject(&gNewObjectDefinition);
+	NewObjectDefinitionType def =
+	{
+		.group 		= MODEL_GROUP_LEVELSPECIFIC,
+		.type 		= AZTEC_ObjType_StoneHead,
+		.coord.x 	= x,
+		.coord.z 	= z,
+		.coord.y 	= GetTerrainY(x,z),
+		.flags 		= gAutoFadeStatusBits,
+		.slot 		= 105,
+		.moveCall 	= MoveStaticObject,
+		.rot 		= PI2 * ((float)itemPtr->parm[0] * (1.0f/8.0f)),
+		.scale 		= 1.0,
+	};
+	newObj = MakeNewDisplayGroupObject(&def);
 	if (newObj == nil)
 		return(false);
 
@@ -1156,28 +1182,29 @@ Boolean AddCastleTower(TerrainItemEntryType *itemPtr, long  x, long z)
 ObjNode	*newObj;
 Boolean	isSolid = itemPtr->parm[3] & 1;						// see if solid or not
 
-
-	gNewObjectDefinition.group 		= MODEL_GROUP_LEVELSPECIFIC;
-	gNewObjectDefinition.type 		= EUROPE_ObjType_CastleTower + itemPtr->parm[0];
-	gNewObjectDefinition.coord.x 	= x;
-	gNewObjectDefinition.coord.z 	= z;
-
-	if (isSolid)
-		gNewObjectDefinition.coord.y 	= GetMinTerrainY(x,z, gNewObjectDefinition.group, gNewObjectDefinition.type, 1.0);
-	else
-		gNewObjectDefinition.coord.y 	= GetTerrainY(x,z);
-
-	gNewObjectDefinition.flags 		= gAutoFadeStatusBits|STATUS_BIT_NOTEXTUREWRAP|STATUS_BIT_CLIPALPHA;
+	NewObjectDefinitionType def =
+	{
+		.group 		= MODEL_GROUP_LEVELSPECIFIC,
+		.type 		= EUROPE_ObjType_CastleTower + itemPtr->parm[0],
+		.coord		= {x,0,z},	// y filled in below
+		.flags 		= gAutoFadeStatusBits|STATUS_BIT_NOTEXTUREWRAP|STATUS_BIT_CLIPALPHA,
+		.moveCall 	= MoveStaticObject,
+		.rot 		= PI2 * ((float)itemPtr->parm[0] * (1.0f/8.0f)),
+		.scale 		= 1.0,
+	};
 
 	if (isSolid)
-		gNewObjectDefinition.slot 		= 40;
+	{
+		def.coord.y 	= GetMinTerrainY(x,z, def.group, def.type, 1.0);
+		def.slot 		= 40;
+	}
 	else
-		gNewObjectDefinition.slot 		= SLOT_OF_DUMB+4;
+	{
+		def.coord.y 	= GetTerrainY(x,z);
+		def.slot 		= SLOT_OF_DUMB+4;
+	}
 
-	gNewObjectDefinition.moveCall 	= MoveStaticObject;
-	gNewObjectDefinition.rot 		= PI2 * ((float)itemPtr->parm[0] * (1.0f/8.0f));;
-	gNewObjectDefinition.scale 		= 1.0;
-	newObj = MakeNewDisplayGroupObject(&gNewObjectDefinition);
+	newObj = MakeNewDisplayGroupObject(&def);
 	if (newObj == nil)
 		return(false);
 
@@ -1276,26 +1303,23 @@ static const HouseInfo info[NUM_TRACKS] =
 Boolean	notSolid = itemPtr->parm[3] & 1;						// see if solid or not
 short	type = itemPtr->parm[0];
 
-	gNewObjectDefinition.group 		= MODEL_GROUP_LEVELSPECIFIC;
-	gNewObjectDefinition.type 		= info[gTrackNum].type[type];
-	gNewObjectDefinition.coord.x 	= x;
-	gNewObjectDefinition.coord.z 	= z;
-	gNewObjectDefinition.coord.y 	= GetMinTerrainY(x,z, gNewObjectDefinition.group, gNewObjectDefinition.type, 1.0);
+	NewObjectDefinitionType def =
+	{
+		.group 		= MODEL_GROUP_LEVELSPECIFIC,
+		.type 		= info[gTrackNum].type[type],
+		.coord		= {x,0,z},	// y filled in below
+		.moveCall 	= MoveStaticObject,
+		.rot 		= PI2 * ((float)itemPtr->parm[1] * (1.0f/8.0f)),
+		.scale 		= 1.0,
+		.slot		= notSolid ? (SLOT_OF_DUMB+2) : 77,
+		.flags 		= gAutoFadeStatusBits | STATUS_BIT_CLIPALPHA,
+	};
 
-	if ((gTrackNum == TRACK_NUM_JUNGLE) && (gNewObjectDefinition.type == JUNGLE_ObjType_Hut1))
-		gNewObjectDefinition.flags 		= gAutoFadeStatusBits | STATUS_BIT_KEEPBACKFACES | STATUS_BIT_CLIPALPHA;
-	else
-		gNewObjectDefinition.flags 		= gAutoFadeStatusBits | STATUS_BIT_CLIPALPHA;
+	def.coord.y 	= GetMinTerrainY(x,z, def.group, def.type, 1.0);
+	if ((gTrackNum == TRACK_NUM_JUNGLE) && (def.type == JUNGLE_ObjType_Hut1))
+		def.flags 		|= STATUS_BIT_KEEPBACKFACES;
 
-	if (notSolid)
-		gNewObjectDefinition.slot 		= SLOT_OF_DUMB+2;
-	else
-		gNewObjectDefinition.slot 		= 77;
-
-	gNewObjectDefinition.moveCall 	= MoveStaticObject;
-	gNewObjectDefinition.rot 		= PI2 * ((float)itemPtr->parm[1] * (1.0f/8.0f));
-	gNewObjectDefinition.scale 		= 1.0;
-	newObj = MakeNewDisplayGroupObject(&gNewObjectDefinition);
+	newObj = MakeNewDisplayGroupObject(&def);
 	if (newObj == nil)
 		return(false);
 
@@ -1320,18 +1344,20 @@ Boolean AddWell(TerrainItemEntryType *itemPtr, long  x, long z)
 {
 ObjNode	*newObj;
 
-
-	gNewObjectDefinition.group 		= MODEL_GROUP_LEVELSPECIFIC;
-	gNewObjectDefinition.type 		= EUROPE_ObjType_Well;
-	gNewObjectDefinition.coord.x 	= x;
-	gNewObjectDefinition.coord.z 	= z;
-	gNewObjectDefinition.coord.y 	= GetMinTerrainY(x,z, gNewObjectDefinition.group, gNewObjectDefinition.type, 1.0);
-	gNewObjectDefinition.flags 		= gAutoFadeStatusBits;
-	gNewObjectDefinition.slot 		= 222;
-	gNewObjectDefinition.moveCall 	= MoveStaticObject;
-	gNewObjectDefinition.rot 		= 0;
-	gNewObjectDefinition.scale 		= 1.0;
-	newObj = MakeNewDisplayGroupObject(&gNewObjectDefinition);
+	NewObjectDefinitionType def =
+	{
+		.group 		= MODEL_GROUP_LEVELSPECIFIC,
+		.type 		= EUROPE_ObjType_Well,
+		.coord.x 	= x,
+		.coord.z 	= z,
+		.flags 		= gAutoFadeStatusBits,
+		.slot 		= 222,
+		.moveCall 	= MoveStaticObject,
+		.rot 		= 0,
+		.scale 		= 1.0,
+		.coord.y 	= GetMinTerrainY(x,z, def.group, def.type, 1.0),
+	};
+	newObj = MakeNewDisplayGroupObject(&def);
 	if (newObj == nil)
 		return(false);
 
@@ -1355,18 +1381,19 @@ Boolean AddClock(TerrainItemEntryType *itemPtr, long  x, long z)
 {
 ObjNode	*newObj;
 
-
-	gNewObjectDefinition.group 		= MODEL_GROUP_LEVELSPECIFIC;
-	gNewObjectDefinition.type 		= CRETE_ObjType_Clock;
-	gNewObjectDefinition.coord.x 	= x;
-	gNewObjectDefinition.coord.z 	= z;
-	gNewObjectDefinition.coord.y 	= GetMinTerrainY(x,z, gNewObjectDefinition.group, gNewObjectDefinition.type, 1.0);
-	gNewObjectDefinition.flags 		= gAutoFadeStatusBits;
-	gNewObjectDefinition.slot 		= 420;
-	gNewObjectDefinition.moveCall 	= MoveStaticObject;
-	gNewObjectDefinition.rot 		= 0;
-	gNewObjectDefinition.scale 		= 1.0;
-	newObj = MakeNewDisplayGroupObject(&gNewObjectDefinition);
+	NewObjectDefinitionType def =
+	{
+		.group 		= MODEL_GROUP_LEVELSPECIFIC,
+		.type 		= CRETE_ObjType_Clock,
+		.coord		= {x,0,z},
+		.flags 		= gAutoFadeStatusBits,
+		.slot 		= 420,
+		.moveCall 	= MoveStaticObject,
+		.rot 		= 0,
+		.scale 		= 1.0,
+	};
+	def.coord.y 	= GetMinTerrainY(x,z, def.group, def.type, 1.0),
+	newObj = MakeNewDisplayGroupObject(&def);
 	if (newObj == nil)
 		return(false);
 
@@ -1390,18 +1417,20 @@ Boolean AddClam(TerrainItemEntryType *itemPtr, long  x, long z)
 {
 ObjNode	*newObj;
 
-
-	gNewObjectDefinition.group 		= MODEL_GROUP_LEVELSPECIFIC;
-	gNewObjectDefinition.type 		= ATLANTIS_ObjType_Clam;
-	gNewObjectDefinition.coord.x 	= x;
-	gNewObjectDefinition.coord.z 	= z;
-	gNewObjectDefinition.coord.y 	= GetTerrainY(x,z);
-	gNewObjectDefinition.flags 		= 0;
-	gNewObjectDefinition.slot 		= 200;
-	gNewObjectDefinition.moveCall 	= MoveStaticObject;
-	gNewObjectDefinition.rot 		= RandomFloat() * PI2;
-	gNewObjectDefinition.scale 		= 1.0;
-	newObj = MakeNewDisplayGroupObject(&gNewObjectDefinition);
+	NewObjectDefinitionType def =
+	{
+		.group 		= MODEL_GROUP_LEVELSPECIFIC,
+		.type 		= ATLANTIS_ObjType_Clam,
+		.coord.x 	= x,
+		.coord.z 	= z,
+		.coord.y 	= GetTerrainY(x,z),
+		.flags 		= 0,
+		.slot 		= 200,
+		.moveCall 	= MoveStaticObject,
+		.rot 		= RandomFloat() * PI2,
+		.scale 		= 1.0,
+	};
+	newObj = MakeNewDisplayGroupObject(&def);
 	if (newObj == nil)
 		return(false);
 
@@ -1426,19 +1455,19 @@ Boolean AddFlagPole(TerrainItemEntryType *itemPtr, long  x, long z)
 {
 ObjNode	*newObj;
 
-
-	gNewObjectDefinition.type 		= SKELETON_TYPE_FLAG;
-	gNewObjectDefinition.animNum	= 0;
-	gNewObjectDefinition.coord.x 	= x;
-	gNewObjectDefinition.coord.z 	= z;
-	gNewObjectDefinition.coord.y 	= GetTerrainY(x,z) - gObjectGroupBBoxList[MODEL_GROUP_SKELETONBASE+gNewObjectDefinition.type][0].min.y;
-
-	gNewObjectDefinition.flags 		= gAutoFadeStatusBits|STATUS_BIT_CLIPALPHA;
-	gNewObjectDefinition.slot 		= 285;
-	gNewObjectDefinition.moveCall 	= MoveStaticObject;
-	gNewObjectDefinition.rot 		= PI2 * ((float)itemPtr->parm[0] * (1.0f/8.0f));
-	gNewObjectDefinition.scale 		= 10.0;
-	newObj = MakeNewSkeletonObject(&gNewObjectDefinition);
+	NewObjectDefinitionType def =
+	{
+		.type 		= SKELETON_TYPE_FLAG,
+		.animNum	= 0,
+		.coord		= {x,0,z},
+		.flags 		= gAutoFadeStatusBits|STATUS_BIT_CLIPALPHA,
+		.slot 		= 285,
+		.moveCall 	= MoveStaticObject,
+		.rot 		= PI2 * ((float)itemPtr->parm[0] * (1.0f/8.0f)),
+		.scale 		= 10.0,
+	};
+	def.coord.y 	= GetTerrainY(x,z) - gObjectGroupBBoxList[MODEL_GROUP_SKELETONBASE+def.type][0].min.y;
+	newObj = MakeNewSkeletonObject(&def);
 	if (newObj == nil)
 		return(false);
 
@@ -1468,17 +1497,19 @@ Boolean AddStoneHenge(TerrainItemEntryType *itemPtr, long  x, long z)
 ObjNode	*newObj;
 short	type = itemPtr->parm[0];
 
-	gNewObjectDefinition.group 		= MODEL_GROUP_LEVELSPECIFIC;
-	gNewObjectDefinition.type 		= STONEHENGE_ObjType_Post + type;
-	gNewObjectDefinition.coord.x 	= x;
-	gNewObjectDefinition.coord.z 	= z;
-	gNewObjectDefinition.coord.y 	= GetMinTerrainY(x,z, gNewObjectDefinition.group, gNewObjectDefinition.type, 1.0);
-	gNewObjectDefinition.flags 		= gAutoFadeStatusBits;
-	gNewObjectDefinition.slot 		= 100;
-	gNewObjectDefinition.moveCall 	= MoveStaticObject;
-	gNewObjectDefinition.rot 		= PI2 * ((float)itemPtr->parm[1] * (1.0f/64.0f));
-	gNewObjectDefinition.scale 		= 1.0;
-	newObj = MakeNewDisplayGroupObject(&gNewObjectDefinition);
+	NewObjectDefinitionType def =
+	{
+		.group 		= MODEL_GROUP_LEVELSPECIFIC,
+		.type 		= STONEHENGE_ObjType_Post + type,
+		.coord		= {x,0,z},	// y filled in below
+		.flags 		= gAutoFadeStatusBits,
+		.slot 		= 100,
+		.moveCall 	= MoveStaticObject,
+		.rot 		= PI2 * ((float)itemPtr->parm[1] * (1.0f/64.0f)),
+		.scale 		= 1.0,
+	};
+	def.coord.y 	= GetMinTerrainY(x,z, def.group, def.type, 1.0),
+	newObj = MakeNewDisplayGroupObject(&def);
 	if (newObj == nil)
 		return(false);
 
@@ -1560,17 +1591,20 @@ Boolean AddColiseum(TerrainItemEntryType *itemPtr, long  x, long z)
 {
 ObjNode	*newObj;
 
-	gNewObjectDefinition.group 		= MODEL_GROUP_LEVELSPECIFIC;
-	gNewObjectDefinition.type 		= COLISEUM_ObjType_Wall;
-	gNewObjectDefinition.coord.x 	= x;
-	gNewObjectDefinition.coord.z 	= z;
-	gNewObjectDefinition.coord.y 	= GetTerrainY(x,z);
-	gNewObjectDefinition.flags 		= STATUS_BIT_NOLIGHTING;
-	gNewObjectDefinition.slot 		= 10;
-	gNewObjectDefinition.moveCall 	= MoveStaticObject;
-	gNewObjectDefinition.rot 		= 0;
-	gNewObjectDefinition.scale 		= 1.06;
-	newObj = MakeNewDisplayGroupObject(&gNewObjectDefinition);
+	NewObjectDefinitionType def =
+	{
+		.group 		= MODEL_GROUP_LEVELSPECIFIC,
+		.type 		= COLISEUM_ObjType_Wall,
+		.coord.x 	= x,
+		.coord.z 	= z,
+		.coord.y 	= GetTerrainY(x,z),
+		.flags 		= STATUS_BIT_NOLIGHTING,
+		.slot 		= 10,
+		.moveCall 	= MoveStaticObject,
+		.rot 		= 0,
+		.scale 		= 1.06,
+	};
+	newObj = MakeNewDisplayGroupObject(&def);
 	if (newObj == nil)
 		return(false);
 
@@ -1593,18 +1627,20 @@ Boolean AddVolcano(TerrainItemEntryType *itemPtr, long  x, long z)
 {
 ObjNode	*newObj;
 
-
-	gNewObjectDefinition.group 		= MODEL_GROUP_LEVELSPECIFIC;
-	gNewObjectDefinition.type 		= JUNGLE_ObjType_Volcano;
-	gNewObjectDefinition.coord.x 	= x;
-	gNewObjectDefinition.coord.z 	= z;
-	gNewObjectDefinition.coord.y 	= GetTerrainY(x,z);
-	gNewObjectDefinition.flags 		= gAutoFadeStatusBits;
-	gNewObjectDefinition.slot 		= SLOT_OF_DUMB+4;
-	gNewObjectDefinition.moveCall 	= MoveVolcano;
-	gNewObjectDefinition.rot 		= 0;
-	gNewObjectDefinition.scale 		= 1.0;
-	newObj = MakeNewDisplayGroupObject(&gNewObjectDefinition);
+	NewObjectDefinitionType def =
+	{
+		.group 		= MODEL_GROUP_LEVELSPECIFIC,
+		.type 		= JUNGLE_ObjType_Volcano,
+		.coord.x 	= x,
+		.coord.z 	= z,
+		.coord.y 	= GetTerrainY(x,z),
+		.flags 		= gAutoFadeStatusBits,
+		.slot 		= SLOT_OF_DUMB+4,
+		.moveCall 	= MoveVolcano,
+		.rot 		= 0,
+		.scale 		= 1.0,
+	};
+	newObj = MakeNewDisplayGroupObject(&def);
 	if (newObj == nil)
 		return(false);
 
@@ -1712,17 +1748,20 @@ Boolean AddTorchPot(TerrainItemEntryType *itemPtr, long  x, long z)
 ObjNode	*newObj;
 
 
-	gNewObjectDefinition.group 		= MODEL_GROUP_LEVELSPECIFIC;
-	gNewObjectDefinition.type 		= SCANDINAVIA_ObjType_TorchPot;
-	gNewObjectDefinition.coord.x 	= x;
-	gNewObjectDefinition.coord.z 	= z;
-	gNewObjectDefinition.coord.y 	= GetTerrainY(x,z);
-	gNewObjectDefinition.flags 		= gAutoFadeStatusBits;
-	gNewObjectDefinition.slot 		= 400;
-	gNewObjectDefinition.moveCall 	= MoveTorchPot;
-	gNewObjectDefinition.rot 		= 0;
-	gNewObjectDefinition.scale 		= 1.0;
-	newObj = MakeNewDisplayGroupObject(&gNewObjectDefinition);
+	NewObjectDefinitionType def =
+	{
+		.group 		= MODEL_GROUP_LEVELSPECIFIC,
+		.type 		= SCANDINAVIA_ObjType_TorchPot,
+		.coord.x 	= x,
+		.coord.z 	= z,
+		.coord.y 	= GetTerrainY(x,z),
+		.flags 		= gAutoFadeStatusBits,
+		.slot 		= 400,
+		.moveCall 	= MoveTorchPot,
+		.rot 		= 0,
+		.scale 		= 1.0,
+	};
+	newObj = MakeNewDisplayGroupObject(&def);
 	if (newObj == nil)
 		return(false);
 
@@ -1771,17 +1810,20 @@ float			x,z,placement;
 
 		/* MAKE OBJECT */
 
-	gNewObjectDefinition.type 		= SKELETON_TYPE_POLARBEAR;
-	gNewObjectDefinition.animNum	= 0;
-	gNewObjectDefinition.coord.x 	= x;
-	gNewObjectDefinition.coord.y 	= GetTerrainY(x,z);
-	gNewObjectDefinition.coord.z 	= z;
-	gNewObjectDefinition.flags 		= STATUS_BIT_ONSPLINE|gAutoFadeStatusBits;
-	gNewObjectDefinition.slot 		= 168;
-	gNewObjectDefinition.rot 		= 0;
-	gNewObjectDefinition.scale 		= BEAR_SCALE;
+	NewObjectDefinitionType def =
+	{
+		.type 		= SKELETON_TYPE_POLARBEAR,
+		.animNum	= 0,
+		.coord.x 	= x,
+		.coord.y 	= GetTerrainY(x,z),
+		.coord.z 	= z,
+		.flags 		= STATUS_BIT_ONSPLINE|gAutoFadeStatusBits,
+		.slot 		= 168,
+		.rot 		= 0,
+		.scale 		= BEAR_SCALE,
+	};
 
-	newObj = MakeNewSkeletonObject(&gNewObjectDefinition);
+	newObj = MakeNewSkeletonObject(&def);
 	if (newObj == nil)
 		return(false);
 
@@ -1856,19 +1898,20 @@ Boolean AddFlower(TerrainItemEntryType *itemPtr, long  x, long z)
 {
 ObjNode	*newObj;
 
-
-	gNewObjectDefinition.type 		= SKELETON_TYPE_FLOWER;
-	gNewObjectDefinition.animNum	= 0;
-	gNewObjectDefinition.coord.x 	= x;
-	gNewObjectDefinition.coord.z 	= z;
-	gNewObjectDefinition.coord.y 	= GetTerrainY(x,z);
-
-	gNewObjectDefinition.flags 		= gAutoFadeStatusBits|STATUS_BIT_CLIPALPHA;
-	gNewObjectDefinition.slot 		= 70;
-	gNewObjectDefinition.moveCall 	= MoveStaticObject;
-	gNewObjectDefinition.rot 		= RandomFloat() * PI2;
-	gNewObjectDefinition.scale 		= 20.0;
-	newObj = MakeNewSkeletonObject(&gNewObjectDefinition);
+	NewObjectDefinitionType def =
+	{
+		.type 		= SKELETON_TYPE_FLOWER,
+		.animNum	= 0,
+		.coord.x 	= x,
+		.coord.z 	= z,
+		.coord.y 	= GetTerrainY(x,z),
+		.flags 		= gAutoFadeStatusBits|STATUS_BIT_CLIPALPHA,
+		.slot 		= 70,
+		.moveCall 	= MoveStaticObject,
+		.rot 		= RandomFloat() * PI2,
+		.scale 		= 20.0,
+	};
+	newObj = MakeNewSkeletonObject(&def);
 	if (newObj == nil)
 		return(false);
 
@@ -1904,17 +1947,20 @@ float			x,z,placement;
 
 		/* MAKE OBJECT */
 
-	gNewObjectDefinition.type 		= SKELETON_TYPE_VIKING;
-	gNewObjectDefinition.animNum	= 0;
-	gNewObjectDefinition.coord.x 	= x;
-	gNewObjectDefinition.coord.y 	= GetTerrainY(x,z);
-	gNewObjectDefinition.coord.z 	= z;
-	gNewObjectDefinition.flags 		= STATUS_BIT_ONSPLINE|gAutoFadeStatusBits;
-	gNewObjectDefinition.slot 		= 168;
-	gNewObjectDefinition.rot 		= 0;
-	gNewObjectDefinition.scale 		= VIKING_SCALE;
+	NewObjectDefinitionType def =
+	{
+		.type 		= SKELETON_TYPE_VIKING,
+		.animNum	= 0,
+		.coord.x 	= x,
+		.coord.y 	= GetTerrainY(x,z),
+		.coord.z 	= z,
+		.flags 		= STATUS_BIT_ONSPLINE|gAutoFadeStatusBits,
+		.slot 		= 168,
+		.rot 		= 0,
+		.scale 		= VIKING_SCALE,
+	};
 
-	newObj = MakeNewSkeletonObject(&gNewObjectDefinition);
+	newObj = MakeNewSkeletonObject(&def);
 	if (newObj == nil)
 		return(false);
 

@@ -73,6 +73,7 @@ typedef struct MenuStyle
 	bool			startButtonExits;
 	bool			isInteractive;
 	bool			canBackOutOfRootMenu;
+	short			textSlot;
 } MenuStyle;
 
 int StartMenuTree(

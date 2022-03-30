@@ -73,9 +73,6 @@ ObjNode		*gFirstNodePtr = nil;
 
 ObjNode		*gCurrentNode,*gMostRecentlyAddedNode,*gNextNode;
 
-
-NewObjectDefinitionType	gNewObjectDefinition;
-
 OGLPoint3D	gCoord;
 OGLVector3D	gDelta;
 

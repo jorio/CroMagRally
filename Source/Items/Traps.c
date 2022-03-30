@@ -102,7 +102,7 @@ static void MoveTroll(ObjNode *theNode);
 
 #define	TOTEM_SHOOT_Y		2000.0f
 
-#define	TROLL_SCALE			4.5f;
+#define	TROLL_SCALE			4.5f
 
 /*********************/
 /*    VARIABLES      */
@@ -721,8 +721,8 @@ float		dist;
 static void CatapultThrowRock(ObjNode *theNode)
 {
 static const OGLPoint3D		tipOff = {0,0,0};
-static const OGLPoint3D		tipCoord = { 0,0,0 };
 static const OGLVector3D	throwVector = {0,.3,-1};
+OGLPoint3D					tipCoord = { 0,0,0 };
 ObjNode		*newObj;
 OGLMatrix4x4	m;
 float			speed;
@@ -1411,10 +1411,9 @@ Boolean AddCapsule(TerrainItemEntryType *itemPtr, long  x, long z)
 {
 ObjNode	*newObj;
 
-
 	NewObjectDefinitionType def =
-{
-	.group		= MODEL_GROUP_LEVELSPECIFIC,
+	{
+		.group		= MODEL_GROUP_LEVELSPECIFIC,
 		.type 		= ATLANTIS_ObjType_Capsule,
 		.coord.x 	= x,
 		.coord.z 	= z,
@@ -1423,8 +1422,9 @@ ObjNode	*newObj;
 		.slot 		= 170,
 		.moveCall 	= MoveCapsule,
 		.rot 		= 0,
-		.scale 		= 1.0;
-	newObj = MakeNewDisplayGroupObject(&gNewObjectDefinition);
+		.scale 		= 1.0,
+	};
+	newObj = MakeNewDisplayGroupObject(&def);
 	if (newObj == nil)
 		return(false);
 
@@ -1675,7 +1675,9 @@ float			x,z,placement;
 
 		/* MAKE OBJECT */
 
-	gNewObjectDefinition.type 		= SKELETON_TYPE_PTERADACTYL,
+	NewObjectDefinitionType def =
+	{
+		.type 		= SKELETON_TYPE_PTERADACTYL,
 		.animNum	= 0,
 		.coord.x 	= x,
 		.coord.y 	= GetTerrainY(x,z) + PTERADACTYL_YOFF,
@@ -1683,9 +1685,9 @@ float			x,z,placement;
 		.flags 		= STATUS_BIT_ONSPLINE|gAutoFadeStatusBits,
 		.slot 		= SLOT_OF_DUMB,
 		.rot 		= 0,
-		.scale 		= PTERADACTYL_SCALE;
-
-	newObj = MakeNewSkeletonObject(&gNewObjectDefinition);
+		.scale 		= PTERADACTYL_SCALE
+	};
+	newObj = MakeNewSkeletonObject(&def);
 	if (newObj == nil)
 		return(false);
 
@@ -1781,8 +1783,8 @@ ObjNode	*newObj;
 			/********************/
 
 	NewObjectDefinitionType def =
-{
-	.group		= MODEL_GROUP_GLOBAL,
+	{
+		.group		= MODEL_GROUP_GLOBAL,
 		.type 		= GLOBAL_ObjType_GreyRock,
 		.coord.x 	= theNode->Coord.x,
 		.coord.y 	= theNode->Coord.y - 100.0f,
@@ -1791,8 +1793,9 @@ ObjNode	*newObj;
 		.slot 		= SLOT_OF_DUMB+10,
 		.moveCall 	= MovePteradactylBomb,
 		.rot 		= 0,
-		.scale 	    = .3;
-	newObj = MakeNewDisplayGroupObject(&gNewObjectDefinition);
+		.scale 	    = .3,
+	};
+	newObj = MakeNewDisplayGroupObject(&def);
 	if (newObj == nil)
 		return;
 
@@ -1852,7 +1855,9 @@ Boolean AddDragon(TerrainItemEntryType *itemPtr, long  x, long z)
 ObjNode	*newObj;
 
 
-	gNewObjectDefinition.type 		= SKELETON_TYPE_DRAGON,
+	NewObjectDefinitionType def =
+	{
+		.type 		= SKELETON_TYPE_DRAGON,
 		.animNum	= 0,
 		.coord.x 	= x,
 		.coord.z 	= z,
@@ -1861,8 +1866,9 @@ ObjNode	*newObj;
 		.slot 		= SLOT_OF_DUMB+2,
 		.moveCall 	= MoveDragon,
 		.rot 		= PI2 * ((float)itemPtr->parm[0] * (1.0f/8.0f)),
-		.scale 		= 20.0;
-	newObj = MakeNewSkeletonObject(&gNewObjectDefinition);
+		.scale 		= 20.0,
+	};
+	newObj = MakeNewSkeletonObject(&def);
 	if (newObj == nil)
 		return(false);
 
@@ -1986,7 +1992,9 @@ float			x,z,placement;
 
 		/* MAKE OBJECT */
 
-	gNewObjectDefinition.type 		= SKELETON_TYPE_MUMMY,
+	NewObjectDefinitionType def =
+	{
+		.type 		= SKELETON_TYPE_MUMMY,
 		.animNum	= 0,
 		.coord.x 	= x,
 		.coord.y 	= GetTerrainY(x,z),
@@ -1994,9 +2002,10 @@ float			x,z,placement;
 		.flags 		= STATUS_BIT_ONSPLINE|gAutoFadeStatusBits,
 		.slot 		= 205,
 		.rot 		= 0,
-		.scale 		= MUMMY_SCALE;
+		.scale 		= MUMMY_SCALE
+	};
 
-	newObj = MakeNewSkeletonObject(&gNewObjectDefinition);
+	newObj = MakeNewSkeletonObject(&def);
 	if (newObj == nil)
 		return(false);
 
@@ -2067,20 +2076,19 @@ Boolean AddTotemPole(TerrainItemEntryType *itemPtr, long  x, long z)
 {
 ObjNode	*newObj;
 
-
 	NewObjectDefinitionType def =
-{
-	.group		= MODEL_GROUP_LEVELSPECIFIC,
+	{
+		.group		= MODEL_GROUP_LEVELSPECIFIC,
 		.type 		= JUNGLE_ObjType_TotemPole,
-		.coord.x 	= x,
-		.coord.z 	= z,
-		.coord.y 	= GetMinTerrainY(x,z, gNewObjectDefinition.group, gNewObjectDefinition.type, 1.0),
+		.coord		= {x,0,z},  // y computed below
 		.flags 		= gAutoFadeStatusBits,
 		.slot 		= 460,
 		.moveCall 	= MoveTotemPole,
 		.rot 		= 0,
-		.scale 		= 1.0;
-	newObj = MakeNewDisplayGroupObject(&gNewObjectDefinition);
+		.scale 		= 1.0,
+	};
+	def.coord.y = GetMinTerrainY(x,z, def.group, def.type, 1.0),
+	newObj = MakeNewDisplayGroupObject(&def);
 	if (newObj == nil)
 		return(false);
 
@@ -2164,8 +2172,8 @@ float		targetX,targetY,targetZ;
 			/*************/
 
 	NewObjectDefinitionType def =
-{
-	.group		= MODEL_GROUP_LEVELSPECIFIC,
+	{
+		.group		= MODEL_GROUP_LEVELSPECIFIC,
 		.type 		= JUNGLE_ObjType_Dart,
 		.coord.x 	= theNode->Coord.x,
 		.coord.y 	= theNode->Coord.y + TOTEM_SHOOT_Y,
@@ -2174,8 +2182,9 @@ float		targetX,targetY,targetZ;
 		.slot 		= SLOT_OF_DUMB+5,
 		.moveCall 	= MoveDart,
 		.rot 		=  CalcYAngleFromPointToPoint(0, 0, 0, aimVec.x, aimVec.z),
-		.scale 	    = .4;
-	newObj = MakeNewDisplayGroupObject(&gNewObjectDefinition);
+		.scale 	    = .4,
+	};
+	newObj = MakeNewDisplayGroupObject(&def);
 	if (newObj == nil)
 		return;
 

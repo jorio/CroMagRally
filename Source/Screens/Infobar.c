@@ -1353,8 +1353,6 @@ static const float scale[3] =
 	NewObjectDefinitionType def =
 	{
 		.coord		= {0,0,0},
-		.coord.y 	= 0,
-		.coord.z 	= 0,
 		.slot 		= SPRITE_SLOT,
 		.moveCall 	= MoveTrackName,
 		.scale 	    = scale[gActiveSplitScreenMode],
@@ -1378,10 +1376,4 @@ static void MoveTrackName(ObjNode *theNode)
 	}
 
 }
-
-
-
-
-
-
 

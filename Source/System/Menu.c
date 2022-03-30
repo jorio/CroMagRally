@@ -29,7 +29,6 @@
 
 extern	float				gFramesPerSecondFrac,gFramesPerSecond;
 extern	OGLPoint3D			gCoord;
-extern	NewObjectDefinitionType	gNewObjectDefinition;
 extern	OGLVector3D			gDelta;
 extern	OGLSetupOutputType		*gGameViewInfoPtr;
 extern	FSSpec		gDataSpec;
@@ -112,6 +111,7 @@ const MenuStyle kDefaultMenuStyle =
 	.startButtonExits	= false,
 	.isInteractive		= true,
 	.canBackOutOfRootMenu	= false,
+	.textSlot			= SLOT_OF_DUMB + 100,
 };
 
 /*********************/
@@ -1130,9 +1130,16 @@ static ObjNode* MakeTextAtRowCol(const char* text, int row, int col)
 	else
 	{
 		float startX = gNav->style.centeredText ? 0 : -170;
-		gNewObjectDefinition.coord = (OGLPoint3D) { startX + gNav->menuColXs[col], gNav->menuRowYs[row], 0 };
+
+		NewObjectDefinitionType def =
+		{
+			.coord = (OGLPoint3D) { startX + gNav->menuColXs[col], gNav->menuRowYs[row], 0 },
+			.scale = gNav->style.standardScale,
+			.slot = SLOT_OF_DUMB + 100,
+		};
+
 		int alignment = gNav->style.centeredText? kTextMeshAlignCenter: kTextMeshAlignLeft;
-		node = TextMesh_New(text, alignment, &gNewObjectDefinition);
+		node = TextMesh_New(text, alignment, &def);
 		node->SpecialRow = row;
 		node->SpecialCol = col;
 //		node->StatusBits |= STATUS_BIT_MOVEINPAUSE;
@@ -1246,10 +1253,6 @@ static void LayOutMenu(const MenuItem* menu)
 
 	DeleteAllText();
 
-	memset(&gNewObjectDefinition, 0, sizeof(gNewObjectDefinition));
-	gNewObjectDefinition.scale		= gNav->style.standardScale;
-	gNewObjectDefinition.slot		= SLOT_OF_DUMB+100;
-
 	float totalHeight = 0;
 	for (int row = 0; menu[row].type != kMenuItem_END_SENTINEL; row++)
 	{
@@ -1266,8 +1269,6 @@ static void LayOutMenu(const MenuItem* menu)
 
 		const MenuItem* entry = &menu[row];
 
-		gNewObjectDefinition.scale = gNav->style.standardScale;
-
 		switch (entry->type)
 		{
 			case kMenuItem_Spacer:
@@ -1275,7 +1276,7 @@ static void LayOutMenu(const MenuItem* menu)
 
 			case kMenuItem_Title:
 			{
-				gNewObjectDefinition.scale = gNav->style.titleScale;
+//				gNewObjectDefinition.scale = gNav->style.titleScale;
 				ObjNode* label = MakeTextAtRowCol(GetMenuItemLabel(entry), row, 0);
 				label->ColorFilter = gNav->style.titleColor;
 				label->MoveCall = MoveLabel;
@@ -1285,7 +1286,7 @@ static void LayOutMenu(const MenuItem* menu)
 
 			case kMenuItem_Subtitle:
 			{
-				gNewObjectDefinition.scale = gNav->style.subtitleScale;
+//				gNewObjectDefinition.scale = gNav->style.subtitleScale;
 				ObjNode* label = MakeTextAtRowCol(GetMenuItemLabel(entry), row, 0);
 				label->ColorFilter = gNav->style.titleColor;
 				label->MoveCall = MoveLabel;
@@ -1329,7 +1330,7 @@ static void LayOutMenu(const MenuItem* menu)
 			{
 				snprintf(buf, bufSize, "%s:", Localize(STR_KEYBINDING_DESCRIPTION_0 + entry->kb));
 
-				gNewObjectDefinition.scale = 0.6f;
+//				gNewObjectDefinition.scale = 0.6f;
 				ObjNode* label = MakeTextAtRowCol(buf, row, 0);
 				label->ColorFilter = gNav->style.inactiveColor2;
 				label->MoveCall = MoveLabel;

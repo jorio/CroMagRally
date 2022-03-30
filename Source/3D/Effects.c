@@ -28,7 +28,6 @@
 
 extern	float				gFramesPerSecondFrac,gFramesPerSecond;
 extern	OGLPoint3D			gCoord;
-extern	NewObjectDefinitionType	gNewObjectDefinition;
 extern	OGLVector3D			gDelta;
 extern	OGLSetupOutputType		*gGameViewInfoPtr;
 extern	FSSpec		gDataSpec;
@@ -126,17 +125,18 @@ ObjNode *MakeRipple(float x, float y, float z, float startScale)
 {
 ObjNode	*newObj;
 
-	gNewObjectDefinition.group = GLOBAL1_MGroupNum_Ripple;
-	gNewObjectDefinition.type = GLOBAL1_MObjType_Ripple;
-	gNewObjectDefinition.coord.x = x;
-	gNewObjectDefinition.coord.y = y;
-	gNewObjectDefinition.coord.z = z;
-	gNewObjectDefinition.flags 	= STATUS_BIT_NOZWRITES|STATUS_BIT_NOFOG|STATUS_BIT_GLOW|STATUS_BIT_DONTCULL;
-	gNewObjectDefinition.slot 	= SLOT_OF_DUMB+2;
-	gNewObjectDefinition.moveCall = MoveRipple;
-	gNewObjectDefinition.rot = 0;
-	gNewObjectDefinition.scale = startScale;
-	newObj = MakeNewDisplayGroupObject(&gNewObjectDefinition);
+	NewObjectDefinitionType def =
+	{
+		.group = GLOBAL1_MGroupNum_Ripple,
+		.type = GLOBAL1_MObjType_Ripple,
+		.coord = {x,y,z},
+		.flags 	= STATUS_BIT_NOZWRITES|STATUS_BIT_NOFOG|STATUS_BIT_GLOW|STATUS_BIT_DONTCULL,
+		.slot 	= SLOT_OF_DUMB+2,
+		.moveCall = MoveRipple,
+		.rot = 0,
+		.scale = startScale,
+	};
+	newObj = MakeNewDisplayGroupObject(&def);
 	if (newObj == nil)
 		return(nil);
 
@@ -211,13 +211,16 @@ ObjNode	*obj;
 		// The particles need to be drawn after the fences object, but before any sprite or font objects.
 		//
 
-	gNewObjectDefinition.genre		= CUSTOM_GENRE;
-	gNewObjectDefinition.slot 		= PARTICLE_SLOT;
-	gNewObjectDefinition.moveCall 	= nil;
-	gNewObjectDefinition.scale 		= 1;
-	gNewObjectDefinition.flags 		= STATUS_BIT_KEEPBACKFACES|STATUS_BIT_NOLIGHTING|STATUS_BIT_NOZWRITES;
+	NewObjectDefinitionType def =
+	{
+		.genre		= CUSTOM_GENRE,
+		.slot 		= PARTICLE_SLOT,
+		.moveCall 	= nil,
+		.scale 		= 1,
+		.flags 		= STATUS_BIT_KEEPBACKFACES|STATUS_BIT_NOLIGHTING|STATUS_BIT_NOZWRITES,
+	};
 
-	obj = MakeNewObject(&gNewObjectDefinition);
+	obj = MakeNewObject(&def);
 	obj->CustomDrawFunction = DrawParticleGroup;
 
 }
@@ -1031,17 +1034,20 @@ void MakeShockwave(float x, float y, float z)
 {
 ObjNode					*newObj;
 
-	gNewObjectDefinition.group 		= MODEL_GROUP_WEAPONS;
-	gNewObjectDefinition.type 		= WEAPONS_ObjType_Shockwave;
-	gNewObjectDefinition.coord.x 	= x;
-	gNewObjectDefinition.coord.y 	= y;
-	gNewObjectDefinition.coord.z 	= z;
-	gNewObjectDefinition.flags 		= STATUS_BIT_NOFOG|STATUS_BIT_GLOW|STATUS_BIT_KEEPBACKFACES|STATUS_BIT_NOLIGHTING|STATUS_BIT_NOZWRITES|STATUS_BIT_NOTEXTUREWRAP;
-	gNewObjectDefinition.slot 		= SLOT_OF_DUMB+30;
-	gNewObjectDefinition.moveCall 	= MoveShockwave;
-	gNewObjectDefinition.rot 		= 0;
-	gNewObjectDefinition.scale 		= 1.0;
-	newObj = MakeNewDisplayGroupObject(&gNewObjectDefinition);
+	NewObjectDefinitionType def =
+	{
+		.group 		= MODEL_GROUP_WEAPONS,
+		.type 		= WEAPONS_ObjType_Shockwave,
+		.coord.x 	= x,
+		.coord.y 	= y,
+		.coord.z 	= z,
+		.flags 		= STATUS_BIT_NOFOG|STATUS_BIT_GLOW|STATUS_BIT_KEEPBACKFACES|STATUS_BIT_NOLIGHTING|STATUS_BIT_NOZWRITES|STATUS_BIT_NOTEXTUREWRAP,
+		.slot 		= SLOT_OF_DUMB+30,
+		.moveCall 	= MoveShockwave,
+		.rot 		= 0,
+		.scale 		= 1.0,
+	};
+	newObj = MakeNewDisplayGroupObject(&def);
 
 	newObj->ColorFilter.a = 1.0;
 
@@ -1076,20 +1082,20 @@ void MakeConeBlast(float x, float y, float z)
 {
 ObjNode					*newObj;
 
-	gNewObjectDefinition.group 		= MODEL_GROUP_WEAPONS;
-	gNewObjectDefinition.type 		= WEAPONS_ObjType_ConeBlast;
-	gNewObjectDefinition.coord.x 	= x;
-	gNewObjectDefinition.coord.y 	= y;
-	gNewObjectDefinition.coord.z 	= z;
-	gNewObjectDefinition.flags 		= STATUS_BIT_NOFOG|STATUS_BIT_GLOW|STATUS_BIT_KEEPBACKFACES|STATUS_BIT_NOLIGHTING|STATUS_BIT_NOZWRITES;
-	gNewObjectDefinition.slot 		= SLOT_OF_DUMB+11;
-	gNewObjectDefinition.moveCall 	= MoveConeBlast;
-	gNewObjectDefinition.rot 		= 0;
-	gNewObjectDefinition.scale 		= 1.0;
-	newObj = MakeNewDisplayGroupObject(&gNewObjectDefinition);
+	NewObjectDefinitionType def =
+	{
+		.group 		= MODEL_GROUP_WEAPONS,
+		.type 		= WEAPONS_ObjType_ConeBlast,
+		.coord		= {x,y,z},
+		.flags 		= STATUS_BIT_NOFOG|STATUS_BIT_GLOW|STATUS_BIT_KEEPBACKFACES|STATUS_BIT_NOLIGHTING|STATUS_BIT_NOZWRITES,
+		.slot 		= SLOT_OF_DUMB+11,
+		.moveCall 	= MoveConeBlast,
+		.rot 		= 0,
+		.scale 		= 1.0,
+	};
+	newObj = MakeNewDisplayGroupObject(&def);
 
 	newObj->ColorFilter.a = 1.0;
-
 }
 
 
@@ -1334,17 +1340,18 @@ void MakeSnowShockwave(float x, float y, float z)
 {
 ObjNode					*newObj;
 
-	gNewObjectDefinition.group 		= MODEL_GROUP_WEAPONS;
-	gNewObjectDefinition.type 		= WEAPONS_ObjType_SnowShockwave;
-	gNewObjectDefinition.coord.x 	= x;
-	gNewObjectDefinition.coord.y 	= y;
-	gNewObjectDefinition.coord.z 	= z;
-	gNewObjectDefinition.flags 		= STATUS_BIT_NOFOG|STATUS_BIT_NOLIGHTING;
-	gNewObjectDefinition.slot 		= SLOT_OF_DUMB+1000;
-	gNewObjectDefinition.moveCall 	= MoveSnowShockwave;
-	gNewObjectDefinition.rot 		= 0;
-	gNewObjectDefinition.scale 		= 50.0;
-	newObj = MakeNewDisplayGroupObject(&gNewObjectDefinition);
+	NewObjectDefinitionType def =
+	{
+		.group 		= MODEL_GROUP_WEAPONS,
+		.type 		= WEAPONS_ObjType_SnowShockwave,
+		.coord		= {x,y,z},
+		.flags 		= STATUS_BIT_NOFOG|STATUS_BIT_NOLIGHTING,
+		.slot 		= SLOT_OF_DUMB+1000,
+		.moveCall 	= MoveSnowShockwave,
+		.rot 		= 0,
+		.scale 		= 50.0,
+	};
+	newObj = MakeNewDisplayGroupObject(&def);
 
 	newObj->ColorFilter.a = 1.0;
 }
@@ -1715,14 +1722,18 @@ Boolean AddBubbleGenerator(TerrainItemEntryType *itemPtr, long  x, long z)
 ObjNode	*newObj;
 
 
-	gNewObjectDefinition.genre		= EVENT_GENRE;
-	gNewObjectDefinition.coord.x 	= x;
-	gNewObjectDefinition.coord.z 	= z;
-	gNewObjectDefinition.coord.y 	= GetTerrainY(x,z);
-	gNewObjectDefinition.flags 		= 0;
-	gNewObjectDefinition.slot 		= SLOT_OF_DUMB;
-	gNewObjectDefinition.moveCall 	= MoveBubbleGenerator;
-	newObj = MakeNewObject(&gNewObjectDefinition);
+	NewObjectDefinitionType def =
+	{
+		.genre		= EVENT_GENRE,
+		.coord.x 	= x,
+		.coord.z 	= z,
+		.coord.y 	= GetTerrainY(x,z),
+		.flags 		= 0,
+		.scale		= 1,
+		.slot 		= SLOT_OF_DUMB,
+		.moveCall 	= MoveBubbleGenerator,
+	};
+	newObj = MakeNewObject(&def);
 	if (newObj == nil)
 		return(false);
 
@@ -1800,14 +1811,18 @@ Boolean AddLavaGenerator(TerrainItemEntryType *itemPtr, long  x, long z)
 ObjNode	*newObj;
 
 
-	gNewObjectDefinition.genre		= EVENT_GENRE;
-	gNewObjectDefinition.coord.x 	= x;
-	gNewObjectDefinition.coord.z 	= z;
-	gNewObjectDefinition.coord.y 	= GetTerrainY(x,z);
-	gNewObjectDefinition.flags 		= 0;
-	gNewObjectDefinition.slot 		= TRIGGER_SLOT;
-	gNewObjectDefinition.moveCall 	= MoveLavaGenerator;
-	newObj = MakeNewObject(&gNewObjectDefinition);
+	NewObjectDefinitionType def =
+	{
+		.genre		= EVENT_GENRE,
+		.coord.x 	= x,
+		.coord.z 	= z,
+		.coord.y 	= GetTerrainY(x,z),
+		.flags 		= 0,
+		.scale		= 1,
+		.slot 		= TRIGGER_SLOT,
+		.moveCall 	= MoveLavaGenerator,
+	};
+	newObj = MakeNewObject(&def);
 	if (newObj == nil)
 		return(false);
 
@@ -1852,7 +1867,7 @@ Boolean DoTrig_Lava(ObjNode *theNode, ObjNode *whoNode, Byte sideBits)
 short	p = whoNode->PlayerNum;
 ObjNode	*obj;
 
-	sideBits;
+	(void) sideBits;
 
 	gPlayerInfo[p].flamingTimer = 5;						// set aflame
 

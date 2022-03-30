@@ -251,6 +251,7 @@ ObjNode					*obj;
 		.genre		= CUSTOM_GENRE,
 		.slot		= FENCE_SLOT,
 		.flags		= STATUS_BIT_KEEPBACKFACES|STATUS_BIT_NOLIGHTING,
+		.scale		= 1,
 	};
 
 	obj = MakeNewObject(&def);
