@@ -32,7 +32,6 @@ extern	FSSpec		gDataSpec;
 extern	Boolean		gNetGameInProgress,gGameOver, gNoCarControls;
 extern	KeyMap gKeyMap,gNewKeys;
 extern	short		gNumRealPlayers,gNumLocalPlayers;
-extern	NewObjectDefinitionType	gNewObjectDefinition;
 extern	Boolean		gSongPlayingFlag,gResetSong,gDisableAnimSounds,gIsNetworkHost,gIsNetworkClient;
 extern	PrefsType	gGamePrefs;
 extern	OGLPoint3D	gCoord;
@@ -122,7 +121,6 @@ Boolean DoFailedMenu(const char* headerString)
 
 static void BuildFailedMenu(const char* title)
 {
-short	i;
 ObjNode	*obj;
 
 	gFailedMenuSelection = 0;
@@ -131,28 +129,26 @@ ObjNode	*obj;
 
 			/* BUILD NEW TEXT STRINGS */
 
-	gNewObjectDefinition.coord.x 	= 0;
-	gNewObjectDefinition.coord.y 	= -.6;
-	gNewObjectDefinition.coord.z 	= 0;
-	gNewObjectDefinition.flags 		= 0;
-	gNewObjectDefinition.moveCall 	= MoveFailedObject;
-	gNewObjectDefinition.rot 		= 0;
-	gNewObjectDefinition.scale 	    = FAILED_ICON_SCALE * .8f;
-	gNewObjectDefinition.slot 		= SPRITE_SLOT;
-
-	obj = TextMesh_New(title, kTextMeshAlignCenter, &gNewObjectDefinition);		// title
+	NewObjectDefinitionType def =
+	{
+		.coord 		= {0, -.6f, 0},
+		.moveCall 	= MoveFailedObject,
+		.scale		= FAILED_ICON_SCALE * .8f,
+		.slot 		= SPRITE_SLOT,
+	};
+	obj = TextMesh_New(title, kTextMeshAlignCenter, &def);		// title
 	obj->ColorFilter.a = 0;
 
-	gNewObjectDefinition.coord.y 	-= LINE_SPACING * 1.5f;
+	def.coord.y	-= LINE_SPACING * 1.5f;
+	def.scale	= FAILED_ICON_SCALE;
 
-	gNewObjectDefinition.scale 	    = FAILED_ICON_SCALE;
-	for (i = 0; i < 2; i++)
+	for (int i = 0; i < 2; i++)
 	{
 		const char* s = Localize(STR_TRY_AGAIN + i);
 
-		gFailedIcons[i] = TextMesh_New(s, kTextMeshAlignCenter, &gNewObjectDefinition);
+		gFailedIcons[i] = TextMesh_New(s, kTextMeshAlignCenter, &def);
 		gFailedIcons[i]->ColorFilter.a = 0;
-		gNewObjectDefinition.coord.y 	-= LINE_SPACING;
+		def.coord.y -= LINE_SPACING;
 	}
 }
 

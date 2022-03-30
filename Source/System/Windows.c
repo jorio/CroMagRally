@@ -20,7 +20,6 @@
 #include "sound2.h"
 
 
-extern	NewObjectDefinitionType	gNewObjectDefinition;
 extern	ObjNode	*gCurrentNode,*gFirstNodePtr;
 extern	float	gFramesPerSecondFrac;
 extern	short	gPrefsFolderVRefNum;
@@ -177,11 +176,14 @@ ObjNode		*thisNodePtr;
 
 		/* MAKE NEW FADE EVENT */
 
-	gNewObjectDefinition.genre = CUSTOM_GENRE;
-	gNewObjectDefinition.flags = 0;
-	gNewObjectDefinition.slot = SLOT_OF_DUMB + 1000;
-	gNewObjectDefinition.moveCall = MoveFadeEvent;
-	newObj = MakeNewObject(&gNewObjectDefinition);
+	NewObjectDefinitionType newObjDef =
+	{
+		.genre = CUSTOM_GENRE,
+		.slot = SLOT_OF_DUMB + 1000,
+		.scale = 1,
+		.moveCall = MoveFadeEvent
+	};
+	newObj = MakeNewObject(&newObjDef);
 	newObj->CustomDrawFunction = DrawFadePane;
 	newObj->Flag[0] = fadeIn;
 }
@@ -225,10 +227,13 @@ void OGL_FadeOutScene(
 	void (*drawRoutine)(OGLSetupOutputType*),
 	void (*updateRoutine)(void))
 {
-	gNewObjectDefinition.genre = CUSTOM_GENRE;
-	gNewObjectDefinition.flags = 0;
-	gNewObjectDefinition.slot = SLOT_OF_DUMB + 100;		// TODO: Draw over infobar
-	ObjNode* newObj = MakeNewObject(&gNewObjectDefinition);
+	NewObjectDefinitionType newObjDef =
+	{
+		.genre = CUSTOM_GENRE,
+		.slot = SLOT_OF_DUMB + 1000,
+		.scale = 1,
+	};
+	ObjNode* newObj = MakeNewObject(&newObjDef);
 	newObj->CustomDrawFunction = DrawFadePane;
 
 	extern float gFramesPerSecondFrac;

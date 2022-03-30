@@ -24,7 +24,6 @@
 extern	float				gFramesPerSecondFrac,gFramesPerSecond;
 extern	OGLPoint3D			gCoord,gMyCoord;
 extern	OGLVector3D			gDelta;
-extern	NewObjectDefinitionType	gNewObjectDefinition;
 extern	OGLSetupOutputType		*gGameViewInfoPtr;
 extern	ObjNode				*gPlayerObj;
 extern	Byte				gPlayerMode;
@@ -150,17 +149,17 @@ float				y;
 			/* MAKE OBJECT */
 			/***************/
 
-	gNewObjectDefinition.group		= MODEL_GROUP_GLOBAL;
-	gNewObjectDefinition.type 		= GLOBAL_ObjType_WaterPatch;
-	gNewObjectDefinition.coord.x 	= x;
-	gNewObjectDefinition.coord.y 	= y;
-	gNewObjectDefinition.coord.z 	= z;
-	gNewObjectDefinition.flags 		= gAutoFadeStatusBits | STATUS_BIT_NOLIGHTING | STATUS_BIT_KEEPBACKFACES;
-	gNewObjectDefinition.slot 		= SLOT_OF_DUMB-2;
-	gNewObjectDefinition.moveCall 	= MoveWaterPatch;
-	gNewObjectDefinition.rot 		= 0;
-	gNewObjectDefinition.scale 		= 1.0;
-	newObj = MakeNewDisplayGroupObject(&gNewObjectDefinition);
+	NewObjectDefinitionType def =
+	{
+		.group		= MODEL_GROUP_GLOBAL,
+		.type 		= GLOBAL_ObjType_WaterPatch,
+		.coord		= {x, y, z},
+		.flags 		= gAutoFadeStatusBits | STATUS_BIT_NOLIGHTING | STATUS_BIT_KEEPBACKFACES,
+		.slot 		= SLOT_OF_DUMB-2,
+		.moveCall 	= MoveWaterPatch,
+		.scale 		= 1.0,
+	};
+	newObj = MakeNewDisplayGroupObject(&def);
 	if (newObj == nil)
 		return(false);
 
@@ -346,17 +345,17 @@ float				y;
 			/* MAKE OBJECT */
 			/***************/
 
-	gNewObjectDefinition.group		= MODEL_GROUP_LEVELSPECIFIC;
-	gNewObjectDefinition.type 		= TAR_ObjType_TarPatch;
-	gNewObjectDefinition.coord.x 	= x;
-	gNewObjectDefinition.coord.y 	= y;
-	gNewObjectDefinition.coord.z 	= z;
-	gNewObjectDefinition.flags 		= gAutoFadeStatusBits | STATUS_BIT_NOLIGHTING | STATUS_BIT_KEEPBACKFACES;
-	gNewObjectDefinition.slot 		= 77;
-	gNewObjectDefinition.moveCall 	= MoveStaticObject;
-	gNewObjectDefinition.rot 		= 0;
-	gNewObjectDefinition.scale 		= 1.0 + (float)(itemPtr->parm[0]) * .5f;
-	newObj = MakeNewDisplayGroupObject(&gNewObjectDefinition);
+	NewObjectDefinitionType def =
+	{
+		.group		= MODEL_GROUP_LEVELSPECIFIC,
+		.type 		= TAR_ObjType_TarPatch,
+		.coord		= {x, y, z},
+		.flags 		= gAutoFadeStatusBits | STATUS_BIT_NOLIGHTING | STATUS_BIT_KEEPBACKFACES,
+		.slot 		= 77,
+		.moveCall 	= MoveStaticObject,
+		.scale 		= 1.0 + (float)(itemPtr->parm[0]) * .5f
+	};
+	newObj = MakeNewDisplayGroupObject(&def);
 	if (newObj == nil)
 		return(false);
 

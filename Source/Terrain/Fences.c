@@ -26,7 +26,6 @@ extern	FSSpec		gDataSpec;
 extern	int			gCurrentSplitScreenPane;
 extern	SpriteType	*gSpriteGroupList[MAX_SPRITE_GROUPS];
 extern	long		gNumSpritesInGroupList[MAX_SPRITE_GROUPS];
-extern	NewObjectDefinitionType	gNewObjectDefinition;
 extern	uint32_t		gGlobalMaterialFlags;
 
 
@@ -247,12 +246,14 @@ ObjNode					*obj;
 		// The fences need to be drawn after the Cyc object, but before any sprite or font objects.
 		//
 
-	gNewObjectDefinition.genre		= CUSTOM_GENRE;
-	gNewObjectDefinition.slot 		= FENCE_SLOT;
-	gNewObjectDefinition.moveCall 	= nil;
-	gNewObjectDefinition.flags 		= STATUS_BIT_KEEPBACKFACES|STATUS_BIT_NOLIGHTING;
+	NewObjectDefinitionType def =
+	{
+		.genre		= CUSTOM_GENRE,
+		.slot		= FENCE_SLOT,
+		.flags		= STATUS_BIT_KEEPBACKFACES|STATUS_BIT_NOLIGHTING,
+	};
 
-	obj = MakeNewObject(&gNewObjectDefinition);
+	obj = MakeNewObject(&def);
 	obj->CustomDrawFunction = DrawFences;
 }
 

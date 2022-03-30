@@ -35,7 +35,6 @@ extern	WindowPtr			gCoverWindow;
 extern	FSSpec			gDataSpec;
 extern	KeyMap 			gKeyMap,gNewKeys;
 extern	short			gMyNetworkPlayerNum,gNumRealPlayers,gNumLocalPlayers,gCurrentPlayerNum;
-extern	NewObjectDefinitionType	gNewObjectDefinition;
 extern	Boolean			gSongPlayingFlag,gResetSong,gDisableAnimSounds,gSongPlayingFlag;
 extern	PrefsType		gGamePrefs;
 extern	OGLPoint3D		gCoord;
@@ -214,16 +213,13 @@ ObjNode	*newObj;
 
 	if (gNumLocalPlayers > 1)
 	{
-		ClearNewObjectDefinition();
-		gNewObjectDefinition.coord.x 	= 0;
-		gNewObjectDefinition.coord.y 	= -.85;
-		gNewObjectDefinition.coord.z 	= 0;
-		gNewObjectDefinition.flags 		= 0;
-		gNewObjectDefinition.moveCall 	= nil;
-		gNewObjectDefinition.rot 		= 0;
-		gNewObjectDefinition.scale 	    = .4;
-		gNewObjectDefinition.slot 		= SPRITE_SLOT;
-		newObj = TextMesh_New(Localize(STR_PLAYER_1 + whichPlayer), kTextMeshAlignCenter, &gNewObjectDefinition);
+		NewObjectDefinitionType newObjDef =
+		{
+			.coord = {0, -.85, 0},
+			.scale = .4,
+			.slot = SPRITE_SLOT
+		};
+		newObj = TextMesh_New(Localize(STR_PLAYER_1 + whichPlayer), kTextMeshAlignCenter, &newObjDef);
 
 		newObj->ColorFilter.r = .2;
 		newObj->ColorFilter.g = .7;
@@ -232,38 +228,35 @@ ObjNode	*newObj;
 
 			/* CREATE NAME STRINGS */
 
-	ClearNewObjectDefinition();
-	gNewObjectDefinition.coord.x 	= -.43;
-	gNewObjectDefinition.coord.y 	= .8;
-	gNewObjectDefinition.scale 	    = .6;
-	gNewObjectDefinition.slot 		= 0;
-	TextMesh_New(Localize(STR_BROG), kTextMeshAlignCenter, &gNewObjectDefinition);
+	NewObjectDefinitionType newObjDef_NameString =
+	{
+		.coord = {-.43, .8, .6},
+		.scale = .6f
+	};
+	TextMesh_New(Localize(STR_BROG), kTextMeshAlignCenter, &newObjDef_NameString);
 
-	gNewObjectDefinition.coord.x 	= .43;
-	gNewObjectDefinition.coord.y 	= .8;
-	TextMesh_New(Localize(STR_GRAG), kTextMeshAlignCenter, &gNewObjectDefinition);
+	newObjDef_NameString.coord.x 	= -newObjDef_NameString.coord.x;
+	TextMesh_New(Localize(STR_GRAG), kTextMeshAlignCenter, &newObjDef_NameString);
 
 			/* CREATE MALE CHARACTER */
 
-	ClearNewObjectDefinition();
-	gNewObjectDefinition.type 		= SKELETON_TYPE_MALESTANDING;
-	gNewObjectDefinition.animNum	= 1;
-	gNewObjectDefinition.coord.x 	= -60;
-	gNewObjectDefinition.coord.z 	= 0;
-	gNewObjectDefinition.coord.y 	= 0;
-	gNewObjectDefinition.flags 		= 0;
-	gNewObjectDefinition.slot 		= 100;
-	gNewObjectDefinition.moveCall 	= nil;
-	gNewObjectDefinition.rot 		= PI;
-	gNewObjectDefinition.scale 		= .5;
-	gSex[0] = MakeNewSkeletonObject(&gNewObjectDefinition);
+	NewObjectDefinitionType newObjDef_Character =
+	{
+		.type = SKELETON_TYPE_MALESTANDING,
+		.animNum = 1,
+		.coord = {-60, 0, 0},
+		.slot = 100,
+		.rot = PI,
+		.scale = .5f
+	};
+	gSex[0] = MakeNewSkeletonObject(&newObjDef_Character);
 
 			/* CREATE FEMALE CHARACTER */
 
-	gNewObjectDefinition.type 		= SKELETON_TYPE_FEMALESTANDING;
-	gNewObjectDefinition.coord.x 	= -gNewObjectDefinition.coord.x;
-	gNewObjectDefinition.animNum	= 0;
-	gSex[1] = MakeNewSkeletonObject(&gNewObjectDefinition);
+	newObjDef_Character.type 		= SKELETON_TYPE_FEMALESTANDING;
+	newObjDef_Character.coord.x 	= -newObjDef_Character.coord.x;
+	newObjDef_Character.animNum	= 0;
+	gSex[1] = MakeNewSkeletonObject(&newObjDef_Character);
 }
 
 

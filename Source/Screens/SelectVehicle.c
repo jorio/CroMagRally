@@ -35,7 +35,6 @@ extern	WindowPtr			gCoverWindow;
 extern	FSSpec			gDataSpec;
 extern	KeyMap 			gKeyMap,gNewKeys;
 extern	short			gMyNetworkPlayerNum,gNumRealPlayers,gNumLocalPlayers,gCurrentPlayerNum;
-extern	NewObjectDefinitionType	gNewObjectDefinition;
 extern	Boolean			gSongPlayingFlag,gResetSong,gDisableAnimSounds,gSongPlayingFlag;
 extern	PrefsType		gGamePrefs;
 extern	OGLPoint3D		gCoord;
@@ -221,16 +220,15 @@ OGLColorRGBA		fillColor1 = { 1.0, 1.0, 1.0, 1 };
 OGLColorRGBA		fillColor2 = { .5, .5, .5, 1 };
 OGLVector3D			fillDirection1 = { .9, -.7, -1 };
 OGLVector3D			fillDirection2 = { -1, -.2, -.5 };
-int					i;
-uint32_t				n;
+int					age;
 
 	gVehicleName = nil;
 	gSelectedVehicleIndex = 0;
 
-	i = GetNumAgesCompleted();
-	if (i > 2)												// prevent extra cars after winning Iron Age
-		i = 2;
-	gNumVehiclesToChooseFrom = 6 + (i * 2);					// set # cars we can pick from
+	age = GetNumAgesCompleted();
+	if (age > 2)											// prevent extra cars after winning Iron Age
+		age = 2;
+	gNumVehiclesToChooseFrom = 6 + (age * 2);				// set # cars we can pick from
 
 	if (gNumRealPlayers > 1)							// let use any car in mutliplayer mode
 		gNumVehiclesToChooseFrom = 10;
@@ -294,17 +292,18 @@ uint32_t				n;
 
 			/* VEHICLE MODEL */
 
-	gNewObjectDefinition.group 		= MODEL_GROUP_CARSELECT;
-	gNewObjectDefinition.type 		= gSelectedVehicleIndex;
-	gNewObjectDefinition.coord.x 	= 0;
-	gNewObjectDefinition.coord.y 	= CAR_Y;
-	gNewObjectDefinition.coord.z 	= 0;
-	gNewObjectDefinition.flags 		= 0;
-	gNewObjectDefinition.slot 		= 100;
-	gNewObjectDefinition.moveCall 	= MoveCarModel;
-	gNewObjectDefinition.rot 		= 0;
-	gNewObjectDefinition.scale 	    = 1;
-	gVehicleObj = MakeNewDisplayGroupObject(&gNewObjectDefinition);
+	{
+		NewObjectDefinitionType def =
+		{
+			.group		= MODEL_GROUP_CARSELECT,
+			.type		= gSelectedVehicleIndex,
+			.coord		= {0, CAR_Y, 0},
+			.slot		= 100,
+			.moveCall 	= MoveCarModel,
+			.scale		= 1,
+		};
+		gVehicleObj = MakeNewDisplayGroupObject(&def);
+	}
 
 
 			/* VEHICLE NAME */
@@ -315,43 +314,43 @@ uint32_t				n;
 
 			/* PARAMETER STRINGS */
 
-	gNewObjectDefinition.coord.x 	= PARAMETERS_X;
-	gNewObjectDefinition.coord.y 	= PARAMETERS_Y;
-	gNewObjectDefinition.coord.z 	= 0;
-	gNewObjectDefinition.flags 		= 0;
-	gNewObjectDefinition.moveCall 	= nil;
-	gNewObjectDefinition.rot 		= 0;
-	gNewObjectDefinition.scale 	    = PARAMETERS_SCALE;
-	gNewObjectDefinition.slot 		= SPRITE_SLOT;
-
-	for (i = 0; i < NUM_VEHICLE_PARAMETERS; i++)
 	{
-		TextMesh_New(Localize(STR_CAR_STAT_1 + i), kTextMeshAlignLeft, &gNewObjectDefinition);
-		gNewObjectDefinition.coord.y 	-= LINE_SPACING;
+		NewObjectDefinitionType def =
+		{
+			.coord		= {PARAMETERS_X, PARAMETERS_Y, 0},
+			.scale		= PARAMETERS_SCALE,
+			.slot		= SPRITE_SLOT,
+		};
+
+		for (int i = 0; i < NUM_VEHICLE_PARAMETERS; i++)
+		{
+			TextMesh_New(Localize(STR_CAR_STAT_1 + i), kTextMeshAlignLeft, &def);
+			def.coord.y -= LINE_SPACING;
+		}
 	}
 
 			/* METER ICONS */
 
-	gNewObjectDefinition.group 		= SPRITE_GROUP_VEHICLESELECTSCREEN;
-	gNewObjectDefinition.coord.x 	= PARAMETERS_X + 1.2;
-	gNewObjectDefinition.coord.y 	= PARAMETERS_Y;
-	gNewObjectDefinition.coord.z 	= 0;
-	gNewObjectDefinition.flags 		= 0;
-	gNewObjectDefinition.slot 		= SPRITE_SLOT;
-	gNewObjectDefinition.moveCall 	= nil;
-	gNewObjectDefinition.rot 		= 0;
-	gNewObjectDefinition.scale 	    = PARAMETERS_SCALE;
-
-	for (i = 0; i < NUM_VEHICLE_PARAMETERS; i++)
 	{
-		n = gVehicleParameters[gSelectedVehicleIndex][i];
-		if (n > 7)
-			n = 7;
+		NewObjectDefinitionType def =
+		{
+			.group		= SPRITE_GROUP_VEHICLESELECTSCREEN,
+			.coord		= {PARAMETERS_X + 1.2, PARAMETERS_Y, 0},
+			.slot		= SPRITE_SLOT,
+			.scale		= PARAMETERS_SCALE,
+		};
 
-		gNewObjectDefinition.type 	= VEHICLESELECT_SObjType_Meter1 + n;
+		for (int i = 0; i < NUM_VEHICLE_PARAMETERS; i++)
+		{
+			int n = gVehicleParameters[gSelectedVehicleIndex][i];
+			if (n > 7)
+				n = 7;
 
-		gMeterIcon[i] = MakeSpriteObject(&gNewObjectDefinition, gGameViewInfoPtr);
-		gNewObjectDefinition.coord.y 	-= LINE_SPACING;
+			def.type 	= VEHICLESELECT_SObjType_Meter1 + n;
+
+			gMeterIcon[i] = MakeSpriteObject(&def, gGameViewInfoPtr);
+			def.coord.y 	-= LINE_SPACING;
+		}
 	}
 
 			/* SEE IF DOING 2-PLAYER LOCALLY */
@@ -360,15 +359,13 @@ uint32_t				n;
 	{
 		ObjNode	*newObj;
 
-		gNewObjectDefinition.coord.x 	= 0;
-		gNewObjectDefinition.coord.y 	= .8;
-		gNewObjectDefinition.coord.z 	= 0;
-		gNewObjectDefinition.flags 		= 0;
-		gNewObjectDefinition.moveCall 	= nil;
-		gNewObjectDefinition.rot 		= 0;
-		gNewObjectDefinition.scale 	    = .5;
-		gNewObjectDefinition.slot 		= SPRITE_SLOT;
-		newObj = TextMesh_New(Localize(STR_PLAYER_1 + whichPlayer), kTextMeshAlignCenter, &gNewObjectDefinition);
+		NewObjectDefinitionType def =
+		{
+			.coord		= {0, .8, 0},
+			.scale		= .5,
+			.slot 		= SPRITE_SLOT,
+		};
+		newObj = TextMesh_New(Localize(STR_PLAYER_1 + whichPlayer), kTextMeshAlignCenter, &def);
 
 		newObj->ColorFilter.r = .5;
 		newObj->ColorFilter.g = .3;
@@ -387,16 +384,14 @@ static void MakeVehicleName(void)
 		gVehicleName = nil;
 	}
 
-	gNewObjectDefinition.coord.x 	= 0;
-	gNewObjectDefinition.coord.y 	= NAME_Y;
-	gNewObjectDefinition.coord.z 	= 0;
-	gNewObjectDefinition.flags 		= 0;
-	gNewObjectDefinition.moveCall 	= nil;
-	gNewObjectDefinition.rot 		= 0;
-	gNewObjectDefinition.scale 	    = .6;
-	gNewObjectDefinition.slot 		= SPRITE_SLOT;
+	NewObjectDefinitionType def =
+	{
+		.coord		= {0, NAME_Y, 0},
+		.scale		= .6,
+		.slot 		= SPRITE_SLOT,
+	};
 
-	gVehicleName = TextMesh_New(Localize(STR_CAR_MODEL_1 + gSelectedVehicleIndex), kTextMeshAlignCenter, &gNewObjectDefinition);
+	gVehicleName = TextMesh_New(Localize(STR_CAR_MODEL_1 + gSelectedVehicleIndex), kTextMeshAlignCenter, &def);
 
 	gVehicleName->ColorFilter.r = .3;
 	gVehicleName->ColorFilter.g = .5;

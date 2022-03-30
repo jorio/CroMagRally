@@ -32,7 +32,6 @@ extern	FSSpec		gDataSpec;
 extern	Boolean		gNetGameInProgress,gGameOver,gMuteMusicFlag;
 extern	KeyMap gKeyMap,gNewKeys;
 extern	short		gNumRealPlayers,gNumLocalPlayers;
-extern	NewObjectDefinitionType	gNewObjectDefinition;
 extern	Boolean		gSongPlayingFlag,gResetSong,gDisableAnimSounds,gIsNetworkHost,gIsNetworkClient;
 extern	PrefsType	gGamePrefs;
 extern	OGLPoint3D	gCoord;
@@ -150,30 +149,24 @@ Boolean	oldMute = gMuteMusicFlag;
 
 static void BuildPausedMenu(void)
 {
-short	i;
-
 	gPausedMenuSelection = 0;
-
-
 
 			/* BUILD NEW TEXT STRINGS */
 
-	gNewObjectDefinition.coord.x 	= 0;
-	gNewObjectDefinition.coord.y 	= 2.0f * gLineSpacing[gActiveSplitScreenMode] / 2;
-	gNewObjectDefinition.coord.z 	= 0;
-	gNewObjectDefinition.flags 		= 0;
-	gNewObjectDefinition.moveCall 	= nil;
-	gNewObjectDefinition.rot 		= 0;
-	gNewObjectDefinition.scale 	    = gTextScale[gActiveSplitScreenMode];
-	gNewObjectDefinition.slot 		= SPRITE_SLOT;
+	NewObjectDefinitionType def =
+	{
+		.coord		= {0, gLineSpacing[gActiveSplitScreenMode], 0 },
+		.scale		= gTextScale[gActiveSplitScreenMode],
+		.slot 		= SPRITE_SLOT,
+	};
 
-	for (i = 0; i < 3; i++)
+	for (int i = 0; i < 3; i++)
 	{
 		const char* s = Localize(STR_RESUME_GAME + i);
 
-		gPausedIcons[i] = TextMesh_New(s, 0, &gNewObjectDefinition);
+		gPausedIcons[i] = TextMesh_New(s, 0, &def);
 		gPausedIcons[i]->ColorFilter.a = 0;
-		gNewObjectDefinition.coord.y 	-= gLineSpacing[gActiveSplitScreenMode];
+		def.coord.y -= gLineSpacing[gActiveSplitScreenMode];
 	}
 }
 

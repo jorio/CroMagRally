@@ -45,7 +45,6 @@
 #include "atlas.h"
 
 extern	Boolean			gSongPlayingFlag,gDrawLensFlare,gIsNetworkHost,gIsNetworkClient,gNetGameInProgress,gDisableHiccupTimer,gHideInfobar;
-extern	NewObjectDefinitionType	gNewObjectDefinition;
 extern	float			gFramesPerSecond,gFramesPerSecondFrac,gAutoFadeStartDist,gAutoFadeEndDist,gAutoFadeRange_Frac,gStartingLightTimer;
 extern	float			gAnalogSteeringTimer[];
 extern	WindowPtr	gCoverWindow;
@@ -753,68 +752,67 @@ Boolean	done = false;
 					/* SHOW BIG ARROWHEAD ICON */
 
 				case	0:
+				{
 						stageTimer = 1.5;										// reset stage timer
 
-						gNewObjectDefinition.group 		= SPRITE_GROUP_INFOBAR;
-						gNewObjectDefinition.type 		= INFOBAR_SObjType_Token_Arrowhead;
-						gNewObjectDefinition.coord.x 	= -.2;
-						gNewObjectDefinition.coord.y 	= 0;
-						gNewObjectDefinition.coord.z 	= 0;
-						gNewObjectDefinition.flags 		= 0;
-						gNewObjectDefinition.slot 		= SPRITE_SLOT;
-						gNewObjectDefinition.moveCall 	= nil;
-						gNewObjectDefinition.rot 		= 0;
-						gNewObjectDefinition.scale 	    = 1.5;
-						newObj = MakeSpriteObject(&gNewObjectDefinition, gGameViewInfoPtr);
+						NewObjectDefinitionType def =
+						{
+							.group		= SPRITE_GROUP_INFOBAR,
+							.type		= INFOBAR_SObjType_Token_Arrowhead,
+							.coord		= {-.2, 0, 0},
+							.slot 		= SPRITE_SLOT,
+							.scale		= 1.5,
+						};
+						newObj = MakeSpriteObject(&def, gGameViewInfoPtr);
 						break;
+				}
 
 
 					/* START COUNTER */
 
 				case	1:
+				{
 						stageTimer = 1.5;										// reset stage timer
 
 								/* MAKE X */
 
-						gNewObjectDefinition.group 		= SPRITE_GROUP_INFOBAR;
-						gNewObjectDefinition.type 		= INFOBAR_SObjType_WeaponX;
-						gNewObjectDefinition.coord.x 	= 0;
-						gNewObjectDefinition.coord.y 	= 0;
-						gNewObjectDefinition.coord.z 	= 0;
-						gNewObjectDefinition.flags 		= 0;
-						gNewObjectDefinition.slot 		= SPRITE_SLOT;
-						gNewObjectDefinition.moveCall 	= nil;
-						gNewObjectDefinition.rot 		= 0;
-						gNewObjectDefinition.scale 	    = 1.5;
-						newObj = MakeSpriteObject(&gNewObjectDefinition, gGameViewInfoPtr);
+						NewObjectDefinitionType def =
+						{
+							.group		= SPRITE_GROUP_INFOBAR,
+							.type		= INFOBAR_SObjType_WeaponX,
+							.coord		= {0, 0, 0},
+							.slot		= SPRITE_SLOT,
+							.scale		= 1.5,
+						};
+						newObj = MakeSpriteObject(&def, gGameViewInfoPtr);
 						break;
+				}
 
 					/* SHOW COUNTER */
 
 				case	2:
+				{
 						stageTimer = 4.0;										// reset stage timer
 
 								/* MAKE NUMBER */
 
-						gNewObjectDefinition.coord.x 	= .2;
-						gNewObjectDefinition.coord.y 	= 0;
-						gNewObjectDefinition.coord.z 	= 0;
-						gNewObjectDefinition.flags 		= 0;
-						gNewObjectDefinition.moveCall 	= nil;
-						gNewObjectDefinition.rot 		= 0;
-						gNewObjectDefinition.scale 	    = 1.5;
-						gNewObjectDefinition.slot 		= SPRITE_SLOT;
+						NewObjectDefinitionType def =
+						{
+							.coord 		= {.2, 0, 0},
+							.scale		= 1.5,
+							.slot 		= SPRITE_SLOT,
+						};
 
 						snprintf(s, sizeof(s), "%d", gTotalTokens);
-						TextMesh_New(s, kTextMeshAlignCenter, &gNewObjectDefinition);
+						TextMesh_New(s, kTextMeshAlignCenter, &def);
 
 						if (gTotalTokens == MAX_TOKENS)
 							PlayAnnouncerSound(EFFECT_COMPLETED, true, .3);
 						else
 							PlayAnnouncerSound(EFFECT_INCOMPLETE, true, .3);
 
-
 						break;
+				}
 
 				case	3:
 						done = true;
