@@ -69,9 +69,6 @@ typedef struct
 	uint32_t	leftVolume, rightVolume;
 }ChannelInfoType;
 
-static CGrafPtr		gQTDummyPort = nil;
-
-
 #define	VOLUME_DISTANCE_FACTOR	.001f		// bigger == sound decays FASTER with dist, smaller = louder far away
 
 /**********************/
@@ -902,7 +899,7 @@ short			theChan;
 Byte			bankNum,soundNum;
 OSErr			myErr;
 uint32_t			lv2,rv2;
-static UInt32          loopStart, loopEnd;
+//static UInt32          loopStart, loopEnd;
 
 
 			/* GET BANK & SOUND #'S FROM TABLE */
@@ -1060,7 +1057,6 @@ uint32_t			lv2,rv2;
 void ChangeChannelRate(short channel, long rateMult)
 {
 static	SndCommand 		mySndCmd;
-static 	OSErr			iErr;
 static	SndChannelPtr	chanPtr;
 
 	if (channel < 0)									// make sure it's valid

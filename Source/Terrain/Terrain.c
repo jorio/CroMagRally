@@ -83,8 +83,6 @@ static	Byte	gHiccupTimer;
 
 Boolean			gDisableHiccupTimer = false;
 
-static uint8_t	gHiccupEliminator = 0;
-
 SuperTileStatus	**gSuperTileStatusGrid = nil;				// supertile status grid
 
 long			gTerrainTileWidth,gTerrainTileDepth;			// width & depth of terrain in tiles
@@ -106,8 +104,6 @@ static SuperTileMemoryType	gSuperTileMemoryList[MAX_SUPERTILES];
 
 
 const float 	gOneOver_TERRAIN_POLYGON_SIZE = (1.0f / TERRAIN_POLYGON_SIZE);
-
-static Handle	gTerrainTextureBuffers[MAX_SUPERTILES][2];
 
 
 TileAttribType	**gTileAttribList = nil;

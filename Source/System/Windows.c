@@ -54,9 +54,6 @@ typedef struct
 /*     VARIABLES      */
 /**********************/
 
-static	Boolean			gOldMuteMusic;
-static unsigned long	gVideoModeTimoutCounter;
-static Boolean			gVideoModeTimedOut;
 float		gGammaFadePercent;
 int				gGameWindowWidth, gGameWindowHeight;
 short			g2DStackDepth = 0;

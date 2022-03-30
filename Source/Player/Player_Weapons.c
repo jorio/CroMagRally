@@ -552,7 +552,6 @@ boom:
 
 void ThrowOil(short playerNum, Boolean throwForward)
 {
-static const OGLVector3D	throwVector = {0,.5,-1};
 ObjNode						*newObj,*head,*car;
 
 	car = gPlayerInfo[playerNum].objNode;

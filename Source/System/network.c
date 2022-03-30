@@ -69,10 +69,12 @@ Boolean		gNetGameInProgress = false;
 
 void* /*NSpGameReference*/	gNetGame = nil;
 
+#if 0
 static Str31				gameName;
 static Str31				gNetPlayerName;
 static Str31				password;
 static Str31				kJoinDialogLabel = "Choose a Game:";
+#endif
 
 //ListHandle		gTheList;
 //short			gNumRowsInList;
