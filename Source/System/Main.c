@@ -387,6 +387,7 @@ select_sex:
 
 		/* CLEANUP LEVEL */
 
+	FadeOutArea();
 	CleanupLevel();
 
 	gAutoPilot = false;										// make sure we turn this off!!
@@ -506,6 +507,7 @@ short	placeToWin,startStage;
 
 				/* CLEANUP TRACK */
 
+			FadeOutArea();
 			CleanupLevel();
 
 			if (gGameOver)													// see if its over
@@ -575,6 +577,7 @@ static void PlayGame_MultiplayerRace(void)
 
 			/* CLEANUP LEVEL */
 
+	FadeOutArea();
 	CleanupLevel();
 }
 
@@ -625,6 +628,7 @@ static void PlayGame_Tag(void)
 
 		/* CLEANUP LEVEL */
 
+	FadeOutArea();
 	CleanupLevel();
 }
 
@@ -667,6 +671,7 @@ static void PlayGame_Survival(void)
 
 		/* CLEANUP LEVEL */
 
+	FadeOutArea();
 	CleanupLevel();
 }
 
@@ -710,6 +715,7 @@ static void PlayGame_CaptureTheFlag(void)
 
 		/* CLEANUP LEVEL */
 
+	FadeOutArea();
 	CleanupLevel();
 }
 
@@ -1037,7 +1043,11 @@ static void PlayArea(void)
 			}
 		}
 	}
+}
 
+
+void FadeOutArea(void)
+{
 			/* FADE OUT */
 
 	OGL_FadeOutScene(gGameViewInfoPtr, DrawTerrain, DoPlayerTerrainUpdate);		// need to keep supertiles alive
