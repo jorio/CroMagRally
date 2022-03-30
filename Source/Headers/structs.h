@@ -341,7 +341,7 @@ typedef struct
 {
 	Byte		genre,group,type,animNum;
 	OGLPoint3D	coord;
-	unsigned long	flags;
+	uint32_t	flags;
 	short		slot;
 	void		(*moveCall)(ObjNode *);
 	float		rot,scale;

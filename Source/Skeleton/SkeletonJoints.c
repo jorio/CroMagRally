@@ -17,8 +17,6 @@
 #include "main.h"
 #include "3dmath.h"
 
-extern	NewObjectDefinitionType	gNewObjectDefinition;
-
 
 /****************************/
 /*    PROTOTYPES            */

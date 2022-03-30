@@ -1084,14 +1084,16 @@ static ObjNode* MakeDarkenPane(void)
 {
 	ObjNode* pane;
 
-	gNewObjectDefinition.genre		= CUSTOM_GENRE;
-	gNewObjectDefinition.flags		= STATUS_BIT_NOZWRITES|STATUS_BIT_NOLIGHTING|STATUS_BIT_NOFOG|STATUS_BIT_NOTEXTUREWRAP|
-										STATUS_BIT_KEEPBACKFACES|STATUS_BIT_MOVEINPAUSE;
-	gNewObjectDefinition.slot		= SLOT_OF_DUMB+100-1;
-	gNewObjectDefinition.scale		= 1;
-	gNewObjectDefinition.moveCall 	= nil;
+	NewObjectDefinitionType def =
+	{
+		.genre = CUSTOM_GENRE,
+		.flags = STATUS_BIT_NOZWRITES | STATUS_BIT_NOLIGHTING | STATUS_BIT_NOFOG
+				| STATUS_BIT_NOTEXTUREWRAP | STATUS_BIT_KEEPBACKFACES | STATUS_BIT_MOVEINPAUSE,
+		.slot = SLOT_OF_DUMB + 100 - 1,
+		.scale = 1,
+	};
 
-	pane = MakeNewObject(&gNewObjectDefinition);
+	pane = MakeNewObject(&def);
 	pane->CustomDrawFunction = DrawDarkenPane;
 	pane->ColorFilter = (OGLColorRGBA) {0, 0, 0, 0};
 	pane->Scale.y = gNav->style.darkenPaneScaleY;

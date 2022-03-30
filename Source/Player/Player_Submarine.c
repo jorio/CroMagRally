@@ -40,7 +40,6 @@ extern	ObjNode					*gFirstNodePtr,*gCurrentPlayer;
 extern	float					gFramesPerSecondFrac,gFramesPerSecond,gStartingLightTimer;
 extern	OGLPoint3D				gCoord;
 extern	OGLVector3D				gDelta;
-extern	NewObjectDefinitionType	gNewObjectDefinition;
 extern	OGLSetupOutputType		*gGameViewInfoPtr;
 extern	short					gNumCollisions,gCurrentPlayerNum,gNumRealPlayers,gMyNetworkPlayerNum,gNumTotalPlayers,gWorstHumanPlace;
 extern	CollisionRec			gCollisionList[];
@@ -111,17 +110,20 @@ ObjNode			*newObj;
 
 		/* CREATE SUBMARINE BODY AS MAIN OBJECT FOR PLAYER */
 
-	gNewObjectDefinition.group 		= MODEL_GROUP_CARPARTS;
-	gNewObjectDefinition.type 		= CARPARTS_ObjType_Submarine;
-	gNewObjectDefinition.coord.x 	= where->x;
-	gNewObjectDefinition.coord.z 	= where->z;
-	gNewObjectDefinition.coord.y 	= GetTerrainY(where->x,where->z)+500;
-	gNewObjectDefinition.flags 		= STATUS_BIT_ROTXZY;
-	gNewObjectDefinition.slot 		= PLAYER_SLOT;
-	gNewObjectDefinition.moveCall 	= MovePlayer_Submarine;
-	gNewObjectDefinition.rot 		= 0;
-	gNewObjectDefinition.scale 		= 1.0;
-	newObj = MakeNewDisplayGroupObject(&gNewObjectDefinition);
+	NewObjectDefinitionType def =
+	{
+		.group		= MODEL_GROUP_CARPARTS,
+		.type		= CARPARTS_ObjType_Submarine,
+		.coord.x	= where->x,
+		.coord.z	= where->z,
+		.coord.y	= GetTerrainY(where->x,where->z) + 500,
+		.flags		= STATUS_BIT_ROTXZY,
+		.slot		= PLAYER_SLOT,
+		.moveCall	= MovePlayer_Submarine,
+		.scale		= 1.0,
+	};
+
+	newObj = MakeNewDisplayGroupObject(&def);
 	if (newObj == nil)
 		return(false);
 
@@ -713,12 +715,13 @@ ObjNode			*prop;
 
 			/* ATTACH PROPELLER */
 
-	gNewObjectDefinition.group 		= MODEL_GROUP_CARPARTS;
-	gNewObjectDefinition.type 		= CARPARTS_ObjType_Propeller;
-	gNewObjectDefinition.flags 		= STATUS_BIT_KEEPBACKFACES;
-	gNewObjectDefinition.moveCall 	= nil;
-	gNewObjectDefinition.rot 		= 0;
-	prop = MakeNewDisplayGroupObject(&gNewObjectDefinition);
+	NewObjectDefinitionType def =
+	{
+		.group		= MODEL_GROUP_CARPARTS,
+		.type		= CARPARTS_ObjType_Propeller,
+		.flags		= STATUS_BIT_KEEPBACKFACES,
+	};
+	prop = MakeNewDisplayGroupObject(&def);
 
 
 	prop->PlayerNum = playerNum;						// set playernum in this obj

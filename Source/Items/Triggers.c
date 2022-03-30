@@ -28,7 +28,6 @@
 #include "infobar.h"
 
 
-extern	NewObjectDefinitionType	gNewObjectDefinition;
 extern	ObjNode					*gMyBuddy;
 extern	OGLPoint3D				gCoord;
 extern	float					gFramesPerSecondFrac,gShieldTimer;
@@ -243,16 +242,18 @@ float			heightOff;
 	where.x = x;
 	where.z = z;
 
-	gNewObjectDefinition.group 		= MODEL_GROUP_GLOBAL;
-	gNewObjectDefinition.type 		= GLOBAL_ObjType_BonePOW + powType;
-	gNewObjectDefinition.coord		= where;
-	gNewObjectDefinition.flags 	= gAutoFadeStatusBits | STATUS_BIT_AIMATCAMERA | STATUS_BIT_KEEPBACKFACES |
-													 STATUS_BIT_NOLIGHTING | STATUS_BIT_NOTEXTUREWRAP | STATUS_BIT_CLIPALPHA;
-	gNewObjectDefinition.slot 		= TRIGGER_SLOT;
-	gNewObjectDefinition.moveCall 	= MovePOW;
-	gNewObjectDefinition.rot 		= 0;
-	gNewObjectDefinition.scale 		= 1.0;
-	newObj = MakeNewDisplayGroupObject(&gNewObjectDefinition);
+	NewObjectDefinitionType def =
+	{
+		.group		= MODEL_GROUP_GLOBAL,
+		.type		= GLOBAL_ObjType_BonePOW + powType,
+		.coord		= where,
+		.flags		= gAutoFadeStatusBits | STATUS_BIT_AIMATCAMERA | STATUS_BIT_KEEPBACKFACES
+						| STATUS_BIT_NOLIGHTING | STATUS_BIT_NOTEXTUREWRAP | STATUS_BIT_CLIPALPHA,
+		.slot		= TRIGGER_SLOT,
+		.moveCall	= MovePOW,
+		.scale 		= 1.0,
+	};
+	newObj = MakeNewDisplayGroupObject(&def);
 	if (newObj == nil)
 		return false;
 
@@ -408,15 +409,17 @@ OGLPoint3D		where;
 	where.x = x;
 	where.z = z;
 
-	gNewObjectDefinition.group 		= MODEL_GROUP_GLOBAL;
-	gNewObjectDefinition.type 		= GLOBAL_ObjType_Token_ArrowHead;
-	gNewObjectDefinition.coord		= where;
-	gNewObjectDefinition.flags 		= gAutoFadeStatusBits | STATUS_BIT_NOLIGHTING;
-	gNewObjectDefinition.slot 		= TRIGGER_SLOT;
-	gNewObjectDefinition.moveCall 	= MoveToken;
-	gNewObjectDefinition.rot 		= 0;
-	gNewObjectDefinition.scale 		= 1.0;
-	newObj = MakeNewDisplayGroupObject(&gNewObjectDefinition);
+	NewObjectDefinitionType def =
+	{
+		.group		= MODEL_GROUP_GLOBAL,
+		.type		= GLOBAL_ObjType_Token_ArrowHead,
+		.coord		= where,
+		.flags		= gAutoFadeStatusBits | STATUS_BIT_NOLIGHTING,
+		.slot		= TRIGGER_SLOT,
+		.moveCall	= MoveToken,
+		.scale		= 1.0,
+	};
+	newObj = MakeNewDisplayGroupObject(&def);
 	if (newObj == nil)
 		return false;
 
@@ -517,15 +520,17 @@ OGLPoint3D		where;
 	where.x = x;
 	where.z = z;
 
-	gNewObjectDefinition.group 		= MODEL_GROUP_GLOBAL;
-	gNewObjectDefinition.type 		= GLOBAL_ObjType_StickyTiresPOW;
-	gNewObjectDefinition.coord		= where;
-	gNewObjectDefinition.flags 		= gAutoFadeStatusBits | STATUS_BIT_AIMATCAMERA | STATUS_BIT_KEEPBACKFACES | STATUS_BIT_NOLIGHTING;;
-	gNewObjectDefinition.slot 		= TRIGGER_SLOT;
-	gNewObjectDefinition.moveCall 	= MovePOW;
-	gNewObjectDefinition.rot 		= 0;
-	gNewObjectDefinition.scale 		= 1.0;
-	newObj = MakeNewDisplayGroupObject(&gNewObjectDefinition);
+	NewObjectDefinitionType def =
+	{
+		.group		= MODEL_GROUP_GLOBAL,
+		.type		= GLOBAL_ObjType_StickyTiresPOW,
+		.coord		= where,
+		.flags		= gAutoFadeStatusBits | STATUS_BIT_AIMATCAMERA | STATUS_BIT_KEEPBACKFACES | STATUS_BIT_NOLIGHTING,
+		.slot		= TRIGGER_SLOT,
+		.moveCall	= MovePOW,
+		.scale		= 1.0,
+	};
+	newObj = MakeNewDisplayGroupObject(&def);
 	if (newObj == nil)
 		return false;
 
@@ -612,15 +617,17 @@ OGLPoint3D		where;
 	where.x = x;
 	where.z = z;
 
-	gNewObjectDefinition.group 		= MODEL_GROUP_GLOBAL;
-	gNewObjectDefinition.type 		= GLOBAL_ObjType_SuspensionPOW;
-	gNewObjectDefinition.coord		= where;
-	gNewObjectDefinition.flags 		= gAutoFadeStatusBits | STATUS_BIT_AIMATCAMERA | STATUS_BIT_KEEPBACKFACES | STATUS_BIT_NOLIGHTING;;
-	gNewObjectDefinition.slot 		= TRIGGER_SLOT;
-	gNewObjectDefinition.moveCall 	= MovePOW;
-	gNewObjectDefinition.rot 		= 0;
-	gNewObjectDefinition.scale 		= 1.0;
-	newObj = MakeNewDisplayGroupObject(&gNewObjectDefinition);
+	NewObjectDefinitionType def =
+	{
+		.group		= MODEL_GROUP_GLOBAL,
+		.type		= GLOBAL_ObjType_SuspensionPOW,
+		.coord		= where,
+		.flags		= gAutoFadeStatusBits | STATUS_BIT_AIMATCAMERA | STATUS_BIT_KEEPBACKFACES | STATUS_BIT_NOLIGHTING,
+		.slot		= TRIGGER_SLOT,
+		.moveCall 	= MovePOW,
+		.scale		= 1.0,
+	};
+	newObj = MakeNewDisplayGroupObject(&def);
 	if (newObj == nil)
 		return false;
 
@@ -705,15 +712,18 @@ OGLPoint3D		where;
 	where.x = x;
 	where.z = z;
 
-	gNewObjectDefinition.group 		= MODEL_GROUP_GLOBAL;
-	gNewObjectDefinition.type 		= GLOBAL_ObjType_InvisibilityPOW;
-	gNewObjectDefinition.coord		= where;
-	gNewObjectDefinition.flags 	= gAutoFadeStatusBits | STATUS_BIT_AIMATCAMERA | STATUS_BIT_KEEPBACKFACES | STATUS_BIT_NOLIGHTING | STATUS_BIT_NOTEXTUREWRAP;
-	gNewObjectDefinition.slot 		= TRIGGER_SLOT;
-	gNewObjectDefinition.moveCall 	= MovePOW;
-	gNewObjectDefinition.rot 		= 0;
-	gNewObjectDefinition.scale 		= 1.0;
-	newObj = MakeNewDisplayGroupObject(&gNewObjectDefinition);
+	NewObjectDefinitionType def =
+	{
+		.group		= MODEL_GROUP_GLOBAL,
+		.type		= GLOBAL_ObjType_InvisibilityPOW,
+		.coord		= where,
+		.flags		= gAutoFadeStatusBits | STATUS_BIT_AIMATCAMERA | STATUS_BIT_KEEPBACKFACES | STATUS_BIT_NOLIGHTING | STATUS_BIT_NOTEXTUREWRAP,
+		.slot		= TRIGGER_SLOT,
+		.moveCall	= MovePOW,
+		.rot		= 0,
+		.scale		= 1.0,
+	};
+	newObj = MakeNewDisplayGroupObject(&def);
 	if (newObj == nil)
 		return false;
 
@@ -801,17 +811,18 @@ short	cactusType = itemPtr->parm[0];			// get cactus type
 	if (cactusType > 1)
 		cactusType = 1;
 
-	gNewObjectDefinition.group 		= MODEL_GROUP_LEVELSPECIFIC;
-	gNewObjectDefinition.type 		= DESERT_ObjType_Cactus + cactusType;
-	gNewObjectDefinition.coord.x 	= x;
-	gNewObjectDefinition.coord.z 	= z;
-	gNewObjectDefinition.coord.y 	= GetMinTerrainY(x,z, gNewObjectDefinition.group, gNewObjectDefinition.type, 1.0) - gObjectGroupBBoxList[gNewObjectDefinition.group][gNewObjectDefinition.type].min.y;
-	gNewObjectDefinition.slot 		= TRIGGER_SLOT;
-	gNewObjectDefinition.flags 		= gAutoFadeStatusBits;
-	gNewObjectDefinition.moveCall 	= MoveCactus;
-	gNewObjectDefinition.rot 		= 0;
-	gNewObjectDefinition.scale 		= 1.0;
-	newObj = MakeNewDisplayGroupObject(&gNewObjectDefinition);
+	NewObjectDefinitionType def =
+	{
+		.group		= MODEL_GROUP_LEVELSPECIFIC,
+		.type		= DESERT_ObjType_Cactus + cactusType,
+		.coord		= {x,0,z},  // y filled in below
+		.slot		= TRIGGER_SLOT,
+		.flags		= gAutoFadeStatusBits,
+		.moveCall	= MoveCactus,
+		.scale		= 1.0,
+	};
+	def.coord.y = GetMinTerrainY(x,z, def.group, def.type, 1.0) - gObjectGroupBBoxList[def.group][def.type].min.y,
+	newObj = MakeNewDisplayGroupObject(&def);
 	if (newObj == nil)
 		return(false);
 
@@ -935,17 +946,20 @@ Boolean AddSnoMan(TerrainItemEntryType *itemPtr, long  x, long z)
 {
 ObjNode	*newObj;
 
-	gNewObjectDefinition.group 		= MODEL_GROUP_LEVELSPECIFIC;
-	gNewObjectDefinition.type 		= ICE_ObjType_SnoMan;
-	gNewObjectDefinition.coord.x 	= x;
-	gNewObjectDefinition.coord.z 	= z;
-	gNewObjectDefinition.coord.y 	= GetTerrainY(x,z);
-	gNewObjectDefinition.slot 		= TRIGGER_SLOT;
-	gNewObjectDefinition.flags 		= gAutoFadeStatusBits;
-	gNewObjectDefinition.moveCall 	= MoveStaticObject;
-	gNewObjectDefinition.rot 		= (float)(itemPtr->parm[0]) / 8.0f * PI2;
-	gNewObjectDefinition.scale 		= 1.0;
-	newObj = MakeNewDisplayGroupObject(&gNewObjectDefinition);
+	NewObjectDefinitionType def =
+	{
+		.group 		= MODEL_GROUP_LEVELSPECIFIC,
+		.type 		= ICE_ObjType_SnoMan,
+		.coord.x 	= x,
+		.coord.z 	= z,
+		.coord.y 	= GetTerrainY(x,z),
+		.slot 		= TRIGGER_SLOT,
+		.flags 		= gAutoFadeStatusBits,
+		.moveCall 	= MoveStaticObject,
+		.rot 		= (float)(itemPtr->parm[0]) / 8.0f * PI2,
+		.scale 		= 1.0,
+	};
+	newObj = MakeNewDisplayGroupObject(&def);
 	if (newObj == nil)
 		return(false);
 
@@ -1059,20 +1073,20 @@ Boolean AddCampFire(TerrainItemEntryType *itemPtr, long  x, long z)
 {
 ObjNode	*newObj;
 
-	gNewObjectDefinition.group 		= MODEL_GROUP_LEVELSPECIFIC;
-	if (gTrackNum == TRACK_NUM_ICE)
-		gNewObjectDefinition.type 		= ICE_ObjType_CampFire;
-	else
-		gNewObjectDefinition.type 		= SCANDINAVIA_ObjType_Campfire;
-	gNewObjectDefinition.coord.x 	= x;
-	gNewObjectDefinition.coord.z 	= z;
-	gNewObjectDefinition.coord.y 	= GetTerrainY(x,z);
-	gNewObjectDefinition.flags 		= gAutoFadeStatusBits;
-	gNewObjectDefinition.slot 		= TRIGGER_SLOT;
-	gNewObjectDefinition.moveCall 	= MoveCampFire;
-	gNewObjectDefinition.rot 		= 0;
-	gNewObjectDefinition.scale 	    = 1.0;
-	newObj = MakeNewDisplayGroupObject(&gNewObjectDefinition);
+	NewObjectDefinitionType def =
+	{
+		.group		= MODEL_GROUP_LEVELSPECIFIC,
+		.type		= gTrackNum == TRACK_NUM_ICE ? ICE_ObjType_CampFire : SCANDINAVIA_ObjType_Campfire,
+		.coord.x	= x,
+		.coord.z	= z,
+		.coord.y	= GetTerrainY(x,z),
+		.flags		= gAutoFadeStatusBits,
+		.slot		= TRIGGER_SLOT,
+		.moveCall	= MoveCampFire,
+		.rot		= 0,
+		.scale		= 1.0,
+	};
+	newObj = MakeNewDisplayGroupObject(&def);
 	if (newObj == nil)
 		return(false);
 
@@ -1171,17 +1185,20 @@ ObjNode	*newObj;
 	if (gGameMode != GAME_MODE_CAPTUREFLAG)					// only in capture flag mode
 		return(true);
 
-	gNewObjectDefinition.group 		= MODEL_GROUP_GLOBAL;
-	gNewObjectDefinition.type 		= GLOBAL_ObjType_TeamTorch;
-	gNewObjectDefinition.coord.x 	= x;
-	gNewObjectDefinition.coord.z 	= z;
-	gNewObjectDefinition.coord.y 	= GetTerrainY(x,z);
-	gNewObjectDefinition.flags 		= gAutoFadeStatusBits;
-	gNewObjectDefinition.slot 		= PLAYER_SLOT + 5;	// we need this trigger to be *after* the player so it looks correct when carried!
-	gNewObjectDefinition.moveCall 	= MoveTeamTorch;
-	gNewObjectDefinition.rot 		= RandomFloat() * PI2;
-	gNewObjectDefinition.scale 	    = 1.0;
-	newObj = MakeNewDisplayGroupObject(&gNewObjectDefinition);
+	NewObjectDefinitionType def =
+	{
+		.group		= MODEL_GROUP_GLOBAL,
+		.type		= GLOBAL_ObjType_TeamTorch,
+		.coord.x	= x,
+		.coord.z	= z,
+		.coord.y	= GetTerrainY(x,z),
+		.flags		= gAutoFadeStatusBits,
+		.slot		= PLAYER_SLOT + 5,	// we need this trigger to be *after* the player so it looks correct when carried!
+		.moveCall	= MoveTeamTorch,
+		.rot		= RandomFloat() * PI2,
+		.scale		= 1.0,
+	};
+	newObj = MakeNewDisplayGroupObject(&def);
 	if (newObj == nil)
 		return(false);
 
@@ -1351,17 +1368,20 @@ ObjNode	*newObj;
 	if (gGameMode != GAME_MODE_CAPTUREFLAG)					// only in capture flag mode
 		return(true);
 
-	gNewObjectDefinition.group 		= MODEL_GROUP_GLOBAL;
-	gNewObjectDefinition.type 		= GLOBAL_ObjType_TeamBaseRed + itemPtr->parm[0];
-	gNewObjectDefinition.coord.x 	= x;
-	gNewObjectDefinition.coord.z 	= z;
-	gNewObjectDefinition.coord.y 	= GetTerrainY(x,z);
-	gNewObjectDefinition.slot 		= TRIGGER_SLOT;
-	gNewObjectDefinition.flags 		= gAutoFadeStatusBits;
-	gNewObjectDefinition.moveCall 	= MoveStaticObject;
-	gNewObjectDefinition.rot 		= 0;
-	gNewObjectDefinition.scale 		= 1.0;
-	newObj = MakeNewDisplayGroupObject(&gNewObjectDefinition);
+	NewObjectDefinitionType def =
+	{
+		.group		= MODEL_GROUP_GLOBAL,
+		.type		= GLOBAL_ObjType_TeamBaseRed + itemPtr->parm[0],
+		.coord.x	= x,
+		.coord.z	= z,
+		.coord.y	= GetTerrainY(x,z),
+		.slot		= TRIGGER_SLOT,
+		.flags		= gAutoFadeStatusBits,
+		.moveCall	= MoveStaticObject,
+		.rot		= 0,
+		.scale		= 1.0,
+	};
+	newObj = MakeNewDisplayGroupObject(&def);
 	if (newObj == nil)
 		return(false);
 
@@ -1451,17 +1471,20 @@ Boolean AddVase(TerrainItemEntryType *itemPtr, long  x, long z)
 {
 ObjNode	*newObj;
 
-	gNewObjectDefinition.group 		= MODEL_GROUP_LEVELSPECIFIC;
-	gNewObjectDefinition.type 		= EGYPT_ObjType_Vase;
-	gNewObjectDefinition.coord.x 	= x;
-	gNewObjectDefinition.coord.z 	= z;
-	gNewObjectDefinition.coord.y 	= GetTerrainY(x,z);
-	gNewObjectDefinition.slot 		= TRIGGER_SLOT;
-	gNewObjectDefinition.flags 		= gAutoFadeStatusBits | STATUS_BIT_KEEPBACKFACES;
-	gNewObjectDefinition.moveCall 	= MoveStaticObject;
-	gNewObjectDefinition.rot 		= (float)(itemPtr->parm[0]) / 8.0f * PI2;
-	gNewObjectDefinition.scale 		= 1.0;
-	newObj = MakeNewDisplayGroupObject(&gNewObjectDefinition);
+	NewObjectDefinitionType def =
+	{
+		.group 		= MODEL_GROUP_LEVELSPECIFIC,
+		.type 		= EGYPT_ObjType_Vase,
+		.coord.x 	= x,
+		.coord.z 	= z,
+		.coord.y 	= GetTerrainY(x,z),
+		.slot 		= TRIGGER_SLOT,
+		.flags 		= gAutoFadeStatusBits | STATUS_BIT_KEEPBACKFACES,
+		.moveCall 	= MoveStaticObject,
+		.rot 		= (float)(itemPtr->parm[0]) / 8.0f * PI2,
+		.scale 		= 1.0,
+	};
+	newObj = MakeNewDisplayGroupObject(&def);
 	if (newObj == nil)
 		return(false);
 
@@ -1578,18 +1601,19 @@ Boolean AddCauldron(TerrainItemEntryType *itemPtr, long  x, long z)
 {
 ObjNode	*newObj;
 
-
-	gNewObjectDefinition.group 		= MODEL_GROUP_LEVELSPECIFIC;
-	gNewObjectDefinition.type 		= EUROPE_ObjType_Cauldron;
-	gNewObjectDefinition.coord.x 	= x;
-	gNewObjectDefinition.coord.z 	= z;
-	gNewObjectDefinition.coord.y 	= GetTerrainY(x,z);
-	gNewObjectDefinition.flags 		= gAutoFadeStatusBits|STATUS_BIT_NOTEXTUREWRAP;
-	gNewObjectDefinition.slot 		= TRIGGER_SLOT;
-	gNewObjectDefinition.moveCall 	= MoveCauldron;
-	gNewObjectDefinition.rot 		= 0;
-	gNewObjectDefinition.scale 		= 1.0;
-	newObj = MakeNewDisplayGroupObject(&gNewObjectDefinition);
+	NewObjectDefinitionType def =
+	{
+		.group		= MODEL_GROUP_LEVELSPECIFIC,
+		.type		= EUROPE_ObjType_Cauldron,
+		.coord.x	= x,
+		.coord.z	= z,
+		.coord.y	= GetTerrainY(x,z),
+		.flags		= gAutoFadeStatusBits|STATUS_BIT_NOTEXTUREWRAP,
+		.slot		= TRIGGER_SLOT,
+		.moveCall	= MoveCauldron,
+		.scale		= 1.0,
+	};
+	newObj = MakeNewDisplayGroupObject(&def);
 	if (newObj == nil)
 		return(false);
 
@@ -1668,18 +1692,19 @@ OGLMatrix3x3	m;
 					/***************/
 					/* BUILD FRAME */
 					/***************/
-
-	gNewObjectDefinition.group 		= MODEL_GROUP_LEVELSPECIFIC;
-	gNewObjectDefinition.type 		= CHINA_ObjType_GongFrame;
-	gNewObjectDefinition.coord.x 	= x;
-	gNewObjectDefinition.coord.z 	= z;
-	gNewObjectDefinition.coord.y 	= GetMinTerrainY(x,z, gNewObjectDefinition.group, gNewObjectDefinition.type, 1.0);
-	gNewObjectDefinition.flags 		= gAutoFadeStatusBits;
-	gNewObjectDefinition.slot 		= TRIGGER_SLOT;
-	gNewObjectDefinition.moveCall 	= MoveGong;
-	gNewObjectDefinition.rot 		= PI2 * ((float)itemPtr->parm[0] * (1.0f/4.0f));
-	gNewObjectDefinition.scale 		= 1.0;
-	frame = MakeNewDisplayGroupObject(&gNewObjectDefinition);
+	NewObjectDefinitionType def =
+	{
+		.group		= MODEL_GROUP_LEVELSPECIFIC,
+		.type		= CHINA_ObjType_GongFrame,
+		.coord		= {x,0,z},  // y filled in below
+		.flags		= gAutoFadeStatusBits,
+		.slot		= TRIGGER_SLOT,
+		.moveCall	= MoveGong,
+		.rot		= PI2 * ((float)itemPtr->parm[0] * (1.0f/4.0f)),
+		.scale 		= 1.0,
+	};
+	def.coord.y = GetMinTerrainY(x, z, def.group, def.type, 1.0);
+	frame = MakeNewDisplayGroupObject(&def);
 	if (frame == nil)
 		return(false);
 
@@ -1723,12 +1748,12 @@ OGLMatrix3x3	m;
 			/* MAKE THE GONG TRIGGER */
 			/*************************/
 
-	gNewObjectDefinition.type 		= CHINA_ObjType_Gong;
-	gNewObjectDefinition.coord.y 	+= 886.0;
-	gNewObjectDefinition.flags 		= gAutoFadeStatusBits | STATUS_BIT_KEEPBACKFACES;
-	gNewObjectDefinition.slot++;
-	gNewObjectDefinition.moveCall 	= nil;
-	gong = MakeNewDisplayGroupObject(&gNewObjectDefinition);
+	def.type		= CHINA_ObjType_Gong;
+	def.coord.y		+= 886.0;
+	def.flags		= gAutoFadeStatusBits | STATUS_BIT_KEEPBACKFACES;
+	def.slot++;
+	def.moveCall	= nil;
+	gong = MakeNewDisplayGroupObject(&def);
 	if (gong == nil)
 		return(false);
 
@@ -1843,18 +1868,19 @@ Boolean AddSeaMine(TerrainItemEntryType *itemPtr, long  x, long z)
 {
 ObjNode	*newObj;
 
-
-	gNewObjectDefinition.group 		= MODEL_GROUP_LEVELSPECIFIC;
-	gNewObjectDefinition.type 		= ATLANTIS_ObjType_SeaMine;
-	gNewObjectDefinition.coord.x 	= x;
-	gNewObjectDefinition.coord.z 	= z;
-	gNewObjectDefinition.coord.y 	= GetTerrainY(x,z) + 300.0f + (float)itemPtr->parm[0] * 15.0f;
-	gNewObjectDefinition.flags 		= gAutoFadeStatusBits;
-	gNewObjectDefinition.slot 		= TRIGGER_SLOT;
-	gNewObjectDefinition.moveCall 	= MoveSeaMine;
-	gNewObjectDefinition.rot 		= 0;
-	gNewObjectDefinition.scale 		= 1.0;
-	newObj = MakeNewDisplayGroupObject(&gNewObjectDefinition);
+	NewObjectDefinitionType def =
+	{
+		.group		= MODEL_GROUP_LEVELSPECIFIC,
+		.type		= ATLANTIS_ObjType_SeaMine,
+		.coord.x	= x,
+		.coord.z	= z,
+		.coord.y	= GetTerrainY(x,z) + 300.0f + (float)itemPtr->parm[0] * 15.0f,
+		.flags		= gAutoFadeStatusBits,
+		.slot		= TRIGGER_SLOT,
+		.moveCall	= MoveSeaMine,
+		.scale		= 1.0,
+	};
+	newObj = MakeNewDisplayGroupObject(&def);
 	if (newObj == nil)
 		return(false);
 
@@ -1975,18 +2001,20 @@ Boolean AddDruid(TerrainItemEntryType *itemPtr, long  x, long z)
 {
 ObjNode	*newObj;
 
-
-	gNewObjectDefinition.type 		= SKELETON_TYPE_DRUID;
-	gNewObjectDefinition.animNum	= 0;
-	gNewObjectDefinition.coord.x 	= x;
-	gNewObjectDefinition.coord.z 	= z;
-	gNewObjectDefinition.coord.y 	= GetTerrainY(x,z);
-	gNewObjectDefinition.flags 		= gAutoFadeStatusBits;
-	gNewObjectDefinition.slot 		= TRIGGER_SLOT;
-	gNewObjectDefinition.moveCall 	= MoveStaticObject;
-	gNewObjectDefinition.rot 		= 0;
-	gNewObjectDefinition.scale 		= 5.0;
-	newObj = MakeNewSkeletonObject(&gNewObjectDefinition);
+	NewObjectDefinitionType def =
+	{
+		.type		= SKELETON_TYPE_DRUID,
+		.animNum	= 0,
+		.coord.x	= x,
+		.coord.z	= z,
+		.coord.y	= GetTerrainY(x,z),
+		.flags		= gAutoFadeStatusBits,
+		.slot		= TRIGGER_SLOT,
+		.moveCall	= MoveStaticObject,
+		.rot		= 0,
+		.scale		= 5.0,
+	};
+	newObj = MakeNewSkeletonObject(&def);
 	if (newObj == nil)
 		return(false);
 

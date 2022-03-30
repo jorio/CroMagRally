@@ -26,7 +26,6 @@
 #include "sprites.h"
 #include "sobjtypes.h"
 
-extern	NewObjectDefinitionType	gNewObjectDefinition;
 extern	OGLSetupOutputType		*gGameViewInfoPtr;
 extern	float					gFramesPerSecond,gFramesPerSecondFrac,gCurrentAspectRatio;
 extern	OGLVector3D				gWorldSunDirection;

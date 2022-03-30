@@ -23,7 +23,6 @@ extern	ObjNode			*gCurrentPlayer;
 extern	float			gFramesPerSecondFrac,gFramesPerSecond,gPlayerToCameraAngle;
 extern	OGLPoint3D		gCoord;
 extern	OGLVector3D		gDelta;
-extern	NewObjectDefinitionType	gNewObjectDefinition;
 extern	OGLSetupOutputType		*gGameViewInfoPtr;
 extern	OGLVector3D		gRecentTerrainNormal;
 extern	short			gCurrentPlayerNum;

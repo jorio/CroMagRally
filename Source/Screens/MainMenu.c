@@ -40,7 +40,6 @@ extern	FSSpec		gDataSpec;
 extern	Boolean		gNetGameInProgress,gIsSelfRunningDemo;
 extern	KeyMap gKeyMap,gNewKeys;
 extern	short		gNumRealPlayers,gNumLocalPlayers, gMyNetworkPlayerNum;
-extern	NewObjectDefinitionType	gNewObjectDefinition;
 extern	Boolean		gSongPlayingFlag,gResetSong,gDisableAnimSounds,gIsNetworkHost,gIsNetworkClient;
 extern	PrefsType	gGamePrefs;
 extern	OGLPoint3D	gCoord;

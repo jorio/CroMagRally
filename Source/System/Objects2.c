@@ -34,7 +34,6 @@ extern	float		gFramesPerSecondFrac;
 extern	ObjNode		*gFirstNodePtr;
 extern	OGLSetupOutputType		*gGameViewInfoPtr;
 extern	OGLPoint3D	gCoord;
-extern	NewObjectDefinitionType	gNewObjectDefinition;
 extern	uint32_t		gAutoFadeStatusBits;
 extern	PrefsType	gGamePrefs;
 extern	FSSpec		gDataSpec;
@@ -397,20 +396,21 @@ ObjNode	*AttachShadowToObject(ObjNode *theNode, int shadowType, float scaleX, fl
 {
 ObjNode	*shadowObj;
 
-	gNewObjectDefinition.genre		= CUSTOM_GENRE;
-	gNewObjectDefinition.coord 		= theNode->Coord;
-	gNewObjectDefinition.coord.y 	+= SHADOW_Y_OFF;
-	gNewObjectDefinition.flags 		= STATUS_BIT_NOZWRITES|STATUS_BIT_NOLIGHTING|STATUS_BIT_NOFOG|gAutoFadeStatusBits;
+	NewObjectDefinitionType def =
+	{
+		.genre		= CUSTOM_GENRE,
+		.coord		= theNode->Coord,
+		.flags		= STATUS_BIT_NOZWRITES | STATUS_BIT_NOLIGHTING | STATUS_BIT_NOFOG | gAutoFadeStatusBits,
+		.slot		= SLOT_OF_DUMB+1,
+		.scale		= scaleX,
+	};
 
-	if (theNode->Slot >= SLOT_OF_DUMB+1)					// shadow *must* be after parent!
-		gNewObjectDefinition.slot 	= theNode->Slot+1;
-	else
-		gNewObjectDefinition.slot 	= SLOT_OF_DUMB+1;
-	gNewObjectDefinition.moveCall 	= nil;
-	gNewObjectDefinition.rot 		= 0;
-	gNewObjectDefinition.scale 		= scaleX;
+	def.coord.y += SHADOW_Y_OFF;		// rise it a little
 
-	shadowObj = MakeNewObject(&gNewObjectDefinition);
+	if (def.slot <= theNode->Slot)		// shadow *must* be after parent! handle case where object slot is beyond SLOT_OF_DUMB
+		def.slot = theNode->Slot+1;
+
+	shadowObj = MakeNewObject(&def);
 	if (shadowObj == nil)
 		return(nil);
 

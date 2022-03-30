@@ -33,7 +33,6 @@ extern	ObjNode			*gCurrentPlayer;
 extern	float			gFramesPerSecondFrac,gFramesPerSecond,gPlayerToCameraAngle;
 extern	OGLPoint3D		gCoord;
 extern	OGLVector3D		gDelta;
-extern	NewObjectDefinitionType	gNewObjectDefinition;
 extern	OGLSetupOutputType		*gGameViewInfoPtr;
 extern	OGLVector3D		gRecentTerrainNormal;
 extern	short			gCurrentPlayerNum,gPlayerMultiPassCount,gNumTotalPlayers;
@@ -312,16 +311,17 @@ ObjNode						*newObj,*head,*car;
 		/* MAKE BONE OBJECT */
 		/********************/
 
-	FindCoordOnJointAtFlagEvent(head, 5, &gGunNozzelOff, &gNewObjectDefinition.coord);
-
-	gNewObjectDefinition.group 		= MODEL_GROUP_WEAPONS;
-	gNewObjectDefinition.type 		= WEAPONS_ObjType_BoneBullet;
-	gNewObjectDefinition.flags 		= STATUS_BIT_AIMATCAMERA|STATUS_BIT_KEEPBACKFACES|STATUS_BIT_NOLIGHTING|STATUS_BIT_ROTXZY|STATUS_BIT_NOTEXTUREWRAP;
-	gNewObjectDefinition.slot 		= SLOT_OF_DUMB+2;
-	gNewObjectDefinition.moveCall 	= MoveBoneWeapon;
-	gNewObjectDefinition.rot 		= 0;
-	gNewObjectDefinition.scale 	    = 1;
-	newObj = MakeNewDisplayGroupObject(&gNewObjectDefinition);
+	NewObjectDefinitionType def =
+	{
+		.group		= MODEL_GROUP_WEAPONS,
+		.type		= WEAPONS_ObjType_BoneBullet,
+		.flags		= STATUS_BIT_AIMATCAMERA|STATUS_BIT_KEEPBACKFACES|STATUS_BIT_NOLIGHTING|STATUS_BIT_ROTXZY|STATUS_BIT_NOTEXTUREWRAP,
+		.slot		= SLOT_OF_DUMB+2,
+		.moveCall	= MoveBoneWeapon,
+		.scale		= 1,
+	};
+	FindCoordOnJointAtFlagEvent(head, 5, &gGunNozzelOff, &def.coord);
+	newObj = MakeNewDisplayGroupObject(&def);
 	if (newObj == nil)
 		return;
 
@@ -392,16 +392,17 @@ ObjNode						*newObj,*head,*car;
 		/* MAKE BONE OBJECT */
 		/********************/
 
-	FindCoordOnJointAtFlagEvent(head, 5, &gGunNozzelOff, &gNewObjectDefinition.coord);
-
-	gNewObjectDefinition.group 		= MODEL_GROUP_WEAPONS;
-	gNewObjectDefinition.type 		= WEAPONS_ObjType_FreezeBullet;
-	gNewObjectDefinition.flags 		= STATUS_BIT_AIMATCAMERA|STATUS_BIT_KEEPBACKFACES|STATUS_BIT_GLOW|STATUS_BIT_NOLIGHTING|STATUS_BIT_NOTEXTUREWRAP;
-	gNewObjectDefinition.slot 		= PARTICLE_SLOT;
-	gNewObjectDefinition.moveCall 	= MoveFreezeWeapon;
-	gNewObjectDefinition.rot 		= 0;
-	gNewObjectDefinition.scale 	    = 1;
-	newObj = MakeNewDisplayGroupObject(&gNewObjectDefinition);
+	NewObjectDefinitionType def =
+	{
+		.group		= MODEL_GROUP_WEAPONS,
+		.type		= WEAPONS_ObjType_FreezeBullet,
+		.flags		= STATUS_BIT_AIMATCAMERA|STATUS_BIT_KEEPBACKFACES|STATUS_BIT_GLOW|STATUS_BIT_NOLIGHTING|STATUS_BIT_NOTEXTUREWRAP,
+		.slot		= PARTICLE_SLOT,
+		.moveCall	= MoveFreezeWeapon,
+		.scale		= 1
+	};
+	FindCoordOnJointAtFlagEvent(head, 5, &gGunNozzelOff, &def.coord);
+	newObj = MakeNewDisplayGroupObject(&def);
 	if (newObj == nil)
 		return;
 
@@ -562,16 +563,18 @@ ObjNode						*newObj,*head,*car;
 		/* MAKE OIL PROJECTILE */
 		/***********************/
 
-	FindCoordOnJointAtFlagEvent(head, 5, &gGunNozzelOff, &gNewObjectDefinition.coord);
+	NewObjectDefinitionType def =
+	{
+		.group		= MODEL_GROUP_WEAPONS,
+		.type		= WEAPONS_ObjType_OilBullet,
+		.flags		= 0,
+		.slot		= 200,
+		.moveCall 	= MoveOilBullet,
+		.scale		= 1
+	};
+	FindCoordOnJointAtFlagEvent(head, 5, &gGunNozzelOff, &def.coord);
 
-	gNewObjectDefinition.group 		= MODEL_GROUP_WEAPONS;
-	gNewObjectDefinition.type 		= WEAPONS_ObjType_OilBullet;
-	gNewObjectDefinition.flags 		= 0;
-	gNewObjectDefinition.slot 		= 200;
-	gNewObjectDefinition.moveCall 	= MoveOilBullet;
-	gNewObjectDefinition.rot 		= 0;
-	gNewObjectDefinition.scale 	    = 1;
-	newObj = MakeNewDisplayGroupObject(&gNewObjectDefinition);
+	newObj = MakeNewDisplayGroupObject(&def);
 	if (newObj == nil)
 		return;
 
@@ -631,17 +634,20 @@ static void MakeOilSpill(float x, float z)
 {
 ObjNode	*newObj;
 
-	gNewObjectDefinition.group 		= MODEL_GROUP_WEAPONS;
-	gNewObjectDefinition.type 		= WEAPONS_ObjType_OilPatch;
-	gNewObjectDefinition.coord.x	= x;
-	gNewObjectDefinition.coord.y	= GetTerrainY(x, z);
-	gNewObjectDefinition.coord.z	= z;
-	gNewObjectDefinition.flags 		= STATUS_BIT_NOZWRITES|STATUS_BIT_NOLIGHTING|STATUS_BIT_NOTEXTUREWRAP;
-	gNewObjectDefinition.slot 		= SLOT_OF_DUMB+9;
-	gNewObjectDefinition.moveCall 	= MoveOilSpill;
-	gNewObjectDefinition.rot 		= RandomFloat() * PI2;
-	gNewObjectDefinition.scale 	    = 3.0f + RandomFloat() * 2.0f;
-	newObj = MakeNewDisplayGroupObject(&gNewObjectDefinition);
+	NewObjectDefinitionType def =
+	{
+		.group		= MODEL_GROUP_WEAPONS,
+		.type		= WEAPONS_ObjType_OilPatch,
+		.coord.x	= x,
+		.coord.y	= GetTerrainY(x, z),
+		.coord.z	= z,
+		.flags		= STATUS_BIT_NOZWRITES|STATUS_BIT_NOLIGHTING|STATUS_BIT_NOTEXTUREWRAP,
+		.slot		= SLOT_OF_DUMB+9,
+		.moveCall	= MoveOilSpill,
+		.rot		= RandomFloat() * PI2,
+		.scale		= 3.0f + RandomFloat() * 2.0f
+	};
+	newObj = MakeNewDisplayGroupObject(&def);
 
 	newObj->CType = CTYPE_AVOID;
 
@@ -736,21 +742,19 @@ short		p,bestP;
 		/* MAKE OBJECT */
 		/********************/
 
-	FindCoordOnJointAtFlagEvent(head, 5, &gGunNozzelOff, &gNewObjectDefinition.coord);
+	NewObjectDefinitionType def =
+	{
+		.moveCall 	= MoveBirdBomb,
+		.type 		= SKELETON_TYPE_BIRDBOMB,
+		.animNum 	= 0,
+		.flags 		= STATUS_BIT_NOLIGHTING,
+		.slot 		= SLOT_OF_DUMB+3,
+		.rot		= car->Rot.y + (throwForward? 0: PI),
+		.scale		= 1,
+	};
+	FindCoordOnJointAtFlagEvent(head, 5, &gGunNozzelOff, &def.coord);
 
-	gNewObjectDefinition.moveCall 	= MoveBirdBomb;
-	gNewObjectDefinition.type 		= SKELETON_TYPE_BIRDBOMB;
-	gNewObjectDefinition.animNum 	= 0;
-	gNewObjectDefinition.flags 		= STATUS_BIT_NOLIGHTING;
-	gNewObjectDefinition.slot 		= SLOT_OF_DUMB+3;
-
-	if (throwForward)
-		gNewObjectDefinition.rot 	= car->Rot.y;
-	else
-		gNewObjectDefinition.rot 	= car->Rot.y + PI;
-
-	gNewObjectDefinition.scale 	    = 1.0;
-	newObj = MakeNewSkeletonObject(&gNewObjectDefinition);
+	newObj = MakeNewSkeletonObject(&def);
 	if (newObj == nil)
 		DoFatalAlert("ThrowBirdBomb: MakeNewSkeletonObject failed!");
 
@@ -905,17 +909,20 @@ ObjNode		*newObj, *car;
 		/* MAKE OBJECT 		*/
 		/********************/
 
-	gNewObjectDefinition.group 		= MODEL_GROUP_WEAPONS;
-	gNewObjectDefinition.type 		= WEAPONS_ObjType_RomanCandleBullet;
-	gNewObjectDefinition.coord.x	= car->Coord.x;
-	gNewObjectDefinition.coord.y	= car->Coord.y + 100.0f;
-	gNewObjectDefinition.coord.z	= car->Coord.z;
-	gNewObjectDefinition.flags 		= STATUS_BIT_AIMATCAMERA|STATUS_BIT_KEEPBACKFACES|STATUS_BIT_GLOW|STATUS_BIT_NOLIGHTING|STATUS_BIT_NOTEXTUREWRAP;
-	gNewObjectDefinition.slot 		= PARTICLE_SLOT;
-	gNewObjectDefinition.moveCall 	= MoveRomanCandle;
-	gNewObjectDefinition.rot 		= 0;
-	gNewObjectDefinition.scale 	    = 1;
-	newObj = MakeNewDisplayGroupObject(&gNewObjectDefinition);
+	NewObjectDefinitionType def =
+	{
+		.group		= MODEL_GROUP_WEAPONS,
+		.type		= WEAPONS_ObjType_RomanCandleBullet,
+		.coord.x	= car->Coord.x,
+		.coord.y	= car->Coord.y + 100.0f,
+		.coord.z	= car->Coord.z,
+		.flags		= STATUS_BIT_AIMATCAMERA|STATUS_BIT_KEEPBACKFACES|STATUS_BIT_GLOW|STATUS_BIT_NOLIGHTING|STATUS_BIT_NOTEXTUREWRAP,
+		.slot		= PARTICLE_SLOT,
+		.moveCall	= MoveRomanCandle,
+		.rot		= 0,
+		.scale		= 1,
+	};
+	newObj = MakeNewDisplayGroupObject(&def);
 	if (newObj == nil)
 		return;
 
@@ -925,7 +932,7 @@ ObjNode		*newObj, *car;
 
 	newObj->Mode = 0;																	// shoot up
 
-	PlayEffect3D(EFFECT_ROMANCANDLE_LAUNCH, &gNewObjectDefinition.coord);
+	PlayEffect3D(EFFECT_ROMANCANDLE_LAUNCH, &def.coord);
 }
 
 
@@ -990,7 +997,7 @@ float		dist;
 					theNode->Delta.z = gPlayerInfo[targetP].objNode->Delta.z;
 					theNode->Delta.y = -4000;
 
-					theNode->EffectChannel = PlayEffect3D(EFFECT_ROMANCANDLE_FALL, &gNewObjectDefinition.coord);
+					theNode->EffectChannel = PlayEffect3D(EFFECT_ROMANCANDLE_FALL, &theNode->Coord);  // XXX: this was gNewObjectDefinition.coord! mistake?
 
 				}
 				break;
@@ -1223,17 +1230,19 @@ short		targetP;
 		/* MAKE OBJECT 		*/
 		/********************/
 
-	gNewObjectDefinition.group 		= MODEL_GROUP_WEAPONS;
-	gNewObjectDefinition.type 		= WEAPONS_ObjType_BottleRocketBullet;
-	gNewObjectDefinition.coord.x	= car->Coord.x;
-	gNewObjectDefinition.coord.y	= car->Coord.y + 120.0f;
-	gNewObjectDefinition.coord.z	= car->Coord.z;
-	gNewObjectDefinition.flags 		= 0;
-	gNewObjectDefinition.slot 		= SLOT_OF_DUMB;
-	gNewObjectDefinition.moveCall 	= MoveBottleRocket;
-	gNewObjectDefinition.rot 		= 0;
-	gNewObjectDefinition.scale 	    = 1;
-	newObj = MakeNewDisplayGroupObject(&gNewObjectDefinition);
+	NewObjectDefinitionType def =
+	{
+		.group		= MODEL_GROUP_WEAPONS,
+		.type		= WEAPONS_ObjType_BottleRocketBullet,
+		.coord.x	= car->Coord.x,
+		.coord.y	= car->Coord.y + 120.0f,
+		.coord.z	= car->Coord.z,
+		.flags		= 0,
+		.slot		= SLOT_OF_DUMB,
+		.moveCall	= MoveBottleRocket,
+		.scale		= 1,
+	};
+	newObj = MakeNewDisplayGroupObject(&def);
 	if (newObj == nil)
 		return;
 
@@ -1273,7 +1282,7 @@ short		targetP;
 	newObj->Delta.y = gDelta.y + 2000.0f;
 
 
-	PlayEffect3D(EFFECT_ROMANCANDLE_LAUNCH, &gNewObjectDefinition.coord);
+	PlayEffect3D(EFFECT_ROMANCANDLE_LAUNCH, &def.coord);
 }
 
 
@@ -1537,16 +1546,18 @@ static const OGLPoint3D	nose = {0,0,-100};
 		/* MAKE OBJECT 		*/
 		/********************/
 
-	OGLPoint3D_Transform(&nose, &car->BaseTransformMatrix, &gNewObjectDefinition.coord);
 
-	gNewObjectDefinition.group 		= MODEL_GROUP_WEAPONS;
-	gNewObjectDefinition.type 		= WEAPONS_ObjType_Torpedo;
-	gNewObjectDefinition.flags 		= 0;
-	gNewObjectDefinition.slot 		= SLOT_OF_DUMB;
-	gNewObjectDefinition.moveCall 	= MoveTorpedo;
-	gNewObjectDefinition.rot 		= car->Rot.y;
-	gNewObjectDefinition.scale 	    = 1;
-	newObj = MakeNewDisplayGroupObject(&gNewObjectDefinition);
+	NewObjectDefinitionType def =
+	{
+		.group		= MODEL_GROUP_WEAPONS,
+		.type		= WEAPONS_ObjType_Torpedo,
+		.slot		= SLOT_OF_DUMB,
+		.moveCall	= MoveTorpedo,
+		.rot		= car->Rot.y,
+		.scale		= 1,
+	};
+	OGLPoint3D_Transform(&nose, &car->BaseTransformMatrix, &def.coord);
+	newObj = MakeNewDisplayGroupObject(&def);
 	if (newObj == nil)
 		return;
 
@@ -1557,7 +1568,7 @@ static const OGLPoint3D	nose = {0,0,-100};
 
 
 
-	PlayEffect_Parms3D(EFFECT_TORPEDOFIRE, &gNewObjectDefinition.coord, NORMAL_CHANNEL_RATE, 3);
+	PlayEffect_Parms3D(EFFECT_TORPEDOFIRE, &def.coord, NORMAL_CHANNEL_RATE, 3);
 
 }
 
@@ -1799,17 +1810,18 @@ ObjNode						*newObj;
 
 	DecCurrentPOWQuantity(playerNum);
 
-	gNewObjectDefinition.group 		= MODEL_GROUP_WEAPONS;
-	gNewObjectDefinition.type 		= WEAPONS_ObjType_LandMine;
-	gNewObjectDefinition.coord.x	= gCoord.x;
-	gNewObjectDefinition.coord.y	= GetTerrainY(gCoord.x, gCoord.z);
-	gNewObjectDefinition.coord.z	= gCoord.z;
-	gNewObjectDefinition.flags 		= 0;
-	gNewObjectDefinition.slot 		= TRIGGER_SLOT;
-	gNewObjectDefinition.moveCall 	= MoveLandMine;
-	gNewObjectDefinition.rot 		= 0;
-	gNewObjectDefinition.scale 	    = 1.0;
-	newObj = MakeNewDisplayGroupObject(&gNewObjectDefinition);
+	NewObjectDefinitionType def =
+	{
+		.group		= MODEL_GROUP_WEAPONS,
+		.type		= WEAPONS_ObjType_LandMine,
+		.coord.x	= gCoord.x,
+		.coord.y	= GetTerrainY(gCoord.x, gCoord.z),
+		.coord.z	= gCoord.z,
+		.slot		= TRIGGER_SLOT,
+		.moveCall	= MoveLandMine,
+		.scale		= 1.0,
+	};
+	newObj = MakeNewDisplayGroupObject(&def);
 
 	newObj->CType 			= CTYPE_TRIGGER|CTYPE_AVOID;
 	newObj->Kind		 	= TRIGTYPE_LANDMINE;

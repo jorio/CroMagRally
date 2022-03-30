@@ -50,8 +50,6 @@ enum
 
 //========================================================
 
-#define ClearNewObjectDefinition() memset(&gNewObjectDefinition, 0, sizeof(gNewObjectDefinition))
-
 extern	void InitObjectManager(void);
 extern	ObjNode	*MakeNewObject(NewObjectDefinitionType *newObjDef);
 extern	void MoveObjects(void);

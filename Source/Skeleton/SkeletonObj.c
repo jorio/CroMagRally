@@ -22,7 +22,6 @@
 #include "bones.h"
 #include "metaobjects.h"
 
-extern	NewObjectDefinitionType	gNewObjectDefinition;
 extern	ObjNode				*gPlayerNode[];
 extern	OGLSetupOutputType		*gGameViewInfoPtr;
 

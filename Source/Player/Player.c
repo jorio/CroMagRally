@@ -31,7 +31,6 @@
 
 extern	OGLPoint3D				gCoord;
 extern	OGLVector3D				gDelta;
-extern	NewObjectDefinitionType	gNewObjectDefinition;
 extern	float					gFramesPerSecondFrac;
 extern	short					gNumCollisions,gWorstHumanPlace,gWhoIsIt,gNumPlayersEliminated;
 extern	CollisionRec			gCollisionList[];

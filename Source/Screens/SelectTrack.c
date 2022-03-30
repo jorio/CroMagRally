@@ -36,7 +36,6 @@ extern	WindowPtr			gCoverWindow;
 extern	FSSpec			gDataSpec;
 extern	KeyMap 			gKeyMap,gNewKeys;
 extern	short			gNumRealPlayers,gNumLocalPlayers;
-extern	NewObjectDefinitionType	gNewObjectDefinition;
 extern	Boolean			gSongPlayingFlag,gDisableAnimSounds,gSongPlayingFlag;
 extern	OGLPoint3D		gCoord;
 extern  MOPictureObject 	*gBackgoundPicture;
@@ -237,18 +236,19 @@ OGLSetupInputType	viewDef;
 
 			/* TRACK IMAGE */
 
-	gNewObjectDefinition.group 		= SPRITE_GROUP_TRACKSELECTSCREEN;
-	gNewObjectDefinition.type 		= TRACKSELECT_SObjType__Level0 + gSelectedTrackIndex;
-	gNewObjectDefinition.coord.x 	= LEVEL_IMAGE_X;
-	gNewObjectDefinition.coord.y 	= LEVEL_IMAGE_Y;
-	gNewObjectDefinition.coord.z 	= 0;
-	gNewObjectDefinition.flags 		= 0;
-	gNewObjectDefinition.slot 		= SPRITE_SLOT;
-	gNewObjectDefinition.moveCall 	= nil;
-	gNewObjectDefinition.rot 		= 0;
-	gNewObjectDefinition.scale 	    = LEVEL_IMAGE_SCALE;
+	{
+		NewObjectDefinitionType def =
+		{
+			.group = SPRITE_GROUP_TRACKSELECTSCREEN,
+			.type = TRACKSELECT_SObjType__Level0 + gSelectedTrackIndex,
+			.coord = { LEVEL_IMAGE_X, LEVEL_IMAGE_Y, 0 },
+			.slot = SPRITE_SLOT,
+			.moveCall = nil,
+			.scale = LEVEL_IMAGE_SCALE,
+		};
 
-	gTrackImageIcon = MakeSpriteObject(&gNewObjectDefinition, gGameViewInfoPtr);
+		gTrackImageIcon = MakeSpriteObject(&def, gGameViewInfoPtr);
+	}
 
 
 
@@ -268,26 +268,23 @@ static void MakeTrackName(void)
 		gTrackName = nil;
 	}
 
-	gNewObjectDefinition.coord.x 	= 0;
-	gNewObjectDefinition.coord.y 	= .7;
-	gNewObjectDefinition.coord.z 	= 0;
-	gNewObjectDefinition.flags 		= 0;
-	gNewObjectDefinition.moveCall 	= nil;
-	gNewObjectDefinition.rot 		= 0;
-	gNewObjectDefinition.scale 	    = .7;
-	gNewObjectDefinition.slot 		= SPRITE_SLOT;
+	NewObjectDefinitionType def =
+	{
+		.coord		= {0, .7, 0},
+		.scale		= .7,
+		.slot		= SPRITE_SLOT,
+	};
 
 	switch(gGameMode)
 	{
 		case	GAME_MODE_PRACTICE:
 		case	GAME_MODE_MULTIPLAYERRACE:
-				gTrackName = TextMesh_New(Localize(STR_LEVEL_1 + gSelectedTrackIndex), kTextMeshAlignCenter, &gNewObjectDefinition);
+				gTrackName = TextMesh_New(Localize(STR_LEVEL_1 + gSelectedTrackIndex), kTextMeshAlignCenter, &def);
 				break;
 
 		default:
-				gTrackName = TextMesh_New(Localize(STR_MPLEVEL_1 + gSelectedTrackIndex), kTextMeshAlignCenter, &gNewObjectDefinition);
+				gTrackName = TextMesh_New(Localize(STR_MPLEVEL_1 + gSelectedTrackIndex), kTextMeshAlignCenter, &def);
 	}
-
 }
 
 

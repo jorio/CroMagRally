@@ -42,7 +42,6 @@ extern	ObjNode					*gFirstNodePtr,*gCurrentPlayer;
 extern	float					gFramesPerSecondFrac,gFramesPerSecond,gAnalogSteeringTimer[];
 extern	OGLPoint3D				gCoord;
 extern	OGLVector3D				gDelta;
-extern	NewObjectDefinitionType	gNewObjectDefinition;
 extern	OGLSetupOutputType		*gGameViewInfoPtr;
 extern	short					gNumCollisions,gCurrentPlayerNum,gNumRealPlayers,gMyNetworkPlayerNum,gNumTotalPlayers,gWorstHumanPlace;
 extern	CollisionRec			gCollisionList[];
@@ -248,17 +247,19 @@ static const float shadowScale[MAX_CAR_TYPES] =
 
 		/* CREATE CAR BODY AS MAIN OBJECT FOR PLAYER */
 
-	gNewObjectDefinition.group 		= MODEL_GROUP_CARPARTS;
-	gNewObjectDefinition.type 		= CARPARTS_ObjType_Body_Mammoth + carType;
-	gNewObjectDefinition.coord.x 	= where->x;
-	gNewObjectDefinition.coord.z 	= where->z;
-	gNewObjectDefinition.coord.y 	= GetTerrainY(where->x,where->z)+100;
-	gNewObjectDefinition.flags 		= STATUS_BIT_ROTXZY;
-	gNewObjectDefinition.slot 		= PLAYER_SLOT;
-	gNewObjectDefinition.moveCall 	= MovePlayer_Car;
-	gNewObjectDefinition.rot 		= 0;
-	gNewObjectDefinition.scale 		= PLAYER_CAR_SCALE;
-	newObj = MakeNewDisplayGroupObject(&gNewObjectDefinition);
+	NewObjectDefinitionType def =
+	{
+		.group		= MODEL_GROUP_CARPARTS,
+		.type		= CARPARTS_ObjType_Body_Mammoth + carType,
+		.coord.x	= where->x,
+		.coord.z	= where->z,
+		.coord.y	= GetTerrainY(where->x,where->z)+100,
+		.flags		= STATUS_BIT_ROTXZY,
+		.slot		= PLAYER_SLOT,
+		.moveCall	= MovePlayer_Car,
+		.scale		= PLAYER_CAR_SCALE,
+	};
+	newObj = MakeNewDisplayGroupObject(&def);
 	if (newObj == nil)
 		return(false);
 
@@ -2717,20 +2718,17 @@ ObjNode			*wheel,*link;
 
 	for (i = 0; i < 4; i++)
 	{
-		gNewObjectDefinition.group 		= MODEL_GROUP_CARPARTS;
-		gNewObjectDefinition.type 		= (carType * 4) + CARPARTS_ObjType_Wheel_MammothFL + i;
-		gNewObjectDefinition.coord.x 	= 0;
-		gNewObjectDefinition.coord.z 	= 0;
-		gNewObjectDefinition.coord.y 	= 0;
+		NewObjectDefinitionType def =
+		{
+			.group		= MODEL_GROUP_CARPARTS,
+			.type		= (carType * 4) + CARPARTS_ObjType_Wheel_MammothFL + i,
+			.slot		= theCar->Slot+1,
+			.scale		= theCar->Scale.x,
+		};
 		if (carType == CAR_TYPE_CHARIOT)
-			gNewObjectDefinition.flags 	= STATUS_BIT_CLIPALPHA;
-		else
-			gNewObjectDefinition.flags 	= 0;
-		gNewObjectDefinition.slot 		= theCar->Slot+1;
-		gNewObjectDefinition.moveCall 	= nil;
-		gNewObjectDefinition.rot 		= 0;
-		gNewObjectDefinition.scale 		= theCar->Scale.x;
-		wheel = MakeNewDisplayGroupObject(&gNewObjectDefinition);
+			def.flags |= STATUS_BIT_CLIPALPHA;
+
+		wheel = MakeNewDisplayGroupObject(&def);
 		if (wheel == nil)
 			DoFatalAlert("CreateCarWheelsAndHead: MakeNewDisplayGroupObject failed!");
 
@@ -2748,13 +2746,16 @@ ObjNode			*wheel,*link;
 			/* MAKE HEAD SKELETON OBJECT */
 			/*****************************/
 
-	gNewObjectDefinition.moveCall 	= MovePlayer_HeadSkeleton;
-	gNewObjectDefinition.type 		= SKELETON_TYPE_PLAYER_MALE + sex;
-	gNewObjectDefinition.animNum 	= PLAYER_ANIM_SIT;
-	gNewObjectDefinition.flags 		= 0;
-	gNewObjectDefinition.scale 		= BROG_SCALE;
+	NewObjectDefinitionType def =
+	{
+		.moveCall	= MovePlayer_HeadSkeleton,
+		.type		= SKELETON_TYPE_PLAYER_MALE + sex,
+		.animNum	= PLAYER_ANIM_SIT,
+		.slot		= theCar->Slot+1,
+		.scale		= BROG_SCALE,
+	};
 
-	wheel = MakeNewSkeletonObject(&gNewObjectDefinition);
+	wheel = MakeNewSkeletonObject(&def);
 	if (wheel == nil)
 		DoFatalAlert("CreateCarWheelsAndHead: MakeNewSkeletonObject failed!");
 

@@ -39,7 +39,6 @@ extern	WindowPtr			gCoverWindow;
 extern	FSSpec		gDataSpec;
 extern	KeyMap gKeyMap,gNewKeys;
 extern	short		gNumRealPlayers;
-extern	NewObjectDefinitionType	gNewObjectDefinition;
 extern	Boolean		gSongPlayingFlag,gDisableAnimSounds,gIsNetworkHost,gIsNetworkClient;
 extern	PrefsType	gGamePrefs;
 extern	OGLPoint3D	gCoord;
@@ -130,17 +129,14 @@ OGLSetupInputType	viewDef;
 
 	if (doKeyText)
 	{
-		ClearNewObjectDefinition();
-		gNewObjectDefinition.coord.x 	= 0;
-		gNewObjectDefinition.coord.y 	= -.94;
-		gNewObjectDefinition.coord.z 	= 0;
-		gNewObjectDefinition.flags 		= 0;
-		gNewObjectDefinition.moveCall 	= nil;
-		gNewObjectDefinition.rot 		= 0;
-		gNewObjectDefinition.scale 	    = .3;
-		gNewObjectDefinition.slot 		= SPRITE_SLOT;
+		NewObjectDefinitionType def =
+		{
+			.coord		= {0, -.94, 0},
+			.scale		= .3,
+			.slot		= SPRITE_SLOT,
+		};
 
-		TextMesh_New(Localize(STR_PRESS_ANY_KEY), kTextMeshAlignCenter, &gNewObjectDefinition);
+		TextMesh_New(Localize(STR_PRESS_ANY_KEY), kTextMeshAlignCenter, &def);
 	}
 
 
@@ -391,38 +387,36 @@ static const char* names[] =
 
 			/* CUP MODEL */
 
-	gNewObjectDefinition.group 		= MODEL_GROUP_WINNERS;
-	gNewObjectDefinition.type 		= gTheAge;
-	gNewObjectDefinition.coord.x 	= 0;
-	gNewObjectDefinition.coord.y 	= 900;
-	gNewObjectDefinition.coord.z 	= 0;
-	gNewObjectDefinition.flags 		= 0;
-	gNewObjectDefinition.slot 		= PARTICLE_SLOT+1;			// draw cup last
-	gNewObjectDefinition.moveCall 	= MoveCup;
-	gNewObjectDefinition.rot 		= 0;
-	gNewObjectDefinition.scale 	    = 1;
-	newObj = MakeNewDisplayGroupObject(&gNewObjectDefinition);
+	{
+		NewObjectDefinitionType def =
+		{
+			.group		= MODEL_GROUP_WINNERS,
+			.type		= gTheAge,
+			.coord		= {0, 900, 0},
+			.slot		= PARTICLE_SLOT+1,			// draw cup last
+			.moveCall	= MoveCup,
+			.scale		= 1,
+		};
+		newObj = MakeNewDisplayGroupObject(&def);
 
-	newObj->SmokeParticleGroup = -1;
-	newObj->SmokeParticleMagic = 0;
-
+		newObj->SmokeParticleGroup = -1;
+		newObj->SmokeParticleMagic = 0;
+	}
 
 			/* TEXT */
 
+	{
+		NewObjectDefinitionType def =
+		{
+			.coord		= {0, .8, 0},
+			.scale		= .9,
+			.slot		= PARTICLE_SLOT-1,		// in this rare case we want to draw text before particles
+		};
+		TextMesh_New(Localize(STR_STONE_AGE + gTheAge), 0, &def);
 
-	gNewObjectDefinition.coord.x 	= 0;
-	gNewObjectDefinition.coord.y 	= .8;
-	gNewObjectDefinition.coord.z 	= 0;
-	gNewObjectDefinition.flags 		= 0;
-	gNewObjectDefinition.moveCall 	= nil;
-	gNewObjectDefinition.rot 		= 0;
-	gNewObjectDefinition.scale 	    = .9;
-	gNewObjectDefinition.slot 		= PARTICLE_SLOT-1;		// in this rare case we want to draw text before particles
-	TextMesh_New(Localize(STR_STONE_AGE + gTheAge), 0, &gNewObjectDefinition);
-
-	gNewObjectDefinition.coord.y 	= .6;
-	TextMesh_New(Localize(STR_AGE_COMPLETE), 0, &gNewObjectDefinition);
-
+		def.coord.y = .6;
+		TextMesh_New(Localize(STR_AGE_COMPLETE), 0, &def);
+	}
 }
 
 
@@ -582,31 +576,30 @@ OGLSetupInputType	viewDef;
 			/* CUP MODELS */
 			/**************/
 
-	gNewObjectDefinition.group 		= MODEL_GROUP_WINNERS;
-	gNewObjectDefinition.type 		= 0;
-	gNewObjectDefinition.coord.x 	= -200;
-	gNewObjectDefinition.coord.y 	= 900;
-	gNewObjectDefinition.coord.z 	= 0;
-	gNewObjectDefinition.flags 		= 0;
-	gNewObjectDefinition.slot 		= 100;
-	gNewObjectDefinition.moveCall 	= MoveWinCups;
-	gNewObjectDefinition.rot 		= 0;
-	gNewObjectDefinition.scale 	    = .5;
-	newObj = MakeNewDisplayGroupObject(&gNewObjectDefinition);
+	NewObjectDefinitionType cupDef =
+	{
+		.group		= MODEL_GROUP_WINNERS,
+		.type		= 0,
+		.coord		= {-200,900,0},
+		.slot 		= 100,
+		.moveCall 	= MoveWinCups,
+		.scale		= .5
+	};
+	newObj = MakeNewDisplayGroupObject(&cupDef);
 	newObj->SmokeParticleGroup = -1;
 	newObj->SmokeParticleMagic = 0;
 	newObj->SpecialF[3] = 4;
 
-	gNewObjectDefinition.type 		= 1;
-	gNewObjectDefinition.coord.x 	= 0;
-	newObj = MakeNewDisplayGroupObject(&gNewObjectDefinition);
+	cupDef.type			= 1,
+	cupDef.coord.x		= 0;
+	newObj = MakeNewDisplayGroupObject(&cupDef);
 	newObj->SmokeParticleGroup = -1;
 	newObj->SmokeParticleMagic = 0;
 	newObj->SpecialF[3] = 6;
 
-	gNewObjectDefinition.type 		= 2;
-	gNewObjectDefinition.coord.x 	= 200;
-	newObj = MakeNewDisplayGroupObject(&gNewObjectDefinition);
+	cupDef.type			= 2,
+	cupDef.coord.x		= 200;
+	newObj = MakeNewDisplayGroupObject(&cupDef);
 	newObj->SmokeParticleGroup = -1;
 	newObj->SmokeParticleMagic = 0;
 	newObj->SpecialF[3] = 8;
@@ -614,35 +607,38 @@ OGLSetupInputType	viewDef;
 
 			/* CHARACTER */
 
-	gNewObjectDefinition.type 		= SKELETON_TYPE_MALESTANDING;
-	gNewObjectDefinition.animNum	= 2;
-	gNewObjectDefinition.coord.x 	= -900;
-	gNewObjectDefinition.coord.z 	= -200;
-	gNewObjectDefinition.coord.y 	= 120;
-	gNewObjectDefinition.flags 		= 0;
-	gNewObjectDefinition.slot 		= 100;
-	gNewObjectDefinition.moveCall 	= MoveWinGuy;
-	gNewObjectDefinition.rot 		= -PI/2;
-	gNewObjectDefinition.scale 		= 1.8;
-	newObj = MakeNewSkeletonObject(&gNewObjectDefinition);
-	newObj->Skeleton->AnimSpeed 	= 1.7f;
-
+	{
+		NewObjectDefinitionType def =
+		{
+			.type		= SKELETON_TYPE_MALESTANDING,
+			.animNum	= 2,
+			.coord		= {-900, -200, 120},
+			.flags		= 0,
+			.slot		= 100,
+			.moveCall	= MoveWinGuy,
+			.rot		= -PI/2,
+			.scale		= 1.8
+		};
+		newObj = MakeNewSkeletonObject(&def);
+		newObj->Skeleton->AnimSpeed 	= 1.7f;
+	}
 
 			/* WIN SIGN */
 
-	gNewObjectDefinition.group 		= MODEL_GROUP_WINNERS;
-	gNewObjectDefinition.type 		= 3;
-	gNewObjectDefinition.coord.x 	= 0;
-	gNewObjectDefinition.coord.y 	= 0;
-	gNewObjectDefinition.coord.z 	= 0;
-	gNewObjectDefinition.flags 		= 0;
-	gNewObjectDefinition.slot 		= 100;
-	gNewObjectDefinition.moveCall 	= nil;
-	gNewObjectDefinition.rot 		= 0;
-	gNewObjectDefinition.scale 	    = .5;
-	signObj = MakeNewDisplayGroupObject(&gNewObjectDefinition);
-	newObj->ChainNode = signObj;
-
+	{
+		NewObjectDefinitionType def =
+		{
+			.group		= MODEL_GROUP_WINNERS,
+			.type		= 3,
+			.coord		= {0,0,0},
+			.flags		= 0,
+			.slot		= 100,
+			.moveCall	= nil,
+			.scale		= .5,
+		};
+		signObj = MakeNewDisplayGroupObject(&def);
+		newObj->ChainNode = signObj;
+	}
 }
 
 
@@ -814,11 +810,9 @@ typedef struct
 
 static void SetupCreditsScreen(void)
 {
-int					i;
 ObjNode				*newObj;
 FSSpec				spec;
 OGLSetupInputType	viewDef;
-float				y,scale;
 
 static CreditLine lines[] =
 {
@@ -934,27 +928,23 @@ static const float sizes[] =
 			/* BUILD CREDITS */
 			/*****************/
 
-	y = -1.1;
-	i = 0;
-	do
+	float y = -1.1;
+	for (int i = 0; lines[i].color != -1; i++)
 	{
-		gNewObjectDefinition.coord.x 	= 0;
-		gNewObjectDefinition.coord.y 	= y;
-		gNewObjectDefinition.coord.z 	= 0;
-		gNewObjectDefinition.flags 		= 0;
-		gNewObjectDefinition.moveCall 	= MoveCredit;
-		gNewObjectDefinition.rot 		= 0;
-		gNewObjectDefinition.scale 	    = scale = sizes[lines[i].size];
-		gNewObjectDefinition.slot 		= PARTICLE_SLOT-1;		// in this rare case we want to draw text before particles
-		newObj = TextMesh_New(lines[i].text, kTextMeshAlignCenter, &gNewObjectDefinition);
+		NewObjectDefinitionType def =
+		{
+			.coord		= {0,y,0},
+			.moveCall	= MoveCredit,
+			.scale		= sizes[lines[i].size],
+			.slot 		= PARTICLE_SLOT-1,		// in this rare case we want to draw text before particles
+		};
+		newObj = TextMesh_New(lines[i].text, kTextMeshAlignCenter, &def);
 
 
 		newObj->ColorFilter = colors[lines[i].color];
 
-		y -= scale * .27f;
-
-		i++;
-	}while(lines[i].color != -1);
+		y -= def.scale * .27f;
+	}
 }
 
 

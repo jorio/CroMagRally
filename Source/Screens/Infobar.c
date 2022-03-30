@@ -39,7 +39,6 @@ extern	Boolean					gIsNetworkClient,gNetGameInProgress,gNoCarControls,gIsSelfRun
 extern	FSSpec					gDataSpec;
 extern	long					gTerrainUnitWidth,gTerrainUnitDepth;
 extern	OGLColorRGB				gGlobalColorFilter;
-extern	NewObjectDefinitionType	gNewObjectDefinition;
 extern	OGLSetupOutputType		*gGameViewInfoPtr;
 extern	Byte					gActiveSplitScreenMode;
 extern	short					gCapturedFlagCount[],gWhoIsIt,gNumTorches;
@@ -266,16 +265,14 @@ static const char*	maps[] =
 
 	if (gIsSelfRunningDemo)
 	{
-		gNewObjectDefinition.coord.x 	= 0;
-		gNewObjectDefinition.coord.y 	= -.85;
-		gNewObjectDefinition.coord.z 	= 0;
-		gNewObjectDefinition.flags 		= 0;
-		gNewObjectDefinition.moveCall 	= nil;
-		gNewObjectDefinition.rot 		= 0;
-		gNewObjectDefinition.scale 	    = .3;
-		gNewObjectDefinition.slot 		= SPRITE_SLOT;
+		NewObjectDefinitionType def =
+		{
+			.coord		= {0, -.85, 0},
+			.scale		= .3,
+			.slot		= SPRITE_SLOT,
+		};
 
-		TextMesh_New(Localize(STR_PRESS_ANY_KEY), 0, &gNewObjectDefinition);
+		TextMesh_New(Localize(STR_PRESS_ANY_KEY), 0, &def);
 	}
 }
 
@@ -1150,17 +1147,16 @@ short	lapNum;
 	{
 		PlayAnnouncerSound(EFFECT_LAP2 + lapNum - 1,false, 0);
 
-		gNewObjectDefinition.coord.x 	= 0;
-		gNewObjectDefinition.coord.y 	= 0;
-		gNewObjectDefinition.coord.z 	= 0;
-		gNewObjectDefinition.flags 		= 0;
-		gNewObjectDefinition.moveCall 	= MoveLapMessage;
-		gNewObjectDefinition.rot 		= 0;
-		gNewObjectDefinition.scale 	    = .7;
-		gNewObjectDefinition.slot 		= SPRITE_SLOT;
+		NewObjectDefinitionType def =
+		{
+			.coord		= {0,0,0},
+			.moveCall	= MoveLapMessage,
+			.scale		= .7f,
+			.slot		= SPRITE_SLOT,
+		};
 
 		const char* s = Localize(lapNum == 1 ? STR_LAP_2 : STR_LAP_3);
-		TextMesh_New(s, kTextMeshAlignCenter, &gNewObjectDefinition);
+		TextMesh_New(s, kTextMeshAlignCenter, &def);
 	}
 }
 
@@ -1189,17 +1185,17 @@ short	place;
 
 			/* MAKE SPRITE OBJECT */
 
-	gNewObjectDefinition.group 		= SPRITE_GROUP_INFOBAR;
-	gNewObjectDefinition.type 		= INFOBAR_SObjType_Place1+place;
-	gNewObjectDefinition.coord.x 	= 0;
-	gNewObjectDefinition.coord.y 	= 0;
-	gNewObjectDefinition.coord.z 	= 0;
-	gNewObjectDefinition.flags 		= STATUS_BIT_ONLYSHOWTHISPLAYER;
-	gNewObjectDefinition.slot 		= SPRITE_SLOT;
-	gNewObjectDefinition.moveCall 	= MoveFinalPlace;
-	gNewObjectDefinition.rot 		= 0;
-	gNewObjectDefinition.scale 	    = 1.5;
-	gFinalPlaceObj = MakeSpriteObject(&gNewObjectDefinition, gGameViewInfoPtr);
+	NewObjectDefinitionType def =
+	{
+		.group 		= SPRITE_GROUP_INFOBAR,
+		.type		= INFOBAR_SObjType_Place1+place,
+		.coord		= {0,0,0},
+		.flags		= STATUS_BIT_ONLYSHOWTHISPLAYER,
+		.slot		= SPRITE_SLOT,
+		.moveCall	= MoveFinalPlace,
+		.scale		= 1.5,
+	};
+	gFinalPlaceObj = MakeSpriteObject(&def, gGameViewInfoPtr);
 
 	gFinalPlaceObj->PlayerNum = playerNum;						// only show for this player
 
@@ -1283,23 +1279,22 @@ static const float scale[3] =
 
 			/* MAKE SPRITE OBJECT */
 
-	gNewObjectDefinition.coord.x 	= 0;
-	gNewObjectDefinition.coord.y 	= 0;
-	gNewObjectDefinition.coord.z 	= 0;
-	gNewObjectDefinition.flags 		= STATUS_BIT_ONLYSHOWTHISPLAYER;
-	gNewObjectDefinition.slot 		= SPRITE_SLOT;
-	gNewObjectDefinition.moveCall 	= nil;
-	gNewObjectDefinition.rot 		= 0;
-	gNewObjectDefinition.scale 	    = scale[gActiveSplitScreenMode];
+	NewObjectDefinitionType def =
+	{
+		.coord		= { 0,0,0 },
+		.flags		= STATUS_BIT_ONLYSHOWTHISPLAYER,
+		.slot		= SPRITE_SLOT,
+		.scale		= scale[gActiveSplitScreenMode],
+	};
 
 	switch(mode)
 	{
 		case	0:
-				gWinLoseString[playerNum] = TextMesh_New(Localize(STR_ELIMINATED), 0, &gNewObjectDefinition);
+				gWinLoseString[playerNum] = TextMesh_New(Localize(STR_ELIMINATED), 0, &def);
 				break;
 
 		case	1:
-				gWinLoseString[playerNum] = TextMesh_New(Localize(STR_YOU_WIN), 0, &gNewObjectDefinition);
+				gWinLoseString[playerNum] = TextMesh_New(Localize(STR_YOU_WIN), 0, &def);
 				break;
 
 		case	2:
@@ -1325,11 +1320,11 @@ static const float scale[3] =
 
 					snprintf(s, sizeof(s), "%s %s", safePlayerName, Localize(STR_3RDPERSON_WINS));	// insert "WINS"
 
-					gWinLoseString[playerNum] = TextMesh_New(s, 0, &gNewObjectDefinition);
+					gWinLoseString[playerNum] = TextMesh_New(s, 0, &def);
 				}
 				else
 				{
-					gWinLoseString[playerNum] = TextMesh_New(Localize(STR_YOU_LOSE), 0, &gNewObjectDefinition);
+					gWinLoseString[playerNum] = TextMesh_New(Localize(STR_YOU_LOSE), 0, &def);
 				}
 				break;
 
@@ -1355,16 +1350,17 @@ static const float scale[3] =
 	.7
 };
 
-	gNewObjectDefinition.coord.x 	= 0;
-	gNewObjectDefinition.coord.y 	= 0;
-	gNewObjectDefinition.coord.z 	= 0;
-	gNewObjectDefinition.flags 		= 0;
-	gNewObjectDefinition.slot 		= SPRITE_SLOT;
-	gNewObjectDefinition.moveCall 	= MoveTrackName;
-	gNewObjectDefinition.rot 		= 0;
-	gNewObjectDefinition.scale 	    = scale[gActiveSplitScreenMode];
+	NewObjectDefinitionType def =
+	{
+		.coord		= {0,0,0},
+		.coord.y 	= 0,
+		.coord.z 	= 0,
+		.slot 		= SPRITE_SLOT,
+		.moveCall 	= MoveTrackName,
+		.scale 	    = scale[gActiveSplitScreenMode],
+	};
 
-	newObj = TextMesh_New(Localize(STR_LEVEL_1 + gTrackNum), kTextMeshAlignCenter, &gNewObjectDefinition);
+	newObj = TextMesh_New(Localize(STR_LEVEL_1 + gTrackNum), kTextMeshAlignCenter, &def);
 
 	newObj->ColorFilter.a = 3.5;
 }

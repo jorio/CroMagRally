@@ -262,17 +262,18 @@ float				scale,rot;
 			/* MAKE OBJECT */
 			/***************/
 
-	gNewObjectDefinition.group		= MODEL_GROUP_LEVELSPECIFIC;
-	gNewObjectDefinition.type 		= JUNGLE_ObjType_Waterfall;
-	gNewObjectDefinition.coord.x 	= x;
-	gNewObjectDefinition.coord.y 	= GetTerrainY(x,z);
-	gNewObjectDefinition.coord.z 	= z;
-	gNewObjectDefinition.flags 		= gAutoFadeStatusBits | STATUS_BIT_NOLIGHTING | STATUS_BIT_KEEPBACKFACES;
-	gNewObjectDefinition.slot 		= SLOT_OF_DUMB+20;
-	gNewObjectDefinition.moveCall 	= MoveWaterfall;
-	gNewObjectDefinition.rot 		= rot;
-	gNewObjectDefinition.scale 		= scale;
-	newObj = MakeNewDisplayGroupObject(&gNewObjectDefinition);
+	NewObjectDefinitionType def =
+	{
+		.group		= MODEL_GROUP_LEVELSPECIFIC,
+		.type 		= JUNGLE_ObjType_Waterfall,
+		.coord		= {x, GetTerrainY(x, z), z},
+		.flags 		= gAutoFadeStatusBits | STATUS_BIT_NOLIGHTING | STATUS_BIT_KEEPBACKFACES,
+		.slot 		= SLOT_OF_DUMB+20,
+		.moveCall 	= MoveWaterfall,
+		.rot 		= rot,
+		.scale 		= scale,
+	};
+	newObj = MakeNewDisplayGroupObject(&def);
 	if (newObj == nil)
 		return(false);
 

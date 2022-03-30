@@ -30,7 +30,6 @@
 
 extern	ObjNode					*gCycloramaObj;
 extern	OGLMatrix4x4			gViewToFrustumMatrix,gLocalToViewMatrix;
-extern	NewObjectDefinitionType	gNewObjectDefinition;
 extern	TerrainItemEntryType 	**gMasterItemList;
 extern	long					gNumSplines,gNumFences;
 extern	SplineDefType			**gSplineList;

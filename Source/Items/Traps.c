@@ -34,7 +34,6 @@ extern	float				gFramesPerSecondFrac,gFramesPerSecond;
 extern	OGLPoint3D			gCoord;
 extern	PlayerInfoType	gPlayerInfo[];
 extern	OGLVector3D			gDelta;
-extern	NewObjectDefinitionType	gNewObjectDefinition;
 extern	OGLVector3D			gRecentTerrainNormal;
 extern	SplineDefType		**gSplineList;
 extern	uint32_t		gAutoFadeStatusBits;
@@ -131,17 +130,19 @@ int		i;
 
 			/* CREATE BASE */
 
-	gNewObjectDefinition.group 		= MODEL_GROUP_LEVELSPECIFIC;
-	gNewObjectDefinition.type 		= DESERT_ObjType_DustDevilTop;
-	gNewObjectDefinition.coord.x 	= x;
-	gNewObjectDefinition.coord.z 	= z;
-	gNewObjectDefinition.coord.y 	= GetTerrainY(x,z);
-	gNewObjectDefinition.flags 		= gAutoFadeStatusBits|STATUS_BIT_NOLIGHTING;
-	gNewObjectDefinition.slot 		= FENCE_SLOT+2;
-	gNewObjectDefinition.moveCall 	= MoveDustDevil;
-	gNewObjectDefinition.rot 		= 0;
-	gNewObjectDefinition.scale 	    = 1.0;
-	baseObj = MakeNewDisplayGroupObject(&gNewObjectDefinition);
+	NewObjectDefinitionType def =
+	{
+		.group		= MODEL_GROUP_LEVELSPECIFIC,
+		.type		= DESERT_ObjType_DustDevilTop,
+		.coord.x	= x,
+		.coord.z	= z,
+		.coord.y	= GetTerrainY(x,z),
+		.flags		= gAutoFadeStatusBits|STATUS_BIT_NOLIGHTING,
+		.slot		= FENCE_SLOT+2,
+		.moveCall	= MoveDustDevil,
+		.scale		= 1.0
+	};
+	baseObj = MakeNewDisplayGroupObject(&def);
 	if (baseObj == nil)
 		return(false);
 
@@ -157,9 +158,9 @@ int		i;
 
 	for (i = 1; i < 5; i++)
 	{
-		gNewObjectDefinition.type 		= DESERT_ObjType_DustDevilTop + i;
-		gNewObjectDefinition.moveCall 	= nil;
-		newObj = MakeNewDisplayGroupObject(&gNewObjectDefinition);
+		def.type 		= DESERT_ObjType_DustDevilTop + i;
+		def.moveCall 	= nil;
+		newObj = MakeNewDisplayGroupObject(&def);
 		if (newObj == nil)
 			return(false);
 
@@ -350,17 +351,20 @@ float			x,z,placement;
 
 		/* MAKE OBJECT */
 
-	gNewObjectDefinition.type 		= SKELETON_TYPE_YETI;
-	gNewObjectDefinition.animNum	= 0;
-	gNewObjectDefinition.coord.x 	= x;
-	gNewObjectDefinition.coord.y 	= GetTerrainY(x,z) + YETI_YOFF;
-	gNewObjectDefinition.coord.z 	= z;
-	gNewObjectDefinition.flags 		= STATUS_BIT_ONSPLINE|gAutoFadeStatusBits;
-	gNewObjectDefinition.slot 		= 144;
-	gNewObjectDefinition.rot 		= 0;
-	gNewObjectDefinition.scale 		= YETI_SCALE;
+	NewObjectDefinitionType def =
+	{
+		.type 		= SKELETON_TYPE_YETI,
+		.animNum	= 0,
+		.coord.x 	= x,
+		.coord.y 	= GetTerrainY(x,z) + YETI_YOFF,
+		.coord.z 	= z,
+		.flags 		= STATUS_BIT_ONSPLINE|gAutoFadeStatusBits,
+		.slot 		= 144,
+		.rot 		= 0,
+		.scale 		= YETI_SCALE,
+	};
 
-	newObj = MakeNewSkeletonObject(&gNewObjectDefinition);
+	newObj = MakeNewSkeletonObject(&def);
 	if (newObj == nil)
 		return(false);
 
@@ -442,17 +446,20 @@ float			x,z,placement;
 
 		/* MAKE OBJECT */
 
-	gNewObjectDefinition.type 		= SKELETON_TYPE_BEETLE;
-	gNewObjectDefinition.animNum	= 0;
-	gNewObjectDefinition.coord.x 	= x;
-	gNewObjectDefinition.coord.y 	= GetTerrainY(x,z) + BEETLE_YOFF;
-	gNewObjectDefinition.coord.z 	= z;
-	gNewObjectDefinition.flags 		= STATUS_BIT_ONSPLINE|gAutoFadeStatusBits;
-	gNewObjectDefinition.slot 		= 144;
-	gNewObjectDefinition.rot 		= 0;
-	gNewObjectDefinition.scale 		= BEETLE_SCALE;
+	NewObjectDefinitionType def =
+	{
+		.type 		= SKELETON_TYPE_BEETLE,
+		.animNum	= 0,
+		.coord.x 	= x,
+		.coord.y 	= GetTerrainY(x,z) + BEETLE_YOFF,
+		.coord.z 	= z,
+		.flags 		= STATUS_BIT_ONSPLINE|gAutoFadeStatusBits,
+		.slot 		= 144,
+		.rot 		= 0,
+		.scale 		= BEETLE_SCALE,
+	};
 
-	newObj = MakeNewSkeletonObject(&gNewObjectDefinition);
+	newObj = MakeNewSkeletonObject(&def);
 	if (newObj == nil)
 		return(false);
 
@@ -535,17 +542,20 @@ float			x,z,placement;
 
 		/* MAKE OBJECT */
 
-	gNewObjectDefinition.type 		= SKELETON_TYPE_CAMEL;
-	gNewObjectDefinition.animNum	= 0;
-	gNewObjectDefinition.coord.x 	= x;
-	gNewObjectDefinition.coord.y 	= GetTerrainY(x,z);
-	gNewObjectDefinition.coord.z 	= z;
-	gNewObjectDefinition.flags 		= STATUS_BIT_ONSPLINE|gAutoFadeStatusBits;
-	gNewObjectDefinition.slot 		= 144;
-	gNewObjectDefinition.rot 		= 0;
-	gNewObjectDefinition.scale 		= CAMEL_SCALE;
+	NewObjectDefinitionType def =
+	{
+		.type 		= SKELETON_TYPE_CAMEL,
+		.animNum	= 0,
+		.coord.x 	= x,
+		.coord.y 	= GetTerrainY(x,z),
+		.coord.z 	= z,
+		.flags 		= STATUS_BIT_ONSPLINE|gAutoFadeStatusBits,
+		.slot 		= 144,
+		.rot 		= 0,
+		.scale 		= CAMEL_SCALE,
+	};
 
-	newObj = MakeNewSkeletonObject(&gNewObjectDefinition);
+	newObj = MakeNewSkeletonObject(&def);
 	if (newObj == nil)
 		return(false);
 
@@ -623,18 +633,21 @@ ObjNode	*newObj;
 
 		/* MAKE OBJECT */
 
-	gNewObjectDefinition.type 		= SKELETON_TYPE_CATAPULT;
-	gNewObjectDefinition.animNum	= 0;
-	gNewObjectDefinition.coord.x 	= x;
-	gNewObjectDefinition.coord.y 	= GetMinTerrainY(x,z, MODEL_GROUP_SKELETONBASE+SKELETON_TYPE_CATAPULT, 0, 1.0);
-	gNewObjectDefinition.coord.z 	= z;
-	gNewObjectDefinition.flags 		= gAutoFadeStatusBits;
-	gNewObjectDefinition.slot 		= 208;
-	gNewObjectDefinition.rot 		= PI2 * ((float)itemPtr->parm[0] * (1.0f/8.0f));
-	gNewObjectDefinition.scale 		= 4.5;
-	gNewObjectDefinition.moveCall 	= MoveCatapult;
+	NewObjectDefinitionType def =
+	{
+		.type 		= SKELETON_TYPE_CATAPULT,
+		.animNum	= 0,
+		.coord.x 	= x,
+		.coord.y 	= GetMinTerrainY(x,z, MODEL_GROUP_SKELETONBASE+SKELETON_TYPE_CATAPULT, 0, 1.0),
+		.coord.z 	= z,
+		.flags 		= gAutoFadeStatusBits,
+		.slot 		= 208,
+		.rot 		= PI2 * ((float)itemPtr->parm[0] * (1.0f/8.0f)),
+		.scale 		= 4.5,
+		.moveCall 	= MoveCatapult,
+	};
 
-	newObj = MakeNewSkeletonObject(&gNewObjectDefinition);
+	newObj = MakeNewSkeletonObject(&def);
 	if (newObj == nil)
 		return(false);
 
@@ -708,24 +721,28 @@ float		dist;
 static void CatapultThrowRock(ObjNode *theNode)
 {
 static const OGLPoint3D		tipOff = {0,0,0};
+static const OGLPoint3D		tipCoord = { 0,0,0 };
 static const OGLVector3D	throwVector = {0,.3,-1};
 ObjNode		*newObj;
 OGLMatrix4x4	m;
-int				i;
 float			speed;
 
-	FindCoordOnJointAtFlagEvent(theNode, 7, &tipOff, &gNewObjectDefinition.coord);
+	FindCoordOnJointAtFlagEvent(theNode, 7, &tipOff, &tipCoord);
 
-	for (i = 0; i < 3; i++)				// throw 3 rocks
+	for (int i = 0; i < 3; i++)				// throw 3 rocks
 	{
-		gNewObjectDefinition.group 		= MODEL_GROUP_GLOBAL;
-		gNewObjectDefinition.type 		= GLOBAL_ObjType_GreyRock;
-		gNewObjectDefinition.flags 		= STATUS_BIT_NOLIGHTING;
-		gNewObjectDefinition.slot 		= SLOT_OF_DUMB+2;
-		gNewObjectDefinition.moveCall 	= MoveCatapultRock;
-		gNewObjectDefinition.rot 		= 0;
-		gNewObjectDefinition.scale 	    = .13;
-		newObj = MakeNewDisplayGroupObject(&gNewObjectDefinition);
+		NewObjectDefinitionType def =
+		{
+			.group		= MODEL_GROUP_GLOBAL,
+			.type		= GLOBAL_ObjType_GreyRock,
+			.coord		= tipCoord,
+			.flags		= STATUS_BIT_NOLIGHTING,
+			.slot		= SLOT_OF_DUMB+2,
+			.moveCall	= MoveCatapultRock,
+			.rot		= 0,
+			.scale		= .13,
+		};
+		newObj = MakeNewDisplayGroupObject(&def);
 		if (newObj == nil)
 			return;
 
@@ -796,18 +813,19 @@ Boolean AddGoddess(TerrainItemEntryType *itemPtr, long  x, long z)
 {
 ObjNode	*newObj;
 
-
-	gNewObjectDefinition.group 		= MODEL_GROUP_LEVELSPECIFIC;
-	gNewObjectDefinition.type 		= CRETE_ObjType_Goddess;
-	gNewObjectDefinition.coord.x 	= x;
-	gNewObjectDefinition.coord.z 	= z;
-	gNewObjectDefinition.coord.y 	= GetMinTerrainY(x,z, gNewObjectDefinition.group, gNewObjectDefinition.type, 1.0);
-	gNewObjectDefinition.flags 		= gAutoFadeStatusBits|STATUS_BIT_CLIPALPHA;
-	gNewObjectDefinition.slot 		= 300;
-	gNewObjectDefinition.moveCall 	= MoveGoddess;
-	gNewObjectDefinition.rot 		= 0;
-	gNewObjectDefinition.scale 		= 1.0;
-	newObj = MakeNewDisplayGroupObject(&gNewObjectDefinition);
+	NewObjectDefinitionType def =
+	{
+		.group		= MODEL_GROUP_LEVELSPECIFIC,
+		.type		= CRETE_ObjType_Goddess,
+		.coord		= {x,0,z},  // y filled in below
+		.flags		= gAutoFadeStatusBits|STATUS_BIT_CLIPALPHA,
+		.slot		= 300,
+		.moveCall	= MoveGoddess,
+		.rot		= 0,
+		.scale		= 1.0,
+	};
+	def.coord.y = GetMinTerrainY(x, z, def.group, def.type, 1.0),
+	newObj = MakeNewDisplayGroupObject(&def);
 	if (newObj == nil)
 		return(false);
 
@@ -1067,18 +1085,19 @@ Boolean AddCannon(TerrainItemEntryType *itemPtr, long  x, long z)
 {
 ObjNode	*newObj;
 
-
-	gNewObjectDefinition.group 		= MODEL_GROUP_LEVELSPECIFIC;
-	gNewObjectDefinition.type 		= EUROPE_ObjType_Cannon;
-	gNewObjectDefinition.coord.x 	= x;
-	gNewObjectDefinition.coord.z 	= z;
-	gNewObjectDefinition.coord.y 	= GetMinTerrainY(x,z, gNewObjectDefinition.group, gNewObjectDefinition.type, 1.0);
-	gNewObjectDefinition.flags 		= gAutoFadeStatusBits;
-	gNewObjectDefinition.slot 		= 150;
-	gNewObjectDefinition.moveCall 	= MoveCannon;
-	gNewObjectDefinition.rot 		= PI2 * ((float)itemPtr->parm[0] * (1.0f/8.0f));
-	gNewObjectDefinition.scale 		= 1.0;
-	newObj = MakeNewDisplayGroupObject(&gNewObjectDefinition);
+	NewObjectDefinitionType def =
+	{
+		.group		= MODEL_GROUP_LEVELSPECIFIC,
+		.type		= EUROPE_ObjType_Cannon,
+		.coord		= {x,0,z},  // y filled in below
+		.flags 		= gAutoFadeStatusBits,
+		.slot 		= 150,
+		.moveCall 	= MoveCannon,
+		.rot 		= PI2 * ((float)itemPtr->parm[0] * (1.0f/8.0f)),
+		.scale 		= 1.0,
+	};
+	def.coord.y = GetMinTerrainY(x, z, def.group, def.type, 1.0);
+	newObj = MakeNewDisplayGroupObject(&def);
 	if (newObj == nil)
 		return(false);
 
@@ -1160,17 +1179,19 @@ NewParticleDefType		newParticleDef;
 			/* MAKE CANNON BALL */
 			/********************/
 
-	gNewObjectDefinition.group 		= MODEL_GROUP_LEVELSPECIFIC;
-	gNewObjectDefinition.type 		= EUROPE_ObjType_CannonBall;
-	gNewObjectDefinition.coord.x 	= nozPt.x;
-	gNewObjectDefinition.coord.z 	= nozPt.y;
-	gNewObjectDefinition.coord.y 	= y = theNode->Coord.y + 500.0f;
-	gNewObjectDefinition.flags 		= 0;
-	gNewObjectDefinition.slot 		= SLOT_OF_DUMB+5;
-	gNewObjectDefinition.moveCall 	= MoveCannonBall;
-	gNewObjectDefinition.rot 		= 0;
-	gNewObjectDefinition.scale 	    = 1.0;
-	newObj = MakeNewDisplayGroupObject(&gNewObjectDefinition);
+	NewObjectDefinitionType def =
+	{
+		.group		= MODEL_GROUP_LEVELSPECIFIC,
+		.type		= EUROPE_ObjType_CannonBall,
+		.coord.x	= nozPt.x,
+		.coord.z	= nozPt.y,
+		.coord.y	= y = theNode->Coord.y + 500.0f,
+		.flags		= 0,
+		.slot		= SLOT_OF_DUMB+5,
+		.moveCall	= MoveCannonBall,
+		.scale		= 1.0
+	};
+	newObj = MakeNewDisplayGroupObject(&def);
 	if (newObj == nil)
 		return;
 
@@ -1305,17 +1326,19 @@ float			x,z,placement;
 
 		/* MAKE OBJECT */
 
-	gNewObjectDefinition.type 		= SKELETON_TYPE_SHARK;
-	gNewObjectDefinition.animNum	= 0;
-	gNewObjectDefinition.coord.x 	= x;
-	gNewObjectDefinition.coord.y 	= GetTerrainY(x,z) + SHARK_YOFF;
-	gNewObjectDefinition.coord.z 	= z;
-	gNewObjectDefinition.flags 		= STATUS_BIT_ONSPLINE|gAutoFadeStatusBits;
-	gNewObjectDefinition.slot 		= 144;
-	gNewObjectDefinition.rot 		= 0;
-	gNewObjectDefinition.scale 		= SHARK_SCALE;
-
-	newObj = MakeNewSkeletonObject(&gNewObjectDefinition);
+	NewObjectDefinitionType def =
+	{
+		.type 		= SKELETON_TYPE_SHARK,
+		.animNum	= 0,
+		.coord.x 	= x,
+		.coord.y 	= GetTerrainY(x,z) + SHARK_YOFF,
+		.coord.z 	= z,
+		.flags 		= STATUS_BIT_ONSPLINE|gAutoFadeStatusBits,
+		.slot 		= 144,
+		.rot 		= 0,
+		.scale 		= SHARK_SCALE,
+	};
+	newObj = MakeNewSkeletonObject(&def);
 	if (newObj == nil)
 		return(false);
 
@@ -1389,16 +1412,18 @@ Boolean AddCapsule(TerrainItemEntryType *itemPtr, long  x, long z)
 ObjNode	*newObj;
 
 
-	gNewObjectDefinition.group 		= MODEL_GROUP_LEVELSPECIFIC;
-	gNewObjectDefinition.type 		= ATLANTIS_ObjType_Capsule;
-	gNewObjectDefinition.coord.x 	= x;
-	gNewObjectDefinition.coord.z 	= z;
-	gNewObjectDefinition.coord.y 	= GetTerrainY(x,z) + 2000.0f;
-	gNewObjectDefinition.flags 		= gAutoFadeStatusBits | STATUS_BIT_NOLIGHTING;
-	gNewObjectDefinition.slot 		= 170;
-	gNewObjectDefinition.moveCall 	= MoveCapsule;
-	gNewObjectDefinition.rot 		= 0;
-	gNewObjectDefinition.scale 		= 1.0;
+	NewObjectDefinitionType def =
+{
+	.group		= MODEL_GROUP_LEVELSPECIFIC,
+		.type 		= ATLANTIS_ObjType_Capsule,
+		.coord.x 	= x,
+		.coord.z 	= z,
+		.coord.y 	= GetTerrainY(x,z) + 2000.0f,
+		.flags 		= gAutoFadeStatusBits | STATUS_BIT_NOLIGHTING,
+		.slot 		= 170,
+		.moveCall 	= MoveCapsule,
+		.rot 		= 0,
+		.scale 		= 1.0;
 	newObj = MakeNewDisplayGroupObject(&gNewObjectDefinition);
 	if (newObj == nil)
 		return(false);
@@ -1650,15 +1675,15 @@ float			x,z,placement;
 
 		/* MAKE OBJECT */
 
-	gNewObjectDefinition.type 		= SKELETON_TYPE_PTERADACTYL;
-	gNewObjectDefinition.animNum	= 0;
-	gNewObjectDefinition.coord.x 	= x;
-	gNewObjectDefinition.coord.y 	= GetTerrainY(x,z) + PTERADACTYL_YOFF;
-	gNewObjectDefinition.coord.z 	= z;
-	gNewObjectDefinition.flags 		= STATUS_BIT_ONSPLINE|gAutoFadeStatusBits;
-	gNewObjectDefinition.slot 		= SLOT_OF_DUMB;
-	gNewObjectDefinition.rot 		= 0;
-	gNewObjectDefinition.scale 		= PTERADACTYL_SCALE;
+	gNewObjectDefinition.type 		= SKELETON_TYPE_PTERADACTYL,
+		.animNum	= 0,
+		.coord.x 	= x,
+		.coord.y 	= GetTerrainY(x,z) + PTERADACTYL_YOFF,
+		.coord.z 	= z,
+		.flags 		= STATUS_BIT_ONSPLINE|gAutoFadeStatusBits,
+		.slot 		= SLOT_OF_DUMB,
+		.rot 		= 0,
+		.scale 		= PTERADACTYL_SCALE;
 
 	newObj = MakeNewSkeletonObject(&gNewObjectDefinition);
 	if (newObj == nil)
@@ -1755,16 +1780,18 @@ ObjNode	*newObj;
 			/* MAKE CANNON BALL */
 			/********************/
 
-	gNewObjectDefinition.group 		= MODEL_GROUP_GLOBAL;
-	gNewObjectDefinition.type 		= GLOBAL_ObjType_GreyRock;
-	gNewObjectDefinition.coord.x 	= theNode->Coord.x;
-	gNewObjectDefinition.coord.y 	= theNode->Coord.y - 100.0f;
-	gNewObjectDefinition.coord.z 	= theNode->Coord.z;
-	gNewObjectDefinition.flags 		= 0;
-	gNewObjectDefinition.slot 		= SLOT_OF_DUMB+10;
-	gNewObjectDefinition.moveCall 	= MovePteradactylBomb;
-	gNewObjectDefinition.rot 		= 0;
-	gNewObjectDefinition.scale 	    = .3;
+	NewObjectDefinitionType def =
+{
+	.group		= MODEL_GROUP_GLOBAL,
+		.type 		= GLOBAL_ObjType_GreyRock,
+		.coord.x 	= theNode->Coord.x,
+		.coord.y 	= theNode->Coord.y - 100.0f,
+		.coord.z 	= theNode->Coord.z,
+		.flags 		= 0,
+		.slot 		= SLOT_OF_DUMB+10,
+		.moveCall 	= MovePteradactylBomb,
+		.rot 		= 0,
+		.scale 	    = .3;
 	newObj = MakeNewDisplayGroupObject(&gNewObjectDefinition);
 	if (newObj == nil)
 		return;
@@ -1825,16 +1852,16 @@ Boolean AddDragon(TerrainItemEntryType *itemPtr, long  x, long z)
 ObjNode	*newObj;
 
 
-	gNewObjectDefinition.type 		= SKELETON_TYPE_DRAGON;
-	gNewObjectDefinition.animNum	= 0;
-	gNewObjectDefinition.coord.x 	= x;
-	gNewObjectDefinition.coord.z 	= z;
-	gNewObjectDefinition.coord.y 	= GetTerrainY(x,z) + 5000.0f;
-	gNewObjectDefinition.flags 		= gAutoFadeStatusBits | STATUS_BIT_CLIPALPHA | STATUS_BIT_NOTEXTUREWRAP;
-	gNewObjectDefinition.slot 		= SLOT_OF_DUMB+2;
-	gNewObjectDefinition.moveCall 	= MoveDragon;
-	gNewObjectDefinition.rot 		= PI2 * ((float)itemPtr->parm[0] * (1.0f/8.0f));
-	gNewObjectDefinition.scale 		= 20.0;
+	gNewObjectDefinition.type 		= SKELETON_TYPE_DRAGON,
+		.animNum	= 0,
+		.coord.x 	= x,
+		.coord.z 	= z,
+		.coord.y 	= GetTerrainY(x,z) + 5000.0f,
+		.flags 		= gAutoFadeStatusBits | STATUS_BIT_CLIPALPHA | STATUS_BIT_NOTEXTUREWRAP,
+		.slot 		= SLOT_OF_DUMB+2,
+		.moveCall 	= MoveDragon,
+		.rot 		= PI2 * ((float)itemPtr->parm[0] * (1.0f/8.0f)),
+		.scale 		= 20.0;
 	newObj = MakeNewSkeletonObject(&gNewObjectDefinition);
 	if (newObj == nil)
 		return(false);
@@ -1959,15 +1986,15 @@ float			x,z,placement;
 
 		/* MAKE OBJECT */
 
-	gNewObjectDefinition.type 		= SKELETON_TYPE_MUMMY;
-	gNewObjectDefinition.animNum	= 0;
-	gNewObjectDefinition.coord.x 	= x;
-	gNewObjectDefinition.coord.y 	= GetTerrainY(x,z);
-	gNewObjectDefinition.coord.z 	= z;
-	gNewObjectDefinition.flags 		= STATUS_BIT_ONSPLINE|gAutoFadeStatusBits;
-	gNewObjectDefinition.slot 		= 205;
-	gNewObjectDefinition.rot 		= 0;
-	gNewObjectDefinition.scale 		= MUMMY_SCALE;
+	gNewObjectDefinition.type 		= SKELETON_TYPE_MUMMY,
+		.animNum	= 0,
+		.coord.x 	= x,
+		.coord.y 	= GetTerrainY(x,z),
+		.coord.z 	= z,
+		.flags 		= STATUS_BIT_ONSPLINE|gAutoFadeStatusBits,
+		.slot 		= 205,
+		.rot 		= 0,
+		.scale 		= MUMMY_SCALE;
 
 	newObj = MakeNewSkeletonObject(&gNewObjectDefinition);
 	if (newObj == nil)
@@ -2041,16 +2068,18 @@ Boolean AddTotemPole(TerrainItemEntryType *itemPtr, long  x, long z)
 ObjNode	*newObj;
 
 
-	gNewObjectDefinition.group 		= MODEL_GROUP_LEVELSPECIFIC;
-	gNewObjectDefinition.type 		= JUNGLE_ObjType_TotemPole;
-	gNewObjectDefinition.coord.x 	= x;
-	gNewObjectDefinition.coord.z 	= z;
-	gNewObjectDefinition.coord.y 	= GetMinTerrainY(x,z, gNewObjectDefinition.group, gNewObjectDefinition.type, 1.0);
-	gNewObjectDefinition.flags 		= gAutoFadeStatusBits;
-	gNewObjectDefinition.slot 		= 460;
-	gNewObjectDefinition.moveCall 	= MoveTotemPole;
-	gNewObjectDefinition.rot 		= 0;
-	gNewObjectDefinition.scale 		= 1.0;
+	NewObjectDefinitionType def =
+{
+	.group		= MODEL_GROUP_LEVELSPECIFIC,
+		.type 		= JUNGLE_ObjType_TotemPole,
+		.coord.x 	= x,
+		.coord.z 	= z,
+		.coord.y 	= GetMinTerrainY(x,z, gNewObjectDefinition.group, gNewObjectDefinition.type, 1.0),
+		.flags 		= gAutoFadeStatusBits,
+		.slot 		= 460,
+		.moveCall 	= MoveTotemPole,
+		.rot 		= 0,
+		.scale 		= 1.0;
 	newObj = MakeNewDisplayGroupObject(&gNewObjectDefinition);
 	if (newObj == nil)
 		return(false);
@@ -2134,16 +2163,18 @@ float		targetX,targetY,targetZ;
 			/* MAKE DART */
 			/*************/
 
-	gNewObjectDefinition.group 		= MODEL_GROUP_LEVELSPECIFIC;
-	gNewObjectDefinition.type 		= JUNGLE_ObjType_Dart;
-	gNewObjectDefinition.coord.x 	= theNode->Coord.x;
-	gNewObjectDefinition.coord.y 	= theNode->Coord.y + TOTEM_SHOOT_Y;
-	gNewObjectDefinition.coord.z 	= theNode->Coord.z;
-	gNewObjectDefinition.flags 		= 0;
-	gNewObjectDefinition.slot 		= SLOT_OF_DUMB+5;
-	gNewObjectDefinition.moveCall 	= MoveDart;
-	gNewObjectDefinition.rot 		=  CalcYAngleFromPointToPoint(0, 0, 0, aimVec.x, aimVec.z);
-	gNewObjectDefinition.scale 	    = .4;
+	NewObjectDefinitionType def =
+{
+	.group		= MODEL_GROUP_LEVELSPECIFIC,
+		.type 		= JUNGLE_ObjType_Dart,
+		.coord.x 	= theNode->Coord.x,
+		.coord.y 	= theNode->Coord.y + TOTEM_SHOOT_Y,
+		.coord.z 	= theNode->Coord.z,
+		.flags 		= 0,
+		.slot 		= SLOT_OF_DUMB+5,
+		.moveCall 	= MoveDart,
+		.rot 		=  CalcYAngleFromPointToPoint(0, 0, 0, aimVec.x, aimVec.z),
+		.scale 	    = .4;
 	newObj = MakeNewDisplayGroupObject(&gNewObjectDefinition);
 	if (newObj == nil)
 		return;
@@ -2221,17 +2252,19 @@ float			x,z,placement;
 
 		/* MAKE OBJECT */
 
-	gNewObjectDefinition.type 		= SKELETON_TYPE_TROLL;
-	gNewObjectDefinition.animNum	= 0;
-	gNewObjectDefinition.coord.x 	= x;
-	gNewObjectDefinition.coord.y 	= GetTerrainY(x,z);
-	gNewObjectDefinition.coord.z 	= z;
-	gNewObjectDefinition.flags 		= STATUS_BIT_ONSPLINE|gAutoFadeStatusBits;
-	gNewObjectDefinition.slot 		= 205;
-	gNewObjectDefinition.rot 		= 0;
-	gNewObjectDefinition.scale 		= TROLL_SCALE;
+	NewObjectDefinitionType def =
+	{
+		.type		= SKELETON_TYPE_TROLL,
+		.animNum	= 0,
+		.coord.x	= x,
+		.coord.y	= GetTerrainY(x,z),
+		.coord.z	= z,
+		.flags		= STATUS_BIT_ONSPLINE|gAutoFadeStatusBits,
+		.slot		= 205,
+		.scale		= TROLL_SCALE,
+	};
 
-	newObj = MakeNewSkeletonObject(&gNewObjectDefinition);
+	newObj = MakeNewSkeletonObject(&def);
 	if (newObj == nil)
 		return(false);
 
