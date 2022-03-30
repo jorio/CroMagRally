@@ -652,6 +652,7 @@ void OGL_DrawScene(OGLSetupOutputType *setupInfo, void (*drawRoutine)(OGLSetupOu
 		DoFatalAlert(SDL_GetError());
 
 
+#if 0
 	if (gGammaFadePercent <= 0)							// if we just finished fading out and haven't started fading in yet, just show black
 	{
 		glClearColor(0, 0, 0, 1);
@@ -659,6 +660,7 @@ void OGL_DrawScene(OGLSetupOutputType *setupInfo, void (*drawRoutine)(OGLSetupOu
 		SDL_GL_SwapWindow(gSDLWindow);					// end render loop
 		return;
 	}
+#endif
 
 
 			/* INIT SOME STUFF */
