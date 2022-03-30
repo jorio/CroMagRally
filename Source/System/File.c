@@ -766,52 +766,45 @@ static const char*	levelModelFiles[NUM_TRACKS] =
 
 				/* LOAD AUDIO */
 
-	FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":Audio:Caveman.sounds", &spec);
-	LoadSoundBank(&spec, SOUND_BANK_CAVEMAN);
+	LoadSoundBank(SOUNDBANK_ANNOUNCER);
 
 
 	switch(gTrackNum)
 	{
 		case	TRACK_NUM_DESERT:
-				FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":Audio:Desert.sounds", &spec);
-				LoadSoundBank(&spec, SOUND_BANK_LEVELSPECIFIC);
+				LoadSoundEffect(EFFECT_DUSTDEVIL);
 				break;
 
 		case	TRACK_NUM_JUNGLE:
-				FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":Audio:Jungle.sounds", &spec);
-				LoadSoundBank(&spec, SOUND_BANK_LEVELSPECIFIC);
+				LoadSoundEffect(EFFECT_BLOWDART);
 				break;
 
 		case	TRACK_NUM_ICE:
-				FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":Audio:Ice.sounds", &spec);
-				LoadSoundBank(&spec, SOUND_BANK_LEVELSPECIFIC);
+				LoadSoundEffect(EFFECT_HITSNOW);
 				break;
 
 		case	TRACK_NUM_CHINA:
-				FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":Audio:China.sounds", &spec);
-				LoadSoundBank(&spec, SOUND_BANK_LEVELSPECIFIC);
+				LoadSoundEffect(EFFECT_GONG);
 				break;
 
 		case	TRACK_NUM_EGYPT:
-				FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":Audio:Egypt.sounds", &spec);
-				LoadSoundBank(&spec, SOUND_BANK_LEVELSPECIFIC);
+				LoadSoundEffect(EFFECT_SHATTER);
 				break;
 
 		case	TRACK_NUM_EUROPE:
-				FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":Audio:Europe.sounds", &spec);
-				LoadSoundBank(&spec, SOUND_BANK_LEVELSPECIFIC);
+				LoadSoundEffect(EFFECT_CATAPULT);
 				break;
 
 		case	TRACK_NUM_ATLANTIS:
-				FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":Audio:Atlantis.sounds", &spec);
-				LoadSoundBank(&spec, SOUND_BANK_LEVELSPECIFIC);
+				LoadSoundEffect(EFFECT_ZAP);
+				LoadSoundEffect(EFFECT_TORPEDOFIRE);
+				LoadSoundEffect(EFFECT_HUM);
+				LoadSoundEffect(EFFECT_BUBBLES);
 				break;
 
 		case	TRACK_NUM_STONEHENGE:
-				FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":Audio:Stonehenge.sounds", &spec);
-				LoadSoundBank(&spec, SOUND_BANK_LEVELSPECIFIC);
+				LoadSoundEffect(EFFECT_CHANT);
 				break;
-
 	}
 
 

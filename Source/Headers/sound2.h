@@ -64,6 +64,9 @@ enum
 	EFFECT_BIRDCAW,
 	EFFECT_SNOWBALL,
 	EFFECT_MINE,
+	EFFECT_THROW1,
+	EFFECT_THROW2,
+	EFFECT_THROW3,
 
 			/* DESERT */
 
@@ -101,14 +104,11 @@ enum
 
 	EFFECT_CHANT,
 
-			/* CAVEMAN */
+			/* ANNOUNCER */
 
 	EFFECT_READY,
 	EFFECT_SET,
 	EFFECT_GO,
-	EFFECT_THROW1,
-	EFFECT_THROW2,
-	EFFECT_THROW3,
 	EFFECT_THATSALL,
 	EFFECT_GOODJOB,
 	EFFECT_REDTEAMWINS,
@@ -144,7 +144,8 @@ enum
 	EFFECT_COMPLETED,
 	EFFECT_INCOMPLETE,
 	EFFECT_COSTYA,
-	EFFECT_WATCHIT
+	EFFECT_WATCHIT,
+	NUM_EFFECTS
 };
 
 
@@ -152,156 +153,26 @@ enum
 /**********************/
 /* SOUND BANK TABLES  */
 /**********************/
-//
-// These are simple enums for equating the sound effect #'s in each sound
-// bank's rez file.
-//
-
-/******** SOUND_BANK_MAIN *********/
 
 enum
 {
-	SOUND_DEFAULT_BADSELECT = 0,
-	SOUND_DEFAULT_SKID3,
-	SOUND_DEFAULT_ENGINE,
-	SOUND_DEFAULT_SKID,
-	SOUND_DEFAULT_CRASH,
-	SOUND_DEFAULT_SELECTCLICK,
-	SOUND_DEFAULT_GETPOW,
-	SOUND_DEFAULT_BOOM,
-	SOUND_DEFAULT_NITRO,
-	SOUND_DEFAULT_ROMANCANDLELAUNCH,
-	SOUND_DEFAULT_ROMANCANDLEFALL,
-	SOUND_DEFAULT_SKID2,
-	SOUND_DEFAULT_CANNON,
-	SOUND_DEFAULT_CRASH2,
-	SOUND_DEFAULT_SPLASH,
-	SOUND_DEFAULT_BIRDCAW,
-	SOUND_DEFAULT_SNOWBALL,
-	SOUND_DEFAULT_MINE
+	SOUNDBANK_MAIN,
+	SOUNDBANK_LEVELSPECIFIC,
+	SOUNDBANK_ANNOUNCER,
+	NUM_SOUNDBANKS
 };
-
-
-/******** SOUND_BANK: DESERT *********/
-
-enum
-{
-	SOUND_DESERT_DUSTDEVIL = 0
-};
-
-/******** SOUND_BANK: JUNGLE *********/
-
-enum
-{
-	SOUND_JUNGLE_BLOWDART = 0
-};
-
-
-/******** SOUND_BANK: ICE *********/
-
-enum
-{
-	SOUND_ICE_HITSNOW = 0
-};
-
-
-/******** SOUND_BANK: EUROPE *********/
-
-enum
-{
-	SOUND_EUROPE_CATAPULT = 0
-};
-
-/******** SOUND_BANK: CHINA *********/
-
-enum
-{
-	SOUND_CHINA_GONG = 0
-};
-
-
-/******** SOUND_BANK: ATLANTIS *********/
-
-enum
-{
-	SOUND_ATLANTIS_ZAP = 0,
-	SOUND_ATLANTIS_TORPEDOFIRE,
-	SOUND_ATLANTIS_HUM,
-	SOUND_ATLANTIS_BUBBLES
-};
-
-
-/******** SOUND_BANK: EGYPT *********/
-
-enum
-{
-	SOUND_EGYPT_SHATTER = 0
-};
-
-/******** SOUND_BANK: STONEHENGE *********/
-
-enum
-{
-	SOUND_STONEHENGE_CHANT = 0
-};
-
-
-
-/******** SOUND_BANK: CAVEMAN *********/
-
-enum
-{
-	SOUND_CAVEMAN_READY = 0,
-	SOUND_CAVEMAN_SET,
-	SOUND_CAVEMAN_GO,
-	SOUND_CAVEMAN_THROW1,
-	SOUND_CAVEMAN_THROW2,
-	SOUND_CAVEMAN_THROW3,
-	SOUND_CAVEMAN_THATSALL,
-	SOUND_CAVEMAN_GOODJOB,
-	SOUND_CAVEMAN_REDTEAMWINS,
-	SOUND_CAVEMAN_GREENTEAMWINS,
-	SOUND_CAVEMAN_LAP2,
-	SOUND_CAVEMAN_FINALLAP,
-	SOUND_CAVEMAN_NICESHOT,
-	SOUND_CAVEMAN_GOTTAHURT,
-	SOUND_CAVEMAN_1st,
-	SOUND_CAVEMAN_2nd,
-	SOUND_CAVEMAN_3rd,
-	SOUND_CAVEMAN_4th,
-	SOUND_CAVEMAN_5th,
-	SOUND_CAVEMAN_6th,
-	SOUND_CAVEMAN_OHYEAH,
-	SOUND_CAVEMAN_NICEDRIVING,
-	SOUND_CAVEMAN_WOAH,
-	SOUND_CAVEMAN_YOUWIN,
-	SOUND_CAVEMAN_YOULOSE,
-	SOUND_CAVEMAN_BONEBOMB,
-	SOUND_CAVEMAN_OIL,
-	SOUND_CAVEMAN_NITRO,
-	SOUND_CAVEMAN_PIGEON,
-	SOUND_CAVEMAN_CANDLE,
-	SOUND_CAVEMAN_ROCKET,
-	SOUND_CAVEMAN_TORPEDO,
-	SOUND_CAVEMAN_FREEZE,
-	SOUND_CAVEMAN_MINE,
-	SOUND_CAVEMAN_SUSPENSION,
-	SOUND_CAVEMAN_INVISIBILITY,
-	SOUND_CAVEMAN_TIRES,
-	SOUND_CAVEMAN_ARROWHEAD,
-	SOUND_CAVEMAN_COMPLETE,
-	SOUND_CAVEMAN_INCOMPLETE,
-	SOUND_CAVEMAN_COSTYA,
-	SOUND_CAVEMAN_WATCHIT
-};
-
-
 
 //===================== PROTOTYPES ===================================
 
 
 void	InitSoundTools(void);
 void ShutdownSound(void);
+
+void LoadSoundEffect(int effectNum);
+void DisposeSoundEffect(int effectNum);
+void LoadSoundBank(int bankNum);
+void DisposeSoundBank(int bankNum);
+void DisposeAllSoundBanks(void);
 
 void StopAChannel(short *channelNum);
 extern	void StopAllEffectChannels(void);
@@ -311,10 +182,7 @@ extern	short PlayEffect(short effectNum);
 short PlayEffect_Parms3D(short effectNum, const OGLPoint3D *where, uint32_t rateMultiplier, float volumeAdjust);
 void	ToggleMusic(void);
 extern void	DoSoundMaintenance(void);
-extern	void LoadSoundBank(FSSpec *spec, long bankNum);
 extern	void WaitEffectsSilent(void);
-extern	void DisposeSoundBank(short bankNum);
-extern	void DisposeAllSoundBanks(void);
 short PlayEffect_Parms(short effectNum, uint32_t leftVolume, uint32_t rightVolume, unsigned long rateMultiplier);
 void ChangeChannelVolume(short channel, uint32_t leftVol, uint32_t rightVol);
 short PlayEffect3D(short effectNum, const OGLPoint3D *where);

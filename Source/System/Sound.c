@@ -1,7 +1,8 @@
 /****************************/
 /*     SOUND ROUTINES       */
-/* (c)2000 Pangea Software  */
 /* By Brian Greenstone      */
+/* (c)2000 Pangea Software  */
+/* (c)2022 Iliyas Jorio     */
 /****************************/
 
 
@@ -20,6 +21,7 @@
 #include "main.h"
 #include "window.h"
 #include "mainmenu.h"
+#include <string.h>
 
 extern	short		gMainAppRezFile;
 extern	OGLSetupOutputType		*gGameViewInfoPtr;
@@ -57,10 +59,18 @@ static void UpdateGlobalVolume(void);
 
 typedef struct
 {
-	Byte	bank,sound;
+	Byte	bank;
+	const char* filename;
 	long	refDistance;
-}EffectType;
+} EffectDef;
 
+typedef struct
+{
+	SndListHandle	sndHandle;
+	long			sndOffset;
+	short			lastPlayedOnChannel;
+	uint32_t		lastLoudness;
+} LoadedEffect;
 
 typedef struct
 {
@@ -86,19 +96,13 @@ float						gGlobalVolume = .4;
 OGLPoint3D					gEarCoords[MAX_LOCAL_PLAYERS];			// coord of camera plus a tad to get pt in front of camera
 static	OGLVector3D			gEyeVector[MAX_LOCAL_PLAYERS];
 
-
-static	SndListHandle		gSndHandles[MAX_SOUND_BANKS][MAX_EFFECTS];		// handles to ALL sounds
-static  long				gSndOffsets[MAX_SOUND_BANKS][MAX_EFFECTS];
+static	LoadedEffect		gLoadedEffects[NUM_EFFECTS];
 
 static	SndChannelPtr		gSndChannel[MAX_CHANNELS];
 static	ChannelInfoType		gChannelInfo[MAX_CHANNELS];
 static	SndChannelPtr		gMusicChannel;
 
 static short				gMaxChannels = 0;
-
-
-static short				gNumSndsInBank[MAX_SOUND_BANKS] = {0,0,0,0};
-
 
 Boolean						gSongPlayingFlag = false;
 Boolean						gLoopSongFlag = true;
@@ -112,79 +116,87 @@ static short				gCurrentSong = -1;
 		/* EFFECTS TABLE */
 		/*****************/
 
-static EffectType	gEffectsTable[] =
+
+static const char* kSoundBankNames[NUM_SOUNDBANKS] =
 {
-	[EFFECT_BADSELECT]          = {SOUND_BANK_MAIN,				SOUND_DEFAULT_BADSELECT,			2000},
-	[EFFECT_SKID3]              = {SOUND_BANK_MAIN,				SOUND_DEFAULT_SKID3,				2000},
-	[EFFECT_ENGINE]             = {SOUND_BANK_MAIN,				SOUND_DEFAULT_ENGINE,				1000},
-	[EFFECT_SKID]               = {SOUND_BANK_MAIN,				SOUND_DEFAULT_SKID,					2000},
-	[EFFECT_CRASH]              = {SOUND_BANK_MAIN,				SOUND_DEFAULT_CRASH,				1000},
-	[EFFECT_BOOM]               = {SOUND_BANK_MAIN,				SOUND_DEFAULT_BOOM,					1500},
-	[EFFECT_NITRO]              = {SOUND_BANK_MAIN,				SOUND_DEFAULT_NITRO,				5000},
-	[EFFECT_ROMANCANDLE_LAUNCH] = {SOUND_BANK_MAIN,				SOUND_DEFAULT_ROMANCANDLELAUNCH,	2000},
-	[EFFECT_ROMANCANDLE_FALL]   = {SOUND_BANK_MAIN,				SOUND_DEFAULT_ROMANCANDLEFALL,		4000},
-	[EFFECT_SKID2]              = {SOUND_BANK_MAIN,				SOUND_DEFAULT_SKID2,				2000},
-	[EFFECT_SELECTCLICK]        = {SOUND_BANK_MAIN,				SOUND_DEFAULT_SELECTCLICK,			2000},
-	[EFFECT_GETPOW]             = {SOUND_BANK_MAIN,				SOUND_DEFAULT_GETPOW,				3000},
-	[EFFECT_CANNON]             = {SOUND_BANK_MAIN,				SOUND_DEFAULT_CANNON,				2000},
-	[EFFECT_CRASH2]             = {SOUND_BANK_MAIN,				SOUND_DEFAULT_CRASH2,				3000},
-	[EFFECT_SPLASH]             = {SOUND_BANK_MAIN,				SOUND_DEFAULT_SPLASH,				3000},
-	[EFFECT_BIRDCAW]            = {SOUND_BANK_MAIN,				SOUND_DEFAULT_BIRDCAW,				1000},
-	[EFFECT_SNOWBALL]           = {SOUND_BANK_MAIN,				SOUND_DEFAULT_SNOWBALL,				3000},
-	[EFFECT_MINE]               = {SOUND_BANK_MAIN,				SOUND_DEFAULT_MINE,					1000},
-	[EFFECT_DUSTDEVIL]          = {SOUND_BANK_LEVELSPECIFIC,	SOUND_DESERT_DUSTDEVIL,				2000},
-	[EFFECT_BLOWDART]           = {SOUND_BANK_LEVELSPECIFIC,	SOUND_JUNGLE_BLOWDART,				2000},
-	[EFFECT_HITSNOW]            = {SOUND_BANK_LEVELSPECIFIC,	SOUND_ICE_HITSNOW,					2000},
-	[EFFECT_CATAPULT]           = {SOUND_BANK_LEVELSPECIFIC,	SOUND_EUROPE_CATAPULT,				5000},
-	[EFFECT_GONG]               = {SOUND_BANK_LEVELSPECIFIC,	SOUND_CHINA_GONG,					4000},
-	[EFFECT_SHATTER]            = {SOUND_BANK_LEVELSPECIFIC,	SOUND_EGYPT_SHATTER,				2000},
-	[EFFECT_ZAP]                = {SOUND_BANK_LEVELSPECIFIC,	SOUND_ATLANTIS_ZAP,					4000},
-	[EFFECT_TORPEDOFIRE]        = {SOUND_BANK_LEVELSPECIFIC,	SOUND_ATLANTIS_TORPEDOFIRE,			3000},
-	[EFFECT_HUM]                = {SOUND_BANK_LEVELSPECIFIC,	SOUND_ATLANTIS_HUM,					2000},
-	[EFFECT_BUBBLES]            = {SOUND_BANK_LEVELSPECIFIC,	SOUND_ATLANTIS_BUBBLES,				2500},
-	[EFFECT_CHANT]              = {SOUND_BANK_LEVELSPECIFIC,	SOUND_STONEHENGE_CHANT,				3000},
-	[EFFECT_READY]              = {SOUND_BANK_CAVEMAN,			SOUND_CAVEMAN_READY,				2000},
-	[EFFECT_SET]                = {SOUND_BANK_CAVEMAN,			SOUND_CAVEMAN_SET,					2000},
-	[EFFECT_GO]                 = {SOUND_BANK_CAVEMAN,			SOUND_CAVEMAN_GO,					1000},
-	[EFFECT_THROW1]             = {SOUND_BANK_CAVEMAN,			SOUND_CAVEMAN_THROW1,				2000},
-	[EFFECT_THROW2]             = {SOUND_BANK_CAVEMAN,			SOUND_CAVEMAN_THROW2,				2000},
-	[EFFECT_THROW3]             = {SOUND_BANK_CAVEMAN,			SOUND_CAVEMAN_THROW3,				2000},
-	[EFFECT_THATSALL]           = {SOUND_BANK_CAVEMAN,			SOUND_CAVEMAN_THATSALL,				2000},
-	[EFFECT_GOODJOB]            = {SOUND_BANK_CAVEMAN,			SOUND_CAVEMAN_GOODJOB,				2000},
-	[EFFECT_REDTEAMWINS]        = {SOUND_BANK_CAVEMAN,			SOUND_CAVEMAN_REDTEAMWINS,			4000},
-	[EFFECT_GREENTEAMWINS]      = {SOUND_BANK_CAVEMAN,			SOUND_CAVEMAN_GREENTEAMWINS,		4000},
-	[EFFECT_LAP2]               = {SOUND_BANK_CAVEMAN,			SOUND_CAVEMAN_LAP2,					1000},
-	[EFFECT_FINALLAP]           = {SOUND_BANK_CAVEMAN,			SOUND_CAVEMAN_FINALLAP,				1000},
-	[EFFECT_NICESHOT]           = {SOUND_BANK_CAVEMAN,			SOUND_CAVEMAN_NICESHOT,				1000},
-	[EFFECT_GOTTAHURT]          = {SOUND_BANK_CAVEMAN,			SOUND_CAVEMAN_GOTTAHURT,			1000},
-	[EFFECT_1st]                = {SOUND_BANK_CAVEMAN,			SOUND_CAVEMAN_1st,					1000},
-	[EFFECT_2nd]                = {SOUND_BANK_CAVEMAN,			SOUND_CAVEMAN_2nd,					1000},
-	[EFFECT_3rd]                = {SOUND_BANK_CAVEMAN,			SOUND_CAVEMAN_3rd,					1000},
-	[EFFECT_4th]                = {SOUND_BANK_CAVEMAN,			SOUND_CAVEMAN_4th,					1000},
-	[EFFECT_5th]                = {SOUND_BANK_CAVEMAN,			SOUND_CAVEMAN_5th,					1000},
-	[EFFECT_6th]                = {SOUND_BANK_CAVEMAN,			SOUND_CAVEMAN_6th,					1000},
-	[EFFECT_OHYEAH]             = {SOUND_BANK_CAVEMAN,			SOUND_CAVEMAN_OHYEAH,				1000},
-	[EFFECT_NICEDRIVING]        = {SOUND_BANK_CAVEMAN,			SOUND_CAVEMAN_NICEDRIVING,			1000},
-	[EFFECT_WOAH]               = {SOUND_BANK_CAVEMAN,			SOUND_CAVEMAN_WOAH,					1000},
-	[EFFECT_YOUWIN]             = {SOUND_BANK_CAVEMAN,			SOUND_CAVEMAN_YOUWIN,				1000},
-	[EFFECT_YOULOSE]            = {SOUND_BANK_CAVEMAN,			SOUND_CAVEMAN_YOULOSE,				1000},
-	[EFFECT_POW_BONEBOMB]       = {SOUND_BANK_CAVEMAN,			SOUND_CAVEMAN_BONEBOMB,				1000},
-	[EFFECT_POW_OIL]            = {SOUND_BANK_CAVEMAN,			SOUND_CAVEMAN_OIL,					1000},
-	[EFFECT_POW_NITRO]          = {SOUND_BANK_CAVEMAN,			SOUND_CAVEMAN_NITRO,				1000},
-	[EFFECT_POW_PIGEON]         = {SOUND_BANK_CAVEMAN,			SOUND_CAVEMAN_PIGEON,				1000},
-	[EFFECT_POW_CANDLE]         = {SOUND_BANK_CAVEMAN,			SOUND_CAVEMAN_CANDLE,				1000},
-	[EFFECT_POW_ROCKET]         = {SOUND_BANK_CAVEMAN,			SOUND_CAVEMAN_ROCKET,				1000},
-	[EFFECT_POW_TORPEDO]        = {SOUND_BANK_CAVEMAN,			SOUND_CAVEMAN_TORPEDO,				1000},
-	[EFFECT_POW_FREEZE]         = {SOUND_BANK_CAVEMAN,			SOUND_CAVEMAN_FREEZE,				1000},
-	[EFFECT_POW_MINE]           = {SOUND_BANK_CAVEMAN,			SOUND_CAVEMAN_MINE,					1000},
-	[EFFECT_POW_SUSPENSION]     = {SOUND_BANK_CAVEMAN,			SOUND_CAVEMAN_SUSPENSION,			1000},
-	[EFFECT_POW_INVISIBILITY]   = {SOUND_BANK_CAVEMAN,			SOUND_CAVEMAN_INVISIBILITY,			1000},
-	[EFFECT_POW_STICKYTIRES]    = {SOUND_BANK_CAVEMAN,			SOUND_CAVEMAN_TIRES,				1000},
-	[EFFECT_ARROWHEAD]          = {SOUND_BANK_CAVEMAN,			SOUND_CAVEMAN_ARROWHEAD,			1000},
-	[EFFECT_COMPLETED]          = {SOUND_BANK_CAVEMAN,			SOUND_CAVEMAN_COMPLETE,				1000},
-	[EFFECT_INCOMPLETE]         = {SOUND_BANK_CAVEMAN,			SOUND_CAVEMAN_INCOMPLETE,			1000},
-	[EFFECT_COSTYA]             = {SOUND_BANK_CAVEMAN,			SOUND_CAVEMAN_COSTYA,				1000},
-	[EFFECT_WATCHIT]            = {SOUND_BANK_CAVEMAN,			SOUND_CAVEMAN_WATCHIT,				1000},
+	[SOUNDBANK_MAIN]			= "main",
+	[SOUNDBANK_LEVELSPECIFIC]	= "levelspecific",
+	[SOUNDBANK_ANNOUNCER]		= "announcer",
+};
+
+static const EffectDef kEffectsTable[NUM_EFFECTS] =
+{
+	[EFFECT_BADSELECT]          = {SOUNDBANK_MAIN,				"badselect",			2000},
+	[EFFECT_SKID3]              = {SOUNDBANK_MAIN,				"skid3",				2000},
+	[EFFECT_ENGINE]             = {SOUNDBANK_MAIN,				"engine",				1000},
+	[EFFECT_SKID]               = {SOUNDBANK_MAIN,				"skid",					2000},
+	[EFFECT_CRASH]              = {SOUNDBANK_MAIN,				"crash",				1000},
+	[EFFECT_BOOM]               = {SOUNDBANK_MAIN,				"boom",					1500},
+	[EFFECT_NITRO]              = {SOUNDBANK_MAIN,				"nitroburst",			5000},
+	[EFFECT_ROMANCANDLE_LAUNCH] = {SOUNDBANK_MAIN,				"romancandlelaunch",	2000},
+	[EFFECT_ROMANCANDLE_FALL]   = {SOUNDBANK_MAIN,				"romancandlefall",		4000},
+	[EFFECT_SKID2]              = {SOUNDBANK_MAIN,				"skid2",				2000},
+	[EFFECT_SELECTCLICK]        = {SOUNDBANK_MAIN,				"selectclick",			2000},
+	[EFFECT_GETPOW]             = {SOUNDBANK_MAIN,				"getpow",				3000},
+	[EFFECT_CANNON]             = {SOUNDBANK_MAIN,				"cannon",				2000},
+	[EFFECT_CRASH2]             = {SOUNDBANK_MAIN,				"crash2",				3000},
+	[EFFECT_SPLASH]             = {SOUNDBANK_MAIN,				"splash",				3000},
+	[EFFECT_BIRDCAW]            = {SOUNDBANK_MAIN,				"birdcaw",				1000},
+	[EFFECT_SNOWBALL]           = {SOUNDBANK_MAIN,				"snowball",				3000},
+	[EFFECT_MINE]               = {SOUNDBANK_MAIN,				"dropmine",				1000},
+	[EFFECT_THROW1]             = {SOUNDBANK_MAIN,				"throw1",				2000},
+	[EFFECT_THROW2]             = {SOUNDBANK_MAIN,				"throw2",				2000},
+	[EFFECT_THROW3]             = {SOUNDBANK_MAIN,				"throw3",				2000},
+	[EFFECT_DUSTDEVIL]          = {SOUNDBANK_LEVELSPECIFIC,		"dustdevil",			2000},
+	[EFFECT_BLOWDART]           = {SOUNDBANK_LEVELSPECIFIC,		"blowdart",				2000},
+	[EFFECT_HITSNOW]            = {SOUNDBANK_LEVELSPECIFIC,		"hitsnow",				2000},
+	[EFFECT_CATAPULT]           = {SOUNDBANK_LEVELSPECIFIC,		"catapult",				5000},
+	[EFFECT_GONG]               = {SOUNDBANK_LEVELSPECIFIC,		"gong",					4000},
+	[EFFECT_SHATTER]            = {SOUNDBANK_LEVELSPECIFIC,		"vaseshatter",			2000},
+	[EFFECT_ZAP]                = {SOUNDBANK_LEVELSPECIFIC,		"zap",					4000},
+	[EFFECT_TORPEDOFIRE]        = {SOUNDBANK_LEVELSPECIFIC,		"torpedofire",			3000},
+	[EFFECT_HUM]                = {SOUNDBANK_LEVELSPECIFIC,		"hum",					2000},
+	[EFFECT_BUBBLES]            = {SOUNDBANK_LEVELSPECIFIC,		"bubbles",				2500},
+	[EFFECT_CHANT]              = {SOUNDBANK_LEVELSPECIFIC,		"chant",				3000},
+	[EFFECT_READY]              = {SOUNDBANK_ANNOUNCER,			"ready",				2000},
+	[EFFECT_SET]                = {SOUNDBANK_ANNOUNCER,			"set",					2000},
+	[EFFECT_GO]                 = {SOUNDBANK_ANNOUNCER,			"go",					1000},
+	[EFFECT_THATSALL]           = {SOUNDBANK_ANNOUNCER,			"thatsall",				2000},
+	[EFFECT_GOODJOB]            = {SOUNDBANK_ANNOUNCER,			"goodjob",				2000},
+	[EFFECT_REDTEAMWINS]        = {SOUNDBANK_ANNOUNCER,			"redteamwins",			4000},
+	[EFFECT_GREENTEAMWINS]      = {SOUNDBANK_ANNOUNCER,			"greenteamwins",		4000},
+	[EFFECT_LAP2]               = {SOUNDBANK_ANNOUNCER,			"lap2",					1000},
+	[EFFECT_FINALLAP]           = {SOUNDBANK_ANNOUNCER,			"finallap",				1000},
+	[EFFECT_NICESHOT]           = {SOUNDBANK_ANNOUNCER,			"niceshot",				1000},
+	[EFFECT_GOTTAHURT]          = {SOUNDBANK_ANNOUNCER,			"gottahurt",			1000},
+	[EFFECT_1st]                = {SOUNDBANK_ANNOUNCER,			"1st",					1000},
+	[EFFECT_2nd]                = {SOUNDBANK_ANNOUNCER,			"2nd",					1000},
+	[EFFECT_3rd]                = {SOUNDBANK_ANNOUNCER,			"3rd",					1000},
+	[EFFECT_4th]                = {SOUNDBANK_ANNOUNCER,			"4th",					1000},
+	[EFFECT_5th]                = {SOUNDBANK_ANNOUNCER,			"5th",					1000},
+	[EFFECT_6th]                = {SOUNDBANK_ANNOUNCER,			"6th",					1000},
+	[EFFECT_OHYEAH]             = {SOUNDBANK_ANNOUNCER,			"ohyeah",				1000},
+	[EFFECT_NICEDRIVING]        = {SOUNDBANK_ANNOUNCER,			"nicedrivin",			1000},
+	[EFFECT_WOAH]               = {SOUNDBANK_ANNOUNCER,			"woah",					1000},
+	[EFFECT_YOUWIN]             = {SOUNDBANK_ANNOUNCER,			"youwin",				1000},
+	[EFFECT_YOULOSE]            = {SOUNDBANK_ANNOUNCER,			"youlose",				1000},
+	[EFFECT_POW_BONEBOMB]       = {SOUNDBANK_ANNOUNCER,			"bonebomb",				1000},
+	[EFFECT_POW_OIL]            = {SOUNDBANK_ANNOUNCER,			"oil",					1000},
+	[EFFECT_POW_NITRO]          = {SOUNDBANK_ANNOUNCER,			"nitro",				1000},
+	[EFFECT_POW_PIGEON]         = {SOUNDBANK_ANNOUNCER,			"pigeon",				1000},
+	[EFFECT_POW_CANDLE]         = {SOUNDBANK_ANNOUNCER,			"candle",				1000},
+	[EFFECT_POW_ROCKET]         = {SOUNDBANK_ANNOUNCER,			"rocket",				1000},
+	[EFFECT_POW_TORPEDO]        = {SOUNDBANK_ANNOUNCER,			"torpedo",				1000},
+	[EFFECT_POW_FREEZE]         = {SOUNDBANK_ANNOUNCER,			"freeze",				1000},
+	[EFFECT_POW_MINE]           = {SOUNDBANK_ANNOUNCER,			"mine",					1000},
+	[EFFECT_POW_SUSPENSION]     = {SOUNDBANK_ANNOUNCER,			"suspension",			1000},
+	[EFFECT_POW_INVISIBILITY]   = {SOUNDBANK_ANNOUNCER,			"invisibility",			1000},
+	[EFFECT_POW_STICKYTIRES]    = {SOUNDBANK_ANNOUNCER,			"stickytires",			1000},
+	[EFFECT_ARROWHEAD]          = {SOUNDBANK_ANNOUNCER,			"arrowhead",			1000},
+	[EFFECT_COMPLETED]          = {SOUNDBANK_ANNOUNCER,			"completed",			1000},
+	[EFFECT_INCOMPLETE]         = {SOUNDBANK_ANNOUNCER,			"incomplete",			1000},
+	[EFFECT_COSTYA]             = {SOUNDBANK_ANNOUNCER,			"costya",				1000},
+	[EFFECT_WATCHIT]            = {SOUNDBANK_ANNOUNCER,			"watchit",				1000},
 };
 
 
@@ -193,8 +205,6 @@ static EffectType	gEffectsTable[] =
 void InitSoundTools(void)
 {
 OSErr			iErr;
-short			i;
-FSSpec			spec;
 
 	gRecentAnnouncerEffect = -1;
 	gRecentAnnouncerChannel = -1;
@@ -204,8 +214,7 @@ FSSpec			spec;
 
 			/* INIT BANK INFO */
 
-	for (i = 0; i < MAX_SOUND_BANKS; i++)
-		gNumSndsInBank[i] = 0;
+	memset(gLoadedEffects, 0, sizeof(gLoadedEffects));
 
 			/******************/
 			/* ALLOC CHANNELS */
@@ -229,8 +238,7 @@ FSSpec			spec;
 
 		/* LOAD DEFAULT SOUNDS */
 
-	FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":Audio:Main.sounds", &spec);
-	LoadSoundBank(&spec, SOUND_BANK_MAIN);
+	LoadSoundBank(SOUNDBANK_MAIN);
 }
 
 
@@ -260,91 +268,112 @@ int	i;
 
 #pragma mark -
 
+
+/******************* LOAD A SOUND EFFECT ************************/
+
+void LoadSoundEffect(int effectNum)
+{
+char path[256];
+FSSpec spec;
+short refNum;
+OSErr err;
+
+	LoadedEffect* loadedSound = &gLoadedEffects[effectNum];
+	const EffectDef* effectDef = &kEffectsTable[effectNum];
+
+	if (loadedSound->sndHandle)
+	{
+		// already loaded
+		return;
+	}
+
+	snprintf(path, sizeof(path), ":audio:%s:%s.aiff", kSoundBankNames[effectDef->bank], effectDef->filename);
+
+	err = FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, path, &spec);
+	if (err != noErr)
+	{
+		DoAlert(path);
+		return;
+	}
+
+	err = FSpOpenDF(&spec, fsRdPerm, &refNum);
+	GAME_ASSERT_MESSAGE(err == noErr, path);
+
+	loadedSound->sndHandle = Pomme_SndLoadFileAsResource(refNum);
+	GAME_ASSERT_MESSAGE(loadedSound->sndHandle, path);
+
+	FSClose(refNum);
+
+			/* GET OFFSET INTO IT */
+
+	GetSoundHeaderOffset(loadedSound->sndHandle, &loadedSound->sndOffset);
+
+			/* PRE-DECOMPRESS IT */
+
+	Pomme_DecompressSoundResource(&loadedSound->sndHandle, &loadedSound->sndOffset);
+}
+
+/******************* DISPOSE OF A SOUND EFFECT ************************/
+
+void DisposeSoundEffect(int effectNum)
+{
+	LoadedEffect* loadedSound = &gLoadedEffects[effectNum];
+
+	if (loadedSound->sndHandle)
+	{
+		DisposeHandle((Handle) loadedSound->sndHandle);
+		memset(loadedSound, 0, sizeof(LoadedEffect));
+	}
+}
+
 /******************* LOAD SOUND BANK ************************/
 
-void LoadSoundBank(FSSpec *spec, long bankNum)
+void LoadSoundBank(int bankNum)
 {
-short			srcFile1,numSoundsInBank,i;
-OSErr			iErr;
-
 	StopAllEffectChannels();
-
-	if (bankNum >= MAX_SOUND_BANKS)
-		DoFatalAlert("LoadSoundBank: bankNum >= MAX_SOUND_BANKS");
-
-			/* DISPOSE OF EXISTING BANK */
-
-	DisposeSoundBank(bankNum);
-
-
-			/* OPEN APPROPRIATE REZ FILE */
-
-	srcFile1 = FSpOpenResFile(spec, fsRdPerm);
-	if (srcFile1 == -1)
-		DoFatalAlert("LoadSoundBank: OpenResFile failed!");
 
 			/****************************/
 			/* LOAD ALL EFFECTS IN BANK */
 			/****************************/
 
-	UseResFile( srcFile1 );												// open sound resource fork
-	numSoundsInBank = Count1Resources('snd ');							// count # snd's in this bank
-	if (numSoundsInBank > MAX_EFFECTS)
-		DoFatalAlert("LoadSoundBank: numSoundsInBank > MAX_EFFECTS");
-
-	for (i=0; i < numSoundsInBank; i++)
+	for (int i = 0; i < NUM_EFFECTS; i++)
 	{
-				/* LOAD SND REZ */
-
-		gSndHandles[bankNum][i] = (SndListResource **)GetResource('snd ',BASE_EFFECT_RESOURCE+i);
-		if (gSndHandles[bankNum][i] == nil)
+		if (kEffectsTable[i].bank == bankNum)
 		{
-			iErr = ResError();
-			DoAlert("LoadSoundBank: GetResource failed!");
-			if (iErr == memFullErr)
-				DoFatalAlert("LoadSoundBank: Out of Memory");
-			else
-				ShowSystemErr(iErr);
+			LoadSoundEffect(i);
 		}
-		DetachResource((Handle)gSndHandles[bankNum][i]);				// detach resource from rez file & make a normal Handle
-
-		HNoPurge((Handle)gSndHandles[bankNum][i]);						// make non-purgeable
-		HLockHi((Handle)gSndHandles[bankNum][i]);
-
-				/* GET OFFSET INTO IT */
-
-		GetSoundHeaderOffset(gSndHandles[bankNum][i], &gSndOffsets[bankNum][i]);
 	}
-
-	UseResFile(gMainAppRezFile );								// go back to normal res file
-	CloseResFile(srcFile1);
-
-	gNumSndsInBank[bankNum] = numSoundsInBank;					// remember how many sounds we've got
 }
-
 
 /******************** DISPOSE SOUND BANK **************************/
 
-void DisposeSoundBank(short bankNum)
+void DisposeSoundBank(int bankNum)
 {
-short	i;
-
 	gAnnouncerDelay = 0;										// set this to avoid announcer talking after the sound bank is gone
-
-	if (bankNum > MAX_SOUND_BANKS)
-		return;
 
 	StopAllEffectChannels();									// make sure all sounds are stopped before nuking any banks
 
 			/* FREE ALL SAMPLES */
 
-	for (i=0; i < gNumSndsInBank[bankNum]; i++)
-		DisposeHandle((Handle)gSndHandles[bankNum][i]);
-
-
-	gNumSndsInBank[bankNum] = 0;
+	for (int i = 0; i < NUM_EFFECTS; i++)
+	{
+		if (kEffectsTable[i].bank == bankNum)
+		{
+			DisposeSoundEffect(i);
+		}
+	}
 }
 
+
+/******************* DISPOSE ALL SOUND BANKS *****************/
+
+void DisposeAllSoundBanks(void)
+{
+	for (int i = 0; i < NUM_SOUNDBANKS; i++)
+	{
+		DisposeSoundBank(i);
+	}
+}
 
 
 /********************* STOP A CHANNEL **********************/
@@ -614,19 +643,7 @@ void ToggleMusic(void)
 short PlayEffect3D(short effectNum, const OGLPoint3D *where)
 {
 short					theChan;
-Byte					bankNum,soundNum;
-uint32_t					leftVol, rightVol;
-
-			/* GET BANK & SOUND #'S FROM TABLE */
-
-	bankNum 	= gEffectsTable[effectNum].bank;
-	soundNum 	= gEffectsTable[effectNum].sound;
-
-	if (soundNum >= gNumSndsInBank[bankNum])					// see if illegal sound #
-	{
-		DoAlert("Illegal sound number!");
-		ShowSystemErr(effectNum);
-	}
+uint32_t				leftVol, rightVol;
 
 				/* CALC VOLUME */
 
@@ -655,19 +672,7 @@ uint32_t					leftVol, rightVol;
 short PlayEffect_Parms3D(short effectNum, const OGLPoint3D *where, uint32_t rateMultiplier, float volumeAdjust)
 {
 short			theChan;
-Byte			bankNum,soundNum;
-uint32_t			leftVol, rightVol;
-
-			/* GET BANK & SOUND #'S FROM TABLE */
-
-	bankNum 	= gEffectsTable[effectNum].bank;
-	soundNum 	= gEffectsTable[effectNum].sound;
-
-	if (soundNum >= gNumSndsInBank[bankNum])					// see if illegal sound #
-	{
-		DoAlert("Illegal sound number!");
-		ShowSystemErr(effectNum);
-	}
+uint32_t		leftVol, rightVol;
 
 				/* CALC VOLUME */
 
@@ -749,7 +754,7 @@ uint32_t	maxLeft,maxRight;
 
 			/* DO VOLUME CALCS */
 
-	refDist = gEffectsTable[effectNum].refDistance;			// get ref dist
+	refDist = kEffectsTable[effectNum].refDistance;			// get ref dist
 
 	dist -= refDist;
 	if (dist <= 0.0f)
@@ -896,22 +901,17 @@ short  PlayEffect_Parms(short effectNum, uint32_t leftVolume, uint32_t rightVolu
 SndCommand 		mySndCmd;
 SndChannelPtr	chanPtr;
 short			theChan;
-Byte			bankNum,soundNum;
 OSErr			myErr;
-uint32_t			lv2,rv2;
+uint32_t		lv2,rv2;
 //static UInt32          loopStart, loopEnd;
 
 
 			/* GET BANK & SOUND #'S FROM TABLE */
 
-	bankNum = gEffectsTable[effectNum].bank;
-	soundNum = gEffectsTable[effectNum].sound;
+	LoadedEffect* sound = &gLoadedEffects[effectNum];
 
-	if (soundNum >= gNumSndsInBank[bankNum])					// see if illegal sound #
-	{
-		DoAlert("Illegal sound number!");
-		ShowSystemErr(effectNum);
-	}
+	GAME_ASSERT_MESSAGE(effectNum >= 0 && effectNum < NUM_EFFECTS, "illegal effect number");
+	GAME_ASSERT_MESSAGE(sound->sndHandle, "effect wasn't loaded!");
 
 			/* LOOK FOR FREE CHANNEL */
 
@@ -951,7 +951,7 @@ uint32_t			lv2,rv2;
 
 	mySndCmd.cmd = bufferCmd;										// make it play
 	mySndCmd.param1 = 0;
-	mySndCmd.ptr = ((Ptr) *gSndHandles[bankNum][soundNum]) + gSndOffsets[bankNum][soundNum];	// pointer to SoundHeader
+	mySndCmd.ptr = ((Ptr) *sound->sndHandle) + sound->sndOffset;	// pointer to SoundHeader
     SndDoImmediate(chanPtr, &mySndCmd);
 	if (myErr)
 		return(-1);
