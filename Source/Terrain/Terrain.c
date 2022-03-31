@@ -499,7 +499,6 @@ uint16_t				superTileNum;
 float				height,miny,maxy;
 MOVertexArrayData	*meshData;
 SuperTileMemoryType	*superTilePtr;
-OGLColorRGBA_Byte	*vertexColorList;
 float				ambientR,ambientG,ambientB;
 float				fillR0,fillG0,fillB0;
 float				fillR1,fillG1,fillB1;
@@ -550,8 +549,10 @@ OGLVector3D			vertexNormalList[NUM_VERTICES_IN_SUPERTILE];
 	meshData 		= gSuperTileMemoryList[superTileNum].meshData;		// get ptr to mesh data
 	triangleList 	= meshData->triangles;								// get ptr to triangle index list
 	vertexPointList = meshData->points;									// get ptr to points list
-	vertexColorList = meshData->colorsByte;								// get ptr to vertex color
 	uvs				= meshData->uvs;									// get ptr to uvs
+
+	GAME_ASSERT_MESSAGE(meshData->colorsByte == NULL, "per-vertex colors unsupported in CMR terrain! (byte)");
+	GAME_ASSERT_MESSAGE(meshData->colorsFloat == NULL, "per-vertex colors unsupported in CMR terrain! (float)");
 
 	miny = 10000000;													// init bbox counters
 	maxy = -miny;
@@ -717,85 +718,6 @@ OGLVector3D			vertexNormalList[NUM_VERTICES_IN_SUPERTILE];
 			FastNormalizeVector(avX, avY, avZ, &vertexNormalList[i]);					// normalize the vertex normal
 			i++;
 		}
-	}
-
-	if (vertexColorList)
-	{
-		// I think vertex colors are a remnant of Bugdom that is never used in CMR.
-		DoFatalAlert("apparently, we DO have per-vertex colors in CMR!");
-	
-#if 0
-			/*****************************/
-			/* CALCULATE VERTEX COLORS   */
-			/*****************************/
-
-		i = 0;
-		for (row = 0; row <= SUPERTILE_SIZE; row++)
-		{
-			for (col = 0; col <= SUPERTILE_SIZE; col++)
-			{
-				float	r,g,b,dot;
-
-
-						/* APPLY LIGHTING TO THE VERTEX */
-
-				r = ambientR;												// factor in the ambient
-				g = ambientG;
-				b = ambientB;
-
-				dot = vertexNormalList[i].x * fillDir0->x;					// calc dot product of fill #0
-				dot += vertexNormalList[i].y * fillDir0->y;
-				dot += vertexNormalList[i].z * fillDir0->z;
-				dot = -dot;
-
-				if (dot > 0.0f)
-				{
-					r += fillR0 * dot;
-					g += fillG0 * dot;
-					b += fillB0 * dot;
-				}
-
-				if (numFillLights > 1)
-				{
-					dot = vertexNormalList[i].x * fillDir1->x;				// calc dot product of fill #1
-					dot += vertexNormalList[i].y * fillDir1->y;
-					dot += vertexNormalList[i].z * fillDir1->z;
-					dot = -dot;
-
-					if (dot > 0.0f)
-					{
-						r += fillR1 * dot;
-						g += fillG1 * dot;
-						b += fillB1 * dot;
-					}
-				}
-
-				if (r > 1.0f)
-					r = 1.0f;
-				if (g > 1.0f)
-					g = 1.0f;
-				if (b > 1.0f)
-					b = 1.0f;
-
-
-					/* SEE IF SHADOW CAST HERE */
-
-				if (gTerrainShadowFlags[startRow + row][startCol + col])
-				{
-					r *= .7f;
-					g *= .7f;
-					b *= .7f;
-				}
-
-						/* SAVE COLOR INTO LIST */
-
-				vertexColorList[i].r = r * 255.0f;		// convert to Byte values
-				vertexColorList[i].g = g * 255.0f;
-				vertexColorList[i].b = b * 255.0f;
-				i++;
-			}
-		}
-#endif
 	}
 
 			/*********************/
