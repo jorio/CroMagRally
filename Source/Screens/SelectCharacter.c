@@ -183,10 +183,7 @@ ObjNode	*newObj;
 
 			/* MAKE BACKGROUND PICTURE OBJECT */
 
-	if (FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":images:CharSelectScreen.jpg", &spec))
-		DoFatalAlert("SetupCharacterSelectScreen: background pict not found.");
-
-	gBackgoundPicture = MO_CreateNewObjectOfType(MO_TYPE_PICTURE, (uintptr_t) gGameViewInfoPtr, &spec);
+	gBackgoundPicture = MO_CreateNewObjectOfType(MO_TYPE_PICTURE, (uintptr_t) gGameViewInfoPtr, ":images:CharSelectScreen.jpg");
 	if (!gBackgoundPicture)
 		DoFatalAlert("SetupCharacterSelectScreen: MO_CreateNewObjectOfType failed");
 

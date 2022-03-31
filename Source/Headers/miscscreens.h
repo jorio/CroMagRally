@@ -2,7 +2,7 @@
 // miscscreens.h
 //
 
-void DisplayPicture(FSSpec *spec, Boolean showAndBail, Boolean doKeyText);
+void DisplayPicture(const char* picturePath, Boolean showAndBail, Boolean doKeyText);
 void DoPaused(void);
 void ShowAgePicture(int age);
 void ShowLoadingPicture(void);

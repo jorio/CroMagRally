@@ -96,7 +96,7 @@ OGLSetupOutputType	*gScreenViewInfoPtr = nil;
 // If showAndBail == true, then show it and bail out
 //
 
-void DisplayPicture(FSSpec *spec, Boolean showAndBail, Boolean doKeyText)
+void DisplayPicture(const char* picturePath, Boolean showAndBail, Boolean doKeyText)
 {
 OGLSetupInputType	viewDef;
 
@@ -119,7 +119,7 @@ OGLSetupInputType	viewDef;
 
 			/* CREATE BACKGROUND OBJECT */
 
-	gBackgoundPicture = MO_CreateNewObjectOfType(MO_TYPE_PICTURE, (uintptr_t) gGameViewInfoPtr, spec);
+	gBackgoundPicture = MO_CreateNewObjectOfType(MO_TYPE_PICTURE, (uintptr_t) gGameViewInfoPtr, (void*) picturePath);
 	if (!gBackgoundPicture)
 		DoFatalAlert("DisplayPicture: MO_CreateNewObjectOfType failed");
 
@@ -211,7 +211,6 @@ static void DisplayPicture_Draw(OGLSetupOutputType *info)
 
 void ShowAgePicture(int age)
 {
-FSSpec	spec;
 static const char*	names[NUM_AGES] =
 {
 	":images:Ages:StoneAgeIntro.jpg",
@@ -219,10 +218,7 @@ static const char*	names[NUM_AGES] =
 	":images:Ages:IronAgeIntro.jpg"
 };
 
-
-	FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, names[age], &spec);
-
-	DisplayPicture(&spec, false, true);
+	DisplayPicture(names[age], false, true);
 }
 
 
@@ -247,22 +243,8 @@ FSSpec	spec;
 
 void DoTitleScreen(void)
 {
-FSSpec	spec;
-
-			/* DO PANGEA LOGO */
-
-	FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":images:PangeaLogo.jpg", &spec);
-
-
-	DisplayPicture(&spec, false, false);
-
-
-			/* DO TITLE SCREEN */
-
-	if (FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":images:TitleScreen.jpg", &spec))
-		DoFatalAlert("DoTitleScreen: TitleScreen pict not found.");
-
-	DisplayPicture(&spec, false, false);
+	DisplayPicture(":images:PangeaLogo.jpg", false, false);
+	DisplayPicture(":images:TitleScreen.jpg", false, false);
 }
 
 
@@ -366,10 +348,7 @@ static const char* names[] =
 			/* MAKE BACKGROUND PICTURE OBJECT */
 
 
-	if (FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID,  names[gTheAge], &spec))
-		DoFatalAlert("SetupConqueredScreen: background pict not found.");
-
-	gBackgoundPicture = MO_CreateNewObjectOfType(MO_TYPE_PICTURE, (uintptr_t) gGameViewInfoPtr, &spec);
+	gBackgoundPicture = MO_CreateNewObjectOfType(MO_TYPE_PICTURE, (uintptr_t) gGameViewInfoPtr, (void*) names[gTheAge]);
 	if (!gBackgoundPicture)
 		DoFatalAlert("SetupTrackSelectScreen: MO_CreateNewObjectOfType failed");
 
@@ -549,10 +528,7 @@ OGLSetupInputType	viewDef;
 
 			/* MAKE BACKGROUND PICTURE OBJECT */
 
-	if (FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":images:Conquered:GameCompleted.png",&spec))
-		DoFatalAlert("SetupWinScreen: background pict not found.");
-
-	gBackgoundPicture = MO_CreateNewObjectOfType(MO_TYPE_PICTURE, (uintptr_t) gGameViewInfoPtr, &spec);
+	gBackgoundPicture = MO_CreateNewObjectOfType(MO_TYPE_PICTURE, (uintptr_t) gGameViewInfoPtr, ":images:Conquered:GameCompleted.png");
 	if (!gBackgoundPicture)
 		DoFatalAlert("SetupTrackSelectScreen: MO_CreateNewObjectOfType failed");
 
@@ -811,7 +787,6 @@ typedef struct
 static void SetupCreditsScreen(void)
 {
 ObjNode				*newObj;
-FSSpec				spec;
 OGLSetupInputType	viewDef;
 
 static CreditLine lines[] =
@@ -915,10 +890,7 @@ static const float sizes[] =
 			/* MAKE BACKGROUND PICTURE OBJECT */
 
 
-	if (FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":images:Credits.jpg",&spec))
-		DoFatalAlert("SetupCreditsScreen: background pict not found.");
-
-	gBackgoundPicture = MO_CreateNewObjectOfType(MO_TYPE_PICTURE, (uintptr_t) gGameViewInfoPtr, &spec);
+	gBackgoundPicture = MO_CreateNewObjectOfType(MO_TYPE_PICTURE, (uintptr_t) gGameViewInfoPtr, ":images:Credits.jpg");
 	if (!gBackgoundPicture)
 		DoFatalAlert("SetupCreditsScreen: MO_CreateNewObjectOfType failed");
 
@@ -990,11 +962,6 @@ static void FreeCreditsScreen(void)
 
 void DoHelpScreen(void)
 {
-FSSpec	spec;
-
-	FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":images:Help.jpg", &spec);
-
-	DisplayPicture(&spec, false, false);
-
+	DisplayPicture(":images:Help.jpg", false, false);
 }
 

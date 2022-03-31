@@ -473,7 +473,6 @@ do_again:
 
 static void SetupMainMenuScreen(void)
 {
-FSSpec				spec;
 OGLSetupInputType	viewDef;
 OGLColorRGBA		ambientColor = { .1, .1, .1, 1 };
 OGLColorRGBA		fillColor1 = { 1.0, 1.0, 1.0, 1 };
@@ -515,10 +514,7 @@ OGLVector3D			fillDirection2 = { -1, -.2, -.5 };
 
 			/* MAKE BACKGROUND PICTURE OBJECT */
 
-	if (FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":images:MainMenuBackground.jpg", &spec))
-		DoFatalAlert("SetupMainMenuScreen: background pict not found.");
-
-	gBackgoundPicture = MO_CreateNewObjectOfType(MO_TYPE_PICTURE, (uintptr_t) gGameViewInfoPtr, &spec);
+	gBackgoundPicture = MO_CreateNewObjectOfType(MO_TYPE_PICTURE, (uintptr_t) gGameViewInfoPtr, ":images:MainMenuBackground.jpg");
 	if (!gBackgoundPicture)
 		DoFatalAlert("SetupMainMenuScreen: MO_CreateNewObjectOfType failed");
 

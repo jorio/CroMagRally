@@ -48,7 +48,7 @@ static void MO_DeleteObjectInfo_Material(MOMaterialObject *obj);
 static void MO_GetNewGroupReference(MOGroupObject *obj);
 static void MO_GetNewVertexArrayReference(MOVertexArrayObject *obj);
 static void MO_CalcBoundingBox_Recurse(MetaObjectPtr object, OGLBoundingBox *bBox);
-static void SetMetaObjectToPicture(MOPictureObject *pictObj, OGLSetupOutputType *setupInfo, FSSpec *inData, int destPixelFormat);
+static void SetMetaObjectToPicture(MOPictureObject *pictObj, OGLSetupOutputType *setupInfo, const char *inData, int destPixelFormat);
 static void MO_DisposeObject_Picture(MOPictureObject *obj);
 static void MO_DeleteObjectInfo_Picture(MOPictureObject *obj);
 
@@ -411,98 +411,15 @@ static void SetMetaObjectToMatrix(MOMatrixObject *matObj, OGLMatrix4x4 *inData)
 // This takes the given input data and copies it.
 //
 
-static void SetMetaObjectToPicture(MOPictureObject *pictObj, OGLSetupOutputType *setupInfo, FSSpec *inData, int destPixelFormat)
+static void SetMetaObjectToPicture(MOPictureObject *pictObj, OGLSetupOutputType *setupInfo, const char *inData, int destPixelFormat)
 {
-int			width,height,depth,cellNum,numCells;
-int			horizCellSize, vertCellSize,segRow,segCol;
-int			numHorizCells, numVertCells;
-int			bytesPerPixel;
+int			width,height;
 MOPictureData	*picData = &pictObj->objectData;
-Ptr			buffer,pictMapAddr;
-uint32_t		bufferRowBytes,pictRowBytes;
 MOMaterialData	matData;
 
 			/* LOAD PICTURE FILE */
 
-	{
-		long imageLength = 0;
-		Ptr imageData = LoadFileData(inData, &imageLength);
-		GAME_ASSERT(imageData);
-
-		pictMapAddr = (Ptr) stbi_load_from_memory((const stbi_uc*) imageData, imageLength, &width, &height, NULL, 4);
-		GAME_ASSERT(pictMapAddr);
-
-		SafeDisposePtr(imageData);
-		imageData = NULL;
-	}
-
-	/*
-	depth = (*hPixMap)->pixelSize;								// get pixel bitdepth
-	if (depth == 32)
-		bytesPerPixel = 4;
-	else
-		bytesPerPixel = 2;
-	*/
-	depth = 32;
-	bytesPerPixel = 4;
-	pictRowBytes = bytesPerPixel*width;
-
-
-		/***********************************/
-		/* DETERMINE BEST SIZE OF SEGMENTS */
-		/***********************************/
-
-			/* DO WIDTH */
-
-	switch(width)
-	{
-		case	32:
-				horizCellSize = 32;
-				numHorizCells = 1;
-				break;
-
-		case	64:
-				horizCellSize = 64;
-				numHorizCells = 1;
-				break;
-
-		case	320:
-				horizCellSize = 64;
-				numHorizCells = 5;
-				break;
-
-		case	640:
-				horizCellSize = 128;
-				numHorizCells = width/horizCellSize;
-				break;
-
-		default:
-				DoFatalAlert("SetMetaObjectToPicture: this width not implemented yet");
-	}
-
-			/* DO HEIGHT */
-
-	switch(height)
-	{
-		case	32:
-				vertCellSize = 32;
-				numVertCells = 1;
-				break;
-
-		case	64:
-				vertCellSize = 64;
-				numVertCells = 1;
-				break;
-
-		case	480:
-				vertCellSize = 32;
-				numVertCells = height/vertCellSize;
-				break;
-
-		default:
-				DoFatalAlert("SetMetaObjectToPicture: this height not implemented yet");
-	}
-
+	GLuint textureName = OGL_TextureMap_LoadImageFile(inData, &width, &height);
 
 			/********************************/
 			/* SET SOME PICTURE OBJECT DATA */
@@ -516,131 +433,23 @@ MOMaterialData	matData;
 
 	picData->fullWidth 		= width;
 	picData->fullHeight		= height;
-	picData->numCellsWide 	= numHorizCells;
-	picData->numCellsHigh 	= numVertCells;
-	picData->cellWidth 		= horizCellSize;
-	picData->cellHeight 	= vertCellSize;
 
-	numCells = numHorizCells * numVertCells;
+			/***************************/
+			/* CREATE A TEXTURE OBJECT */
+			/***************************/
 
-	picData->materials 		= (MOMaterialObject **)AllocPtr(sizeof(MOMaterialObject *) * numCells);	// alloc array of material objects
-	if (picData->materials == nil)
-		DoFatalAlert("SetMetaObjectToPicture: AllocPtr failed!");
+	matData.setupInfo		= setupInfo;
+	matData.flags			= BG3D_MATERIALFLAG_TEXTURED|BG3D_MATERIALFLAG_CLAMP_U|BG3D_MATERIALFLAG_CLAMP_V;
+	matData.diffuseColor	= (OGLColorRGBA) {1,1,1,1};
+	matData.numMipmaps		= 1;
+	matData.width			= width;
+	matData.height			= height;
+	matData.pixelSrcFormat	= GL_RGBA;
+	matData.pixelDstFormat 	= destPixelFormat;
+	matData.texturePixels[0]= nil;						// we're going to preload
+	matData.textureName[0]	= textureName;
 
-
-		/*************************************/
-		/* CREATE TEXTURES FOR EACH SEGMENT  */
-		/*************************************/
-
-		/* ALLOCATE SEGMENT BUFFER */
-
-	buffer = AllocPtr(horizCellSize * vertCellSize * bytesPerPixel);
-	if (buffer == nil)
-		DoFatalAlert("SetMetaObjectToPicture: AllocPtr failed!");
-	bufferRowBytes = horizCellSize * bytesPerPixel;
-
-
-	cellNum = 0;
-
-	for (segRow = 0; segRow < numVertCells; segRow++)
-	{
-		for (segCol = 0; segCol < numHorizCells; segCol++)
-		{
-			Ptr		srcPtr,destPtr;
-
-			srcPtr = pictMapAddr + (segRow * vertCellSize * pictRowBytes) + (segCol * horizCellSize * bytesPerPixel);
-			destPtr = buffer + (vertCellSize-1) * bufferRowBytes;				// start @ bottom of buffer to flip image for OpenGL
-
-
-				/*********************************/
-				/* COPY THIS SEGMENT INTO BUFFER */
-				/*********************************/
-
-			if (depth == 32)
-			{
-				//uint32_t	r,g,b,a,x,y;
-				//uint32_t	pixels;
-				uint32_t *dest = (uint32_t *)destPtr;
-				uint32_t *src = (uint32_t *)srcPtr;
-
-				for (int y = 0; y < vertCellSize; y++)
-				{
-#if 0
-					for (x = 0; x < horizCellSize; x++)							// copy & convert a line of pixels
-					{
-						pixels = src[x];										// get pixel
-
-//						if (pixels == 0)
-//							a = 0;
-//						else
-							a = 0xff;											// pictures are opqaue
-
-						r = (pixels & 0x00ff0000) >> 16;
-						g = (pixels & 0x0000ff00) >> 8;
-						b = pixels & 0xff;
-
-						dest[x] = (r << 24) | (g << 16) | (b << 8) | a;			// save pixel
-					}
-#else
-					BlockMove(src, dest, horizCellSize*4);
-#endif
-					dest -= bufferRowBytes/4;
-					src += pictRowBytes/4;
-				}
-			}
-			else
-			{
-				DoFatalAlert("SetMetaObjectToPicture: 16-bit not implemented yet");
-			}
-
-					/***************************/
-					/* CREATE A TEXTURE OBJECT */
-					/***************************/
-
-			matData.setupInfo		= setupInfo;
-			matData.flags			= BG3D_MATERIALFLAG_TEXTURED|BG3D_MATERIALFLAG_CLAMP_U|BG3D_MATERIALFLAG_CLAMP_V;
-			matData.diffuseColor.r	= 1;
-			matData.diffuseColor.g	= 1;
-			matData.diffuseColor.b	= 1;
-			matData.diffuseColor.a	= 1;
-
-			matData.numMipmaps		= 1;
-			matData.width			= horizCellSize;
-			matData.height			= vertCellSize;
-
-			switch(depth)
-			{
-				case	32:
-						matData.pixelSrcFormat	= GL_RGBA;
-						break;
-
-			 	default:
-						matData.pixelSrcFormat	= GL_RGB;
-			}
-
-			matData.pixelDstFormat 	= destPixelFormat;
-			matData.texturePixels[0]= nil;						// we're going to preload
-			matData.textureName[0] 	= OGL_TextureMap_Load(buffer, horizCellSize, vertCellSize,
-														 matData.pixelSrcFormat, destPixelFormat, GL_UNSIGNED_BYTE);
-
-			picData->materials[cellNum] = MO_CreateNewObjectOfType(MO_TYPE_MATERIAL, 0, &matData);
-			cellNum++;
-
-			if (cellNum > numCells)
-				DoFatalAlert("SetMetaObjectToPicture: cellNum overflow");
-
-				/* KEEP MUSIC PLAYING */
-
-//			if (gSongPlayingFlag)
-//				MoviesTask(gSongMovie, 0);
-		}
-	}
-
-
-			/* CLEANUP */
-
-	stbi_image_free(pictMapAddr);
-	SafeDisposePtr(buffer);
+	picData->material = MO_CreateNewObjectOfType(MO_TYPE_MATERIAL, 0, &matData);
 }
 
 
@@ -1165,7 +974,7 @@ const OGLMatrix4x4		*m;
 
 void MO_DrawPicture(const MOPictureObject *picObj, const OGLSetupOutputType *setupInfo)
 {
-int				row,col,i,w,h;
+int				w,h;
 float			x,y,z,xadj,yadj;
 const MOPictureData	*picData = &picObj->objectData;
 int				px,py,pw,ph;
@@ -1184,13 +993,13 @@ float			screenScaleX,screenScaleY;
 	if (setupInfo->useFog)
 		glDisable(GL_FOG);
 	OGL_DisableLighting();
-	glDisable(GL_CULL_FACE);
+	glEnable(GL_CULL_FACE);
 
 
 			/* GET DIMENSIONAL DATA */
 
-	w = picData->cellWidth;
-	h = picData->cellHeight;
+	w = picData->fullWidth;
+	h = picData->fullHeight;
 	OGL_GetCurrentViewport(setupInfo, &px, &py, &pw, &ph, 0);
 
 	screenScaleX = pw/(float)PICTURE_FULL_SCREEN_SIZE_X;
@@ -1200,45 +1009,33 @@ float			screenScaleX,screenScaleY;
 	yadj = (float)h/(float)ph * (picData->drawScaleY * (screenScaleY * 2.0f));
 
 
-	i = 0;
 	z = picData->drawCoord.z;
 	y = picData->drawCoord.y - yadj;
 
-	for (row = 0; row < picData->numCellsHigh; row++)
-	{
-		x = picData->drawCoord.x;
+	x = picData->drawCoord.x;
 
-		for (col = 0; col < picData->numCellsWide; col++)
-		{
-					/* ACTIVATE THE MATERIAL */
+			/* ACTIVATE THE MATERIAL */
 
-			MO_DrawMaterial(picData->materials[i], setupInfo);			// submit material #0
+	MO_DrawMaterial(picData->material, setupInfo);			// submit material #0
 
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
-			glBegin(GL_QUADS);
-			glTexCoord2f(0,1);	glVertex3f(x, y + yadj,z);
-			glTexCoord2f(1,1);	glVertex3f(x + xadj, y + yadj,z);
-			glTexCoord2f(1,0);	glVertex3f(x + xadj, y,z);
-			glTexCoord2f(0,0);	glVertex3f(x, y, z);
-			glEnd();
+	glBegin(GL_QUADS);
+	glTexCoord2f(0, 1);	glVertex3f(x, y, z);
+	glTexCoord2f(1, 1);	glVertex3f(x + xadj, y,z);
+	glTexCoord2f(1, 0);	glVertex3f(x + xadj, y + yadj, z);
+	glTexCoord2f(0, 0);	glVertex3f(x, y + yadj, z);
+	glEnd();
 
-			i++;														// next material index
-			x += xadj;
-
-			gPolysThisFrame += 2;										// 2 more triangles
-		}
-		y -= yadj;
-
-	}
+	gPolysThisFrame += 2;										// 2 more triangles
 
 			/* RESTORE STATE */
 
 	OGL_PopState();
 
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 }
 
 /************************ MO: DRAW SPRITE **************************/
@@ -1488,11 +1285,9 @@ int	i,n;
 static void MO_DisposeObject_Picture(MOPictureObject *obj)
 {
 MOPictureData *data = &obj->objectData;
-int		numCells,i;
 
-	numCells = data->numCellsWide * data->numCellsHigh;
-	for (i = 0; i < numCells; i++)
-		MO_DisposeObjectReference(data->materials[i]);		// dispose of this object's ref
+	MO_DisposeObjectReference(data->material);
+	data->material = NULL;
 }
 
 /****************** DISPOSE OBJECT: SPRITE *******************/
@@ -1591,12 +1386,6 @@ MOMaterialData		*data = &obj->objectData;
 
 static void MO_DeleteObjectInfo_Picture(MOPictureObject *obj)
 {
-MOPictureData		*data = &obj->objectData;
-
-		/* DISPOSE OF TEXTURE NAMES ARRAY */
-
-	SafeDisposePtr((Ptr)data->materials);
-	data->materials = nil;
 }
 
 

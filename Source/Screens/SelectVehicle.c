@@ -267,10 +267,7 @@ int					age;
 
 			/* MAKE BACKGROUND PICTURE OBJECT */
 
-	if (FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":images:VehicleSelectScreen.jpg", &spec))
-		DoFatalAlert("SetupVehicleSelectScreen: background pict not found.");
-
-	gBackgoundPicture = MO_CreateNewObjectOfType(MO_TYPE_PICTURE, (uintptr_t) gGameViewInfoPtr, &spec);
+	gBackgoundPicture = MO_CreateNewObjectOfType(MO_TYPE_PICTURE, (uintptr_t) gGameViewInfoPtr, ":images:VehicleSelectScreen.jpg");
 	if (!gBackgoundPicture)
 		DoFatalAlert("SetupVehicleSelectScreen: MO_CreateNewObjectOfType failed");
 
