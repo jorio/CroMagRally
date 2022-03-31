@@ -134,7 +134,7 @@ static void DrawFadePane(ObjNode* theNode, OGLSetupOutputType* setupInfo)
 	glDisable(GL_TEXTURE_2D);
 	glEnable(GL_BLEND);
 
-	glColor4f(0, 0, 0, 1.0f - gGammaFadePercent/100.0f);
+	glColor4f(0, 0, 0, 1.0f - gGammaFadePercent);
 	glBegin(GL_QUADS);
 	glVertex3f(-1, +1, 0);
 	glVertex3f(+1, +1, 0);
@@ -199,10 +199,10 @@ float	fps = gFramesPerSecondFrac;
 
 	if (theNode->Flag[0])
 	{
-		gGammaFadePercent += 400.0f*fps;
-		if (gGammaFadePercent >= 100.0f)										// see if @ 100%
+		gGammaFadePercent += 4.0f*fps;
+		if (gGammaFadePercent >= 1.0f)										// see if @ 100%
 		{
-			gGammaFadePercent = 100.0f;
+			gGammaFadePercent = 1.0f;
 			DeleteObject(theNode);
 		}
 	}
@@ -210,7 +210,7 @@ float	fps = gFramesPerSecondFrac;
 			/* FADE OUT */
 	else
 	{
-		gGammaFadePercent -= 400.0f*fps;
+		gGammaFadePercent -= 4.0f*fps;
 		if (gGammaFadePercent <= 0.0f)													// see if @ 0%
 		{
 			gGammaFadePercent = 0;
@@ -236,13 +236,11 @@ void OGL_FadeOutScene(
 	ObjNode* newObj = MakeNewObject(&newObjDef);
 	newObj->CustomDrawFunction = DrawFadePane;
 
-	extern float gFramesPerSecondFrac;
-	gFramesPerSecondFrac = 1;
-	const float duration = 0.25f;
+	const float duration = 0.15f;
 	float timer = duration;
 	while (timer >= 0)
 	{
-		gGammaFadePercent = 100.0f * timer / duration;
+		gGammaFadePercent = 1.0f * timer / duration;
 
 		CalcFramesPerSecond();
 		DoSDLMaintenance();

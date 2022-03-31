@@ -194,10 +194,14 @@ Boolean DoVehicleSelectScreen(short whichPlayer, Boolean allowAborting)
 			/* CLEANUP */
 			/***********/
 
+	bool bailed = gSelectedVehicleIndex == -1;								// see if user bailed
+
+	gGameViewInfoPtr->fadePillarbox = !bailed;
+
 	OGL_FadeOutScene(gGameViewInfoPtr, DrawVehicleSelectCallback, MoveObjects);
 	FreeVehicleSelectArt();
 
-	if (gSelectedVehicleIndex == -1)										// see if user bailed
+	if (bailed)
 		return(true);
 
 

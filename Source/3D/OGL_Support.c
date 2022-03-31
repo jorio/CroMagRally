@@ -86,6 +86,7 @@ float	g2DLogicalWidth		= 640.0f;
 float	g2DLogicalHeight	= 480.0f;
 
 GLuint	gPillarboxTexture = 0;
+float	gPillarboxBrightness = 0;
 
 Boolean		gStateStack_Lighting[STATE_STACK_SIZE];
 Boolean		gStateStack_CullFace[STATE_STACK_SIZE];
@@ -218,6 +219,7 @@ OGLSetupOutputType	*outputPtr;
 	outputPtr->useFog 			= setupDefPtr->styles.useFog;
 	outputPtr->clearBackBuffer 	= setupDefPtr->view.clearBackBuffer;
 	outputPtr->pillarbox4x3		= setupDefPtr->view.pillarbox4x3;
+	outputPtr->fadePillarbox	= false;
 
 	outputPtr->isActive = true;											// it's now an active structure
 
@@ -239,6 +241,11 @@ OGLSetupOutputType	*outputPtr;
 	{
 		const char* pillarboxImage = gDebugMode != 0? ":images:pillarboxtest.png": ":images:pillarbox.jpg";
 		gPillarboxTexture = OGL_TextureMap_LoadImageFile(pillarboxImage, NULL, NULL);
+	}
+	else
+	{
+		// Make pillarbox fade in next time we use it after this fullscreen scene
+		gPillarboxBrightness = 0;
 	}
 }
 
@@ -499,6 +506,11 @@ void DrawPillarboxBackground(OGLSetupOutputType* setupInfo, int vpx, int vpy, in
 	float z = 0;
 	float textureAR = 1024.0f / 768.0f;
 
+	// See if pillarbox brightness should track global fade brightness
+	// (Force tracking if we're not at full brightness already)
+	if (gPillarboxBrightness < 1.0 || setupInfo->fadePillarbox)
+		gPillarboxBrightness = gGammaFadePercent;
+
 	if (vph == gGameWindowHeight) // widescreen
 	{
 		float stripeW = 0.5f * (gGameWindowWidth - vpw);
@@ -536,7 +548,7 @@ void DrawPillarboxBackground(OGLSetupOutputType* setupInfo, int vpx, int vpy, in
 			tcR2 = .5f;
 		}
 
-		glColor4f(1,1,1,1);
+		glColor4f(gPillarboxBrightness, gPillarboxBrightness, gPillarboxBrightness, 1);
 		glBegin(GL_QUADS);
 		glTexCoord2f(tcL1, tcB);		glVertex3f(qL1, qB, z);		// Quad 1 (right)
 		glTexCoord2f(tcR1, tcB);		glVertex3f(qR1, qB, z);
@@ -603,7 +615,7 @@ void DrawPillarboxBackground(OGLSetupOutputType* setupInfo, int vpx, int vpy, in
 			tcB2 = 0.5f + .5f * zoom;
 		}
 
-		glColor4f(1,1,1,1);
+		glColor4f(gPillarboxBrightness, gPillarboxBrightness, gPillarboxBrightness, 1);
 		glBegin(GL_QUADS);
 		glTexCoord2f(tcL, tcB1);		glVertex3f(qL, qB1, z);		// Quad 1 (top)
 		glTexCoord2f(tcR, tcB1);		glVertex3f(qR, qB1, z);
