@@ -876,6 +876,8 @@ static void PlayArea(void)
 		/* MAIN GAME LOOP */
 		/******************/
 
+	MakeFadeEvent(true);
+
 	while(true)
 	{
 				/******************************************/
@@ -951,7 +953,6 @@ static void PlayArea(void)
 			/* DRAW IT ALL */
 			/***************/
 
-
 		OGL_DrawScene(gGameViewInfoPtr,DrawTerrain);
 
 
@@ -1006,9 +1007,6 @@ static void PlayArea(void)
 
 		if (!gIsNetworkClient)						// clients dont need to calc frame rate since its passed to them from host.
 			CalcFramesPerSecond();
-
-		if (gGameFrameNum == 0)						// if that was 1st frame, then create a fade event
-			MakeFadeEvent(true);
 
 		gGameFrameNum++;
 
