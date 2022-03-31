@@ -287,7 +287,7 @@ static void DrawCharacterSelectCallback(OGLSetupOutputType *info)
 		DrawSprite(SPRITE_GROUP_VEHICLESELECTSCREEN, CHARACTERSELECT_SObjType_Arrow,
 					-.43, -.85, ARROW_SCALE, 0, 0, info);
 	}
-	else
+	else if (gSelectedCharacterIndex == 1)
 	{
 		DrawSprite(SPRITE_GROUP_VEHICLESELECTSCREEN, CHARACTERSELECT_SObjType_Arrow,
 					.43, -.85, ARROW_SCALE, 0, 0, info);

@@ -314,23 +314,23 @@ short				highestUnlocked;
 			/* DRAW THE SCROLL ARROWS */
 			/**************************/
 
-			/* LEFT ARROW */
-
-	if (gSelectedTrackIndex > 0)
+	if (gSelectedTrackIndex >= 0)		// only draw arrows if selection is valid (it's -1 when fading out after canceling)
 	{
-		DrawSprite(SPRITE_GROUP_TRACKSELECTSCREEN, TRACKSELECT_SObjType_Arrow_LeftOn,
-					LEFT_ARROW_X, ARROW_Y, ARROW_SCALE, 0, 0, info);
-	}
+				/* LEFT ARROW */
 
+		if (gSelectedTrackIndex > 0)
+		{
+			DrawSprite(SPRITE_GROUP_TRACKSELECTSCREEN, TRACKSELECT_SObjType_Arrow_LeftOn,
+						LEFT_ARROW_X, ARROW_Y, ARROW_SCALE, 0, 0, info);
+		}
 
+				/* RIGHT ARROW */
 
-
-			/* RIGHT ARROW */
-
-	if (gSelectedTrackIndex < (gNumTracksInSelection-1))
-	{
-		DrawSprite(SPRITE_GROUP_TRACKSELECTSCREEN, TRACKSELECT_SObjType_Arrow_RightOn,
-					RIGHT_ARROW_X, ARROW_Y, ARROW_SCALE, 0, 0, info);
+		if (gSelectedTrackIndex < (gNumTracksInSelection-1))
+		{
+			DrawSprite(SPRITE_GROUP_TRACKSELECTSCREEN, TRACKSELECT_SObjType_Arrow_RightOn,
+						RIGHT_ARROW_X, ARROW_Y, ARROW_SCALE, 0, 0, info);
+		}
 	}
 
 

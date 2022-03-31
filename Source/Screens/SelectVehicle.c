@@ -423,25 +423,24 @@ static void DrawVehicleSelectCallback(OGLSetupOutputType *info)
 			/* DRAW THE SCROLL ARROWS */
 			/**************************/
 
+	if (gSelectedVehicleIndex >= 0)		// only draw arrows if selection is valid (it's -1 when fading out after canceling)
+	{
 			/* LEFT ARROW */
 
-	if (gSelectedVehicleIndex > 0)
-	{
-		DrawSprite(SPRITE_GROUP_VEHICLESELECTSCREEN, VEHICLESELECT_SObjType_Arrow_LeftOn,
-					LEFT_ARROW_X, ARROW_Y, ARROW_SCALE, 0, 0, info);
-	}
-
-
-
+		if (gSelectedVehicleIndex > 0)
+		{
+			DrawSprite(SPRITE_GROUP_VEHICLESELECTSCREEN, VEHICLESELECT_SObjType_Arrow_LeftOn,
+						LEFT_ARROW_X, ARROW_Y, ARROW_SCALE, 0, 0, info);
+		}
 
 			/* RIGHT ARROW */
 
-	if (gSelectedVehicleIndex < (gNumVehiclesToChooseFrom-1))
-	{
-		DrawSprite(SPRITE_GROUP_VEHICLESELECTSCREEN, VEHICLESELECT_SObjType_Arrow_RightOn,
-					RIGHT_ARROW_X, ARROW_Y, ARROW_SCALE, 0, 0, info);
+		if (gSelectedVehicleIndex < (gNumVehiclesToChooseFrom-1))
+		{
+			DrawSprite(SPRITE_GROUP_VEHICLESELECTSCREEN, VEHICLESELECT_SObjType_Arrow_RightOn,
+						RIGHT_ARROW_X, ARROW_Y, ARROW_SCALE, 0, 0, info);
+		}
 	}
-
 
 	DrawObjects(info);
 }
