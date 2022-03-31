@@ -588,7 +588,7 @@ OGLSetupInputType	viewDef;
 		{
 			.type		= SKELETON_TYPE_MALESTANDING,
 			.animNum	= 2,
-			.coord		= {-900, -200, 120},
+			.coord		= {-900, 120, -200},
 			.flags		= 0,
 			.slot		= 100,
 			.moveCall	= MoveWinGuy,

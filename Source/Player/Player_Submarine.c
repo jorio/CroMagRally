@@ -719,7 +719,10 @@ ObjNode			*prop;
 	{
 		.group		= MODEL_GROUP_CARPARTS,
 		.type		= CARPARTS_ObjType_Propeller,
+		.coord		= theCar->Coord,
 		.flags		= STATUS_BIT_KEEPBACKFACES,
+		.slot		= PLAYER_SLOT,
+		.scale		= 1,
 	};
 	prop = MakeNewDisplayGroupObject(&def);
 

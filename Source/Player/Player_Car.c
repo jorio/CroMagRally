@@ -2722,6 +2722,7 @@ ObjNode			*wheel,*link;
 		{
 			.group		= MODEL_GROUP_CARPARTS,
 			.type		= (carType * 4) + CARPARTS_ObjType_Wheel_MammothFL + i,
+			.coord		= {0,0,0},
 			.slot		= theCar->Slot+1,
 			.scale		= theCar->Scale.x,
 		};
@@ -2750,6 +2751,7 @@ ObjNode			*wheel,*link;
 	{
 		.moveCall	= MovePlayer_HeadSkeleton,
 		.type		= SKELETON_TYPE_PLAYER_MALE + sex,
+		.coord		= {0,0,0},
 		.animNum	= PLAYER_ANIM_SIT,
 		.slot		= theCar->Slot+1,
 		.scale		= BROG_SCALE,
