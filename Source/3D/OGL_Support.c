@@ -237,11 +237,8 @@ OGLSetupOutputType	*outputPtr;
 
 	if (outputPtr->pillarbox4x3)
 	{
-#if _DEBUG
-		gPillarboxTexture = OGL_TextureMap_LoadImageFile(":images:pillarboxtest.png", NULL, NULL);
-#else
-		gPillarboxTexture = OGL_TextureMap_LoadImageFile(":images:pillarbox.jpg", NULL, NULL);
-#endif
+		const char* pillarboxImage = gDebugMode != 0? ":images:pillarboxtest.png": ":images:pillarbox.jpg";
+		gPillarboxTexture = OGL_TextureMap_LoadImageFile(pillarboxImage, NULL, NULL);
 	}
 }
 
