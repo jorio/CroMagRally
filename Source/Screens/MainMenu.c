@@ -78,6 +78,7 @@ enum
 	MENU_ID_TOURNAMENT,
 	MENU_ID_NETGAME,
 	MENU_ID_SETTINGS,
+	MENU_ID_CONFIRM_CLEAR_SAVE,
 	NUM_MENU_IDS
 };
 
@@ -192,6 +193,19 @@ static void OnToggleMusic(const MenuItem* mi)
 	}
 }
 
+static bool IsClearSavedGameAvailable(const MenuItem* mi)
+{
+	(void) mi;
+	return GetNumAgesCompleted() > 0 || GetNumStagesCompleted() > 0;
+}
+
+static void OnPickClearSavedGame(const MenuItem* mi)
+{
+	SetPlayerProgression(0, 0);
+	SavePlayerFile();
+	MenuCallback_Back(mi);
+}
+
 static bool IsTournamentAgeAvailable(const MenuItem* mi)
 {
 	return mi->id <= GetNumAgesCompleted();
@@ -212,16 +226,20 @@ static const MenuItem
 	{
 		{ kMenuItem_Pick, STR_1PLAYER,	.id=1, .callback=OnConfirmPlayMenu, .gotoMenu=MENU_ID_1PLAYERGAMETYPE },
 		{ kMenuItem_Pick, STR_2PLAYER,	.id=2, .callback=OnConfirmPlayMenu, .gotoMenu=MENU_ID_MULTIPLAYERGAMETYPE },
+#if 0	// TODO!
 		{ kMenuItem_Pick, STR_NET_GAME,	.id=3, .callback=OnConfirmPlayMenu, .gotoMenu=MENU_ID_NETGAME },
+#endif
 		{ kMenuItem_END_SENTINEL },
 	},
 
 	gMenuOptions[] =
 	{
-		{ kMenuItem_Pick, .rawText="GAME SETTINGS", .gotoMenu=MENU_ID_SETTINGS },
-		{ kMenuItem_Pick, .rawText="KEYBOARD CONTROLS", .gotoMenu=MENU_ID_SETTINGS },
-		{ kMenuItem_Pick, .rawText="GAMEPAD CONTROLS", .gotoMenu=MENU_ID_SETTINGS },
-		{ kMenuItem_Pick, .rawText="CLEAR SAVED PROGRESS" },
+		{ kMenuItem_Pick, STR_SETTINGS, .gotoMenu=MENU_ID_SETTINGS },
+#if 0	// TODO!
+		{ kMenuItem_Pick, STR_CONFIGURE_KEYBOARD, .gotoMenu=MENU_ID_SETTINGS },
+		{ kMenuItem_Pick, STR_CONFIGURE_GAMEPAD, .gotoMenu=MENU_ID_SETTINGS },
+#endif
+		{ kMenuItem_Pick, STR_CLEAR_SAVED_GAME, .gotoMenu=MENU_ID_CONFIRM_CLEAR_SAVE, .enableIf=IsClearSavedGameAvailable },
 		{ kMenuItem_END_SENTINEL },
 	},
 
@@ -229,7 +247,9 @@ static const MenuItem
 	{
 		{ kMenuItem_Pick, STR_HELP, .id=MENU_EXITCODE_HELP, .gotoMenu=-1 },
 		{ kMenuItem_Pick, STR_CREDITS, .id=MENU_EXITCODE_CREDITS, .gotoMenu=-1 },
+#if 0	// TODO!
 		{ kMenuItem_Pick, STR_PHYSICS_EDITOR, .id=MENU_EXITCODE_PHYSICS, .gotoMenu=0 },
+#endif
 		{ kMenuItem_END_SENTINEL },
 	},
 
@@ -263,6 +283,18 @@ static const MenuItem
 	{
 		{ kMenuItem_Pick, STR_HOST_NET_GAME, .callback=OnPickHostOrJoin, .id=0, .gotoMenu=MENU_ID_MULTIPLAYERGAMETYPE }, // host gets to select game type
 		{ kMenuItem_Pick, STR_JOIN_NET_GAME, .callback=OnPickHostOrJoin, .id=1, .gotoMenu=-1 },
+		{ kMenuItem_END_SENTINEL },
+	},
+
+	gMenuConfirmClearSave[] =
+	{
+		{ kMenuItem_Subtitle, .text=STR_CLEAR_SAVED_GAME_TEXT_1 },
+		{ kMenuItem_Subtitle, .text=STR_CLEAR_SAVED_GAME_TEXT_2 },
+		{ kMenuItem_Subtitle, .text=STR_CLEAR_SAVED_GAME_TEXT_3 },
+		{ kMenuItem_Subtitle, .text=STR_CLEAR_SAVED_GAME_TEXT_4 },
+		{ kMenuItem_Spacer, .text=STR_NULL },
+		{ kMenuItem_Pick, .text=STR_CLEAR_SAVED_GAME_CANCEL, .callback=MenuCallback_Back },
+		{ kMenuItem_Pick, .text=STR_CLEAR_SAVED_GAME, .callback=OnPickClearSavedGame },
 		{ kMenuItem_END_SENTINEL },
 	},
 
@@ -346,6 +378,7 @@ static const MenuItem* gMainMenuTree[NUM_MENU_IDS] =
 	[MENU_ID_TOURNAMENT] = gMenuTournament,
 	[MENU_ID_NETGAME] = gMenuNetGame,
 	[MENU_ID_SETTINGS] = gMenuSettings,
+	[MENU_ID_CONFIRM_CLEAR_SAVE] = gMenuConfirmClearSave,
 };
 
 

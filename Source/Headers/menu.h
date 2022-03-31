@@ -63,8 +63,6 @@ typedef struct MenuStyle
 	OGLColorRGBA	inactiveColor;
 	OGLColorRGBA	inactiveColor2;
 	float			standardScale;
-	float			titleScale;
-	float			subtitleScale;
 	float			rowHeight;
 	float			uniformXExtent;
 	bool			playMenuChangeSounds;

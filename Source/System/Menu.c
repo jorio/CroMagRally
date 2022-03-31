@@ -103,8 +103,6 @@ const MenuStyle kDefaultMenuStyle =
 	.inactiveColor		= {1.0f, 1.0f, 1.0f, 1.0f},
 	.inactiveColor2		= {0.8f, 0.0f, 0.5f, 0.5f},
 	.standardScale		= .45f,
-	.titleScale			= 1.25f,
-	.subtitleScale		= .5f,
 	.rowHeight			= 0.15f,
 	.uniformXExtent		= 0,
 	.playMenuChangeSounds	= true,
@@ -112,6 +110,23 @@ const MenuStyle kDefaultMenuStyle =
 	.isInteractive		= true,
 	.canBackOutOfRootMenu	= false,
 	.textSlot			= SLOT_OF_DUMB + 100,
+};
+
+static const float kMenuItemHeightMultipliers[kMenuItem_NUM_ITEM_TYPES] =  // acts as text scale as well
+{
+	[kMenuItem_END_SENTINEL] = 0.0f,
+	[kMenuItem_Title] = 1.4f,
+	[kMenuItem_Subtitle] = 0.8f,
+	[kMenuItem_Label] = 1.0f,
+	//	[kMenuItem_Action]       = 1,
+	//	[kMenuItem_Submenu]      = 1,
+	[kMenuItem_Spacer] = 0.5f,
+	[kMenuItem_Cycler] = 1,
+	[kMenuItem_CMRCycler] = 1,
+	[kMenuItem_Pick] = 1,
+	[kMenuItem_KeyBinding] = 1,
+	[kMenuItem_PadBinding] = 1,
+	[kMenuItem_MouseBinding] = 1,
 };
 
 /*********************/
@@ -1122,6 +1137,8 @@ static ObjNode* MakeTextAtRowCol(const char* text, int row, int col)
 {
 	ObjNode* node = gNav->menuObjects[row][col];
 
+	int miType = gNav->menu[row].type;
+
 	if (node)
 	{
 		// Recycling existing text lets us keep the move call, color and specials
@@ -1134,7 +1151,7 @@ static ObjNode* MakeTextAtRowCol(const char* text, int row, int col)
 		NewObjectDefinitionType def =
 		{
 			.coord = (OGLPoint3D) { startX + gNav->menuColXs[col], gNav->menuRowYs[row], 0 },
-			.scale = gNav->style.standardScale,
+			.scale = gNav->style.standardScale * kMenuItemHeightMultipliers[miType],
 			.slot = SLOT_OF_DUMB + 100,
 		};
 
@@ -1163,23 +1180,6 @@ static ObjNode* MakeTextAtRowCol(const char* text, int row, int col)
 
 	return node;
 }
-
-static const float kMenuItemHeightMultipliers[kMenuItem_NUM_ITEM_TYPES] =
-{
-	[kMenuItem_END_SENTINEL] = 0.0f,
-	[kMenuItem_Title]        = 1.4f,
-	[kMenuItem_Subtitle]     = 0.8f,
-	[kMenuItem_Label]        = 1,
-//	[kMenuItem_Action]       = 1,
-//	[kMenuItem_Submenu]      = 1,
-	[kMenuItem_Spacer]       = 0.5f,
-	[kMenuItem_Cycler]       = 1,
-	[kMenuItem_CMRCycler]    = 1,
-	[kMenuItem_Pick]         = 1,
-	[kMenuItem_KeyBinding]   = 1,
-	[kMenuItem_PadBinding]   = 1,
-	[kMenuItem_MouseBinding] = 1,
-};
 
 static const char* GetMenuItemLabel(const MenuItem* entry)
 {
@@ -1276,7 +1276,6 @@ static void LayOutMenu(const MenuItem* menu)
 
 			case kMenuItem_Title:
 			{
-//				gNewObjectDefinition.scale = gNav->style.titleScale;
 				ObjNode* label = MakeTextAtRowCol(GetMenuItemLabel(entry), row, 0);
 				label->ColorFilter = gNav->style.titleColor;
 				label->MoveCall = MoveLabel;
@@ -1286,9 +1285,9 @@ static void LayOutMenu(const MenuItem* menu)
 
 			case kMenuItem_Subtitle:
 			{
-//				gNewObjectDefinition.scale = gNav->style.subtitleScale;
 				ObjNode* label = MakeTextAtRowCol(GetMenuItemLabel(entry), row, 0);
-				label->ColorFilter = gNav->style.titleColor;
+				//label->ColorFilter = gNav->style.titleColor;
+				label->ColorFilter = (OGLColorRGBA){ 0.7, .4, .2, 1 };
 				label->MoveCall = MoveLabel;
 				label->SpecialSweepTimer = .5f;		// Title appears sooner than the rest
 				break;
@@ -1297,7 +1296,7 @@ static void LayOutMenu(const MenuItem* menu)
 			case kMenuItem_Label:
 			{
 				ObjNode* label = MakeTextAtRowCol(GetMenuItemLabel(entry), row, 0);
-				label->ColorFilter = gNav->style.inactiveColor;
+				label->ColorFilter = (OGLColorRGBA){ 0.7, .4, .2, 1 };//gNav->style.inactiveColor;
 				label->MoveCall = MoveLabel;
 				label->SpecialSweepTimer = sweepFactor;
 				break;
@@ -1330,7 +1329,6 @@ static void LayOutMenu(const MenuItem* menu)
 			{
 				snprintf(buf, bufSize, "%s:", Localize(STR_KEYBINDING_DESCRIPTION_0 + entry->kb));
 
-//				gNewObjectDefinition.scale = 0.6f;
 				ObjNode* label = MakeTextAtRowCol(buf, row, 0);
 				label->ColorFilter = gNav->style.inactiveColor2;
 				label->MoveCall = MoveLabel;
@@ -1392,7 +1390,8 @@ static void LayOutMenu(const MenuItem* menu)
 		GAME_ASSERT(gNav->numMenuEntries < MAX_MENU_ROWS);
 	}
 
-	if (gNav->menuRow <= 0)
+	if (gNav->menuRow <= 0
+		|| !IsMenuItemSelectable(&gNav->menu[gNav->menuRow]))	// we had selected this item when we last were in this menu, but it's been disabled since then
 	{
 		// Scroll down to first pickable entry
 		gNav->menuRow = -1;
