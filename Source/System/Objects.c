@@ -863,9 +863,7 @@ short			skelType, playerNum;
 
 						MO_DrawObject(theNode->BaseGroup, setupInfo);
 
-#if !_DEBUG // always show extents for now
-						if (gDebugMode == 1)
-#endif
+						if (gDebugMode >= 2)
 						{
 							TextMesh_DrawExtents(theNode);
 						}
