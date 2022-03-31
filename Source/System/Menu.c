@@ -71,10 +71,13 @@ static ObjNode* LayOutCyclerValueText(int row);
 #define MAX_STACK_LENGTH 16
 
 #define kSfxNavigate	EFFECT_SELECTCLICK
-#define kSfxMenuChange	EFFECT_GETPOW
-#define kSfxCycle		EFFECT_ROMANCANDLE_LAUNCH
+#define kSfxMenuChange	EFFECT_SELECTCLICK
+#define kSfxBack		EFFECT_GETPOW
+#define kSfxCycle		EFFECT_SELECTCLICK
 #define kSfxError		EFFECT_BADSELECT
 #define kSfxDelete		EFFECT_BOOM
+
+#define PlayConfirmEffect() PlayEffect_Parms(kSfxCycle, FULL_CHANNEL_VOLUME, FULL_CHANNEL_VOLUME, NORMAL_CHANNEL_RATE * 2/3)
 
 const int16_t kJoystickDeadZone_BindingThreshold = (75 * 32767 / 100);
 
@@ -477,16 +480,18 @@ void MenuCallback_Back(const MenuItem* mi)
 
 	if (gNav->historyPos != 0)
 	{
+		PlayEffect(kSfxBack);
 		gNav->historyPos--;
 		LayOutMenu(gNav->history[gNav->historyPos].menu);
 	}
 	else if (gNav->style.canBackOutOfRootMenu)
 	{
+		PlayEffect(kSfxBack);
 		gNav->menuState = kMenuStateFadeOut;
 	}
 	else
 	{
-		PlayEffect(EFFECT_BADSELECT);
+		PlayEffect(kSfxError);
 	}
 }
 
@@ -608,7 +613,7 @@ static void NavigatePick(const MenuItem* entry)
 		gNav->idleTime = 0;
 
 		if (entry->callback != MenuCallback_Back)
-			PlayEffect(kSfxCycle);
+			PlayConfirmEffect();
 		else if (gNav->style.playMenuChangeSounds)
 			PlayEffect(kSfxMenuChange);
 
@@ -684,7 +689,7 @@ static void NavigateCycler(const MenuItem* entry)
 	if (delta != 0)
 	{
 		gNav->idleTime = 0;
-		PlayEffect_Parms(kSfxCycle, FULL_CHANNEL_VOLUME, FULL_CHANNEL_VOLUME, NORMAL_CHANNEL_RATE + (RandomFloat2() * 0x3000));
+		PlayEffect_Parms(kSfxCycle, FULL_CHANNEL_VOLUME, FULL_CHANNEL_VOLUME, NORMAL_CHANNEL_RATE * 2/3 + (RandomFloat2() * 0x3000));
 
 		if (entry->cycler.valuePtr && !entry->cycler.callbackSetsValue)
 		{
