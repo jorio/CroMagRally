@@ -32,7 +32,6 @@
 #include "fences.h"
 #include "paths.h"
 #include "sobjtypes.h"
-#include "selectvehicle.h"
 #include "triggers.h"
 #include "infobar.h"
 #include "sprites.h"

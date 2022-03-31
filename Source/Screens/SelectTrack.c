@@ -24,7 +24,6 @@
 #include "terrain.h"
 #include "camera.h"
 #include "sobjtypes.h"
-#include "selecttrack.h"
 #include "network.h"
 #include "player.h"
 #include "sprites.h"

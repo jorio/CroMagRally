@@ -21,7 +21,6 @@
 #include	"main.h"
 #include "3dmath.h"
 #include "sobjtypes.h"
-#include "selectvehicle.h"
 #include "network.h"
 #include "player.h"
 #include "sprites.h"

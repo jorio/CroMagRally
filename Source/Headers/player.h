@@ -11,6 +11,7 @@
 #define	MAX_SUBMARINE_SPEED		4000.0f
 
 #define	MAX_CAR_TYPES	10
+#define	NUM_VEHICLE_PARAMETERS		4
 
 #define	CapturedFlag	SpecialPtr[3]			// objNode of attached team flag
 #define	InvincibleTimer	SpecialF[4]				// timer for invicibility after being hurt
