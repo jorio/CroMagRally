@@ -183,7 +183,6 @@ int main(int argc, char** argv)
 		ParseCommandLine(argc, argv);
 		Boot();
 		returnCode = GameMain();
-		Shutdown();
 	}
 	catch (Pomme::QuitRequest&)
 	{
@@ -206,10 +205,12 @@ int main(int argc, char** argv)
 	}
 #endif
 
+	Shutdown();
+
 	if (showFinalErrorMessage)
 	{
 		std::cerr << "Uncaught exception: " << finalErrorMessage << "\n";
-		SDL_ShowSimpleMessageBox(0, "Bugdom", finalErrorMessage.c_str(), nullptr);
+		SDL_ShowSimpleMessageBox(0, "Cro-Mag Rally", finalErrorMessage.c_str(), nullptr);
 	}
 
 	return returnCode;
