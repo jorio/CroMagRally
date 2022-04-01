@@ -34,6 +34,9 @@ typedef struct
 	float xoff;
 	float yoff;
 	float xadv;
+
+	uint16_t	kernTableOffset;
+	int8_t		numKernPairs;
 } AtlasGlyph;
 
 /****************************/
@@ -44,6 +47,8 @@ typedef struct
 #define MAX_CODEPOINT_PAGES 256
 
 #define TAB_STOP 60.0f
+
+#define MAX_KERNPAIRS		256
 
 /****************************/
 /*    VARIABLES             */
@@ -59,11 +64,33 @@ static float gFontLineHeight = 0;
 
 static AtlasGlyph* gAtlasGlyphsPages[MAX_CODEPOINT_PAGES];
 
+static uint16_t gKernPairs[MAX_KERNPAIRS];
+static uint8_t gKernTracking[MAX_KERNPAIRS];
+
 #pragma mark -
 
 /***************************************************************/
 /*                         UTF-8                               */
 /***************************************************************/
+
+static AtlasGlyph* GetGlyphFromCodepoint(uint32_t c)
+{
+	uint32_t page = c >> 8;
+
+	if (page >= MAX_CODEPOINT_PAGES)
+	{
+		page = 0; // ascii
+		c = '?';
+	}
+
+	if (!gAtlasGlyphsPages[page])
+	{
+		page = 0; // ascii
+		c = '#';
+	}
+
+	return &gAtlasGlyphsPages[page][c & 0xFF];
+}
 
 static uint32_t ReadNextCodepointFromUTF8(const char** utf8TextPtr)
 {
@@ -152,6 +179,8 @@ static void ParseSFL(const char* data)
 	for (int i = 0; i < nGlyphs; i++)
 	{
 		AtlasGlyph newGlyph;
+		memset(&newGlyph, 0, sizeof(newGlyph));
+
 		uint32_t codePoint = 0;
 		nArgs = sscanf(
 				data,
@@ -194,6 +223,59 @@ static void ParseSFL(const char* data)
 }
 
 /***************************************************************/
+/*                 PARSE KERNING TABLE                         */
+/***************************************************************/
+
+static void SkipWhitespace(const char** data)
+{
+	while (**data && strchr("\t\r\n ", **data))
+	{
+		(*data)++;
+	}
+}
+
+static void ParseKerningFile(const char* data)
+{
+	int kernTableOffset = 0;
+
+	while (*data)
+	{
+		uint32_t codepoint1 = ReadNextCodepointFromUTF8(&data);
+		GAME_ASSERT(codepoint1);
+		
+		uint32_t codepoint2 = ReadNextCodepointFromUTF8(&data);
+		GAME_ASSERT(codepoint2);
+
+		SkipWhitespace(&data);
+		GAME_ASSERT(*data);
+
+		int tracking = 0;
+		int scannedChars = 0;
+		int scannedTokens = sscanf(data, "%d%n", &tracking, &scannedChars);
+		GAME_ASSERT(scannedTokens == 1);
+		data += scannedChars;
+
+		AtlasGlyph* g = GetGlyphFromCodepoint(codepoint1);
+
+		if (g->numKernPairs == 0)
+		{
+			GAME_ASSERT(g->kernTableOffset == 0);
+			g->kernTableOffset = kernTableOffset;
+		}
+
+		GAME_ASSERT_MESSAGE(g->numKernPairs == kernTableOffset - g->kernTableOffset, "kern pair blocks aren't contiguous!");
+
+
+		gKernPairs[kernTableOffset] = codepoint2;
+		gKernTracking[kernTableOffset] = tracking;
+		kernTableOffset++;
+		g->numKernPairs++;
+
+		SkipWhitespace(&data);
+	}
+}
+
+/***************************************************************/
 /*                       INIT/SHUTDOWN                         */
 /***************************************************************/
 
@@ -201,10 +283,10 @@ void TextMesh_LoadFont(OGLSetupOutputType* setupInfo, const char* fontName)
 {
 	char pathBuf[256];
 
-	snprintf(pathBuf, sizeof(pathBuf), ":sprites:%s.sfl", fontName);
+	snprintf(pathBuf, sizeof(pathBuf), ":fonts:%s.sfl", fontName);
 	TextMesh_LoadMetrics(pathBuf);
 
-	snprintf(pathBuf, sizeof(pathBuf), ":sprites:%s.png", fontName);
+	snprintf(pathBuf, sizeof(pathBuf), ":fonts:%s.png", fontName);
 	TextMesh_InitMaterial(setupInfo, pathBuf);
 }
 
@@ -218,14 +300,18 @@ void TextMesh_LoadMetrics(const char* sflPath)
 {
 	GAME_ASSERT_MESSAGE(!gFontMetricsLoaded, "Metrics already loaded");
 
-	char* data = LoadTextFile(sflPath, NULL);
-	GAME_ASSERT(data);
+	memset(gAtlasGlyphsPages, 0, sizeof(gAtlasGlyphsPages));
 
 	// Parse metrics (gAtlasGlyphs) from SFL file
-	memset(gAtlasGlyphsPages, 0, sizeof(gAtlasGlyphsPages));
+	char* data = LoadTextFile(sflPath, NULL);
+	GAME_ASSERT(data);
 	ParseSFL(data);
+	SafeDisposePtr(data);
 
-	// Nuke data buffer
+	// Parse kerning table
+	data = LoadTextFile(":fonts:kerning.txt", NULL);
+	GAME_ASSERT(data);
+	ParseKerningFile(data);
 	SafeDisposePtr(data);
 
 	gFontMetricsLoaded = true;
@@ -320,68 +406,20 @@ static void TextMesh_InitMesh(MOVertexArrayData* mesh, int numQuads)
 	TextMesh_ReallocateMesh(mesh, numQuads);
 }
 
-static const AtlasGlyph* GetGlyphFromCodepoint(uint32_t c)
+static float Kern(const AtlasGlyph* glyph, const char* utftext)
 {
-	uint32_t page = c >> 8;
-
-	if (page >= MAX_CODEPOINT_PAGES)
-	{
-		page = 0; // ascii
-		c = '?';
-	}
-
-	if (!gAtlasGlyphsPages[page])
-	{
-		page = 0; // ascii
-		c = '#';
-	}
-
-	return &gAtlasGlyphsPages[page][c & 0xFF];
-}
-
-static float Kern(uint8_t char1, uint8_t char2)
-{
-	// ASCII only for now.
-	if (char1 < 'A' || char1 > 'Z' ||
-		char2 < 'A' || char2 > 'Z')
-	{
-		return 1;
-	}
-
-	// The character that comes after a paired character defines how tight the kerning should be:
-	// '+':				loose (e.g.: SA)
-	// no modifier:		normal (e.g. PA)
-	// '-':				tight (e.g. VA)
-	static const char* kPoorMansKerningTable[256] =
-	{
-		['A'] = "C+G+TU+VW+X+Y",
-		['D'] = "A+",
-		['F'] = "A+",
-		['L'] = "O+T-",
-		['O'] = "A+V+",
-		['P'] = "A",
-		['R'] = "C+O+V+Y+",
-		['S'] = "A+",
-		['T'] = "A",
-		['U'] = "A+",
-		['V'] = "A-O+",
-		['Y'] = "AS",
-		['W'] = "A",
-	};
-
-	const char* kernPairs = kPoorMansKerningTable[char1&0xFF];
-	if (!kernPairs)
+	if (!glyph || !glyph->numKernPairs)
 		return 1;
 
-	const char* kp = strchr(kernPairs, char2);
-	if (!kp)				// no kerning
-		return 1;
-	else if (kp[1] == '+')	// loose
-		return 0.92f;
-	else if (kp[1] == '-')	// tight
-		return 0.80f;
-	else					// standard
-		return 0.85f;
+	uint32_t buddy = ReadNextCodepointFromUTF8(&utftext);
+
+	for (int i = glyph->kernTableOffset; i < glyph->kernTableOffset + glyph->numKernPairs; i++)
+	{
+		if (gKernPairs[i] == buddy)
+			return gKernTracking[i] * .01f;
+	}
+
+	return 1;
 }
 
 void TextMesh_Update(const char* text, int align, ObjNode* textNode)
@@ -434,9 +472,9 @@ void TextMesh_Update(const char* text, int align, ObjNode* textNode)
 			continue;
 		}
 
-		const AtlasGlyph* g = GetGlyphFromCodepoint(c);
-		float kernFactor = Kern(c, *utftext);
-		lineWidth += S*(g->xadv*kernFactor + spacing);
+		const AtlasGlyph* glyph = GetGlyphFromCodepoint(c);
+		float kernFactor = Kern(glyph, utftext);
+		lineWidth += S*(glyph->xadv * kernFactor + spacing);
 		if (c != ' ')
 			numQuads++;
 	}
@@ -526,7 +564,7 @@ void TextMesh_Update(const char* text, int align, ObjNode* textNode)
 		mesh->uvs[p + 2] = (OGLTextureCoord) { invAtlasW * (g.x+g.w),	invAtlasH * g.y };
 		mesh->uvs[p + 3] = (OGLTextureCoord) { invAtlasW * g.x,			invAtlasH * g.y };
 
-		float kernFactor = Kern(codepoint, *utftext);
+		float kernFactor = Kern(&g, utftext);
 		x += S*(g.xadv*kernFactor + spacing);
 		t += 2;
 		p += 4;
@@ -584,8 +622,9 @@ float TextMesh_GetCharX(const char* text, int n)
 		if (c == '\n')		// TODO: line widths for strings containing line breaks aren't supported yet
 			continue;
 
-		float kernFactor = Kern(c, *utftext);
-		x += GetGlyphFromCodepoint(c)->xadv * kernFactor;
+		const AtlasGlyph* glyph = GetGlyphFromCodepoint(c);
+		float kernFactor = Kern(glyph, utftext);
+		x += glyph->xadv * kernFactor;
 	}
 	return x;
 }
@@ -688,7 +727,7 @@ void TextMesh_DrawImmediate(const char* text, float x, float y, float scale, flo
 		glTexCoord2f(gr,gb);	glVertex3f(qx + halfw, qy - halfh, 0);
 		glTexCoord2f(gl,gb);	glVertex3f(qx - halfw, qy - halfh, 0);
 
-		cx += glyph->xadv * Kern(codepoint, *utftext);
+		cx += glyph->xadv * Kern(glyph, utftext);
 
 		gPolysThisFrame += 2;						// 2 tris drawn
 	}
