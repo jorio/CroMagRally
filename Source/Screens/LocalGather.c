@@ -49,7 +49,7 @@ extern	PlayerInfoType	gPlayerInfo[];
 /****************************/
 
 static void SetupCharacterSelectScreen(short whichPlayer);
-static Boolean DoCharacterSelectControls(short whichPlayer, Boolean allowAborting);
+static int DoCharacterSelectControls(short whichPlayer, Boolean allowAborting);
 static void DrawCharacterSelectCallback(OGLSetupOutputType *info);
 static void FreeCharacterSelectArt(void);
 
@@ -63,6 +63,11 @@ static void FreeCharacterSelectArt(void);
 /*    VARIABLES      */
 /*********************/
 
+static ObjNode* gGatherPrompt = NULL;
+static int gNumControllersMissing = 4;
+
+
+
 
 /********************** DO CHARACTER SELECT SCREEN **************************/
 //
@@ -72,7 +77,7 @@ static void FreeCharacterSelectArt(void);
 Boolean DoLocalGatherScreen(void)
 {
 	int whichPlayer = 0;
-	bool allowAborting = false;
+	bool allowAborting = true;
 
 	SetupCharacterSelectScreen(whichPlayer);
 	MakeFadeEvent(true);
@@ -85,13 +90,13 @@ Boolean DoLocalGatherScreen(void)
 	CalcFramesPerSecond();
 	ReadKeyboard();
 
-	while(true)
+	int outcome = 0;
+
+	while (outcome == 0)
 	{
 			/* SEE IF MAKE SELECTION */
 
-		if (DoCharacterSelectControls(whichPlayer, allowAborting))
-			break;
-
+		outcome = DoCharacterSelectControls(whichPlayer, allowAborting);
 
 			/**************/
 			/* DRAW STUFF */
@@ -102,6 +107,7 @@ Boolean DoLocalGatherScreen(void)
 		MoveObjects();
 		OGL_DrawScene(gGameViewInfoPtr, DrawCharacterSelectCallback);
 	}
+
 
 			/***********/
 			/* CLEANUP */
@@ -114,7 +120,23 @@ Boolean DoLocalGatherScreen(void)
 
 		/* SET CHARACTER TYPE SELECTED */
 
-	return(false);
+	return (outcome < 0);
+}
+
+
+static void UpdateGatherPrompt(int numControllersMissing)
+{
+	char message[256];
+
+	snprintf(
+		message,
+		sizeof(message),
+		"%s %s\n%s",
+		Localize(STR_CONNECT_CONTROLLERS_PREFIX),
+		Localize(STR_CONNECT_1_CONTROLLER + numControllersMissing - 1),
+		Localize(numControllersMissing==1? STR_CONNECT_CONTROLLERS_SUFFIX_KBD: STR_CONNECT_CONTROLLERS_SUFFIX));
+
+	TextMesh_Update(message, 0, gGatherPrompt);
 }
 
 
@@ -147,6 +169,8 @@ OGLVector3D			fillDirection1 = { .9, -.3, -1 };
 	viewDef.lights.fillDirection[0] = fillDirection1;
 	viewDef.lights.fillColor[0] 	= fillColor1;
 
+	viewDef.view.fontName			= "rockfont";
+
 	OGL_SetupWindow(&viewDef, &gGameViewInfoPtr);
 
 
@@ -168,40 +192,16 @@ OGLVector3D			fillDirection1 = { .9, -.3, -1 };
 			/* BUILD OBJECTS */
 			/*****************/
 
-	// NewObjectDefinitionType def2 =  { .genre = TEXTMESH_GENRE, .scale = 0.35f, .coord={0,0.33f,0} };
-	// TextMesh_New(Localize(STR_CONNECT_CONTROLLERS_PREFIX), 0, &def2);
-	// def2.coord.y -= 0.12f;
-	// TextMesh_New(Localize(STR_CONNECT_2_CONTROLLERS), 0, &def2);
-	// def2.coord.y -= 0.12f;
-	// TextMesh_New(Localize(STR_CONNECT_CONTROLLERS_SUFFIX_1), 0, &def2);
-	// def2.coord.y -= 0.12f;
-	// TextMesh_New(Localize(STR_CONNECT_CONTROLLERS_SUFFIX_2), 0, &def2);
-	// def2.coord.y -= 0.12f;
-
-	NewObjectDefinitionType def2 =  { .genre = TEXTMESH_GENRE, .scale = 0.35f, .coord={0,0.33f,0} };
-	TextMesh_New(Localize(STR_CONNECT_CONTROLLERS_PREFIX), 0, &def2);
-	def2.coord.y -= 0.12f;
-	TextMesh_New(Localize(STR_CONNECT_1_CONTROLLER), 0, &def2);
-	def2.coord.y -= 0.12f;
-	TextMesh_New(Localize(STR_CONNECT_CONTROLLERS_SUFFIX_KBD1), 0, &def2);
-	def2.coord.y -= 0.12f;
-	TextMesh_New(Localize(STR_CONNECT_CONTROLLERS_SUFFIX_KBD2), 0, &def2);
-	def2.coord.y -= 0.12f;
-	TextMesh_New(Localize(STR_CONNECT_CONTROLLERS_SUFFIX_KBD3), 0, &def2);
-	def2.coord.y -= 0.12f;
-
-
-	NewObjectDefinitionType newObjDef_Character =
+	NewObjectDefinitionType def2 =
 	{
-		.type = SKELETON_TYPE_FEMALESTANDING,
-		.animNum = 0,
-		.coord = {-130, 0, 0},
-		.slot = 100,
-		.rot = PI,
-		.scale = .2f
+		.genre = TEXTMESH_GENRE,
+		.scale = 0.4f,
+		.coord = {0, 0, 0},
 	};
-	MakeNewSkeletonObject(&newObjDef_Character);
 
+	gGatherPrompt = TextMesh_NewEmpty(256, &def2);
+
+	UpdateGatherPrompt(4);
 }
 
 
@@ -236,7 +236,7 @@ static void DrawCharacterSelectCallback(OGLSetupOutputType *info)
 
 /***************** DO CHARACTERSELECT CONTROLS *******************/
 
-static Boolean DoCharacterSelectControls(short whichPlayer, Boolean allowAborting)
+static int DoCharacterSelectControls(short whichPlayer, Boolean allowAborting)
 {
 short	p;
 
@@ -253,8 +253,19 @@ short	p;
 	{
 		if (GetNewNeedState(kNeed_UIBack, p))
 		{
-			return(true);
+			return -1;
 		}
+	}
+
+	if (GetNewNeedStateAnyP(kNeed_UILeft))
+	{
+		gNumControllersMissing--;
+		UpdateGatherPrompt(gNumControllersMissing);
+	}
+	else if (GetNewNeedStateAnyP(kNeed_UIRight))
+	{
+		gNumControllersMissing++;
+		UpdateGatherPrompt(gNumControllersMissing);
 	}
 
 		/* SEE IF SELECT THIS ONE */
@@ -262,31 +273,10 @@ short	p;
 	if (GetNewNeedState(kNeed_UIConfirm, p))
 	{
 		PlayEffect_Parms(EFFECT_SELECTCLICK, FULL_CHANNEL_VOLUME, FULL_CHANNEL_VOLUME, NORMAL_CHANNEL_RATE * 2/3);
-		return(true);
+		return 1;
 	}
 
-
-	// 	/* SEE IF CHANGE SELECTION */
-
-	// if (GetNewNeedState(kNeed_UILeft, p) && (gSelectedCharacterIndex > 0))
-	// {
-	// 	PlayEffect(EFFECT_SELECTCLICK);
-	// 	gSelectedCharacterIndex--;
-	// 	MorphToSkeletonAnim(gSex[0]->Skeleton, 1, 5.0);
-	// 	MorphToSkeletonAnim(gSex[1]->Skeleton, 0, 5.0);
-
-	// }
-	// else
-	// if (GetNewNeedState(kNeed_UIRight, p) && (gSelectedCharacterIndex < 1))
-	// {
-	// 	PlayEffect(EFFECT_SELECTCLICK);
-	// 	gSelectedCharacterIndex++;
-	// 	MorphToSkeletonAnim(gSex[0]->Skeleton, 0, 5.0);
-	// 	MorphToSkeletonAnim(gSex[1]->Skeleton, 1, 5.0);
-	// }
-
-
-	return(false);
+	return 0;
 }
 
 

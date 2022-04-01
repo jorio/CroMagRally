@@ -240,7 +240,10 @@ static Boolean PlayGame(void)
 		SetDefaultPhysics();								// set all physics to defaults for net game
 
 	if (gNumLocalPlayers > 1)
-		DoLocalGatherScreen();
+	{
+		if (DoLocalGatherScreen())
+			return true;
+	}
 
 	switch(gGameMode)
 	{
