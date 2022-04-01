@@ -287,9 +287,10 @@ static const MenuItem
 	gMenuConfirmClearSave[] =
 	{
 		{ kMenuItem_Subtitle, .text=STR_CLEAR_SAVED_GAME_TEXT_1 },
+		{ kMenuItem_Spacer, .text=STR_NULL },
+		{ kMenuItem_Spacer, .text=STR_NULL },
 		{ kMenuItem_Subtitle, .text=STR_CLEAR_SAVED_GAME_TEXT_2 },
-		{ kMenuItem_Subtitle, .text=STR_CLEAR_SAVED_GAME_TEXT_3 },
-		{ kMenuItem_Subtitle, .text=STR_CLEAR_SAVED_GAME_TEXT_4 },
+		{ kMenuItem_Spacer, .text=STR_NULL },
 		{ kMenuItem_Spacer, .text=STR_NULL },
 		{ kMenuItem_Pick, .text=STR_CLEAR_SAVED_GAME_CANCEL, .callback=MenuCallback_Back },
 		{ kMenuItem_Pick, .text=STR_CLEAR_SAVED_GAME, .callback=OnPickClearSavedGame },

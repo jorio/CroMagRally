@@ -50,6 +50,8 @@ typedef struct
 
 #define MAX_KERNPAIRS		256
 
+#define MAX_LINEBREAKS_PER_OBJNODE	16
+
 /****************************/
 /*    VARIABLES             */
 /****************************/
@@ -265,10 +267,10 @@ static void ParseKerningFile(const char* data)
 
 		GAME_ASSERT_MESSAGE(g->numKernPairs == kernTableOffset - g->kernTableOffset, "kern pair blocks aren't contiguous!");
 
-
 		gKernPairs[kernTableOffset] = codepoint2;
 		gKernTracking[kernTableOffset] = tracking;
 		kernTableOffset++;
+		GAME_ASSERT(kernTableOffset <= MAX_KERNPAIRS);
 		g->numKernPairs++;
 
 		SkipWhitespace(&data);
@@ -422,6 +424,54 @@ static float Kern(const AtlasGlyph* glyph, const char* utftext)
 	return 1;
 }
 
+static void ComputeCounts(const char* text, int* numQuadsOut, int* numLinesOut, float* lineWidths, int maxLines)
+{
+	const float S = 2.0f;//.5f;
+	float spacing = 0;
+
+	// Compute number of quads and line width
+	int numLines = 1;
+	int numQuads = 0;
+	lineWidths[0] = 0;
+	for (const char* utftext = text; *utftext; )
+	{
+		uint32_t c = ReadNextCodepointFromUTF8(&utftext);
+
+		if (c == '\n')
+		{
+			GAME_ASSERT(numLines < maxLines);
+			numLines++;
+			lineWidths[numLines-1] = 0;  // init next line
+			continue;
+		}
+
+		if (c == '\t')
+		{
+			lineWidths[numLines-1] = TAB_STOP * ceilf((lineWidths[numLines-1] + 1.0f) / TAB_STOP);
+			continue;
+		}
+
+		const AtlasGlyph* glyph = GetGlyphFromCodepoint(c);
+		float kernFactor = Kern(glyph, utftext);
+		lineWidths[numLines-1] += S * (glyph->xadv * kernFactor + spacing);
+		if (c != ' ')
+			numQuads++;
+	}
+
+	*numQuadsOut = numQuads;
+	*numLinesOut = numLines;
+}
+
+static float GetLineStartX(int align, float lineWidth)
+{
+	if (align == kTextMeshAlignCenter)
+		return -(lineWidth * .5f);
+	else if (align == kTextMeshAlignRight)
+		return -(lineWidth);
+	else
+		return 0;
+}
+
 void TextMesh_Update(const char* text, int align, ObjNode* textNode)
 {
 	GAME_ASSERT_MESSAGE(gFontMaterial, "Can't lay out text if the font material isn't loaded!");
@@ -454,47 +504,30 @@ void TextMesh_Update(const char* text, int align, ObjNode* textNode)
 	const float invAtlasH = 1.0f / gFontAtlasHeight;
 
 	// Compute number of quads and line width
-	float lineWidth = 0;
+	float lineWidths[MAX_LINEBREAKS_PER_OBJNODE];
+	int numLines = 0;
 	int numQuads = 0;
-	for (const char* utftext = text; *utftext; )
+	ComputeCounts(text, &numQuads, &numLines, lineWidths, MAX_LINEBREAKS_PER_OBJNODE);
+
+	// Compute longest line width
+	float longestLineWidth = 0;
+	for (int i = 0; i < numLines; i++)
 	{
-		uint32_t c = ReadNextCodepointFromUTF8(&utftext);
-
-		if (c == '\n')		// TODO: line widths for strings containing line breaks aren't supported yet
-		{
-			lineWidth = 0;
-			continue;
-		}
-
-		if (c == '\t')
-		{
-			lineWidth = TAB_STOP * ceilf((lineWidth+1.0f) / TAB_STOP);
-			continue;
-		}
-
-		const AtlasGlyph* glyph = GetGlyphFromCodepoint(c);
-		float kernFactor = Kern(glyph, utftext);
-		lineWidth += S*(glyph->xadv * kernFactor + spacing);
-		if (c != ' ')
-			numQuads++;
+		if (lineWidths[i] > longestLineWidth)
+			longestLineWidth = lineWidths[i];
 	}
 
-	// Adjust start x for text alignment
-	if (align == kTextMeshAlignCenter)
-		x -= lineWidth * .5f;
-	else if (align == kTextMeshAlignRight)
-		x -= lineWidth;
-
-	float x0 = x;
-
 	// Adjust y for ascender
-	y -= S*gFontLineHeight/2.0f;
+	y -= 0.5f * S * gFontLineHeight;
+
+	// Center vertically
+	y += 0.5f * S * gFontLineHeight * (numLines - 1);
 
 	// Save extents
-	textNode->LeftOff	= x;
-	textNode->RightOff	= x + lineWidth;
-	textNode->TopOff	= y;
-	textNode->BottomOff	= y + S*gFontLineHeight;
+	textNode->LeftOff	= GetLineStartX(align, longestLineWidth);
+	textNode->RightOff	= textNode->LeftOff + longestLineWidth;
+	textNode->TopOff	= y + S * gFontLineHeight;// * 0.5f;
+	textNode->BottomOff	= textNode->TopOff - S * gFontLineHeight * numLines;
 
 	// Ensure mesh has capacity for quads
 	if (textNode->TextQuadCapacity < numQuads)
@@ -521,13 +554,16 @@ void TextMesh_Update(const char* text, int align, ObjNode* textNode)
 	// Create a quad for each character
 	int t = 0;		// triangle counter
 	int p = 0;		// point counter
+	int currentLine = 0;
+	x = GetLineStartX(align, lineWidths[0]);
 	for (const char* utftext = text; *utftext; )
 	{
 		uint32_t codepoint = ReadNextCodepointFromUTF8(&utftext);
 
 		if (codepoint == '\n')
 		{
-			x = x0;
+			currentLine++;
+			x = GetLineStartX(align, lineWidths[currentLine]);
 			y -= gFontLineHeight * S;
 			continue;
 		}
@@ -610,6 +646,7 @@ ObjNode *TextMesh_New(const char *text, int align, NewObjectDefinitionType* newO
 	return textNode;
 }
 
+#if 0 // REWRITE ME for multi-line strings
 float TextMesh_GetCharX(const char* text, int n)
 {
 	float x = 0;
@@ -628,6 +665,7 @@ float TextMesh_GetCharX(const char* text, int n)
 	}
 	return x;
 }
+#endif
 
 OGLRect TextMesh_GetExtents(ObjNode* textNode)
 {
