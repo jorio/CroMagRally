@@ -389,7 +389,7 @@ static const MenuItem* gMainMenuTree[NUM_MENU_IDS] =
 
 static void UpdateMainMenuScreen(void)
 {
-	if (//GetCurrentMenu() == gMenuTitle &&
+	if (GetCurrentMenu() == gMenuTitle &&
 		GetMenuIdleTime() > DEMO_DELAY && gNumLocalPlayers < 2)
 	{
 		gGameViewInfoPtr->fadePillarbox = true;
