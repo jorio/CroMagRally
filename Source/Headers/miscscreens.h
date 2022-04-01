@@ -21,3 +21,5 @@ Boolean SelectSingleTrack(void);
 void DoMultiPlayerVehicleSelections(void);
 Boolean DoVehicleSelectScreen(short whichPlayer, Boolean allowAborting);
 
+Boolean DoLocalGatherScreen(void);
+
