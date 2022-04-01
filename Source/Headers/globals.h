@@ -111,20 +111,15 @@ enum
 	CTYPE_SKELETON	=	(1<<5),		// Skeleton
 	CTYPE_MISC		=	(1<<6),		// Misc
 	CTYPE_BLOCKSHADOW =	(1<<7),		// Shadows go over it
-	CTYPE_xxxxx		=	(1<<8),
 	CTYPE_BGROUND2 	=	(1<<9),		// Collide against Terrain BGround 2 path tiles
-	CTYPE_aaaa		= 	(1<<10),
-	CTYPE_cccc		= 	(1<<11),
 	CTYPE_BGROUND 	=	(1<<12),	// Terrain BGround path tiles
 	CTYPE_TERRAIN	=	(1<<13),	// not an attribute, but just a flag passed to HandleCollisions()
 	CTYPE_SPIKED	=	(1<<14),	// Ball player cannot hit this
-	CTYPE_xxxxxx 	=	(1<<15),
 	CTYPE_AUTOTARGET =	(1<<16),	// if can be auto-targeted by player
 	CTYPE_LIQUID	=	(1<<17),	// is a liquid patch
 	CTYPE_BOPPABLE	=	(1<<18),	// enemy that can be bopped on top
 	CTYPE_BLOCKCAMERA =	(1<<19),	// camera goes over this
 	CTYPE_DRAINBALLTIME = (1<<20),	// drain ball time
-	CTYPE_xxxxxxx	= (1<<21),
 	CTYPE_IMPENETRABLE	= (1<<22),	// set if object must have high collision priority and cannot be pushed thru this
 	CTYPE_IMPENETRABLE2	= (1<<23),	// set with CTYPE_IMPENETRABLE if dont want player to do coord=oldCoord when touched
 	CTYPE_AUTOTARGETJUMP = (1<<24)	// if auto target when jumping
