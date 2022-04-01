@@ -244,8 +244,7 @@ static const char*	maps[] =
 
 			/* LOAD MAP SPRITE */
 
-	spriteData.loadFile = true;											// we're loading this sprite from a PICT file
-	FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, maps[gTrackNum], &spriteData.spec);
+	spriteData.loadFile = maps[gTrackNum];								// we're loading this sprite from a PICT file
 	spriteData.pixelFormat = GL_RGBA;
 
 	gMapSprite = MO_CreateNewObjectOfType(MO_TYPE_SPRITE, (uintptr_t) setupInfo, &spriteData);

@@ -471,11 +471,13 @@ MOSpriteData	*spriteData = &spriteObj->objectData;
 	{
 		GLint	destPixelFormat = inData->pixelFormat;									// use passed in format
 
-		spriteData->material = MO_GetTextureFromFile(&inData->spec, setupInfo, destPixelFormat);
+		spriteData->material = MO_GetTextureFromFile(inData->loadFile, setupInfo, destPixelFormat);
 
 		spriteData->width = spriteData->material->objectData.width;						// get dimensions of the texture
 		spriteData->height = spriteData->material->objectData.width;
 		spriteData->aspectRatio = spriteData->height / spriteData->width;				// calc aspect ratio
+
+		inData->loadFile = NULL;
 	}
 
 			/* GET MATERIAL FROM SPRITE LIST */
@@ -1603,7 +1605,7 @@ int					numChildren,i;
 
 /******************* MO: GET TEXTURE FROM FILE ************************/
 
-MOMaterialObject *MO_GetTextureFromFile(FSSpec *spec, OGLSetupOutputType *setupInfo, int destPixelFormat)
+MOMaterialObject *MO_GetTextureFromFile(const char* path, OGLSetupOutputType *setupInfo, int destPixelFormat)
 {
 MetaObjectPtr	obj;
 MOMaterialData	matData;
@@ -1640,7 +1642,7 @@ Boolean			destHasAlpha;
 
 	{
 		long imageLength = 0;
-		Ptr imageData = LoadFileData(spec, &imageLength);
+		Ptr imageData = LoadDataFile(path, &imageLength);
 		GAME_ASSERT(imageData);
 
 		pictMapAddr = (Ptr) stbi_load_from_memory((const stbi_uc*) imageData, imageLength, &width, &height, NULL, 4);

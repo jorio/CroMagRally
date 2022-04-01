@@ -1602,23 +1602,31 @@ static void LoadTerrainSuperTileTexturesSeamless(short fRefNum)
 
 
 
-/*********************** LOAD FILE INTO MEMORY ***********************************/
+/*********************** LOAD DATA FILE INTO MEMORY ***********************************/
+//
+// Use SafeDisposePtr when done.
+//
 
-Ptr LoadFileData(const FSSpec* spec, long* outLength)
+Ptr LoadDataFile(const char* path, long* outLength)
 {
+	FSSpec spec;
 	OSErr err;
 	short refNum;
 	long fileLength = 0;
 	long readBytes = 0;
 
-	err = FSpOpenDF(spec, fsRdPerm, &refNum);
+	err = FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, path, &spec);
+	GAME_ASSERT(!err);
+
+	err = FSpOpenDF(&spec, fsRdPerm, &refNum);
 	GAME_ASSERT(!err);
 
 	// Get number of bytes until EOF
 	GetEOF(refNum, &fileLength);
 
 	// Prep data buffer
-	Ptr data = AllocPtrClear(fileLength);
+	// Alloc 1 extra byte so LoadTextFile can return a null-terminated C string!
+	Ptr data = AllocPtrClear(fileLength + 1);
 
 	// Read file into data buffer
 	readBytes = fileLength;
@@ -1634,4 +1642,14 @@ Ptr LoadFileData(const FSSpec* spec, long* outLength)
 	}
 
 	return data;
+}
+
+/*********************** LOAD TEXT FILE INTO MEMORY ***********************************/
+//
+// Use SafeDisposePtr when done.
+//
+
+char* LoadTextFile(const char* spec, long* outLength)
+{
+	return LoadDataFile(spec, outLength);
 }

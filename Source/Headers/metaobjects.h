@@ -191,11 +191,8 @@ typedef struct
 
 typedef struct
 {
-	Boolean	loadFile;				// true if want to create sprite from pict right now, otherwise use from gSpriteList
-
-	FSSpec	spec;					// picture file to load as sprite
+	const char*	loadFile;			// non-NULL path if want to create sprite from pict right now, otherwise use from gSpriteList
 	GLint	pixelFormat;			// format to store loaded sprite as
-
 	short	group,type;				// group and type of gSpriteList sprite to use
 }MOSpriteSetupData;
 
@@ -219,7 +216,7 @@ void MO_DuplicateVertexArrayData(MOVertexArrayData *inData, MOVertexArrayData *o
 void MO_DeleteObjectInfo_Geometry_VertexArray(MOVertexArrayData *data);
 void MO_DisposeObject_Geometry_VertexArray(MOVertexArrayData *data);
 void MO_CalcBoundingBox(MetaObjectPtr object, OGLBoundingBox *bBox);
-MOMaterialObject *MO_GetTextureFromFile(FSSpec *spec, OGLSetupOutputType *setupInfo, int destPixelFormat);
+MOMaterialObject *MO_GetTextureFromFile(const char* path, OGLSetupOutputType *setupInfo, int destPixelFormat);
 //void MO_SetPictureObjectCoordsToMouse(OGLSetupOutputType *info, MOPictureObject *obj);
 
 void MO_DrawSprite(const MOSpriteObject *spriteObj, const OGLSetupOutputType *setupInfo);

@@ -954,24 +954,15 @@ GLuint	textureName;
 
 GLuint OGL_TextureMap_LoadImageFile(const char* path, int* outWidth, int* outHeight)
 {
-FSSpec					spec;
 uint8_t*				pixelData = nil;
-OSErr					err;
 int						width;
 int						height;
 long					imageFileLength = 0;
 Ptr						imageFileData = nil;
 
-	FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, path, &spec);
-
-			/* LOAD RAW ARGB DATA FROM TGA FILE */
-
 				/* LOAD PICTURE FILE */
 
-	err = FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, path, &spec);
-	GAME_ASSERT(!err);
-
-	imageFileData = LoadFileData(&spec, &imageFileLength);
+	imageFileData = LoadDataFile(path, &imageFileLength);
 	GAME_ASSERT(imageFileData);
 
 	pixelData = (uint8_t*) stbi_load_from_memory((const stbi_uc*) imageFileData, imageFileLength, &width, &height, NULL, 4);

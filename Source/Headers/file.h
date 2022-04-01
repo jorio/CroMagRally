@@ -6,6 +6,7 @@
 
 #include "input.h"
 #include "main.h"
+#include "structs.h"
 
 		/***********************/
 		/* RESOURCE STURCTURES */
@@ -91,7 +92,8 @@ int GetNumAgesCompleted(void);
 int GetNumStagesCompleted(void);
 void SetPlayerProgression(int age, int stage);
 
-Ptr LoadFileData(const FSSpec* spec, long* outLength);
+Ptr LoadDataFile(const char* path, long* outLength);
+char* LoadTextFile(const char* path, long* outLength);
 
 #define BYTESWAP_HANDLE(format, type, n, handle)                                  \
 {                                                                                 \

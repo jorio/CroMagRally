@@ -5,6 +5,7 @@
 #include "Pomme.h"
 #include "localization.h"
 #include "misc.h"
+#include "file.h"
 #include <string.h>
 #include <SDL.h>
 
@@ -47,21 +48,8 @@ void LoadLocalizedStrings(GameLanguageID languageID)
 	GAME_ASSERT(languageID >= 0);
 	GAME_ASSERT(languageID < NUM_LANGUAGES);
 
-	FSSpec spec;
-	FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, CSV_PATH, &spec);
-
-	short refNum;
-	if (FSpOpenDF(&spec, fsRdPerm, &refNum) != noErr)
-		DoFatalAlert("LoadTextFile: FSpOpenDF failed");
-
-	long eof = 0;
-	GetEOF(refNum, &eof);
-	long count = eof;
-	gStringsBuffer = AllocPtrClear(count + 1);		// +1 for final '\0'
-	FSRead(refNum, &count, gStringsBuffer);
-	FSClose(refNum);
-
-	GAME_ASSERT(count == eof);
+	long count = 0;
+	gStringsBuffer = LoadTextFile(CSV_PATH, &count);
 
 	for (int i = 0; i < MAX_STRINGS; i++)
 		gStringsTable[i] = nil;

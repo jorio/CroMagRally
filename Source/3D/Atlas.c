@@ -13,6 +13,7 @@
 #include	"bg3d.h"
 #include	"sprites.h"
 #include	"3dmath.h"
+#include	"file.h"
 #include <string.h>
 #include <stdio.h>
 
@@ -215,28 +216,10 @@ void TextMesh_DisposeFont(void)
 
 void TextMesh_LoadMetrics(const char* sflPath)
 {
-	OSErr err;
-	FSSpec spec;
-	short refNum;
-
 	GAME_ASSERT_MESSAGE(!gFontMetricsLoaded, "Metrics already loaded");
 
-	err = FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, sflPath, &spec);
-	GAME_ASSERT(!err);
-	err = FSpOpenDF(&spec, fsRdPerm, &refNum);
-	GAME_ASSERT(!err);
-
-	// Get number of bytes until EOF
-	long eof = 0;
-	GetEOF(refNum, &eof);
-
-	// Prep data buffer
-	Ptr data = AllocPtrClear(eof+1);
-
-	// Read file into data buffer
-	err = FSRead(refNum, &eof, data);
-	GAME_ASSERT(err == noErr);
-	FSClose(refNum);
+	char* data = LoadTextFile(sflPath, NULL);
+	GAME_ASSERT(data);
 
 	// Parse metrics (gAtlasGlyphs) from SFL file
 	memset(gAtlasGlyphsPages, 0, sizeof(gAtlasGlyphsPages));
