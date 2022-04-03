@@ -31,7 +31,7 @@ enum
 	KEYSTATE_ACTIVE_BIT	= 0b10,
 };
 
-#define kJoystickDeadZone				(33 * 32767 / 100)
+#define kJoystickDeadZone				(20 * 32767 / 100)
 #define kJoystickDeadZone_UI			(66 * 32767 / 100)
 #define kJoystickDeadZoneFrac			(kJoystickDeadZone / 32767.0f)
 #define kJoystickDeadZoneFracSquared	(kJoystickDeadZoneFrac * kJoystickDeadZoneFrac)
@@ -413,8 +413,9 @@ float GetAnalogSteering(int playerID)
 		Sint16 dxRaw = SDL_GameControllerGetAxis(gSDLController, SDL_CONTROLLER_AXIS_LEFTX);
 
 		steer = dxRaw / 32767.0f;
+		float steerMag = fabsf(steer);
 
-		if (fabsf(steer) < kJoystickDeadZoneFrac)
+		if (steerMag < kJoystickDeadZoneFrac)
 		{
 			steer = 0;
 		}
@@ -430,7 +431,8 @@ float GetAnalogSteering(int playerID)
 		{
 			// Avoid magnitude bump when thumbstick is pushed past dead zone:
 			// Bring magnitude from [kJoystickDeadZoneFrac, 1.0] to [0.0, 1.0].
-			steer = (steer - kJoystickDeadZoneFrac) / (1.0f - kJoystickDeadZoneFrac);
+			float steerSign = steer < 0 ? -1.0f : 1.0f;
+			steer = steerSign * (steerMag - kJoystickDeadZoneFrac) / (1.0f - kJoystickDeadZoneFrac);
 		}
 	}
 
