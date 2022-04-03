@@ -471,18 +471,34 @@ MOSpriteData	*spriteData = &spriteObj->objectData;
 	{
 		spriteData->material = MO_GetNewReference(inData->material);
 
-		spriteData->width = spriteData->material->objectData.width;						// get dimensions of the texture
-		spriteData->height = spriteData->material->objectData.width;
+		int textureWidth = spriteData->material->objectData.width;
+		int textureHeight = spriteData->material->objectData.height;
+
+		if (inData->isAtlasSlice)
+		{
+			spriteData->width = inData->sliceW;
+			spriteData->height = inData->sliceH;
+			spriteData->u1 = inData->sliceX / (float)textureWidth;
+			spriteData->v1 = inData->sliceY / (float)textureHeight;
+			spriteData->u2 = (inData->sliceX + inData->sliceW) / (float)textureWidth;
+			spriteData->v2 = (inData->sliceY + inData->sliceH) / (float)textureHeight;
+		}
+		else // use full texture
+		{
+			spriteData->width = textureWidth;
+			spriteData->height = textureHeight;
+			spriteData->u1 = spriteData->v1 = 0;
+			spriteData->u2 = spriteData->v2 = 1;
+		}
+
 		spriteData->aspectRatio = spriteData->height / spriteData->width;				// calc aspect ratio
 	}
 
 			/* GET MATERIAL FROM SPRITE LIST */
 	else
 	{
-		short	group,type;
-
-		group = inData->group;
-		type = inData->type;
+		short group = inData->group;
+		short type = inData->type;
 
 		if (inData->type >= gNumSpritesInGroupList[group])								// make sure type is valid
 			DoFatalAlert("SetMetaObjectToSprite: illegal type");
@@ -493,6 +509,9 @@ MOSpriteData	*spriteData = &spriteObj->objectData;
 		spriteData->width 		= gSpriteGroupList[group][type].width;					// get width and height of texture
 		spriteData->height 		= gSpriteGroupList[group][type].height;
 		spriteData->aspectRatio = gSpriteGroupList[group][type].aspectRatio;			// get aspect ratio
+
+		spriteData->u1 = spriteData->v1 = 0;											// use entire texture
+		spriteData->u2 = spriteData->v2 = 1;
 	}
 
 
@@ -1067,13 +1086,26 @@ float			spriteAspectRatio;
     glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
 
+		/* PREP COORDS */
+
+	float u1 = spriteData->u1;
+	float v1 = spriteData->v1;
+	float u2 = spriteData->u2;
+	float v2 = spriteData->v2;
+
+	float x1 = -1;
+	float y1 = 1;
+	float x2 = 1;
+	float y2 = -1;
+
+
 			/* DRAW IT */
 
 	glBegin(GL_QUADS);
-	glTexCoord2f(0,1);	glVertex3f(-1,  1, 0);
-	glTexCoord2f(1,1);	glVertex3f(1,   1, 0);
-	glTexCoord2f(1,0);	glVertex3f(1,  -1, 0);
-	glTexCoord2f(0,0);	glVertex3f(-1, -1, 0);
+	glTexCoord2f(u1,v2);	glVertex3f(x1, y1, 0);
+	glTexCoord2f(u2,v2);	glVertex3f(x2, y1, 0);
+	glTexCoord2f(u2,v1);	glVertex3f(x2, y2, 0);
+	glTexCoord2f(u1,v1);	glVertex3f(x1, y2, 0);
 	glEnd();
 
 
