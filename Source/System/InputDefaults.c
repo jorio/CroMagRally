@@ -28,14 +28,14 @@
 const KeyBinding kDefaultKeyBindings[NUM_CONTROL_NEEDS] =
 {
 //Need-------------------     Keys---------------------------  Mouse--------  Gamepad----------------------------------------
-[kNeed_ThrowForward		] = { { SC_THROWF1  , SC_THROWF2	}, 0            , { CB(LEFTSHOULDER)	, CBNULL()				} },
-[kNeed_ThrowBackward	] = { { SC_THROWB1	, SC_THROWB2	}, 0            , { CB(RIGHTSHOULDER)	, CBNULL()				} },
-[kNeed_Brakes			] = { { SC(SPACE)	, 0				}, 0            , { CB(A)				, CBNULL()				} },
+[kNeed_ThrowForward		] = { { SC_THROWF1  , SC_THROWF2	}, 0            , { CB(Y)				, CBNULL()				} },
+[kNeed_ThrowBackward	] = { { SC_THROWB1	, SC_THROWB2	}, 0            , { CB(X)				, CBNULL()				} },
+[kNeed_Brakes			] = { { SC(SPACE)	, 0				}, 0            , { CAPLUS(TRIGGERLEFT)	, CBNULL()				} },
 [kNeed_CameraMode		] = { { SC(GRAVE)	, 0				}, 0			, { CB(RIGHTSTICK)		, CBNULL()				} },
-[kNeed_Forward			] = { { SC(UP)		, 0 			}, 0			, { CB(DPAD_UP)			, CBNULL()				} },
-[kNeed_Backward			] = { { SC(DOWN)	, 0 			}, 0			, { CB(DPAD_DOWN)		, CBNULL()				} },
-[kNeed_Left			    ] = { { SC(LEFT)	, 0 			}, 0			, { CB(DPAD_LEFT)		, CBNULL()				} },
-[kNeed_Right		    ] = { { SC(RIGHT)	, 0 			}, 0			, { CB(DPAD_RIGHT)		, CBNULL()				} },
+[kNeed_Forward			] = { { SC(UP)		, 0 			}, 0			, { CB(A)				, CB(DPAD_UP)			} },
+[kNeed_Backward			] = { { SC(DOWN)	, 0 			}, 0			, { CB(B)				, CB(DPAD_DOWN)			} },
+[kNeed_Left			    ] = { { SC(LEFT)	, 0 			}, 0			, { CBNULL()			, CB(DPAD_LEFT)			} },
+[kNeed_Right		    ] = { { SC(RIGHT)	, 0 			}, 0			, { CBNULL()			, CB(DPAD_RIGHT)		} },
 
 [kNeed_UIUp				] = { { SC(UP)		, 0				}, 0			, { CB(DPAD_UP)			, CAMINUS(LEFTY)		} },
 [kNeed_UIDown			] = { { SC(DOWN)	, 0				}, 0			, { CB(DPAD_DOWN)		, CAPLUS(LEFTY)			} },
