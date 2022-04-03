@@ -467,17 +467,13 @@ MOSpriteData	*spriteData = &spriteObj->objectData;
 
 		/* CREATE MATERIAL OBJECT FROM FSSPEC */
 
-	if (inData->loadFile)
+	if (inData->material)
 	{
-		GLint	destPixelFormat = inData->pixelFormat;									// use passed in format
-
-		spriteData->material = MO_GetTextureFromFile(inData->loadFile, setupInfo, destPixelFormat);
+		spriteData->material = MO_GetNewReference(inData->material);
 
 		spriteData->width = spriteData->material->objectData.width;						// get dimensions of the texture
 		spriteData->height = spriteData->material->objectData.width;
 		spriteData->aspectRatio = spriteData->height / spriteData->width;				// calc aspect ratio
-
-		inData->loadFile = NULL;
 	}
 
 			/* GET MATERIAL FROM SPRITE LIST */

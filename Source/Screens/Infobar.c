@@ -208,7 +208,6 @@ ObjNode			*gWinLoseString[MAX_PLAYERS];
 
 void InitInfobar(OGLSetupOutputType *setupInfo)
 {
-MOSpriteSetupData	spriteData;
 static const char*	maps[] =
 {
 	":sprites:maps:DesertMap.png",
@@ -244,15 +243,18 @@ static const char*	maps[] =
 
 			/* LOAD MAP SPRITE */
 
-	spriteData.loadFile = maps[gTrackNum];								// we're loading this sprite from a PICT file
-	spriteData.pixelFormat = GL_RGBA;
+	MOMaterialObject* material = MO_GetTextureFromFile(maps[gTrackNum], setupInfo, GL_RGBA);
+	GAME_ASSERT_MESSAGE(material, "Can't find overhead map image");
+
+	MOSpriteSetupData spriteData = { .material = material };
 
 	gMapSprite = MO_CreateNewObjectOfType(MO_TYPE_SPRITE, (uintptr_t) setupInfo, &spriteData);
-	if (!gMapSprite)
-		DoFatalAlert("InitInfobar: cant find map sprite");
+	GAME_ASSERT(gMapSprite);
+
+	MO_DisposeObjectReference(material);
+	material = NULL;
 
 	gMapSprite->objectData.scaleBasis = 1.0;							// don't use the scale basis since we're putting the dots on the map and we need this to be easy
-
 	gMapSprite->objectData.coord.z = 0;
 
 		/* SET GLOWING */

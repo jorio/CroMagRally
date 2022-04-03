@@ -191,12 +191,11 @@ typedef struct
 
 typedef struct
 {
-	const char*	loadFile;			// non-NULL path if want to create sprite from pict right now, otherwise use from gSpriteList
-	GLint	pixelFormat;			// format to store loaded sprite as
-	short	group,type;				// group and type of gSpriteList sprite to use
+	MOMaterialObject*	material;	// if non-NULL, pre-loaded material to use instead of gSpriteList
+
+	short	group;				// if material is NULL, group and type of gSpriteList sprite to use
+	short	type;
 }MOSpriteSetupData;
-
-
 
 //-----------------------------
 
