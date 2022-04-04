@@ -9,6 +9,10 @@
 #include <Pomme.h>
 #include <math.h>
 
+#if _MSC_VER
+	#define _Static_assert static_assert
+#endif
+
 #define	kGameID 		'CavM'
 
 			/* SOME FLOATING POINT HELPERS */

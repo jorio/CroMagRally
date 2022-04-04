@@ -179,4 +179,5 @@ void PopKeys(void);
 
 void DoSDLMaintenance(void);
 
+int GetNumControllers(void);
 void Rumble(float strength, uint32_t ms);

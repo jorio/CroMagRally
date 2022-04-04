@@ -12,10 +12,6 @@
 extern SDL_Window* gSDLWindow;
 extern	PrefsType			gGamePrefs;
 
-#if _MSC_VER
-	#define _Static_assert static_assert
-#endif
-
 /***************/
 /* CONSTANTS   */
 /***************/
@@ -42,15 +38,23 @@ enum
 /*     PROTOTYPES     */
 /**********************/
 
+typedef struct
+{
+	bool					open;
+	SDL_GameController*		controllerInstance;
+	SDL_JoystickID			joystickInstance;
+	Byte					needStates[NUM_CONTROL_NEEDS];
+} Controller;
+
 Boolean				gUserPrefersGamepad = false;
 
-SDL_GameController	*gSDLController = NULL;
-SDL_JoystickID		gSDLJoystickInstanceID = -1;		// ID of the joystick bound to gSDLController
+Boolean				gControllerPlayerMappingLocked = false;
+int					gNumControllersOpen = 0;
+Controller			gControllers[MAX_LOCAL_PLAYERS];
 
 Byte				gRawKeyboardState[SDL_NUM_SCANCODES];
 char				gTextInput[SDL_TEXTINPUTEVENT_TEXT_SIZE];
 
-// TODO: per-player need states
 Byte				gNeedStates[NUM_CONTROL_NEEDS];
 
 /**********************/
@@ -58,8 +62,9 @@ Byte				gNeedStates[NUM_CONTROL_NEEDS];
 /**********************/
 
 static void OnJoystickRemoved(SDL_JoystickID which);
-static SDL_GameController* TryOpenController(bool showMessage);
-
+static SDL_GameController* TryOpenControllerFromJoystick(int joystickIndex);
+static SDL_GameController* TryOpenAnyController(bool showMessage);
+static int GetControllerSlotFromSDLJoystickInstanceID(SDL_JoystickID joystickInstanceID);
 
 static inline void UpdateKeyState(Byte* state, bool downNow)
 {
@@ -80,14 +85,10 @@ static inline void UpdateKeyState(Byte* state, bool downNow)
 void DoSDLMaintenance(void)
 {
 	gTextInput[0] = '\0';
-//	gMouseMotionNow = false;
-//	gEatMouse = false;
 
 			/**********************/
 			/* DO SDL MAINTENANCE */
 			/**********************/
-
-//	MouseSmoothing_StartFrame();
 
 	int mouseWheelDelta = 0;
 
@@ -113,23 +114,6 @@ void DoSDLMaintenance(void)
 						QD3D_OnWindowResized(event.window.data1, event.window.data2);
 						break;
 					*/
-
-					case SDL_WINDOWEVENT_FOCUS_LOST:
-#if __APPLE__
-						// On Mac, always restore system mouse accel if cmd-tabbing away from the game
-//						RestoreMacMouseAcceleration();
-#endif
-//						gEatMouse = true;
-						break;
-
-					case SDL_WINDOWEVENT_FOCUS_GAINED:
-#if __APPLE__
-						// On Mac, kill mouse accel when focus is regained only if the game has captured the mouse
-//						if (SDL_GetRelativeMouseMode())
-//							KillMacMouseAcceleration();
-#endif
-//						gEatMouse = true;
-						break;
 				}
 				break;
 
@@ -137,14 +121,6 @@ void DoSDLMaintenance(void)
 					memcpy(gTextInput, event.text.text, sizeof(gTextInput));
 					_Static_assert(sizeof(gTextInput) == sizeof(event.text.text), "size mismatch: gTextInput/event.text.text");
 					break;
-
-				// case SDL_MOUSEMOTION:
-				// 	if (!gEatMouse)
-				// 	{
-				// 		gMouseMotionNow = true;
-				// 		MouseSmoothing_OnMouseMotion(&event.motion);
-				// 	}
-				// 	break;
 
 				case SDL_MOUSEWHEEL:
 					// if (!gEatMouse)
@@ -155,7 +131,7 @@ void DoSDLMaintenance(void)
 					break;
 
 				case SDL_JOYDEVICEADDED:	 // event.jdevice.which is the joy's INDEX (not an instance id!)
-					TryOpenController(false);
+					TryOpenControllerFromJoystick(event.cdevice.which);
 					break;
 
 				case SDL_JOYDEVICEREMOVED:	// event.jdevice.which is the joy's UNIQUE INSTANCE ID (not an index!)
@@ -173,31 +149,6 @@ void DoSDLMaintenance(void)
 					break;
 		}
 	}
-
-	// --------------------------------------------
-	// Refresh the state of each individual mouse button,
-	// including wheelup/wheeldown which we are exposed to the game as buttons
-
-	// if (gEatMouse)
-	// {
-	// 	MouseSmoothing_ResetState();
-	// 	memset(gMouseButtonState, KEYSTATE_OFF, sizeof(gMouseButtonState));
-	// }
-	// else
-	// {
-	// 	uint32_t mouseButtons = SDL_GetMouseState(NULL, NULL);
-
-	// 	// Actual mouse buttons
-	// 	for (int i = 1; i < NUM_SUPPORTED_MOUSE_BUTTONS_PURESDL; i++)
-	// 	{
-	// 		bool downNow = mouseButtons & SDL_BUTTON(i);
-	// 		UpdateKeyState(&gMouseButtonState[i], downNow);
-	// 	}
-
-	// 	// Wheel up/wheel down fake buttons
-	// 	UpdateKeyState(&gMouseButtonState[SDL_BUTTON_WHEELUP],		mouseWheelDelta > 0);
-	// 	UpdateKeyState(&gMouseButtonState[SDL_BUTTON_WHEELDOWN],	mouseWheelDelta < 0);
-	// }
 
 	// --------------------------------------------
 	// Refresh the state of each individual keyboard key
@@ -228,125 +179,58 @@ void DoSDLMaintenance(void)
 			if (kb->key[j] && kb->key[j] < numkeys)
 				downNow |= 0 != keystate[kb->key[j]];
 
-//
 //		downNow |= gMouseButtonState[kb->mouseButton] & KEYSTATE_ACTIVE_BIT;
-//
 
-		if (gSDLController)
+		UpdateKeyState(&gNeedStates[i], downNow);
+	}
+
+	//-------------------------------------------------------------------------
+	// Multiplayer gamepad input
+	//-------------------------------------------------------------------------
+
+	for (int controllerNum = 0; controllerNum < MAX_LOCAL_PLAYERS; controllerNum++)
+	{
+		if (!gControllers[controllerNum].open)
 		{
-			int16_t deadZone = i >= NUM_REMAPPABLE_NEEDS
-							   ? kJoystickDeadZone_UI
-							   : kJoystickDeadZone;
+			continue;
+		}
 
-			for (int j = 0; j < KEYBINDING_MAX_GAMEPAD_BUTTONS; j++)
+		SDL_GameController* controllerInstance = gControllers[controllerNum].controllerInstance;
+		
+		for (int needNum = 0; needNum < NUM_CONTROL_NEEDS; needNum++)
+		{
+			const KeyBinding* kb = &gGamePrefs.keys[needNum][controllerNum];  // ish...
+
+			int16_t deadZone = needNum >= NUM_REMAPPABLE_NEEDS
+							? kJoystickDeadZone_UI
+							: kJoystickDeadZone;
+
+			bool downNow = false;
+
+			for (int buttonNum = 0; buttonNum < KEYBINDING_MAX_GAMEPAD_BUTTONS; buttonNum++)
 			{
-				switch (kb->gamepad[j].type)
+				switch (kb->gamepad[buttonNum].type)
 				{
 					case kInputTypeButton:
-						downNow |= 0 != SDL_GameControllerGetButton(gSDLController, kb->gamepad[j].id);
+						downNow |= 0 != SDL_GameControllerGetButton(controllerInstance, kb->gamepad[buttonNum].id);
 						break;
 
 					case kInputTypeAxisPlus:
-						downNow |= SDL_GameControllerGetAxis(gSDLController, kb->gamepad[j].id) > deadZone;
+						downNow |= SDL_GameControllerGetAxis(controllerInstance, kb->gamepad[buttonNum].id) > deadZone;
 						break;
 
 					case kInputTypeAxisMinus:
-						downNow |= SDL_GameControllerGetAxis(gSDLController, kb->gamepad[j].id) < -deadZone;
+						downNow |= SDL_GameControllerGetAxis(controllerInstance, kb->gamepad[buttonNum].id) < -deadZone;
 						break;
 
 					default:
 						break;
 				}
 			}
-		}
 
-		UpdateKeyState(&gNeedStates[i], downNow);
-	}
-
-
-	// -------------------------------------------
-#if 0
-
-
-			/****************************/
-			/* SET PLAYER AXIS CONTROLS */
-			/****************************/
-
-	gPlayerInfo.analogControlX = 											// assume no control input
-	gPlayerInfo.analogControlZ = 0.0f;
-
-			/* FIRST CHECK ANALOG AXES */
-
-	if (gSDLController)
-	{
-		OGLVector2D thumbVec = GetThumbStickVector(false);
-		if (thumbVec.x != 0 || thumbVec.y != 0)
-		{
-			gPlayerInfo.analogControlX = thumbVec.x;
-			gPlayerInfo.analogControlZ = thumbVec.y;
+			UpdateKeyState(&gControllers[controllerNum].needStates[needNum], downNow);
 		}
 	}
-
-			/* NEXT CHECK THE DIGITAL KEYS */
-
-
-	if (GetNeedState(kNeed_TurnLeft))							// is Left Key pressed?
-		gPlayerInfo.analogControlX = -1.0f;
-	else
-	if (GetNeedState(kNeed_TurnRight))						// is Right Key pressed?
-		gPlayerInfo.analogControlX = 1.0f;
-
-
-	if (GetNeedState(kNeed_Forward))							// is Up Key pressed?
-		gPlayerInfo.analogControlZ = -1.0f;
-	else
-	if (GetNeedState(kNeed_Backward))						// is Down Key pressed?
-		gPlayerInfo.analogControlZ = 1.0f;
-
-		/* AND FINALLY SEE IF MOUSE DELTAS ARE BEST */
-
-	const float mouseSensitivityFrac = (float)gGamePrefs.mouseSensitivityLevel / NUM_MOUSE_SENSITIVITY_LEVELS;
-	int mdx, mdy;
-	MouseSmoothing_GetDelta(&mdx, &mdy);
-
-
-	if (gGamePrefs.mouseControlsOtto)
-	{
-		float mouseDX = mdx * mouseSensitivityFrac * .1f;
-		float mouseDY = mdy * mouseSensitivityFrac * .1f;
-
-		mouseDX = GAME_CLAMP(mouseDX, -1.0f, 1.0f);					// keep values pinned
-		mouseDY = GAME_CLAMP(mouseDY, -1.0f, 1.0f);
-
-		if (fabsf(mouseDX) > fabsf(gPlayerInfo.analogControlX))		// is the mouse delta better than what we've got from the other devices?
-			gPlayerInfo.analogControlX = mouseDX;
-
-		if (fabsf(mouseDY) > fabsf(gPlayerInfo.analogControlZ))		// is the mouse delta better than what we've got from the other devices?
-			gPlayerInfo.analogControlZ = mouseDY;
-	}
-
-
-			/* UPDATE SWIVEL CAMERA */
-
-	gCameraControlDelta.x = 0;
-	gCameraControlDelta.y = 0;
-
-	if (gSDLController)
-	{
-		OGLVector2D rsVec = GetThumbStickVector(true);
-		gCameraControlDelta.x -= rsVec.x * 1.0f;
-		gCameraControlDelta.y += rsVec.y * 1.0f;
-	}
-
-	if (GetNeedState(kNeed_CameraLeft))
-		gCameraControlDelta.x -= 1.0f;
-
-	if (GetNeedState(kNeed_CameraRight))
-		gCameraControlDelta.x += 1.0f;
-
-	if (!gGamePrefs.mouseControlsOtto)
-		gCameraControlDelta.x -= mdx * mouseSensitivityFrac * 0.04f;
-#endif
 }
 
 #pragma mark -
@@ -369,26 +253,76 @@ Boolean GetNewKeyState(uint16_t sdlScancode)
 
 Boolean GetNeedState(int needID, int playerID)
 {
-	GAME_ASSERT_MESSAGE(playerID == 0, "TODO: Implement player 2 input");
-	return 0 != (gNeedStates[needID] & KEYSTATE_ACTIVE_BIT);
+	GAME_ASSERT(playerID >= 0);
+	GAME_ASSERT(playerID < MAX_LOCAL_PLAYERS);
+	GAME_ASSERT(needID >= 0);
+	GAME_ASSERT(needID < NUM_CONTROL_NEEDS);
+
+	if (gControllers[playerID].open
+		&& (gControllers[playerID].needStates[needID] & KEYSTATE_ACTIVE_BIT))
+	{
+		return true;
+	}
+
+	// Fallback to KB/M
+	if (playerID == 0)
+	{
+		return gNeedStates[needID] & KEYSTATE_ACTIVE_BIT;
+	}
+
+	return false;
 }
 
 Boolean GetNeedStateAnyP(int needID)
 {
-	// TODO: check other players...
-	return GetNeedState(needID, 0);
+	for (int i = 0; i < MAX_LOCAL_PLAYERS; i++)
+	{
+		if (gControllers[i].open
+			&& (gControllers[i].needStates[needID] & KEYSTATE_ACTIVE_BIT))
+		{
+			return true;
+		}
+	}
+
+	// Fallback to KB/M
+	return gNeedStates[needID] & KEYSTATE_ACTIVE_BIT;
 }
 
 Boolean GetNewNeedState(int needID, int playerID)
 {
-	GAME_ASSERT_MESSAGE(playerID == 0, "TODO: Implement player 2 input");
-	return gNeedStates[needID] == KEYSTATE_PRESSED;
+	GAME_ASSERT(playerID >= 0);
+	GAME_ASSERT(playerID < MAX_LOCAL_PLAYERS);
+	GAME_ASSERT(needID >= 0);
+	GAME_ASSERT(needID < NUM_CONTROL_NEEDS);
+
+	if (gControllers[playerID].open
+		&& (gControllers[playerID].needStates[needID] == KEYSTATE_PRESSED))
+	{
+		return true;
+	}
+
+	// Fallback to KB/M
+	if (playerID == 0)
+	{
+		return gNeedStates[needID] == KEYSTATE_PRESSED;
+	}
+
+	return false;
 }
 
 Boolean GetNewNeedStateAnyP(int needID)
 {
-	// TODO: check other players...
-	return GetNewNeedState(needID, 0);
+	for (int i = 0; i < MAX_LOCAL_PLAYERS; i++)
+	{
+		if (gControllers[i].open
+			&& (gControllers[i].needStates[needID] == KEYSTATE_PRESSED))
+		{
+			return true;
+		}
+	}
+
+	// Fallback to KB/M
+	return gNeedStates[needID] == KEYSTATE_PRESSED;
 }
 
 Boolean AreAnyNewKeysPressed(void)
@@ -408,9 +342,11 @@ float GetAnalogSteering(int playerID)
 
 			/* FIRST CHECK ANALOG AXES */
 
-	if (gSDLController)
+	SDL_GameController* sdlController = SDL_GameControllerFromPlayerIndex(playerID);
+
+	if (sdlController)
 	{
-		Sint16 dxRaw = SDL_GameControllerGetAxis(gSDLController, SDL_CONTROLLER_AXIS_LEFTX);
+		Sint16 dxRaw = SDL_GameControllerGetAxis(sdlController, SDL_CONTROLLER_AXIS_LEFTX);
 
 		steer = dxRaw / 32767.0f;
 		float steerMag = fabsf(steer);
@@ -454,54 +390,136 @@ float GetAnalogSteering(int playerID)
 
 /****************************** SDL JOYSTICK FUNCTIONS ********************************/
 
-static SDL_GameController* TryOpenController(bool showMessage)
+int GetNumControllers(void)
 {
-	if (gSDLController)
+	int count = 0;
+
+#if 0
+	for (int i = 0; i < SDL_NumJoysticks(); ++i)
 	{
-		printf("Already have a valid controller.\n");
-		return gSDLController;
+		if (SDL_IsGameController(i))
+		{
+			count++;
+		}
+	}
+#else
+	for (int i = 0; i < MAX_LOCAL_PLAYERS; i++)
+	{
+		if (gControllers[i].open)
+		{
+			count++;
+		}
+	}
+#endif
+
+	return count;
+}
+
+static int FindFreeControllerSlot()
+{
+	for (int i = 0; i < MAX_LOCAL_PLAYERS; i++)
+	{
+		if (!gControllers[i].open)
+		{
+			return i;
+		}
 	}
 
+	return -1;
+}
+
+static SDL_GameController* TryOpenControllerFromJoystick(int joystickIndex)
+{
+	SDL_JoystickID joystickInstanceID = SDL_JoystickGetDeviceInstanceID(joystickIndex);
+
+	// First, check that it's not in use already
+	for (int controllerSlot = 0; controllerSlot < MAX_LOCAL_PLAYERS; controllerSlot++)
+	{
+		if (gControllers[controllerSlot].open &&
+			gControllers[controllerSlot].joystickInstance == joystickInstanceID)
+		{
+			return gControllers[controllerSlot].controllerInstance;
+		}
+	}
+
+	// If we can't get an SDL_GameController from that joystick, don't bother
+	if (!SDL_IsGameController(joystickIndex))
+	{
+		return NULL;
+	}
+
+	// Reserve a controller slot
+	int controllerSlot = FindFreeControllerSlot();
+	if (controllerSlot < 0)
+	{
+		printf("All controller slots used up.\n");
+		// TODO: when a controller is unplugged, if all controller slots are used up, re-scan connected joysticks and try to open any unopened joysticks.
+		return NULL;
+	}
+
+	// Use this one
+	SDL_GameController* controllerInstance = SDL_GameControllerOpen(joystickIndex);
+
+	// Assign player ID
+	SDL_GameControllerSetPlayerIndex(controllerInstance, controllerSlot);
+
+	gControllers[controllerSlot] = (Controller)
+	{
+		.open = true,
+		.controllerInstance = controllerInstance,
+		.joystickInstance = joystickInstanceID,
+	};
+
+	printf("Opened joystick %d as controller: %s\n",
+		gControllers[controllerSlot].joystickInstance,
+		SDL_GameControllerName(gControllers[controllerSlot].controllerInstance));
+
+	return gControllers[controllerSlot].controllerInstance;
+}
+
+static SDL_GameController* TryOpenAnyController(bool showMessage)
+{
 	if (SDL_NumJoysticks() == 0)
 	{
 		return NULL;
 	}
 
-	for (int i = 0; gSDLController == NULL && i < SDL_NumJoysticks(); ++i)
+	for (int i = 0; i < SDL_NumJoysticks(); ++i)
 	{
-		if (SDL_IsGameController(i))
+		if (!SDL_IsGameController(i))
 		{
-			gSDLController = SDL_GameControllerOpen(i);
-			gSDLJoystickInstanceID = SDL_JoystickGetDeviceInstanceID(i);
+			continue;
+		}
+
+		// Use this one
+		SDL_GameController* newController = TryOpenControllerFromJoystick(i);
+		if (newController)
+		{
+			return newController;
 		}
 	}
 
-	if (!gSDLController)
+	printf("Joystick(s) found, but none is suitable as an SDL_GameController.\n");
+	if (showMessage)
 	{
-		printf("Joystick(s) found, but none is suitable as an SDL_GameController.\n");
-		if (showMessage)
-		{
-			char messageBuf[1024];
-			snprintf(messageBuf, sizeof(messageBuf),
-					 "The game does not support your controller yet (\"%s\").\n\n"
-					 "You can play with the keyboard and mouse instead. Sorry!",
-					 SDL_JoystickNameForIndex(0));
-			SDL_ShowSimpleMessageBox(
-					SDL_MESSAGEBOX_WARNING,
-					"Controller not supported",
-					messageBuf,
-					gSDLWindow);
-		}
-		return NULL;
+		char messageBuf[1024];
+		snprintf(messageBuf, sizeof(messageBuf),
+					"The game does not support your controller yet (\"%s\").\n\n"
+					"You can play with the keyboard and mouse instead. Sorry!",
+					SDL_JoystickNameForIndex(0));
+		SDL_ShowSimpleMessageBox(
+				SDL_MESSAGEBOX_WARNING,
+				"Controller not supported",
+				messageBuf,
+				gSDLWindow);
 	}
 
-	printf("Opened joystick %d as controller: %s\n", gSDLJoystickInstanceID, SDL_GameControllerName(gSDLController));
-
-	return gSDLController;
+	return NULL;
 }
 
 void Rumble(float strength, uint32_t ms)
 {
+	#if 0	// TODO: Rumble for specific player
 	if (NULL == gSDLController || !gGamePrefs.gamepadRumble)
 		return;
 
@@ -510,23 +528,81 @@ void Rumble(float strength, uint32_t ms)
 #else
 	SDL_GameControllerRumble(gSDLController, (Uint16)(strength * 65535), (Uint16)(strength * 65535), ms);
 #endif
+	#endif
 }
 
-static void OnJoystickRemoved(SDL_JoystickID which)
+static int GetControllerSlotFromSDLJoystickInstanceID(SDL_JoystickID joystickInstanceID)
 {
-	if (NULL == gSDLController)		// don't care, I didn't open any controller
-		return;
+	for (int i = 0; i < MAX_LOCAL_PLAYERS; i++)
+	{
+		if (gControllers[i].open && gControllers[i].joystickInstance == joystickInstanceID)
+		{
+			return i;
+		}
+	}
 
-	if (which != gSDLJoystickInstanceID)	// don't care, this isn't the joystick I'm using
-		return;
+	return -1;
+}
 
-	printf("Current joystick was removed: %d\n", which);
+static void CloseController(int controllerSlot)
+{
+	GAME_ASSERT(gControllers[controllerSlot].open);
+	GAME_ASSERT(gControllers[controllerSlot].controllerInstance);
 
-	// Nuke reference to this controller+joystick
-	SDL_GameControllerClose(gSDLController);
-	gSDLController = NULL;
-	gSDLJoystickInstanceID = -1;
+	SDL_GameControllerClose(gControllers[controllerSlot].controllerInstance);
+	gControllers[controllerSlot].open = false;
+	gControllers[controllerSlot].controllerInstance = NULL;
+	gControllers[controllerSlot].joystickInstance = -1;
+}
 
-	// Try to open another joystick if any is connected.
-	TryOpenController(false);
+static void CompactControllerSlots(void)
+{
+	int writeIndex = 0;
+
+	for (int i = 0; i < MAX_LOCAL_PLAYERS; i++)
+	{
+		GAME_ASSERT(writeIndex <= i);
+
+		if (gControllers[i].open)
+		{
+			if (writeIndex != i)
+			{
+				printf("Remapped player controller %d ---> %d\n", i, writeIndex);
+
+				gControllers[writeIndex] = gControllers[i];
+				SDL_GameControllerSetPlayerIndex(gControllers[writeIndex].controllerInstance, writeIndex);
+
+				// Clear duplicate slot so we don't read it by mistake in the future
+				gControllers[i].controllerInstance = NULL;
+				gControllers[i].joystickInstance = -1;
+				gControllers[i].open = false;
+			}
+
+			writeIndex++;
+		}
+	}
+}
+
+static void OnJoystickRemoved(SDL_JoystickID joystickInstanceID)
+{
+	int controllerSlot = GetControllerSlotFromSDLJoystickInstanceID(joystickInstanceID);
+
+	if (controllerSlot >= 0)		// we're using this joystick
+	{
+		printf("Joystick %d was removed, was used by controller slot #%d\n", joystickInstanceID, controllerSlot);
+
+		// Nuke reference to this controller+joystick
+		CloseController(controllerSlot);
+	}
+
+	if (!gControllerPlayerMappingLocked)
+	{
+		CompactControllerSlots();
+	}
+
+	// Fill up any controller slots that are vacant
+	while (TryOpenAnyController(false) != NULL)
+	{
+		// Successful; there might be more joysticks available, keep going
+	}
 }

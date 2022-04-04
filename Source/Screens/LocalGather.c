@@ -69,6 +69,26 @@ static int gNumControllersMissing = 4;
 
 
 
+
+
+static void UpdateGatherPrompt(int numControllersMissing)
+{
+	char message[256];
+
+	snprintf(
+		message,
+		sizeof(message),
+		"%s %s\n%s",
+		Localize(STR_CONNECT_CONTROLLERS_PREFIX),
+		Localize(STR_CONNECT_1_CONTROLLER + numControllersMissing - 1),
+		Localize(numControllersMissing==1? STR_CONNECT_CONTROLLERS_SUFFIX_KBD: STR_CONNECT_CONTROLLERS_SUFFIX));
+
+	TextMesh_Update(message, 0, gGatherPrompt);
+}
+
+
+
+
 /********************** DO CHARACTER SELECT SCREEN **************************/
 //
 // Return true if user aborts.
@@ -98,6 +118,16 @@ Boolean DoLocalGatherScreen(void)
 
 		outcome = DoCharacterSelectControls(whichPlayer, allowAborting);
 
+
+		int numControllers = GetNumControllers();
+		
+		gNumControllersMissing = gNumLocalPlayers - numControllers;
+		if (gNumControllersMissing < 0)
+			gNumControllersMissing = 0;
+
+		UpdateGatherPrompt(gNumControllersMissing);
+
+
 			/**************/
 			/* DRAW STUFF */
 			/**************/
@@ -121,22 +151,6 @@ Boolean DoLocalGatherScreen(void)
 		/* SET CHARACTER TYPE SELECTED */
 
 	return (outcome < 0);
-}
-
-
-static void UpdateGatherPrompt(int numControllersMissing)
-{
-	char message[256];
-
-	snprintf(
-		message,
-		sizeof(message),
-		"%s %s\n%s",
-		Localize(STR_CONNECT_CONTROLLERS_PREFIX),
-		Localize(STR_CONNECT_1_CONTROLLER + numControllersMissing - 1),
-		Localize(numControllersMissing==1? STR_CONNECT_CONTROLLERS_SUFFIX_KBD: STR_CONNECT_CONTROLLERS_SUFFIX));
-
-	TextMesh_Update(message, 0, gGatherPrompt);
 }
 
 
@@ -201,7 +215,6 @@ OGLVector3D			fillDirection1 = { .9, -.3, -1 };
 
 	gGatherPrompt = TextMesh_NewEmpty(256, &def2);
 
-	UpdateGatherPrompt(4);
 }
 
 

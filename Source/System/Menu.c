@@ -996,6 +996,7 @@ static void AwaitKeyPress(void)
 	}
 }
 
+#if 0
 static void AwaitPadPress(void)
 {
 	if (GetNewKeyState(SDL_SCANCODE_ESCAPE)
@@ -1065,6 +1066,7 @@ static void AwaitPadPress(void)
 		}
 	}
 }
+#endif
 
 static void AwaitMouseClick(void)
 {
@@ -1497,7 +1499,8 @@ int StartMenuTree(
 				break;
 
 			case kMenuStateAwaitingPadPress:
-				AwaitPadPress();
+				//AwaitPadPress();
+				IMPLEMENT_ME_SOFT();
 				break;
 
 			case kMenuStateAwaitingMouseClick:
