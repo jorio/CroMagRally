@@ -55,7 +55,6 @@ extern Byte						gDebugMode;
 extern CheckpointDefType		gCheckpointList[MAX_CHECKPOINTS];
 extern CollisionRec				gCollisionList[];
 extern const float				gWaterHeights[NUM_TRACKS][6];
-extern const KeyBinding			kDefaultKeyBindings_P2[NUM_CONTROL_NEEDS];
 extern const KeyBinding			kDefaultKeyBindings[NUM_CONTROL_NEEDS];
 extern FenceDefType				*gFenceList;
 extern float					**gMapYCoords;

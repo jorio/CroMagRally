@@ -162,7 +162,7 @@ void DoSDLMaintenance(void)
 
 	for (int i = 0; i < NUM_CONTROL_NEEDS; i++)
 	{
-		const KeyBinding* kb = &gGamePrefs.keys[i][0];
+		const KeyBinding* kb = &gGamePrefs.keys[i];
 
 		bool downNow = false;
 
@@ -190,7 +190,7 @@ void DoSDLMaintenance(void)
 		
 		for (int needNum = 0; needNum < NUM_CONTROL_NEEDS; needNum++)
 		{
-			const KeyBinding* kb = &gGamePrefs.keys[needNum][controllerNum];  // ish...
+			const KeyBinding* kb = &gGamePrefs.keys[needNum];
 
 			int16_t deadZone = needNum >= NUM_REMAPPABLE_NEEDS
 							? kJoystickDeadZone_UI

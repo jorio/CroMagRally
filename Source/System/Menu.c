@@ -206,7 +206,7 @@ static OGLColorRGBA PulsateColor(float* time)
 
 static KeyBinding* GetBindingAtRow(int row)
 {
-	return &gGamePrefs.keys[gNav->menu[row].kb][0];
+	return &gGamePrefs.keys[gNav->menu[row].kb];
 }
 
 static const char* GetKeyBindingName(int row, int col)
@@ -718,7 +718,7 @@ static void NavigateKeyBinding(const MenuItem* entry)
 		|| (gNav->mouseHoverValidRow && FlushMouseButtonPress(SDL_BUTTON_MIDDLE)))
 	{
 		gNav->idleTime = 0;
-		gGamePrefs.keys[entry->kb][0].key[gNav->keyColumn] = 0;
+		gGamePrefs.keys[entry->kb].key[gNav->keyColumn] = 0;
 		PlayEffect(kSfxDelete);
 		MakeTextAtRowCol(Localize(STR_UNBOUND_PLACEHOLDER), gNav->menuRow, gNav->keyColumn+1);
 		return;
@@ -765,7 +765,7 @@ static void NavigatePadBinding(const MenuItem* entry)
 		|| (gNav->mouseHoverValidRow && FlushMouseButtonPress(SDL_BUTTON_MIDDLE)))
 	{
 		gNav->idleTime = 0;
-		gGamePrefs.keys[entry->kb][0].gamepad[gNav->padColumn].type = kInputTypeUnbound;
+		gGamePrefs.keys[entry->kb].gamepad[gNav->padColumn].type = kInputTypeUnbound;
 		PlayEffect(kSfxDelete);
 		MakeTextAtRowCol(Localize(STR_UNBOUND_PLACEHOLDER), gNav->menuRow, gNav->padColumn+1);
 		return;
@@ -797,7 +797,7 @@ static void NavigateMouseBinding(const MenuItem* entry)
 		|| (gNav->mouseHoverValidRow && FlushMouseButtonPress(SDL_BUTTON_MIDDLE)))
 	{
 		gNav->idleTime = 0;
-		gGamePrefs.keys[entry->kb][0].mouseButton = 0;
+		gGamePrefs.keys[entry->kb].mouseButton = 0;
 		PlayEffect(kSfxDelete);
 		MakeTextAtRowCol(Localize(STR_UNBOUND_PLACEHOLDER), gNav->menuRow, 1);
 		return;

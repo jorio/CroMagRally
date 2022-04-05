@@ -68,7 +68,7 @@ typedef struct
 	Boolean	music;
 	Byte	monitorNum;
 
-	KeyBinding keys[NUM_CONTROL_NEEDS][MAX_LOCAL_PLAYERS];
+	KeyBinding keys[NUM_CONTROL_NEEDS];
 	Boolean	gamepadRumble;
 }PrefsType;
 

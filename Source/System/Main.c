@@ -160,15 +160,7 @@ void InitDefaultPrefs(void)
 	gGamePrefs.monitorNum			= 0;			// main monitor by default
 	gGamePrefs.tagDuration 			= 3;
 
-//	for (i = 0; i < NUM_CONTROL_NEEDS; i++)			// set OS X keyboard defaults
-//		gGamePrefs.keySettings[i][0] = gUserKeySettings_Defaults[i];
-	for (int i = 0; i < NUM_CONTROL_NEEDS; i++)
-	{
-		gGamePrefs.keys[i][0] = kDefaultKeyBindings[i];
-		gGamePrefs.keys[i][1] = kDefaultKeyBindings_P2[i];
-	}
-
-	
+	memcpy(&gGamePrefs.keys, kDefaultKeyBindings, sizeof(kDefaultKeyBindings));
 }
 
 
