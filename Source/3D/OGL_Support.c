@@ -168,6 +168,25 @@ OGLSetupOutputType	*outputPtr;
 		DoFatalAlert("OGL_SetupWindow: AllocPtr failed");
 
 
+			/* SET SOME PANE INFO */
+
+	gCurrentSplitScreenPane = 0;
+	gNumSplitScreenPanes = setupDefPtr->view.numPanes;
+	switch (setupDefPtr->view.numPanes)
+	{
+		case	1:
+				gActiveSplitScreenMode = SPLITSCREEN_MODE_NONE;
+				break;
+
+		case	2:
+				gActiveSplitScreenMode = gGamePrefs.desiredSplitScreenMode;
+				break;
+
+		default:
+			DoFatalAlert("OGL_SetupWindow: # panes not implemented");
+	}
+
+
 				/* SETUP */
 
 	OGL_CreateDrawContext(&setupDefPtr->view);
