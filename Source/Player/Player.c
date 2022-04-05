@@ -142,14 +142,14 @@ short	i;
 void InitPlayersAtStartOfLevel(void)
 {
 int		i,j,type;
-Boolean	taken[MAX_CAR_TYPES];
+Boolean	taken[NUM_LAND_CAR_TYPES];
 
 	gWorstHumanPlace = 0;
 
 
 		/* FIRST MARK WHICH CAR TYPES THE HUMANS HAVE */
 
-	for (i = 0; i < MAX_CAR_TYPES; i++)								// first mark all unused
+	for (i = 0; i < NUM_LAND_CAR_TYPES; i++)						// first mark all unused
 		taken[i] = false;
 
 	for (i = 0; i < gNumTotalPlayers; i++)

@@ -73,11 +73,12 @@ enum
 static int		gSelectedVehicleIndex;
 static ObjNode	*gVehicleObj, *gMeterIcon[NUM_VEHICLE_PARAMETERS];
 static ObjNode	*gVehicleName;
+static ObjNode	*gVehicleLockIcon;
 
 static int		gNumVehiclesToChooseFrom;
 
-int		gVehicleParameters[MAX_CAR_TYPES+1][NUM_VEHICLE_PARAMETERS];					// parameter values 0..7
-int		gDefaultVehicleParameters[MAX_CAR_TYPES+1][NUM_VEHICLE_PARAMETERS] =					// parameter values 0..7
+int		gVehicleParameters[NUM_CAR_TYPES_TOTAL][NUM_VEHICLE_PARAMETERS];					// parameter values 0..7
+int		gDefaultVehicleParameters[NUM_CAR_TYPES_TOTAL][NUM_VEHICLE_PARAMETERS] =			// parameter values 0..7
 {
 	//							Spd Acc Tra Sus
 	[CAR_TYPE_MAMMOTH]		= {  4,  2,  4,  7 },
@@ -203,7 +204,7 @@ int					age;
 	gNumVehiclesToChooseFrom = 6 + (age * 2);				// set # cars we can pick from
 
 	if (gNumRealPlayers > 1)							// let use any car in mutliplayer mode
-		gNumVehiclesToChooseFrom = 10;
+		gNumVehiclesToChooseFrom = NUM_LAND_CAR_TYPES;
 
 			/**************/
 			/* SETUP VIEW */
@@ -279,6 +280,19 @@ int					age;
 
 	MakeVehicleName();
 
+
+			/* BIG LOCK ICON */
+
+	{
+		NewObjectDefinitionType def =
+		{
+			.coord		= {0, 0.1, 0},
+			.slot		= SPRITE_SLOT,
+			.scale		= 1,
+			.flags		= STATUS_BIT_HIDDEN,
+		};
+		gVehicleLockIcon = TextMesh_New("~", 0, &def);
+	}
 
 
 			/* PARAMETER STRINGS */
@@ -361,11 +375,15 @@ static void MakeVehicleName(void)
 		.slot 		= SPRITE_SLOT,
 	};
 
-	gVehicleName = TextMesh_New(Localize(STR_CAR_MODEL_1 + gSelectedVehicleIndex), kTextMeshAlignCenter, &def);
+	const char* nameStr = "???";
+	if (gSelectedVehicleIndex < gNumVehiclesToChooseFrom)
+	{
+		nameStr = Localize(STR_CAR_MODEL_1 + gSelectedVehicleIndex);
+	}
 
-	gVehicleName->ColorFilter.r = .3;
-	gVehicleName->ColorFilter.g = .5;
-	gVehicleName->ColorFilter.b = .2;
+	gVehicleName = TextMesh_New(nameStr, kTextMeshAlignCenter, &def);
+
+	gVehicleName->ColorFilter = (OGLColorRGBA) {.3, .5, .2, 1};
 }
 
 
@@ -408,7 +426,7 @@ static void DrawVehicleSelectCallback(OGLSetupOutputType *info)
 
 			/* RIGHT ARROW */
 
-		if (gSelectedVehicleIndex < (gNumVehiclesToChooseFrom-1))
+		if (gSelectedVehicleIndex < NUM_LAND_CAR_TYPES-1)
 		{
 			DrawSprite(SPRITE_GROUP_VEHICLESELECTSCREEN, VEHICLESELECT_SObjType_Arrow_RightOn,
 						RIGHT_ARROW_X, ARROW_Y, ARROW_SCALE, 0, 0, info);
@@ -421,11 +439,37 @@ static void DrawVehicleSelectCallback(OGLSetupOutputType *info)
 
 
 
+static void RefreshSelectedCarGraphics(void)
+{
+	gVehicleObj->Type = gSelectedVehicleIndex;
+	ResetDisplayGroupObject(gVehicleObj);
+	MakeVehicleName();
+
+	for (int i = 0; i < NUM_VEHICLE_PARAMETERS; i++)
+	{
+		int n = gVehicleParameters[gSelectedVehicleIndex][i];
+		if (n > 7)
+			n = 7;
+		ModifySpriteObjectFrame(gMeterIcon[i], VEHICLESELECT_SObjType_Meter1 + n, gGameViewInfoPtr);
+	}
+
+	if (gSelectedVehicleIndex >= gNumVehiclesToChooseFrom)
+	{
+		gVehicleObj->ColorFilter = (OGLColorRGBA) {0,0,0,1};
+		gVehicleLockIcon->StatusBits &= ~STATUS_BIT_HIDDEN;
+	}
+	else
+	{
+		gVehicleObj->ColorFilter = (OGLColorRGBA) {1,1,1,1};
+		gVehicleLockIcon->StatusBits |= STATUS_BIT_HIDDEN;
+	}
+}
+
+
 /***************** DO VEHICLESELECT CONTROLS *******************/
 
 static Boolean DoVehicleSelectControls(short whichPlayer, Boolean allowAborting)
 {
-int		i,n;
 short	p;
 
 
@@ -450,8 +494,15 @@ short	p;
 
 	if (GetNewNeedState(kNeed_UIConfirm, p))
 	{
-		PlayEffect_Parms(EFFECT_SELECTCLICK, FULL_CHANNEL_VOLUME, FULL_CHANNEL_VOLUME, NORMAL_CHANNEL_RATE * 2/3);
-		return(true);
+		if (gSelectedVehicleIndex < gNumVehiclesToChooseFrom)
+		{
+			PlayEffect_Parms(EFFECT_SELECTCLICK, FULL_CHANNEL_VOLUME, FULL_CHANNEL_VOLUME, NORMAL_CHANNEL_RATE * 2/3);
+			return(true);
+		}
+		else
+		{
+			PlayEffect(EFFECT_BADSELECT);
+		}
 	}
 
 
@@ -461,34 +512,14 @@ short	p;
 	{
 		PlayEffect(EFFECT_SELECTCLICK);
 		gSelectedVehicleIndex--;
-		gVehicleObj->Type = gSelectedVehicleIndex;
-		ResetDisplayGroupObject(gVehicleObj);
-		MakeVehicleName();
-
-		for (i = 0; i < NUM_VEHICLE_PARAMETERS; i++)
-		{
-			n = gVehicleParameters[gSelectedVehicleIndex][i];
-			if (n > 7)
-				n = 7;
-			ModifySpriteObjectFrame(gMeterIcon[i], VEHICLESELECT_SObjType_Meter1 + n, gGameViewInfoPtr);
-		}
+		RefreshSelectedCarGraphics();
 	}
 	else
-	if (GetNewNeedState(kNeed_UIRight, p) && (gSelectedVehicleIndex < (gNumVehiclesToChooseFrom-1)))
+	if (GetNewNeedState(kNeed_UIRight, p) && (gSelectedVehicleIndex < NUM_LAND_CAR_TYPES-1))
 	{
 		PlayEffect(EFFECT_SELECTCLICK);
 		gSelectedVehicleIndex++;
-		gVehicleObj->Type = gSelectedVehicleIndex;
-		ResetDisplayGroupObject(gVehicleObj);
-		MakeVehicleName();
-
-		for (i = 0; i < NUM_VEHICLE_PARAMETERS; i++)
-		{
-			n = gVehicleParameters[gSelectedVehicleIndex][i];
-			if (n > 7)
-				n = 7;
-			ModifySpriteObjectFrame(gMeterIcon[i], VEHICLESELECT_SObjType_Meter1 + n, gGameViewInfoPtr);
-		}
+		RefreshSelectedCarGraphics();
 	}
 
 	return(false);

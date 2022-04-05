@@ -10,7 +10,6 @@
 
 #define	MAX_SUBMARINE_SPEED		4000.0f
 
-#define	MAX_CAR_TYPES	10
 #define	NUM_VEHICLE_PARAMETERS		4
 
 #define	CapturedFlag	SpecialPtr[3]			// objNode of attached team flag
@@ -44,7 +43,11 @@ enum
 	CAR_TYPE_CATAPULT,
 	CAR_TYPE_CHARIOT,
 
-	CAR_TYPE_SUB
+	NUM_LAND_CAR_TYPES,
+
+	CAR_TYPE_SUB = NUM_LAND_CAR_TYPES,
+
+	NUM_CAR_TYPES_TOTAL
 };
 
 enum

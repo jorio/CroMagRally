@@ -135,13 +135,11 @@ int	i,j;
 
 			/* COPY CAR DEFAULTS */
 
-	for (i =0; i < MAX_CAR_TYPES; i++)
+	for (i =0; i < NUM_CAR_TYPES_TOTAL; i++)
 	{
 		for (j = 0; j < NUM_VEHICLE_PARAMETERS; j++)
 			gVehicleParameters[i][j] =	gDefaultVehicleParameters[i][j];
 	}
-
-
 }
 
 
@@ -159,7 +157,7 @@ ObjNode *InitPlayer_Car(int playerNum, OGLPoint3D *where, float rotY)
 {
 short			carType;
 ObjNode			*newObj;
-static const float bottomOffsets[MAX_CAR_TYPES] =
+static const float bottomOffsets[NUM_LAND_CAR_TYPES] =
 {
 	-57,				// mammoth
 	-78,				// bone buggy
@@ -176,7 +174,7 @@ static const float bottomOffsets[MAX_CAR_TYPES] =
 
 };
 
-static const float shadowScale[MAX_CAR_TYPES] =
+static const float shadowScale[NUM_LAND_CAR_TYPES] =
 {
 	11.0,				// mammoth
 	9.0,				// bone buggy
@@ -2659,8 +2657,7 @@ ObjNode			*wheel,*link;
 		DoFatalAlert("CreateCarWheelsAndHead: sx > 1");
 
 	carType = gPlayerInfo[playerNum].vehicleType;				// get car type
-	if (carType >= MAX_CAR_TYPES)
-		DoFatalAlert("CreateCarWheelsAndHead: carType >= MAX_CAR_TYPES");
+	GAME_ASSERT(carType < NUM_LAND_CAR_TYPES);
 
 	link = theCar;
 
@@ -3249,7 +3246,7 @@ ObjNode			*wheels[4],*head;
 OGLMatrix4x4	*carMatrix;
 OGLMatrix4x4	m1,m2,m3;
 short			i,playerNum = theCar->PlayerNum;
-static const OGLPoint3D	wheelOffsets[MAX_CAR_TYPES][4] =
+static const OGLPoint3D	wheelOffsets[NUM_LAND_CAR_TYPES][4] =
 {
 	//                         Front Left		Front Right		Back Right		Back Left
 	[CAR_TYPE_MAMMOTH]     = { {-109,-19,-92},	{109,-19,-92},	{129,4,91},		{-129,4,91} },
@@ -3265,7 +3262,7 @@ static const OGLPoint3D	wheelOffsets[MAX_CAR_TYPES][4] =
 };
 
 
-static const OGLPoint3D	headOffsets[MAX_CAR_TYPES] =
+static const OGLPoint3D	headOffsets[NUM_LAND_CAR_TYPES] =
 {
 	[CAR_TYPE_MAMMOTH]     = { 0, 58, -10 },
 	[CAR_TYPE_BONEBUGGY]   = { 0, 65, -20 },
@@ -3288,8 +3285,7 @@ static const OGLPoint3D	headOffsets[MAX_CAR_TYPES] =
 
 	carMatrix = &theCar->BaseTransformMatrix;					// point to car's transform matrix
 
-	if (carType >= MAX_CAR_TYPES)
-		DoFatalAlert("AlignWheelsAndHeadOnCar: carType >= MAX_CAR_TYPES");
+	GAME_ASSERT(carType < NUM_LAND_CAR_TYPES);
 
 
 			/* GET OBJ NODES OF ALL OF THE WHEELS */
