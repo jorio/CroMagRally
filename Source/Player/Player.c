@@ -9,42 +9,7 @@
 /*    EXTERNALS             */
 /****************************/
 
-#include "globals.h"
-#include "objects.h"
-#include "misc.h"
-#include "player.h"
-#include "mobjtypes.h"
-#include "skeletonobj.h"
-#include 	"input.h"
-#include "skeletonanim.h"
-#include "skeletonjoints.h"
-#include "collision.h"
-#include "effects.h"
-#include "camera.h"
-#include "sound2.h"
-#include "3dmath.h"
-#include "terrain.h"
-#include "triggers.h"
-#include "sobjtypes.h"
-#include "infobar.h"
-#include "file.h"
-
-extern	OGLPoint3D				gCoord;
-extern	OGLVector3D				gDelta;
-extern	float					gFramesPerSecondFrac;
-extern	short					gNumCollisions,gWorstHumanPlace,gWhoIsIt,gNumPlayersEliminated;
-extern	CollisionRec			gCollisionList[];
-extern	unsigned long 			gScore;
-extern	float					gMyDistToFloor;
-extern	float 					gCameraDistFromMe;
-extern	OGLSetupOutputType		*gGameViewInfoPtr;
-extern	uint32_t 					gInfobarUpdateBits,gAutoFadeStatusBits;
-extern	Boolean					gIsNetworkHost,gIsNetworkClient,gNetGameInProgress;
-extern	long					gNumCheckpoints;
-extern	int						gGameMode,gTrackNum,gNumSplitScreenPanes;
-extern	Boolean				gTrackCompleted;
-extern	float				gTrackCompletedCoolDownTimer;
-extern	PrefsType			gGamePrefs;
+#include "game.h"
 
 /****************************/
 /*    PROTOTYPES            */

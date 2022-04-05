@@ -9,27 +9,9 @@
 /***************/
 /* EXTERNALS   */
 /***************/
-#include <Pomme.h>
-#include "globals.h"
-#include "misc.h"
-#include "sound2.h"
-#include "file.h"
-#include "input.h"
-#include "skeletonobj.h"
-#include "3dmath.h"
-#include "ogl_support.h"
-#include "main.h"
-#include "window.h"
-#include "mainmenu.h"
-#include <string.h>
 
-extern	short		gMainAppRezFile;
-extern	OGLSetupOutputType		*gGameViewInfoPtr;
-extern	int			gNumSplitScreenPanes;
-extern	FSSpec				gDataSpec;
-extern	float		gFramesPerSecondFrac,gGameWindowShrink;
-extern	Boolean		gNetGameInProgress,gIsSelfRunningDemo;
-extern	PrefsType			gGamePrefs;
+#include "game.h"
+#include <string.h>
 
 /****************************/
 /*    PROTOTYPES            */
@@ -54,8 +36,6 @@ static void UpdateGlobalVolume(void);
 #define		MAX_CHANNELS			20
 
 #define		MAX_EFFECTS				50
-
-#define     kNumBogusConverters     200000
 
 typedef struct
 {

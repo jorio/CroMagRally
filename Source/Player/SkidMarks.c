@@ -9,25 +9,7 @@
 /*    EXTERNALS             */
 /****************************/
 
-
-#include "globals.h"
-#include "objects.h"
-#include "misc.h"
-#include "player.h"
-#include "3dmath.h"
-#include "terrain.h"
-#include "effects.h"
-#include "sobjtypes.h"
-
-extern	ObjNode			*gCurrentPlayer;
-extern	float			gFramesPerSecondFrac,gFramesPerSecond,gPlayerToCameraAngle;
-extern	OGLPoint3D		gCoord;
-extern	OGLVector3D		gDelta;
-extern	OGLSetupOutputType		*gGameViewInfoPtr;
-extern	OGLVector3D		gRecentTerrainNormal;
-extern	short			gCurrentPlayerNum;
-extern	PlayerInfoType	gPlayerInfo[];
-extern	uint32_t			gAutoFadeStatusBits;
+#include "game.h"
 
 /****************************/
 /*    PROTOTYPES            */

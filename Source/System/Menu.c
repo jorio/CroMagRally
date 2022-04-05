@@ -6,39 +6,13 @@
 /*    EXTERNALS             */
 /****************************/
 
+#include "game.h"
+#include "menu.h"
+
 #include <SDL.h>
 #include <SDL_opengl.h>
 #include <math.h>
-
-#include "globals.h"
-#include "misc.h"
-#include "menu.h"
-#include "window.h"
-#include "ogl_support.h"
-#include "objects.h"
-#include "3dmath.h"
-#include "main.h"
-#include "player.h"
-#include "input.h"
-#include "file.h"
-#include "sound2.h"
-#include "stb_image.h"
-#include "localization.h"
-#include "atlas.h"
 #include <string.h>
-
-extern	float				gFramesPerSecondFrac,gFramesPerSecond;
-extern	OGLPoint3D			gCoord;
-extern	OGLVector3D			gDelta;
-extern	OGLSetupOutputType		*gGameViewInfoPtr;
-extern	FSSpec		gDataSpec;
-extern	int			gCurrentSplitScreenPane;
-extern	OGLVector3D		gRecentTerrainNormal;
-extern	PrefsType		gGamePrefs;
-extern	int				gGameWindowWidth,gGameWindowHeight;
-extern	float	g2DLogicalWidth;
-extern	float	g2DLogicalHeight;
-extern	SDL_GameController* gSDLController;
 
 #define DECLARE_WORKBUF(buf, bufSize) char (buf)[256]; const int (bufSize) = 256
 #define DECLARE_STATIC_WORKBUF(buf, bufSize) static char (buf)[256]; static const int (bufSize) = 256

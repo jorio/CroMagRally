@@ -9,39 +9,7 @@
 /*    EXTERNALS             */
 /****************************/
 
-#include "globals.h"
-#include "misc.h"
-#include "miscscreens.h"
-#include "objects.h"
-#include "window.h"
-#include "input.h"
-#include "sound2.h"
-#include	"file.h"
-#include "ogl_support.h"
-#include	"main.h"
-#include "3dmath.h"
-#include "skeletonobj.h"
-#include "terrain.h"
-#include "camera.h"
-#include "sobjtypes.h"
-#include "network.h"
-#include "player.h"
-#include "sprites.h"
-#include "localization.h"
-#include "atlas.h"
-
-extern	float				gFramesPerSecondFrac,gFramesPerSecond;
-extern	WindowPtr			gCoverWindow;
-extern	FSSpec			gDataSpec;
-extern	KeyMap 			gKeyMap,gNewKeys;
-extern	short			gNumRealPlayers,gNumLocalPlayers;
-extern	Boolean			gSongPlayingFlag,gDisableAnimSounds,gSongPlayingFlag;
-extern	OGLPoint3D		gCoord;
-extern  MOPictureObject 	*gBackgoundPicture;
-extern	Boolean					gNetGameInProgress,gIsNetworkClient;
-extern	OGLSetupOutputType		*gGameViewInfoPtr;
-extern	OGLVector3D		gDelta;
-extern	int				gTrackNum, gGameMode;
+#include "game.h"
 
 
 /****************************/

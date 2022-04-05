@@ -9,24 +9,11 @@
 /* EXTERNALS   */
 /***************/
 
-#include	<SDL.h>
-#include 	<stdlib.h>
-#include	"globals.h"
-#include	"window.h"
-#include	"misc.h"
-#include "objects.h"
-#include "file.h"
-#include "input.h"
-#include "sound2.h"
+#include "game.h"
+#include <SDL.h>
+#include <stdlib.h>
 
-
-extern	ObjNode	*gCurrentNode,*gFirstNodePtr;
-extern	float	gFramesPerSecondFrac;
-extern	short	gPrefsFolderVRefNum;
-extern	long	gPrefsFolderDirID;
-extern	PrefsType			gGamePrefs;
-extern	Boolean			gSongPlayingFlag,gMuteMusicFlag;
-extern	SDL_Window* gSDLWindow;
+extern SDL_Window* gSDLWindow;
 
 /****************************/
 /*    PROTOTYPES            */

@@ -3,30 +3,11 @@
 /**********************/
 
 
-#include "globals.h"
-#include "terrain.h"
-#include "misc.h"
-#include "main.h"
-#include "objects.h"
-#include "3dmath.h"
-#include "fences.h"
-#include "bg3d.h"
-#include "sprites.h"
-#include "sobjtypes.h"
-
 /***************/
 /* EXTERNALS   */
 /***************/
 
-extern	OGLPoint3D	gCoord;
-extern	OGLVector3D	gDelta;
-extern	float		gAutoFadeStartDist,gAutoFadeRange_Frac,gAutoFadeEndDist,gFramesPerSecondFrac;
-extern	short		gCurrentPlayerNum;
-extern	FSSpec		gDataSpec;
-extern	int			gCurrentSplitScreenPane;
-extern	SpriteType	*gSpriteGroupList[MAX_SPRITE_GROUPS];
-extern	long		gNumSpritesInGroupList[MAX_SPRITE_GROUPS];
-extern	uint32_t		gGlobalMaterialFlags;
+#include "game.h"
 
 
 /****************************/

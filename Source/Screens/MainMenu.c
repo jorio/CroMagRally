@@ -10,46 +10,10 @@
 /*    EXTERNALS             */
 /****************************/
 
-#include "globals.h"
-#include "misc.h"
-#include "objects.h"
-#include "window.h"
-#include "input.h"
-#include "sound2.h"
-#include	"file.h"
-#include	"ogl_support.h"
-#include	"main.h"
-#include "3dmath.h"
-#include "skeletonobj.h"
-#include "mainmenu.h"
-#include "sobjtypes.h"
-#include "sprites.h"
+#include "game.h"
+#include "menu.h"
 #include "miscscreens.h"
 #include "network.h"
-#include "player.h"
-#include "localization.h"
-#include "atlas.h"
-#include "menu.h"
-
-
-extern	float				gFramesPerSecondFrac,gFramesPerSecond;
-extern	WindowPtr			gCoverWindow;
-extern	FSSpec		gDataSpec;
-extern	Boolean		gNetGameInProgress,gIsSelfRunningDemo;
-extern	KeyMap gKeyMap,gNewKeys;
-extern	short		gNumRealPlayers,gNumLocalPlayers, gMyNetworkPlayerNum;
-extern	Boolean		gSongPlayingFlag,gResetSong,gDisableAnimSounds,gIsNetworkHost,gIsNetworkClient;
-extern	PrefsType	gGamePrefs;
-extern	OGLPoint3D	gCoord;
-extern	MOPictureObject 	*gBackgoundPicture;
-extern	OGLSetupOutputType		*gGameViewInfoPtr;
-extern	int			gGameMode,gTheAge;
-extern	Byte		gActiveSplitScreenMode;
-extern	const short gNumTracksUnlocked[];
-extern	int		gVehicleParameters[MAX_CAR_TYPES+1][NUM_VEHICLE_PARAMETERS];
-extern	float	gSteeringResponsiveness,gCarMaxTightTurn,gCarTurningRadius,gTireTractionConstant,gTireFrictionConstant,gCarGravity,gSlopeRatioAdjuster;
-extern	Boolean		gMuteMusicFlag;
-
 
 /****************************/
 /*    PROTOTYPES            */

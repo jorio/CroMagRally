@@ -3,19 +3,11 @@
 /****************************/
 
 
-#include "globals.h"
-#include "misc.h"
-#include "main.h"
-#include "3dmath.h"
-#include "paths.h"
-#include "terrain.h"
-
 /***************/
 /* EXTERNALS   */
 /***************/
 
-
-extern  long gNumSuperTilesDeep,gNumSuperTilesWide;
+#include "game.h"
 
 
 /****************************/

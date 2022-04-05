@@ -9,23 +9,9 @@
 /* EXTERNALS   */
 /***************/
 
+#include "game.h"
 #include <SDL.h>
 #include <stdlib.h>
-#include "globals.h"
-#include "misc.h"
-#include "input.h"
-#include "window.h"
-#include "ogl_support.h"
-#include "miscscreens.h"
-#include "main.h"
-#include "player.h"
-#include "file.h"
-
-extern	short				gMainAppRezFile,gMyNetworkPlayerNum,gNumLocalPlayers;
-extern	Byte				gActiveSplitScreenMode;
-extern	PlayerInfoType		gPlayerInfo[];
-extern	float			gFramesPerSecondFrac;
-extern	PrefsType			gGamePrefs;
 
 /**********************/
 /*     PROTOTYPES     */

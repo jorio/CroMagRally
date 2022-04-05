@@ -9,36 +9,7 @@
 /* EXTERNALS   */
 /***************/
 
-#include "globals.h"
-#include "objects.h"
-#include "misc.h"
-#include "skeletonobj.h"
-#include "skeletonanim.h"
-#include "skeletonjoints.h"
-#include "ogl_support.h"
-#include "3dmath.h"
-#include "camera.h"
-#include "mobjtypes.h"
-#include "bones.h"
-#include "collision.h"
-#include "player.h"
-#include "bg3d.h"
-#include "terrain.h"
-#include "sprites.h"
-#include "sobjtypes.h"
-#include "file.h"
-#include "sound2.h"
-
-extern	OGLBoundingBox	gObjectGroupBBoxList[MAX_BG3D_GROUPS][MAX_OBJECTS_IN_GROUP];
-extern	float		gFramesPerSecondFrac;
-extern	ObjNode		*gFirstNodePtr;
-extern	OGLSetupOutputType		*gGameViewInfoPtr;
-extern	OGLPoint3D	gCoord;
-extern	uint32_t		gAutoFadeStatusBits;
-extern	PrefsType	gGamePrefs;
-extern	FSSpec		gDataSpec;
-extern	OGLMatrix4x4			gViewToFrustumMatrix,gLocalToViewMatrix,gLocalToFrustumMatrix;
-extern	SpriteType	*gSpriteGroupList[MAX_SPRITE_GROUPS];
+#include "game.h"
 
 /****************************/
 /*    PROTOTYPES            */

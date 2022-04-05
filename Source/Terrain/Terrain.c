@@ -7,44 +7,12 @@
 /* EXTERNALS   */
 /***************/
 
-
-#include "globals.h"
-#include "objects.h"
-#include "main.h"
-#include "terrain.h"
-#include "misc.h"
-#include "file.h"
-#include "3dmath.h"
-#include "camera.h"
-#include "mobjtypes.h"
+#include "game.h"
 #include <stdlib.h>
-#include "effects.h"
-#include "fences.h"
-#include "player.h"
-#include "paths.h"
-#include "items.h"
-#include "window.h"
-#include "checkpoints.h"
-#include	"infobar.h"
-#include	"bg3d.h"
 
-extern	ObjNode					*gCycloramaObj;
-extern	OGLMatrix4x4			gViewToFrustumMatrix,gLocalToViewMatrix;
-extern	TerrainItemEntryType 	**gMasterItemList;
-extern	long					gNumSplines,gNumFences;
-extern	SplineDefType			**gSplineList;
-extern	float					**gMapYCoords;
-extern	Byte					**gMapSplitMode, gDebugMode;
-extern	OGLSetupOutputType		*gGameViewInfoPtr;
+extern	Byte					**gMapSplitMode;
 extern	SuperTileItemIndexType	**gSuperTileItemIndexGrid;
-extern	int						gCurrentSplitScreenPane,gTrackNum;
-extern	Byte					gActiveSplitScreenMode;
-extern	PlayerInfoType	gPlayerInfo[];
-extern	short					gNumTotalPlayers;
-extern	FenceDefType			*gFenceList;
-extern	uint32_t					gGameFrameNum;
 extern	Byte					**gTerrainShadowFlags;
-extern	OGLBoundingBox			gObjectGroupBBoxList[MAX_BG3D_GROUPS][MAX_OBJECTS_IN_GROUP];
 
 /****************************/
 /*  PROTOTYPES             */

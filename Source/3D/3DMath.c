@@ -9,16 +9,8 @@
 /*    EXTERNALS             */
 /****************************/
 
+#include "game.h"
 #include <math.h>
-
-#include "globals.h"
-#include "misc.h"
-#include "objects.h"
-#include "3dmath.h"
-#include "collision.h"
-
-extern	float				gFramesPerSecondFrac,gFramesPerSecond;
-extern	OGLMatrix4x4		gLocalToFrustumMatrix;
 
 /****************************/
 /*    PROTOTYPES            */

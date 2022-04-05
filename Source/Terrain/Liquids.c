@@ -9,28 +9,8 @@
 /*    EXTERNALS             */
 /****************************/
 
+#include "game.h"
 
-#include "globals.h"
-#include "misc.h"
-#include "objects.h"
-#include "terrain.h"
-#include "liquids.h"
-#include "collision.h"
-#include "3dmath.h"
-#include "mobjtypes.h"
-#include "metaobjects.h"
-#include "bg3d.h"
-
-extern	float				gFramesPerSecondFrac,gFramesPerSecond;
-extern	OGLPoint3D			gCoord,gMyCoord;
-extern	OGLVector3D			gDelta;
-extern	OGLSetupOutputType		*gGameViewInfoPtr;
-extern	ObjNode				*gPlayerObj;
-extern	Byte				gPlayerMode;
-extern	uint32_t				gAutoFadeStatusBits;
-extern	ObjNode				*gFirstNodePtr;
-extern	MetaObjectPtr		gBG3DGroupList[MAX_BG3D_GROUPS][MAX_OBJECTS_IN_GROUP];
-extern	int					gTrackNum;
 
 /****************************/
 /*    PROTOTYPES            */

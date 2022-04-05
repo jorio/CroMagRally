@@ -2,25 +2,12 @@
 /*   	SPLINE ITEMS.C      */
 /****************************/
 
-
-#include "globals.h"
-#include "terrain.h"
-#include "misc.h"
-#include "main.h"
-#include "objects.h"
-#include "mobjtypes.h"
-#include "3dmath.h"
-#include "splineitems.h"
-#include "mytraps.h"
-#include "items.h"
-
 /***************/
 /* EXTERNALS   */
 /***************/
 
-extern	uint8_t	gTerrainScrollBuffer[MAX_SUPERTILES_DEEP][MAX_SUPERTILES_WIDE];
-extern	float	gFramesPerSecondFrac;
-extern	SuperTileStatus	**gSuperTileStatusGrid;
+#include "game.h"
+#include "mytraps.h"
 
 /****************************/
 /*    PROTOTYPES            */

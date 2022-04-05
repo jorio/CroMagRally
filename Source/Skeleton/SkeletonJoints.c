@@ -9,13 +9,7 @@
 /*    EXTERNALS             */
 /****************************/
 
-#include "globals.h"
-#include "objects.h"
-#include "misc.h"
-#include "skeletonanim.h"
-#include "skeletonjoints.h"
-#include "main.h"
-#include "3dmath.h"
+#include "game.h"
 
 
 /****************************/

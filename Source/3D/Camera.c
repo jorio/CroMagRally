@@ -9,37 +9,8 @@
 /*    EXTERNALS             */
 /****************************/
 
-#include "globals.h"
-#include "objects.h"
-#include "camera.h"
-#include "ogl_support.h"
-#include "3dmath.h"
-#include "misc.h"
-#include "input.h"
-#include "mobjtypes.h"
-#include "collision.h"
-#include "skeletonjoints.h"
-#include "player.h"
-#include "window.h"
-#include "main.h"
-#include "terrain.h"
-#include "sprites.h"
-#include "sobjtypes.h"
+#include "game.h"
 
-extern	OGLSetupOutputType		*gGameViewInfoPtr;
-extern	float					gFramesPerSecond,gFramesPerSecondFrac,gCurrentAspectRatio;
-extern	OGLVector3D				gWorldSunDirection;
-extern	CollisionRec			gCollisionList[];
-extern	int						gCurrentSplitScreenPane;
-extern	FSSpec					gDataSpec;
-extern	OGLMatrix4x4			gWorldToWindowMatrix[];
-extern	float					gGlobalTransparency;
-extern	PlayerInfoType			gPlayerInfo[];
-extern	short					gNumTotalPlayers,gCurrentPlayerNum,gMyNetworkPlayerNum,gNumLocalPlayers,gNumRealPlayers;
-extern	Boolean					gNetGameInProgress;
-extern	Boolean					gIsNetworkClient;
-extern	SpriteType				*gSpriteGroupList[];
-extern	ObjNode					*gCycloramaObj;
 
 /****************************/
 /*    PROTOTYPES            */

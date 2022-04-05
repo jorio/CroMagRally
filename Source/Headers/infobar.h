@@ -15,5 +15,4 @@ void ShowLapNum(short playerNum);
 void ShowFinalPlace(short playerNum);
 void DecCurrentPOWQuantity(short playerNum);
 void ShowWinLose(short playerNum, Byte mode, short winner);
-
-void MakeTrackName(void);
+void MakeIntroTrackName(void);

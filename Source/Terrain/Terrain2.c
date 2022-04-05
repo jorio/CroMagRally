@@ -2,40 +2,13 @@
 /*   	TERRAIN2.C 	        */
 /****************************/
 
-
-#include "globals.h"
-#include "terrain.h"
-#include "misc.h"
-#include "main.h"
-#include "objects.h"
-#include "mobjtypes.h"
-#include "items.h"
-#include "triggers.h"
-#include "3dmath.h"
-#include "mytraps.h"
-#include "player.h"
-#include "liquids.h"
-#include "effects.h"
-
 /***************/
 /* EXTERNALS   */
 /***************/
 
-extern	long	gTerrainTileWidth,gTerrainTileDepth;
-extern	long		gMyStartX,gMyStartZ;
-extern	long	gNumSuperTilesDeep,gNumSuperTilesWide;
-extern	long	gTerrainUnitWidth,gTerrainUnitDepth,gNumUniqueSuperTiles;
-extern	uint16_t	**gPathMap;
-extern	OGLPoint3D	gCoord;
-extern	PlayerInfoType	gPlayerInfo[];
-extern	const float	gOneOver_TERRAIN_POLYGON_SIZE;
-extern	Byte					gMyStartAim;
-extern	OGLVector3D				gRecentTerrainNormal;
-extern	OGLSetupOutputType		*gGameViewInfoPtr;
-extern	uint16_t					**gTileDataHandle;
-extern  short                   gNumTotalPlayers;
-extern	SuperTileStatus			**gSuperTileStatusGrid;
-extern	int						gGameMode;
+#include "game.h"
+#include "mytraps.h"
+
 
 /****************************/
 /*    PROTOTYPES            */

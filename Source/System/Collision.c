@@ -9,22 +9,7 @@
 /* EXTERNALS   */
 /***************/
 
-#include "globals.h"
-#include "objects.h"
-#include "collision.h"
-#include "3dmath.h"
-#include "triggers.h"
-#include "misc.h"
-#include "terrain.h"
-#include "player.h"
-
-
-extern	OGLPoint3D	gCoord;
-extern	OGLVector3D	gDelta;
-extern	OGLMatrix4x4	gWorkMatrix;
-extern	ObjNode		*gFirstNodePtr;
-extern	float		gFramesPerSecond,gFramesPerSecondFrac;
-extern	PlayerInfoType	gPlayerInfo[];
+#include "game.h"
 
 /****************************/
 /*    PROTOTYPES            */

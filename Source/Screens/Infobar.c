@@ -9,44 +9,7 @@
 /*    EXTERNALS             */
 /****************************/
 
-#include "globals.h"
-#include "misc.h"
-#include "objects.h"
-#include "window.h"
-#include "input.h"
-#include	"file.h"
-#include	"ogl_support.h"
-#include "ogl_support.h"
-#include	"infobar.h"
-#include "3dmath.h"
-#include "bg3d.h"
-#include "sobjtypes.h"
-#include "player.h"
-#include "main.h"
-#include "skeletonobj.h"
-#include "sprites.h"
-#include "triggers.h"
-#include "sound2.h"
-#include "localization.h"
-#include "atlas.h"
-#include <string.h>
-
-extern	float					gCurrentAspectRatio,gGlobalTransparency,gFramesPerSecondFrac,gCameraStartupTimer;
-extern	PlayerInfoType			gPlayerInfo[];
-extern	short					gMyNetworkPlayerNum,gNumTotalPlayers,gNumRealPlayers;
-extern	int						gCurrentSplitScreenPane,gTrackNum, gGameMode, gNumSplitScreenPanes;
-extern	Boolean					gIsNetworkClient,gNetGameInProgress,gNoCarControls,gIsSelfRunningDemo;
-extern	FSSpec					gDataSpec;
-extern	long					gTerrainUnitWidth,gTerrainUnitDepth;
-extern	OGLColorRGB				gGlobalColorFilter;
-extern	OGLSetupOutputType		*gGameViewInfoPtr;
-extern	Byte					gActiveSplitScreenMode;
-extern	short					gCapturedFlagCount[],gWhoIsIt,gNumTorches;
-extern	OGLColorRGB				gTagColor;
-extern	Str32					gPlayerNameStrings[MAX_PLAYERS];
-extern	PrefsType			gGamePrefs;
-extern	ObjNode				*gTorchObjs[];
-
+#include "game.h"
 
 /****************************/
 /*    PROTOTYPES            */
@@ -1341,7 +1304,7 @@ static const float scale[3] =
 
 /******************** MAKE TRACK NAME ***************************/
 
-void MakeTrackName(void)
+void MakeIntroTrackName(void)
 {
 ObjNode	*newObj;
 static const float scale[3] =

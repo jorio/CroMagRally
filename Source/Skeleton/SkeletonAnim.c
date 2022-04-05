@@ -9,15 +9,7 @@
 /*    EXTERNALS             */
 /****************************/
 
-#include "globals.h"
-#include "misc.h"
-#include "skeletonanim.h"
-#include "skeletonjoints.h"
-#include "sound2.h"
-#include "bones.h"
-#include "3dmath.h"
-
-extern	float				gFramesPerSecondFrac;
+#include "game.h"
 
 
 /****************************/

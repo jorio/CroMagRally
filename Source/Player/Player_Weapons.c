@@ -9,38 +9,7 @@
 /*    EXTERNALS             */
 /****************************/
 
-#include "globals.h"
-#include "objects.h"
-#include "misc.h"
-#include "collision.h"
-#include "player.h"
-#include "sound2.h"
-#include "main.h"
-#include "input.h"
-#include "mobjtypes.h"
-#include "skeletonanim.h"
-#include "effects.h"
-#include "3dmath.h"
-#include "terrain.h"
-#include "fences.h"
-#include "skeletonjoints.h"
-#include "triggers.h"
-#include "infobar.h"
-#include "skeletonobj.h"
-#include "sobjtypes.h"
-
-extern	ObjNode			*gCurrentPlayer;
-extern	float			gFramesPerSecondFrac,gFramesPerSecond,gPlayerToCameraAngle;
-extern	OGLPoint3D		gCoord;
-extern	OGLVector3D		gDelta;
-extern	OGLSetupOutputType		*gGameViewInfoPtr;
-extern	OGLVector3D		gRecentTerrainNormal;
-extern	short			gCurrentPlayerNum,gPlayerMultiPassCount,gNumTotalPlayers;
-extern	PlayerInfoType	gPlayerInfo[];
-extern	uint32_t			gAutoFadeStatusBits;
-extern	NewParticleGroupDefType	gNewParticleGroupDef;
-extern	int				gGameMode;
-
+#include "game.h"
 
 /****************************/
 /*    PROTOTYPES            */

@@ -12,24 +12,10 @@ typedef void* NSpPlayerLeftMessage;
 /* EXTERNALS   */
 /***************/
 
-#include <stdlib.h>
-#include "globals.h"
-#include "misc.h"
+#include "game.h"
 #include "network.h"
-#include	"window.h"
-#include	"main.h"
-#include	"player.h"
-#include	"file.h"
-#include	"input.h"
-#include	"miscscreens.h"
-
-extern	short	gNumRealPlayers,gMyNetworkPlayerNum,gNumTotalPlayers;
-extern	float	gFramesPerSecond,gFramesPerSecondFrac;
-extern	PlayerInfoType	gPlayerInfo[];
-extern	Boolean	gGameOver;
-extern	int		gGameMode,gTheAge,gTrackNum;
-extern	Boolean						gSongPlayingFlag;
-extern	PrefsType			gGamePrefs;
+#include "window.h"
+#include <stdlib.h>
 
 /**********************/
 /*     PROTOTYPES     */

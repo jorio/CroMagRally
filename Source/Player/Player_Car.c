@@ -9,55 +9,7 @@
 /*    EXTERNALS             */
 /****************************/
 
-#include "globals.h"
-#include "3dmath.h"
-#include "objects.h"
-#include "misc.h"
-#include "skeletonanim.h"
-#include "collision.h"
-#include "sound2.h"
-#include "main.h"
-#include "file.h"
-#include "input.h"
-#include "player.h"
-#include "effects.h"
-#include "mobjtypes.h"
-#include "skeletonobj.h"
-#include "terrain.h"
-#include "camera.h"
-#include "bones.h"
-#include "triggers.h"
-#include "items.h"
-#include "bg3d.h"
-#include "fences.h"
-#include "paths.h"
-#include "sobjtypes.h"
-#include "triggers.h"
-#include "infobar.h"
-#include "sprites.h"
-#include "liquids.h"
-
-extern	ObjNode					*gFirstNodePtr,*gCurrentPlayer;
-extern	float					gFramesPerSecondFrac,gFramesPerSecond,gAnalogSteeringTimer[];
-extern	OGLPoint3D				gCoord;
-extern	OGLVector3D				gDelta;
-extern	OGLSetupOutputType		*gGameViewInfoPtr;
-extern	short					gNumCollisions,gCurrentPlayerNum,gNumRealPlayers,gMyNetworkPlayerNum,gNumTotalPlayers,gWorstHumanPlace;
-extern	CollisionRec			gCollisionList[];
-extern	PrefsType				gGamePrefs;
-extern	OGLBoundingBox			gObjectGroupBBoxList[MAX_BG3D_GROUPS][MAX_OBJECTS_IN_GROUP];
-extern	OGLVector3D				gRecentTerrainNormal;
-extern	OGLMatrix4x4			gWorldToWindowMatrix[];
-extern	PlayerInfoType			gPlayerInfo[];
-extern	Boolean					gNetGameInProgress,gTrackCompleted,gIsSelfRunningDemo;
-extern	int						gNumSplitScreenPanes,gGameMode,gTrackNum,gTheAge;
-extern	int						gVehicleParameters[MAX_CAR_TYPES][NUM_VEHICLE_PARAMETERS];
-extern	int						gDefaultVehicleParameters[MAX_CAR_TYPES][NUM_VEHICLE_PARAMETERS];
-extern	ParticleGroupType		*gParticleGroups[];
-extern	short				gWhoIsIt, gWhoWasIt;
-extern	float				gReTagTimer;
-extern	Boolean					gNoCarControls;
-extern	SpriteType			*gSpriteGroupList[MAX_SPRITE_GROUPS];
+#include "game.h"
 
 /****************************/
 /*    PROTOTYPES            */

@@ -9,19 +9,8 @@
 /*    EXTERNALS             */
 /****************************/
 
-#include "globals.h"
-#include "misc.h"
+#include "game.h"
 #include "bones.h"
-#include "objects.h"
-#include "window.h"
-#include "3dmath.h"
-#include "skeletonjoints.h"
-#include "metaobjects.h"
-#include "mobjtypes.h"
-#include "bg3d.h"
-
-extern	MOVertexArrayData	**gLocalTriMeshesOfSkelType;
-extern	BG3DFileContainer		*gBG3DContainerList[];
 
 /****************************/
 /*    PROTOTYPES            */

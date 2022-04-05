@@ -2,10 +2,7 @@
 // (C) 2022 Iliyas Jorio
 // This file is part of Cro-Mag Rally. https://github.com/jorio/cromagrally
 
-#include "Pomme.h"
-#include "localization.h"
-#include "misc.h"
-#include "file.h"
+#include "game.h"
 #include <string.h>
 #include <SDL.h>
 

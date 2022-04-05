@@ -9,21 +9,8 @@
 /*    EXTERNALS             */
 /****************************/
 
-#include "globals.h"
-#include "objects.h"
-#include "window.h"
-#include "misc.h"
-#include "skeletonanim.h"
-#include "skeletonobj.h"
-#include "skeletonjoints.h"
-#include "3dmath.h"
-#include "file.h"
-#include "sound2.h"
+#include "game.h"
 #include "bones.h"
-#include "metaobjects.h"
-
-extern	ObjNode				*gPlayerNode[];
-extern	OGLSetupOutputType		*gGameViewInfoPtr;
 
 
 /****************************/

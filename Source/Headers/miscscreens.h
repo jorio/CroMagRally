@@ -7,6 +7,9 @@ void DoPaused(void);
 void ShowAgePicture(int age);
 void ShowLoadingPicture(void);
 
+void DoMainMenuScreen(void);
+void DoGameSettingsDialog(void);
+
 Boolean DoFailedMenu(const char* headerString);
 void DoTitleScreen(void);
 void DoAgeConqueredScreen(void);

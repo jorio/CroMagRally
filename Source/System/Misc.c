@@ -9,28 +9,10 @@
 /* EXTERNALS   */
 /***************/
 
+#include "game.h"
+#include "network.h"
 #include <SDL.h>
 #include <math.h>
-
-#include	"globals.h"
-#include	"misc.h"
-#include	"window.h"
-#include "file.h"
-#include "objects.h"
-#include "input.h"
-#include "skeletonobj.h"
-#include "terrain.h"
-#include "bg3d.h"
-#include "sprites.h"
-#include "network.h"
-#include "sound2.h"
-#include "miscscreens.h"
-
-extern	unsigned long gOriginalSystemVolume;
-extern	short		gMainAppRezFile;
-extern	/*DSpContextReference*/ void* 	gDisplayContext;
-extern	OGLSetupOutputType		*gGameViewInfoPtr;
-extern	int			gPolysThisFrame;
 
 extern	SDL_Window* 	gSDLWindow;
 

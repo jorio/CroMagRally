@@ -9,38 +9,7 @@
 /*    EXTERNALS             */
 /****************************/
 
-
-#include "globals.h"
-#include "misc.h"
-#include "objects.h"
-#include "mobjtypes.h"
-#include "mytraps.h"
-#include "collision.h"
-#include "3dmath.h"
-#include "sound2.h"
-#include "skeletonobj.h"
-#include "skeletonanim.h"
-#include "skeletonjoints.h"
-#include "terrain.h"
-#include "player.h"
-#include "main.h"
-#include "effects.h"
-#include "sobjtypes.h"
-#include "bg3d.h"
-#include "splineitems.h"
-#include "file.h"
-
-extern	float				gFramesPerSecondFrac,gFramesPerSecond;
-extern	OGLPoint3D			gCoord;
-extern	PlayerInfoType	gPlayerInfo[];
-extern	OGLVector3D			gDelta;
-extern	OGLVector3D			gRecentTerrainNormal;
-extern	SplineDefType		**gSplineList;
-extern	uint32_t		gAutoFadeStatusBits;
-extern	short				gNumTotalPlayers,gNumCollisions;
-extern	SuperTileStatus	**gSuperTileStatusGrid;
-extern	NewParticleGroupDefType	gNewParticleGroupDef;
-extern	PrefsType			gGamePrefs;
+#include "game.h"
 
 /****************************/
 /*    PROTOTYPES            */

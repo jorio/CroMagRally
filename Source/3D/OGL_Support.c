@@ -10,42 +10,15 @@
 /*    EXTERNALS             */
 /****************************/
 
+#include "game.h"
+#include "stb_image.h"
 #include <SDL.h>
 #include <SDL_opengl.h>
 #include <math.h>
 
-#include "globals.h"
-#include "misc.h"
-#include "window.h"
-#include "ogl_support.h"
-#include "3dmath.h"
-#include "main.h"
-#include "player.h"
-#include "input.h"
-#include "file.h"
-#include "sound2.h"
-#include "stb_image.h"
-#include "atlas.h"
-#include "objects.h"
-#include <string.h>
-
 extern SDL_Window*		gSDLWindow;
-extern int				gNumObjectNodes,gNumPointers;
-extern	MOMaterialObject	*gMostRecentMaterial;
-extern	GWorldPtr		gTerrainDebugGWorld;
-extern	short			gNumSuperTilesDrawn,gNumActiveParticleGroups,gNumFencesDrawn,gNumTotalPlayers;
-extern	PlayerInfoType	gPlayerInfo[];
-extern	float			gFramesPerSecond,gCameraStartupTimer;
-extern	Byte			gDebugMode;
-extern	Boolean			gAutoPilot,gNetGameInProgress;
-extern	uint16_t			gPlayer0TileAttribs;
-extern	uint32_t			gGlobalMaterialFlags;
-extern	PrefsType			gGamePrefs;
-extern	int				gGameWindowWidth,gGameWindowHeight;
-extern	CGrafPtr				gDisplayContextGrafPtr;
-//extern	DisplayIDType		gOurDisplayID;
-extern	float 			gGammaFadePercent;
-extern	FSSpec			gDataSpec;
+//extern	GWorldPtr		gTerrainDebugGWorld;
+
 
 /****************************/
 /*    PROTOTYPES            */

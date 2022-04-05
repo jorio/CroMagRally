@@ -9,41 +9,8 @@
 /* EXTERNALS   */
 /***************/
 
-#include "globals.h"
-#include "objects.h"
-#include "misc.h"
-#include "skeletonobj.h"
-#include "skeletonanim.h"
-#include "skeletonjoints.h"
-#include "ogl_support.h"
-#include "3dmath.h"
-#include "sound2.h"
-#include "camera.h"
-#include "mobjtypes.h"
+#include "game.h"
 #include "bones.h"
-#include "collision.h"
-#include "input.h"
-#include "bg3d.h"
-#include "metaobjects.h"
-#include "terrain.h"
-#include "splineitems.h"
-#include "player.h"
-#include "atlas.h"
-
-extern	Byte					gDebugMode;
-extern	MetaObjectPtr			gBG3DGroupList[MAX_BG3D_GROUPS][MAX_OBJECTS_IN_GROUP];
-extern	int						gNumObjectsInBG3DGroupList[MAX_BG3D_GROUPS];
-extern	int						gNumObjectsInBG3DGroupList[MAX_BG3D_GROUPS];
-extern	float					gFramesPerSecondFrac,gGlobalTransparency;
-extern	OGLSetupOutputType		*gGameViewInfoPtr;
-extern	MOVertexArrayData		**gLocalTriMeshesOfSkelType;
-extern	int						gCurrentSplitScreenPane;
-extern	OGLColorRGB				gGlobalColorFilter;
-extern	uint32_t					gGlobalMaterialFlags;
-extern	PlayerInfoType			gPlayerInfo[];
-extern	Boolean					gNetGameInProgress;
-extern	short					gMyNetworkPlayerNum;
-extern	float					gCurrentAspectRatio;
 
 /****************************/
 /*    PROTOTYPES            */

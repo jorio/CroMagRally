@@ -9,20 +9,8 @@
 /*    EXTERNALS             */
 /****************************/
 
+#include "game.h"
 #include <string.h>
-#include "globals.h"
-#include "misc.h"
-#include "sprites.h"
-#include "metaobjects.h"
-#include "window.h"
-#include "bg3d.h"
-#include "sobjtypes.h"
-#include "objects.h"
-#include "3dmath.h"
-
-
-extern	float	gCurrentAspectRatio,gGlobalTransparency;
-extern	int		gPolysThisFrame;
 
 
 /****************************/

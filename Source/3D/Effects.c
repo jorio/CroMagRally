@@ -9,35 +9,7 @@
 /*    EXTERNALS             */
 /****************************/
 
-#include "globals.h"
-#include "misc.h"
-#include "objects.h"
-#include "mobjtypes.h"
-#include "ogl_support.h"
-#include "effects.h"
-#include "3dmath.h"
-#include "sound2.h"
-#include "collision.h"
-#include "player.h"
-#include "bg3d.h"
-#include "sobjtypes.h"
-#include "metaobjects.h"
-#include "sprites.h"
-#include "terrain.h"
-#include "triggers.h"
-
-extern	float				gFramesPerSecondFrac,gFramesPerSecond;
-extern	OGLPoint3D			gCoord;
-extern	OGLVector3D			gDelta;
-extern	OGLSetupOutputType		*gGameViewInfoPtr;
-extern	FSSpec		gDataSpec;
-extern	int			gCurrentSplitScreenPane;
-extern	SpriteType	*gSpriteGroupList[MAX_SPRITE_GROUPS];
-extern	OGLVector3D		gRecentTerrainNormal;
-extern	PlayerInfoType	gPlayerInfo[];
-extern	short			gNumTotalPlayers;
-extern	OGLPoint3D		gEarCoords[];
-
+#include "game.h"
 
 /****************************/
 /*    PROTOTYPES            */

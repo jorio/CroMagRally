@@ -1,16 +1,7 @@
+#include "game.h"
 #include <SDL.h>
-#include "globals.h"
-#include "misc.h"
-#include "input.h"
-#include "window.h"
-#include "ogl_support.h"
-#include "miscscreens.h"
-#include "main.h"
-#include "player.h"
-#include "file.h"
 
 extern SDL_Window* gSDLWindow;
-extern	PrefsType			gGamePrefs;
 
 /***************/
 /* CONSTANTS   */

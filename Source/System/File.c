@@ -9,54 +9,10 @@
 /* EXTERNALS   */
 /***************/
 
-#include	<string.h>
-#include	"globals.h"
-#include 	"objects.h"
-#include	"misc.h"
-#include	"skeletonanim.h"
-#include	"skeletonobj.h"
-#include	"skeletonjoints.h"
-#include 	"mobjtypes.h"
-#include	"file.h"
-#include 	"window.h"
-#include 	"main.h"
-#include 	"bones.h"
-#include 	"sound2.h"
-#include 	"terrain.h"
-#include 	"bg3d.h"
-#include 	"fences.h"
-#include 	"paths.h"
-#include 	"checkpoints.h"
-#include 	"sprites.h"
-#include 	"sobjtypes.h"
-#include 	"lzss.h"
-#include 	"input.h"
-#include 	"miscscreens.h"
-#include 	"main.h"
-
-extern	short			gMainAppRezFile;
-extern	short			gNumTerrainItems;
-extern	short			gPrefsFolderVRefNum;
-extern	long			gPrefsFolderDirID,gNumPaths;
-extern	long			gTerrainTileWidth,gTerrainTileDepth,gTerrainUnitWidth,gTerrainUnitDepth,gNumUniqueSuperTiles;
-extern	long			gNumSuperTilesDeep,gNumSuperTilesWide;
-extern	FSSpec			gDataSpec;
-extern	uint32_t			gScore;
-extern  uint16_t			**gTileDataHandle;
-extern	float			**gMapYCoords;
-extern	Byte			**gMapSplitMode;
-extern	TerrainItemEntryType 	**gMasterItemList;
-extern	SuperTileGridType **gSuperTileTextureGrid;
-extern	FenceDefType	*gFenceList;
-extern	long			gNumFences,gNumSplines,gNumCheckpoints;
-extern	SplineDefType	**gSplineList;
-extern  PathDefType	    **gPathList;
-extern	CheckpointDefType	   gCheckpointList[MAX_CHECKPOINTS];
-extern	int				gTrackNum;
-extern	TileAttribType	**gTileAttribList;
-extern	uint16_t			**gTileGrid;
-extern	GLuint			gSuperTileTextureNames[MAX_SUPERTILE_TEXTURES];
-extern	PrefsType			gGamePrefs;
+#include "game.h"
+#include "bones.h"
+#include "lzss.h"
+#include <string.h>
 
 /****************************/
 /*    PROTOTYPES            */

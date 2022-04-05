@@ -9,59 +9,10 @@
 /*    EXTERNALS             */
 /****************************/
 
-#include <SDL.h>
-#include "globals.h"
-#include "mobjtypes.h"
-#include "objects.h"
-#include "window.h"
-#include "main.h"
-#include "misc.h"
-#include "skeletonobj.h"
-#include "skeletonanim.h"
-#include "camera.h"
-#include "sound2.h"
-#include "bg3d.h"
-#include "file.h"
-#include 	"input.h"
-#include "player.h"
-#include "3dmath.h"
-#include "items.h"
-#include "effects.h"
+#include "game.h"
 #include "miscscreens.h"
-#include "ogl_support.h"
-#include "terrain.h"
-#include "fences.h"
-#include "splineitems.h"
 #include "network.h"
-#include "mainmenu.h"
-#include "checkpoints.h"
-#include "infobar.h"
-#include "sprites.h"
-#include "liquids.h"
-#include "sobjtypes.h"
-#include "localization.h"
-#include "atlas.h"
-
-extern	Boolean			gSongPlayingFlag,gDrawLensFlare,gIsNetworkHost,gIsNetworkClient,gNetGameInProgress,gDisableHiccupTimer,gHideInfobar;
-extern	float			gFramesPerSecond,gFramesPerSecondFrac,gAutoFadeStartDist,gAutoFadeEndDist,gAutoFadeRange_Frac,gStartingLightTimer;
-extern	float			gAnalogSteeringTimer[];
-extern	WindowPtr	gCoverWindow;
-extern	OGLPoint3D	gCoord;
-extern	unsigned long 		gScore;
-extern	ObjNode				*gFirstNodePtr, *gFinalPlaceObj;
-extern	short		gNumSuperTilesDrawn,gNumLocalPlayers,gMyNetworkPlayerNum,gNumRealPlayers,gCurrentPlayerNum, gNumTotalPlayers;
-extern	float		gGlobalTransparency;
-extern	signed char	gNumEnemyOfKind[];
-extern	int			gMaxItemsAllocatedInAPass,gNumObjectNodes;
-extern	PlayerInfoType	gPlayerInfo[];
-extern	PrefsType	gGamePrefs;
-extern	Boolean		gAutoPilot;
-extern	Byte		gActiveSplitScreenMode;
-//extern	const uint16_t	gUserKeySettings_Defaults[];
-extern  FSSpec		gDataSpec;
-
-extern const KeyBinding kDefaultKeyBindings[NUM_CONTROL_NEEDS];
-extern const KeyBinding kDefaultKeyBindings_P2[NUM_CONTROL_NEEDS];
+#include <SDL.h>
 
 
 /****************************/
@@ -1364,7 +1315,7 @@ short				numPanes;
 
 			/* PRINT TRACK NAME */
 
-	MakeTrackName();
+	MakeIntroTrackName();
 
 			/* INIT CAMERAS */
 

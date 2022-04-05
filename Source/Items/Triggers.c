@@ -9,40 +9,7 @@
 /*    EXTERNALS             */
 /****************************/
 
-#include "globals.h"
-#include "triggers.h"
-#include "objects.h"
-#include "mobjtypes.h"
-#include "misc.h"
-#include "main.h"
-#include "sound2.h"
-#include "items.h"
-#include "player.h"
-#include "collision.h"
-#include "skeletonanim.h"
-#include "effects.h"
-#include "terrain.h"
-#include "bg3d.h"
-#include "sobjtypes.h"
-#include "3dmath.h"
-#include "infobar.h"
-
-
-extern	ObjNode					*gMyBuddy;
-extern	OGLPoint3D				gCoord;
-extern	float					gFramesPerSecondFrac,gShieldTimer;
-extern	OGLVector3D				gDelta;
-extern	unsigned long 			gInfobarUpdateBits;
-extern	OGLVector3D			gRecentTerrainNormal;
-extern	uint32_t				gAutoFadeStatusBits;
-extern	float				gAutoFadeStartDist,gFramesPerSecond;
-extern	uint16_t				gRealLevel;
-extern	PlayerInfoType		gPlayerInfo[];
-extern	OGLBoundingBox			gObjectGroupBBoxList[MAX_BG3D_GROUPS][MAX_OBJECTS_IN_GROUP];
-extern	NewParticleGroupDefType	gNewParticleGroupDef;
-extern	SuperTileStatus	**gSuperTileStatusGrid;
-extern	int					gGameMode,gTrackNum;
-extern	short				gCapturedFlagCount[],gTotalTokens;
+#include "game.h"
 
 /*******************/
 /*   PROTOTYPES    */

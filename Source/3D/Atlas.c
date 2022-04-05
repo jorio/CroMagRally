@@ -6,20 +6,9 @@
 /*    EXTERNALS             */
 /****************************/
 
-#include	"globals.h"
-#include	"atlas.h"
-#include 	"objects.h"
-#include	"misc.h"
-#include	"bg3d.h"
-#include	"sprites.h"
-#include	"3dmath.h"
-#include	"file.h"
+#include "game.h"
 #include <string.h>
 #include <stdio.h>
-
-extern FSSpec gDataSpec;
-extern	float					gCurrentAspectRatio;
-extern	int						gPolysThisFrame;
 
 /****************************/
 /*    PROTOTYPES            */

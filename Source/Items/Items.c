@@ -9,38 +9,7 @@
 /*    EXTERNALS             */
 /****************************/
 
-
-#include "globals.h"
-#include "misc.h"
-#include "objects.h"
-#include "items.h"
-#include "mobjtypes.h"
-#include "collision.h"
-#include "3dmath.h"
-#include "sound2.h"
-#include "terrain.h"
-#include "effects.h"
-#include "skeletonobj.h"
-#include "triggers.h"
-#include "main.h"
-#include "bg3d.h"
-#include "player.h"
-#include "sobjtypes.h"
-#include "splineitems.h"
-
-extern	float				gFramesPerSecondFrac,gFramesPerSecond;
-extern	OGLPoint3D			gCoord;
-extern	OGLVector3D			gDelta;
-extern	OGLBoundingBox 		gObjectGroupBBoxList[MAX_BG3D_GROUPS][MAX_OBJECTS_IN_GROUP];
-extern	OGLSetupOutputType	*gGameViewInfoPtr;
-extern	uint32_t				gAutoFadeStatusBits,gInfobarUpdateBits;
-extern	Boolean				gAreaCompleted;
-extern	PlayerInfoType		gPlayerInfo[];
-extern	const float gWaterHeights[NUM_TRACKS][6];
-extern	int					gTrackNum;
-extern	SplineDefType	**gSplineList;
-extern	Boolean gAnnouncedPOW[MAX_POW_TYPES];
-extern	short				gNumTorches;
+#include "game.h"
 
 /****************************/
 /*    PROTOTYPES            */

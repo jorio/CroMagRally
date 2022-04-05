@@ -9,28 +9,12 @@
 /*    EXTERNALS             */
 /****************************/
 
+#include "game.h"
+#include "stb_image.h"
 #include <math.h>
 #include <string.h>
 
-#include "globals.h"
-#include "misc.h"
-#include "ogl_support.h"
-#include "metaobjects.h"
-#include "window.h"
-#include "bg3d.h"
-#include "file.h"
-#include "sprites.h"
-
-#include "stb_image.h"
-
-extern	float			gCurrentAspectRatio;
-extern	SpriteType		*gSpriteGroupList[];
-extern	long			gNumSpritesInGroupList[];
-extern	int				gPolysThisFrame,gVRAMUsedThisFrame;
 extern	Boolean			gMyState_Lighting;
-extern	Byte			gDebugMode;
-extern	PrefsType			gGamePrefs;
-extern	Boolean			gSongPlayingFlag;
 
 /****************************/
 /*    PROTOTYPES            */

@@ -9,35 +9,7 @@
 /*    EXTERNALS             */
 /****************************/
 
-#include "globals.h"
-#include "misc.h"
-#include "objects.h"
-#include "window.h"
-#include "input.h"
-#include "sound2.h"
-#include	"file.h"
-#include	"ogl_support.h"
-#include	"main.h"
-#include "3dmath.h"
-#include "terrain.h"
-#include "miscscreens.h"
-#include "sobjtypes.h"
-#include "sprites.h"
-#include "network.h"
-#include "localization.h"
-#include "atlas.h"
-
-extern	float				gFramesPerSecondFrac,gFramesPerSecond;
-extern	FSSpec		gDataSpec;
-extern	Boolean		gNetGameInProgress,gGameOver, gNoCarControls;
-extern	KeyMap gKeyMap,gNewKeys;
-extern	short		gNumRealPlayers,gNumLocalPlayers;
-extern	Boolean		gSongPlayingFlag,gResetSong,gDisableAnimSounds,gIsNetworkHost,gIsNetworkClient;
-extern	PrefsType	gGamePrefs;
-extern	OGLPoint3D	gCoord;
-extern	MOPictureObject 	*gBackgoundPicture;
-extern	OGLSetupOutputType		*gGameViewInfoPtr;
-
+#include "game.h"
 
 /****************************/
 /*    PROTOTYPES            */

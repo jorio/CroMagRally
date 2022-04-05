@@ -3,26 +3,12 @@
 /***************************/
 
 
-#include "globals.h"
-#include "misc.h"
-#include "main.h"
-#include "3dmath.h"
-#include "checkpoints.h"
-#include "terrain.h"
-#include "player.h"
-#include "infobar.h"
-
 /***************/
 /* EXTERNALS   */
 /***************/
 
-extern	short			gNumTotalPlayers,gNumRealPlayers,gNumRealPlayersCompletedRace;
-extern	PlayerInfoType	gPlayerInfo[];
-extern	float			gTrackCompletedCoolDownTimer;
-extern	Boolean			gTrackCompleted,gIsSelfRunningDemo;
-extern	int				gGameMode;
-extern	OGLPoint3D	gCoord;
-extern	OGLVector3D	gDelta;
+#include "game.h"
+
 
 /****************************/
 /*    PROTOTYPES            */
