@@ -187,6 +187,8 @@ void InitDefaultPrefs(void)
 
 static Boolean PlayGame(void)
 {
+	UnlockPlayerControllerMapping();
+
 	if (gNetGameInProgress)
 		SetDefaultPhysics();								// set all physics to defaults for net game
 
@@ -194,6 +196,7 @@ static Boolean PlayGame(void)
 	{
 		if (DoLocalGatherScreen())
 			return true;
+		LockPlayerControllerMapping();
 	}
 
 	switch(gGameMode)
@@ -229,6 +232,9 @@ static Boolean PlayGame(void)
 				DoFatalAlert("PlayGame: unknown game mode");
 
 	}
+
+
+	UnlockPlayerControllerMapping();
 
 
 		/* UPDATE ANY SAVED PLAYER FILE THAT'S ACTIVE */

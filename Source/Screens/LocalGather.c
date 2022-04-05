@@ -9,15 +9,17 @@
 /****************************/
 
 #include "game.h"
+#include <SDL.h>
+
 
 /****************************/
 /*    PROTOTYPES            */
 /****************************/
 
-static void SetupCharacterSelectScreen(short whichPlayer);
-static int DoCharacterSelectControls(short whichPlayer, Boolean allowAborting);
-static void DrawCharacterSelectCallback(OGLSetupOutputType *info);
-static void FreeCharacterSelectArt(void);
+static void SetupLocalGatherScreen(void);
+static int DoLocalGatherControls(void);
+static void DrawLocalGatherCallback(OGLSetupOutputType *info);
+static void FreeLocalGatherArt(void);
 
 
 
@@ -31,8 +33,6 @@ static void FreeCharacterSelectArt(void);
 
 static ObjNode* gGatherPrompt = NULL;
 static int gNumControllersMissing = 4;
-
-
 
 
 
@@ -62,10 +62,10 @@ static void UpdateGatherPrompt(int numControllersMissing)
 
 Boolean DoLocalGatherScreen(void)
 {
-	int whichPlayer = 0;
-	bool allowAborting = true;
+	gNumControllersMissing = gNumLocalPlayers;
+	UnlockPlayerControllerMapping();
 
-	SetupCharacterSelectScreen(whichPlayer);
+	SetupLocalGatherScreen();
 	MakeFadeEvent(true);
 
 
@@ -82,7 +82,7 @@ Boolean DoLocalGatherScreen(void)
 	{
 			/* SEE IF MAKE SELECTION */
 
-		outcome = DoCharacterSelectControls(whichPlayer, allowAborting);
+		outcome = DoLocalGatherControls();
 
 
 		int numControllers = GetNumControllers();
@@ -101,7 +101,7 @@ Boolean DoLocalGatherScreen(void)
 		CalcFramesPerSecond();
 		ReadKeyboard();
 		MoveObjects();
-		OGL_DrawScene(gGameViewInfoPtr, DrawCharacterSelectCallback);
+		OGL_DrawScene(gGameViewInfoPtr, DrawLocalGatherCallback);
 	}
 
 
@@ -109,8 +109,8 @@ Boolean DoLocalGatherScreen(void)
 			/* CLEANUP */
 			/***********/
 
-	OGL_FadeOutScene(gGameViewInfoPtr, DrawCharacterSelectCallback, MoveObjects);
-	FreeCharacterSelectArt();
+	OGL_FadeOutScene(gGameViewInfoPtr, DrawLocalGatherCallback, MoveObjects);
+	FreeLocalGatherArt();
 	OGL_DisposeWindowSetup(&gGameViewInfoPtr);
 
 
@@ -122,7 +122,7 @@ Boolean DoLocalGatherScreen(void)
 
 /********************* SETUP CHARACTERSELECT SCREEN **********************/
 
-static void SetupCharacterSelectScreen(short whichPlayer)
+static void SetupLocalGatherScreen(void)
 {
 OGLSetupInputType	viewDef;
 OGLColorRGBA		ambientColor = { .5, .5, .5, 1 };
@@ -159,8 +159,6 @@ OGLVector3D			fillDirection1 = { .9, -.3, -1 };
 				/* LOAD ART */
 				/************/
 
-	LoadASkeleton(SKELETON_TYPE_FEMALESTANDING, gGameViewInfoPtr);
-
 			/* MAKE BACKGROUND PICTURE OBJECT */
 
 	gBackgoundPicture = MO_CreateNewObjectOfType(MO_TYPE_PICTURE, (uintptr_t) gGameViewInfoPtr, ":images:CharSelectScreen.jpg");
@@ -187,7 +185,7 @@ OGLVector3D			fillDirection1 = { .9, -.3, -1 };
 
 /********************** FREE CHARACTERSELECT ART **********************/
 
-static void FreeCharacterSelectArt(void)
+static void FreeLocalGatherArt(void)
 {
 	DeleteAllObjects();
 	MO_DisposeObjectReference(gBackgoundPicture);
@@ -199,7 +197,7 @@ static void FreeCharacterSelectArt(void)
 
 /***************** DRAW CHARACTERSELECT CALLBACK *******************/
 
-static void DrawCharacterSelectCallback(OGLSetupOutputType *info)
+static void DrawLocalGatherCallback(OGLSetupOutputType *info)
 {
 
 			/* DRAW BACKGROUND */
@@ -215,25 +213,14 @@ static void DrawCharacterSelectCallback(OGLSetupOutputType *info)
 
 /***************** DO CHARACTERSELECT CONTROLS *******************/
 
-static int DoCharacterSelectControls(short whichPlayer, Boolean allowAborting)
+static int DoLocalGatherControls(void)
 {
-short	p;
+	if (gNumControllersMissing == 0)
+		return 1;
 
-
-	if (gNetGameInProgress)										// if net game, then use P0 controls
-		p = 0;
-	else
-		p = whichPlayer;										// otherwise, use P0 or P1 controls depending.
-
-
-		/* SEE IF ABORT */
-
-	if (allowAborting)
+	if (GetNewNeedStateAnyP(kNeed_UIBack))
 	{
-		if (GetNewNeedState(kNeed_UIBack, p))
-		{
-			return -1;
-		}
+		return -1;
 	}
 
 	if (GetNewNeedStateAnyP(kNeed_UILeft))
@@ -249,10 +236,17 @@ short	p;
 
 		/* SEE IF SELECT THIS ONE */
 
-	if (GetNewNeedState(kNeed_UIConfirm, p))
+	if (GetNewKeyState(SDL_SCANCODE_RETURN))
 	{
-		PlayEffect_Parms(EFFECT_SELECTCLICK, FULL_CHANNEL_VOLUME, FULL_CHANNEL_VOLUME, NORMAL_CHANNEL_RATE * 2/3);
-		return 1;
+		if (gNumControllersMissing == 1)
+		{
+			PlayEffect_Parms(EFFECT_SELECTCLICK, FULL_CHANNEL_VOLUME, FULL_CHANNEL_VOLUME, NORMAL_CHANNEL_RATE * 2/3);
+			return 1;
+		}
+		else
+		{
+			PlayEffect(EFFECT_BADSELECT);
+		}
 	}
 
 	return 0;

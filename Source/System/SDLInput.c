@@ -419,20 +419,33 @@ static int FindFreeControllerSlot()
 	return -1;
 }
 
-static SDL_GameController* TryOpenControllerFromJoystick(int joystickIndex)
+static int GetControllerSlotFromJoystick(int joystickIndex)
 {
 	SDL_JoystickID joystickInstanceID = SDL_JoystickGetDeviceInstanceID(joystickIndex);
 
-	// First, check that it's not in use already
 	for (int controllerSlot = 0; controllerSlot < MAX_LOCAL_PLAYERS; controllerSlot++)
 	{
 		if (gControllers[controllerSlot].open &&
 			gControllers[controllerSlot].joystickInstance == joystickInstanceID)
 		{
-			return gControllers[controllerSlot].controllerInstance;
+			return controllerSlot;
 		}
 	}
 
+	return -1;
+}
+
+static SDL_GameController* TryOpenControllerFromJoystick(int joystickIndex)
+{
+	int controllerSlot = -1;
+
+	// First, check that it's not in use already
+	controllerSlot = GetControllerSlotFromJoystick(joystickIndex);
+	if (controllerSlot >= 0)	// in use
+	{
+		return gControllers[controllerSlot].controllerInstance;
+	}
+	
 	// If we can't get an SDL_GameController from that joystick, don't bother
 	if (!SDL_IsGameController(joystickIndex))
 	{
@@ -440,7 +453,7 @@ static SDL_GameController* TryOpenControllerFromJoystick(int joystickIndex)
 	}
 
 	// Reserve a controller slot
-	int controllerSlot = FindFreeControllerSlot();
+	controllerSlot = FindFreeControllerSlot();
 	if (controllerSlot < 0)
 	{
 		printf("All controller slots used up.\n");
@@ -458,7 +471,7 @@ static SDL_GameController* TryOpenControllerFromJoystick(int joystickIndex)
 	{
 		.open = true,
 		.controllerInstance = controllerInstance,
-		.joystickInstance = joystickInstanceID,
+		.joystickInstance = SDL_JoystickGetDeviceInstanceID(joystickIndex),
 	};
 
 	printf("Opened joystick %d as controller: %s\n",
@@ -468,7 +481,7 @@ static SDL_GameController* TryOpenControllerFromJoystick(int joystickIndex)
 	return gControllers[controllerSlot].controllerInstance;
 }
 
-static SDL_GameController* TryOpenAnyController(bool showMessage)
+static SDL_GameController* TryOpenAnyUnusedController(bool showMessage)
 {
 	if (SDL_NumJoysticks() == 0)
 	{
@@ -477,7 +490,14 @@ static SDL_GameController* TryOpenAnyController(bool showMessage)
 
 	for (int i = 0; i < SDL_NumJoysticks(); ++i)
 	{
+		// Usable as an SDL GameController?
 		if (!SDL_IsGameController(i))
+		{
+			continue;
+		}
+
+		// Already in use?
+		if (GetControllerSlotFromJoystick(i) >= 0)
 		{
 			continue;
 		}
@@ -546,6 +566,27 @@ static void CloseController(int controllerSlot)
 	gControllers[controllerSlot].joystickInstance = -1;
 }
 
+static void MoveController(int oldSlot, int newSlot)
+{
+	if (oldSlot == newSlot)
+		return;
+
+	printf("Remapped player controller %d ---> %d\n", oldSlot, newSlot);
+
+	gControllers[newSlot] = gControllers[oldSlot];
+	
+	// TODO: Does this actually work??
+	if (gControllers[newSlot].open)
+	{
+		SDL_GameControllerSetPlayerIndex(gControllers[newSlot].controllerInstance, newSlot);
+	}
+
+	// Clear duplicate slot so we don't read it by mistake in the future
+	gControllers[oldSlot].controllerInstance = NULL;
+	gControllers[oldSlot].joystickInstance = -1;
+	gControllers[oldSlot].open = false;
+}
+
 static void CompactControllerSlots(void)
 {
 	int writeIndex = 0;
@@ -556,21 +597,17 @@ static void CompactControllerSlots(void)
 
 		if (gControllers[i].open)
 		{
-			if (writeIndex != i)
-			{
-				printf("Remapped player controller %d ---> %d\n", i, writeIndex);
-
-				gControllers[writeIndex] = gControllers[i];
-				SDL_GameControllerSetPlayerIndex(gControllers[writeIndex].controllerInstance, writeIndex);
-
-				// Clear duplicate slot so we don't read it by mistake in the future
-				gControllers[i].controllerInstance = NULL;
-				gControllers[i].joystickInstance = -1;
-				gControllers[i].open = false;
-			}
-
+			MoveController(i, writeIndex);
 			writeIndex++;
 		}
+	}
+}
+
+static void TryFillUpVacantControllerSlots(void)
+{
+	while (TryOpenAnyUnusedController(false) != NULL)
+	{
+		// Successful; there might be more joysticks available, keep going
 	}
 }
 
@@ -592,8 +629,48 @@ static void OnJoystickRemoved(SDL_JoystickID joystickInstanceID)
 	}
 
 	// Fill up any controller slots that are vacant
-	while (TryOpenAnyController(false) != NULL)
+	TryFillUpVacantControllerSlots();
+}
+
+void LockPlayerControllerMapping(void)
+{
+	bool p1UsesKeyboardOnly = GetNumControllers() < gNumLocalPlayers;
+
+	if (p1UsesKeyboardOnly)
 	{
-		// Successful; there might be more joysticks available, keep going
+		puts("P1 takes keyboard");
+
+		// shift controllers
+		for (int i = MAX_LOCAL_PLAYERS-1; i > 0; i--)
+		{
+			MoveController(i-1, i);
+		}
+
+		GAME_ASSERT(!gControllers[0].open);
 	}
+
+	gControllerPlayerMappingLocked = true;
+}
+
+void UnlockPlayerControllerMapping(void)
+{
+	gControllerPlayerMappingLocked = false;
+	CompactControllerSlots();
+	TryFillUpVacantControllerSlots();
+}
+
+const char* GetPlayerNameWithInputDeviceHint(int whichPlayer)
+{
+	static char playerName[64];
+
+	if (whichPlayer == 0 && !gControllers[0].open)
+	{
+		snprintf(playerName, sizeof(playerName), "%s %d [%s]", Localize(STR_PLAYER), whichPlayer+1, Localize(STR_KEYBOARD));
+	}
+	else
+	{
+		snprintf(playerName, sizeof(playerName), "%s %d", Localize(STR_PLAYER), whichPlayer+1);
+	}
+
+	return playerName;
 }

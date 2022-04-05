@@ -334,7 +334,8 @@ int					age;
 			.scale		= .5,
 			.slot 		= SPRITE_SLOT,
 		};
-		newObj = TextMesh_New(Localize(STR_PLAYER_1 + whichPlayer), kTextMeshAlignCenter, &def);
+		
+		newObj = TextMesh_New(GetPlayerNameWithInputDeviceHint(whichPlayer), kTextMeshAlignCenter, &def);
 
 		newObj->ColorFilter.r = .5;
 		newObj->ColorFilter.g = .3;

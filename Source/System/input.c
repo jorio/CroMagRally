@@ -139,8 +139,10 @@ void ReadKeyboard(void)
 
 			/* EMULATE THE ANALOG INPUT FOR STEERING */
 
-	gPlayerInfo[0].analogSteering = GetAnalogSteering(0);
-	// TODO: analog steering for players 2+
+	for (int i = 0; i < gNumLocalPlayers; i++)
+	{
+		gPlayerInfo[i].analogSteering = GetAnalogSteering(i);
+	}
 }
 
 
@@ -407,8 +409,8 @@ short	i;
 
 	for (i = 0; i < NUM_CONTROL_BITS; i++)
 	{
-		if (secondaryControls)
-			puts("TODO: Secondary Controls");
+//		if (secondaryControls)
+//			printf("TODO: Secondary Controls - %d\n", playerNum);
 		
 		if (GetNeedState(i, playerNum))								// see if key is down
 			gPlayerInfo[playerNum].controlBits |= mask;				// set bit in bitfield

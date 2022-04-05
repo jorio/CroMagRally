@@ -181,3 +181,7 @@ void DoSDLMaintenance(void);
 
 int GetNumControllers(void);
 void Rumble(float strength, uint32_t ms);
+
+void LockPlayerControllerMapping(void);
+void UnlockPlayerControllerMapping(void);
+const char* GetPlayerNameWithInputDeviceHint(int whichPlayer);

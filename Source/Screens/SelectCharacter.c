@@ -182,7 +182,7 @@ ObjNode	*newObj;
 			.scale = .4,
 			.slot = SPRITE_SLOT
 		};
-		newObj = TextMesh_New(Localize(STR_PLAYER_1 + whichPlayer), kTextMeshAlignCenter, &newObjDef);
+		newObj = TextMesh_New(GetPlayerNameWithInputDeviceHint(whichPlayer), kTextMeshAlignCenter, &newObjDef);
 
 		newObj->ColorFilter.r = .2;
 		newObj->ColorFilter.g = .7;
