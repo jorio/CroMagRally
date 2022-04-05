@@ -38,6 +38,8 @@ enum
 	MENU_ID_MULTIPLAYERGAMETYPE,
 	MENU_ID_1PLAYERGAMETYPE,
 	MENU_ID_TOURNAMENT,
+	MENU_ID_KEEPAWAYTAG_DURATION,
+	MENU_ID_STAMPEDETAG_DURATION,
 	MENU_ID_NETGAME,
 	MENU_ID_SETTINGS,
 	MENU_ID_CONFIRM_CLEAR_SAVE,
@@ -168,6 +170,11 @@ static void OnPickClearSavedGame(const MenuItem* mi)
 	MenuCallback_Back(mi);
 }
 
+static void OnPickTagDuration(const MenuItem* mi)
+{
+	gGamePrefs.tagDuration = mi->id;
+}
+
 static bool IsTournamentAgeAvailable(const MenuItem* mi)
 {
 	return mi->id <= GetNumAgesCompleted();
@@ -218,8 +225,8 @@ static const MenuItem
 	gMenuMPGameModes[] =
 	{
 		{ kMenuItem_Pick,	STR_RACE,			.callback=OnPickGameMode, .id=GAME_MODE_MULTIPLAYERRACE,	.gotoMenu=-1, },
-		{ kMenuItem_Pick,	STR_KEEP_AWAY_TAG,	.callback=OnPickGameMode, .id=GAME_MODE_TAG1,				.gotoMenu=-1, },
-		{ kMenuItem_Pick,	STR_STAMPEDE_TAG,	.callback=OnPickGameMode, .id=GAME_MODE_TAG2,				.gotoMenu=-1, },
+		{ kMenuItem_Pick,	STR_KEEP_AWAY_TAG,	.callback=OnPickGameMode, .id=GAME_MODE_TAG1,				.gotoMenu=MENU_ID_KEEPAWAYTAG_DURATION, },
+		{ kMenuItem_Pick,	STR_STAMPEDE_TAG,	.callback=OnPickGameMode, .id=GAME_MODE_TAG2,				.gotoMenu=MENU_ID_STAMPEDETAG_DURATION, },
 		{ kMenuItem_Pick,	STR_SURVIVAL,		.callback=OnPickGameMode, .id=GAME_MODE_SURVIVAL,			.gotoMenu=-1, },
 		{ kMenuItem_Pick,	STR_QUEST_FOR_FIRE,	.callback=OnPickGameMode, .id=GAME_MODE_CAPTUREFLAG,		.gotoMenu=-1, },
 		{ kMenuItem_END_SENTINEL },
@@ -261,6 +268,32 @@ static const MenuItem
 		{ kMenuItem_END_SENTINEL },
 	},
 
+	gMenuKeepAwayTagDuration[] =
+	{
+		{ kMenuItem_Subtitle, .text = STR_KEEPAWAYTAG_HELP },
+		{ kMenuItem_Spacer, .text = STR_NULL },
+		{ kMenuItem_Subtitle, .text = STR_TAG_DURATION },
+		{ kMenuItem_Spacer, .text = STR_NULL },
+		{ kMenuItem_Spacer, .text = STR_NULL },
+		{ kMenuItem_Pick, STR_2_MINUTES, .callback=OnPickTagDuration, .id=2, .gotoMenu=-1 },
+		{ kMenuItem_Pick, STR_3_MINUTES, .callback=OnPickTagDuration, .id=3, .gotoMenu=-1 },
+		{ kMenuItem_Pick, STR_4_MINUTES, .callback=OnPickTagDuration, .id=4, .gotoMenu=-1 },
+		{ kMenuItem_END_SENTINEL },
+	},
+
+	gMenuStampedeTagDuration[] =
+	{
+		{ kMenuItem_Subtitle, .text=STR_STAMPEDETAG_HELP },
+		{ kMenuItem_Spacer, .text=STR_NULL },
+		{ kMenuItem_Subtitle, .text = STR_TAG_DURATION },
+		{ kMenuItem_Spacer, .text = STR_NULL },
+		{ kMenuItem_Spacer, .text = STR_NULL },
+		{ kMenuItem_Pick, STR_2_MINUTES, .callback=OnPickTagDuration, .id=2, .gotoMenu=-1 },
+		{ kMenuItem_Pick, STR_3_MINUTES, .callback=OnPickTagDuration, .id=3, .gotoMenu=-1 },
+		{ kMenuItem_Pick, STR_4_MINUTES, .callback=OnPickTagDuration, .id=4, .gotoMenu=-1 },
+		{ kMenuItem_END_SENTINEL },
+	},
+
 	gMenuSettings[] =
 	{
 		{ 
@@ -289,18 +322,6 @@ static const MenuItem
 					{STR_DIFFICULTY_3, DIFFICULTY_MEDIUM},
 					{STR_DIFFICULTY_4, DIFFICULTY_HARD},
 				}
-			}
-		},
-
-		{ 
-			kMenuItem_CMRCycler, STR_TAG_DURATION, .cycler=
-			{
-				.valuePtr=&gGamePrefs.tagDuration, .choices=
-				{
-					{STR_2_MINUTES, 2},
-					{STR_3_MINUTES, 3},
-					{STR_4_MINUTES, 4},
-				},
 			}
 		},
 
@@ -339,6 +360,8 @@ static const MenuItem* gMainMenuTree[NUM_MENU_IDS] =
 	[MENU_ID_MULTIPLAYERGAMETYPE] = gMenuMPGameModes,
 	[MENU_ID_1PLAYERGAMETYPE] = gMenu1PGameModes,
 	[MENU_ID_TOURNAMENT] = gMenuTournament,
+	[MENU_ID_KEEPAWAYTAG_DURATION] = gMenuKeepAwayTagDuration,
+	[MENU_ID_STAMPEDETAG_DURATION] = gMenuStampedeTagDuration,
 	[MENU_ID_NETGAME] = gMenuNetGame,
 	[MENU_ID_SETTINGS] = gMenuSettings,
 	[MENU_ID_CONFIRM_CLEAR_SAVE] = gMenuConfirmClearSave,
