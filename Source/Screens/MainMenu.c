@@ -179,7 +179,7 @@ static const MenuItem
 		{ kMenuItem_Pick, STR_NEW_GAME, .gotoMenu=MENU_ID_PLAY, },
 //		{ kMenuItem_Pick, STR_LOAD_GAME },  // DoSavedPlayerDialog
 		{ kMenuItem_Pick, STR_OPTIONS, .gotoMenu=MENU_ID_OPTIONS, },
-		{ kMenuItem_Pick, .rawText="EXTRAS", .gotoMenu=MENU_ID_EXTRAS, },
+		{ kMenuItem_Pick, STR_EXTRAS, .gotoMenu=MENU_ID_EXTRAS, },
 		{ kMenuItem_Pick, STR_QUIT, .id=MENU_EXITCODE_QUITGAME, .gotoMenu=-1 },
 		{ kMenuItem_END_SENTINEL },
 	},
