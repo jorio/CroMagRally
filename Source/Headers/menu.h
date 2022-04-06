@@ -74,6 +74,8 @@ typedef struct MenuStyle
 	short			textSlot;
 } MenuStyle;
 
+extern const MenuStyle kDefaultMenuStyle;
+
 int StartMenuTree(
 		const MenuItem** menus,
 		const MenuStyle* style,

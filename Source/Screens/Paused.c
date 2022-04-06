@@ -1,7 +1,8 @@
 /****************************/
 /*   	PAUSED.C			*/
-/* (c)2000 Pangea Software  */
 /* By Brian Greenstone      */
+/* (c)2000 Pangea Software  */
+/* (c)2022 Iliyas Jorio     */
 /****************************/
 
 
@@ -10,65 +11,70 @@
 /****************************/
 
 #include "game.h"
+#include "menu.h"
 #include "network.h"
 
 /****************************/
 /*    PROTOTYPES            */
 /****************************/
 
-static void BuildPausedMenu(void);
-static Boolean NavigatePausedMenu(void);
-static void FreePausedMenu(void);
-
 
 /****************************/
 /*    CONSTANTS             */
 /****************************/
+
+static const MenuItem
+	gMenuPause[] =
+	{
+		{ kMenuItem_Pick, STR_RESUME_GAME, .id=0 },
+		{ kMenuItem_Pick, STR_RETIRE_GAME, .id=1 },
+		{ kMenuItem_Pick, STR_QUIT_APPLICATION, .id=2 },
+		{ kMenuItem_END_SENTINEL },
+	};
+
+static const MenuItem* gPauseMenuTree[] =
+{
+	[0] = NULL,
+	[1] = gMenuPause,
+};
 
 
 /*********************/
 /*    VARIABLES      */
 /*********************/
 
-static short	gPausedMenuSelection;
-
-static ObjNode	*gPausedIcons[3];
-
-
-
-static const float	gLineSpacing[NUM_SPLITSCREEN_MODES] =
-{
-	.12,					// fullscreen
-	.2,						// 2 horiz
-	.1						// 2 vert
-};
-
-static const float	gTextScale[NUM_SPLITSCREEN_MODES] =
-{
-	.4,					// fullscreen
-	.3,					// 2 horiz
-	.6					// 2 vert
-};
-
-
-static const OGLColorRGBA gPausedMenuHiliteColor = {.3,.5,.2,1};
-
-
 
 /********************** DO PAUSED **************************/
 
+static void UpdatePausedMenuCallback(void)
+{
+	DoPlayerTerrainUpdate();							// need to call this to keep supertiles active
+
+
+			/* IF DOING NET GAME, LET OTHER PLAYERS KNOW WE'RE STILL GOING SO THEY DONT TIME OUT */
+
+	if (gNetGameInProgress)
+		PlayerBroadcastNullPacket();
+}
+
+static void DrawPausedMenuCallback(OGLSetupOutputType* setupInfo)
+{
+
+	DrawTerrain(setupInfo);
+}
+
 void DoPaused(void)
 {
-short	i;
-Boolean	oldMute = gMuteMusicFlag;
+	Boolean	oldMute = gMuteMusicFlag;
+
+	MenuStyle style = kDefaultMenuStyle;
+	style.canBackOutOfRootMenu = true;
+	style.fadeOutSceneOnExit = false;
 
 	PushKeys();										// save key state so things dont get de-synced during net games
 
 	if (!gMuteMusicFlag)							// see if pause music
 		ToggleMusic();
-
-	BuildPausedMenu();
-
 
 				/*************/
 				/* MAIN LOOP */
@@ -76,198 +82,30 @@ Boolean	oldMute = gMuteMusicFlag;
 
 	CalcFramesPerSecond();
 	ReadKeyboard();
-
-	while(true)
-	{
-			/* SEE IF MAKE SELECTION */
-
-		if (NavigatePausedMenu())
-			break;
-
-			/* DRAW STUFF */
-
-		CalcFramesPerSecond();
-		ReadKeyboard();
-		DoPlayerTerrainUpdate();							// need to call this to keep supertiles active
-		OGL_DrawScene(gGameViewInfoPtr, DrawTerrain);
-
-
-			/* FADE IN TEXT */
-
-		for (i = 0; i < 3; i++)
-		{
-			gPausedIcons[i]->ColorFilter.a += gFramesPerSecondFrac * 3.0f;
-			if (gPausedIcons[i]->ColorFilter.a > 1.0f)
-				gPausedIcons[i]->ColorFilter.a = 1.0;
-		}
-
-
-			/* IF DOING NET GAME, LET OTHER PLAYERS KNOW WE'RE STILL GOING SO THEY DONT TIME OUT */
-
-		if (gNetGameInProgress)
-			PlayerBroadcastNullPacket();
-	}
-
-	FreePausedMenu();
-
+	
+	int outcome = StartMenuTree(
+		gPauseMenuTree,
+		&style,
+		UpdatePausedMenuCallback,
+		DrawPausedMenuCallback
+		);
+	
 	PopKeys();										// restore key state
 
 	if (!oldMute)									// see if restart music
 		ToggleMusic();
 
-}
-
-
-/**************************** BUILD PAUSED MENU *********************************/
-
-static void BuildPausedMenu(void)
-{
-	gPausedMenuSelection = 0;
-
-			/* BUILD NEW TEXT STRINGS */
-
-	NewObjectDefinitionType def =
+	switch (outcome)
 	{
-		.coord		= {0, gLineSpacing[gActiveSplitScreenMode], 0 },
-		.scale		= gTextScale[gActiveSplitScreenMode],
-		.slot 		= SPRITE_SLOT,
-	};
+		case	0:								// RESUME
+			break;
 
-	for (int i = 0; i < 3; i++)
-	{
-		const char* s = Localize(STR_RESUME_GAME + i);
+		case	1:								// EXIT
+			gGameOver = true;
+			break;
 
-		gPausedIcons[i] = TextMesh_New(s, 0, &def);
-		gPausedIcons[i]->ColorFilter.a = 0;
-		def.coord.y -= gLineSpacing[gActiveSplitScreenMode];
+		case	2:								// QUIT
+			CleanQuit();
+			break;
 	}
 }
-
-
-/******************* MOVE PAUSED ICONS **********************/
-//
-// Called only when done to fade them out
-//
-
-static void MovePausedIcons(ObjNode *theNode)
-{
-	theNode->ColorFilter.a -= gFramesPerSecondFrac * 3.0f;
-	if (theNode->ColorFilter.a < 0.0f)
-		DeleteObject(theNode);
-
-}
-
-
-
-/******************** FREE PAUSED MENU **********************/
-//
-// Free objects of current menu
-//
-
-static void FreePausedMenu(void)
-{
-int		i;
-
-	for (i = 0; i < 3; i++)
-	{
-		gPausedIcons[i]->MoveCall = MovePausedIcons;
-	}
-}
-
-
-/*********************** NAVIGATE PAUSED MENU **************************/
-
-static Boolean NavigatePausedMenu(void)
-{
-short	i;
-Boolean	continueGame = false;
-
-
-		/* SEE IF CHANGE SELECTION */
-
-	if (GetNewNeedStateAnyP(kNeed_UIUp) && (gPausedMenuSelection > 0))
-	{
-		gPausedMenuSelection--;
-		PlayEffect(EFFECT_SELECTCLICK);
-	}
-	else
-	if (GetNewNeedStateAnyP(kNeed_UIDown) && (gPausedMenuSelection < 2))
-	{
-		gPausedMenuSelection++;
-		PlayEffect(EFFECT_SELECTCLICK);
-	}
-
-		/* SET APPROPRIATE FRAMES FOR ICONS */
-
-	for (i = 0; i < 3; i++)
-	{
-		if (i != gPausedMenuSelection)
-		{
-			gPausedIcons[i]->ColorFilter.r = 										// normal
-			gPausedIcons[i]->ColorFilter.g =
-			gPausedIcons[i]->ColorFilter.b =
-			gPausedIcons[i]->ColorFilter.a = 1.0;
-		}
-		else
-		{
-			gPausedIcons[i]->ColorFilter = gPausedMenuHiliteColor;										// hilite
-		}
-
-	}
-
-
-			/***************************/
-			/* SEE IF MAKE A SELECTION */
-			/***************************/
-
-	if (GetNewNeedStateAnyP(kNeed_UIConfirm))
-	{
-		PlayEffect(EFFECT_SELECTCLICK);
-		switch(gPausedMenuSelection)
-		{
-			case	0:								// RESUME
-					continueGame = true;
-					break;
-
-			case	1:								// EXIT
-					gGameOver = true;
-					continueGame = true;
-					break;
-
-			case	2:								// QUIT
-					CleanQuit();
-					break;
-
-		}
-	}
-
-
-			/*****************************/
-			/* SEE IF CANCEL A SELECTION */
-			/*****************************/
-
-	else
-	if (GetNewNeedStateAnyP(kNeed_UIBack))
-	{
-		continueGame = true;
-	}
-
-
-	return(continueGame);
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
