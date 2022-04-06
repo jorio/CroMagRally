@@ -32,7 +32,7 @@ typedef struct MenuItem
 
 	bool					(*enableIf)(const struct MenuItem*);
 
-	int						gotoMenu;
+	int						gotoMenu;  // 0 exits menu tree
 	void					(*callback)(const struct MenuItem*);
 
 	int						id;

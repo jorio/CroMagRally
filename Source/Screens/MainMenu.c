@@ -31,6 +31,7 @@ static void DoPhysicsEditor(void);
 
 enum
 {
+	MENU_ID_NULL,
 	MENU_ID_TITLE,
 	MENU_ID_PLAY,
 	MENU_ID_OPTIONS,
@@ -187,7 +188,7 @@ static const MenuItem
 //		{ kMenuItem_Pick, STR_LOAD_GAME },  // DoSavedPlayerDialog
 		{ kMenuItem_Pick, STR_OPTIONS, .gotoMenu=MENU_ID_OPTIONS, },
 		{ kMenuItem_Pick, STR_EXTRAS, .gotoMenu=MENU_ID_EXTRAS, },
-		{ kMenuItem_Pick, STR_QUIT, .id=MENU_EXITCODE_QUITGAME, .gotoMenu=-1 },
+		{ kMenuItem_Pick, STR_QUIT, .id=MENU_EXITCODE_QUITGAME },
 		{ kMenuItem_END_SENTINEL },
 	},
 
@@ -214,8 +215,8 @@ static const MenuItem
 
 	gMenuExtras[] =
 	{
-		{ kMenuItem_Pick, STR_HELP, .id=MENU_EXITCODE_HELP, .gotoMenu=-1 },
-		{ kMenuItem_Pick, STR_CREDITS, .id=MENU_EXITCODE_CREDITS, .gotoMenu=-1 },
+		{ kMenuItem_Pick, STR_HELP, .id=MENU_EXITCODE_HELP },
+		{ kMenuItem_Pick, STR_CREDITS, .id=MENU_EXITCODE_CREDITS },
 #if 0	// TODO!
 		{ kMenuItem_Pick, STR_PHYSICS_EDITOR, .id=MENU_EXITCODE_PHYSICS, .gotoMenu=0 },
 #endif
@@ -224,17 +225,17 @@ static const MenuItem
 
 	gMenuMPGameModes[] =
 	{
-		{ kMenuItem_Pick,	STR_RACE,			.callback=OnPickGameMode, .id=GAME_MODE_MULTIPLAYERRACE,	.gotoMenu=-1, },
+		{ kMenuItem_Pick,	STR_RACE,			.callback=OnPickGameMode, .id=GAME_MODE_MULTIPLAYERRACE	},
 		{ kMenuItem_Pick,	STR_KEEP_AWAY_TAG,	.callback=OnPickGameMode, .id=GAME_MODE_TAG1,				.gotoMenu=MENU_ID_KEEPAWAYTAG_DURATION, },
 		{ kMenuItem_Pick,	STR_STAMPEDE_TAG,	.callback=OnPickGameMode, .id=GAME_MODE_TAG2,				.gotoMenu=MENU_ID_STAMPEDETAG_DURATION, },
-		{ kMenuItem_Pick,	STR_SURVIVAL,		.callback=OnPickGameMode, .id=GAME_MODE_SURVIVAL,			.gotoMenu=-1, },
-		{ kMenuItem_Pick,	STR_QUEST_FOR_FIRE,	.callback=OnPickGameMode, .id=GAME_MODE_CAPTUREFLAG,		.gotoMenu=-1, },
+		{ kMenuItem_Pick,	STR_SURVIVAL,		.callback=OnPickGameMode, .id=GAME_MODE_SURVIVAL		},
+		{ kMenuItem_Pick,	STR_QUEST_FOR_FIRE,	.callback=OnPickGameMode, .id=GAME_MODE_CAPTUREFLAG		},
 		{ kMenuItem_END_SENTINEL },
 	},
 
 	gMenu1PGameModes[] =
 	{
-		{ kMenuItem_Pick,	STR_PRACTICE,		.callback=OnPickGameMode, .id=GAME_MODE_PRACTICE,			.gotoMenu=-1 },
+		{ kMenuItem_Pick,	STR_PRACTICE,		.callback=OnPickGameMode, .id=GAME_MODE_PRACTICE		 },
 		{ kMenuItem_Pick,	STR_TOURNAMENT,		.callback=OnPickGameMode, .id=GAME_MODE_TOURNAMENT,			.gotoMenu=MENU_ID_TOURNAMENT, },
 		// ^^^ TODO: if picking tournament, pick saved game file?
 		{ kMenuItem_END_SENTINEL },
@@ -242,16 +243,16 @@ static const MenuItem
 
 	gMenuTournament[] =
 	{
-		{ kMenuItem_Pick, STR_STONE_AGE,	.callback=OnPickTournamentAge, .id=STONE_AGE,	.gotoMenu=-1 },
-		{ kMenuItem_Pick, STR_BRONZE_AGE,	.callback=OnPickTournamentAge, .id=BRONZE_AGE,	.gotoMenu=-1, .enableIf=IsTournamentAgeAvailable },
-		{ kMenuItem_Pick, STR_IRON_AGE,		.callback=OnPickTournamentAge, .id=IRON_AGE,	.gotoMenu=-1, .enableIf=IsTournamentAgeAvailable },
+		{ kMenuItem_Pick, STR_STONE_AGE,	.callback=OnPickTournamentAge, .id=STONE_AGE,	},
+		{ kMenuItem_Pick, STR_BRONZE_AGE,	.callback=OnPickTournamentAge, .id=BRONZE_AGE,	.enableIf=IsTournamentAgeAvailable },
+		{ kMenuItem_Pick, STR_IRON_AGE,		.callback=OnPickTournamentAge, .id=IRON_AGE,	.enableIf=IsTournamentAgeAvailable },
 		{ kMenuItem_END_SENTINEL },
 	},
 
 	gMenuNetGame[] =
 	{
 		{ kMenuItem_Pick, STR_HOST_NET_GAME, .callback=OnPickHostOrJoin, .id=0, .gotoMenu=MENU_ID_MULTIPLAYERGAMETYPE }, // host gets to select game type
-		{ kMenuItem_Pick, STR_JOIN_NET_GAME, .callback=OnPickHostOrJoin, .id=1, .gotoMenu=-1 },
+		{ kMenuItem_Pick, STR_JOIN_NET_GAME, .callback=OnPickHostOrJoin, .id=1 },
 		{ kMenuItem_END_SENTINEL },
 	},
 
@@ -275,9 +276,9 @@ static const MenuItem
 		{ kMenuItem_Subtitle, .text = STR_TAG_DURATION },
 		{ kMenuItem_Spacer, .text = STR_NULL },
 		{ kMenuItem_Spacer, .text = STR_NULL },
-		{ kMenuItem_Pick, STR_2_MINUTES, .callback=OnPickTagDuration, .id=2, .gotoMenu=-1 },
-		{ kMenuItem_Pick, STR_3_MINUTES, .callback=OnPickTagDuration, .id=3, .gotoMenu=-1 },
-		{ kMenuItem_Pick, STR_4_MINUTES, .callback=OnPickTagDuration, .id=4, .gotoMenu=-1 },
+		{ kMenuItem_Pick, STR_2_MINUTES, .callback=OnPickTagDuration, .id=2 },
+		{ kMenuItem_Pick, STR_3_MINUTES, .callback=OnPickTagDuration, .id=3 },
+		{ kMenuItem_Pick, STR_4_MINUTES, .callback=OnPickTagDuration, .id=4 },
 		{ kMenuItem_END_SENTINEL },
 	},
 
@@ -288,9 +289,9 @@ static const MenuItem
 		{ kMenuItem_Subtitle, .text = STR_TAG_DURATION },
 		{ kMenuItem_Spacer, .text = STR_NULL },
 		{ kMenuItem_Spacer, .text = STR_NULL },
-		{ kMenuItem_Pick, STR_2_MINUTES, .callback=OnPickTagDuration, .id=2, .gotoMenu=-1 },
-		{ kMenuItem_Pick, STR_3_MINUTES, .callback=OnPickTagDuration, .id=3, .gotoMenu=-1 },
-		{ kMenuItem_Pick, STR_4_MINUTES, .callback=OnPickTagDuration, .id=4, .gotoMenu=-1 },
+		{ kMenuItem_Pick, STR_2_MINUTES, .callback=OnPickTagDuration, .id=2 },
+		{ kMenuItem_Pick, STR_3_MINUTES, .callback=OnPickTagDuration, .id=3 },
+		{ kMenuItem_Pick, STR_4_MINUTES, .callback=OnPickTagDuration, .id=4 },
 		{ kMenuItem_END_SENTINEL },
 	},
 

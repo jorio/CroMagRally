@@ -609,7 +609,7 @@ static void NavigatePick(const MenuItem* entry)
 
 			LayOutMenu(newMenu);
 		}
-		else if (entry->gotoMenu < 0)
+		else if (entry->gotoMenu <= 0)
 		{
 			// Exit
 			gNav->menuState = kMenuStateFadeOut;
@@ -1399,11 +1399,13 @@ int StartMenuTree(
 
 		/* INITIALIZE MENU STATE */
 
+	GAME_ASSERT_MESSAGE(menuTree[0] == NULL, "menuTree[0] should be NULL; root menu should be menuTree[1]");
+
 	InitMenuNavigation();
 	if (style)
 		memcpy(&gNav->style, style, sizeof(*style));
 	gNav->menuTree			= menuTree;
-	gNav->rootMenu			= menuTree[0];
+	gNav->rootMenu			= menuTree[1];
 	gNav->menuState			= kMenuStateFadeIn;
 	gNav->menuFadeAlpha		= 0;
 	gNav->menuRow			= -1;
