@@ -1,7 +1,8 @@
 /****************************/
 /*        WINDOWS           */
-/* (c)2001 Pangea Software  */
 /* By Brian Greenstone      */
+/* (c)2001 Pangea Software  */
+/* (c)2022 Iliyas Jorio     */
 /****************************/
 
 
@@ -26,80 +27,21 @@ static void MoveFadeEvent(ObjNode *theNode);
 /****************************/
 
 
-typedef struct
-{
-	int		rezH,rezV;
-	double	lowestHz;
-}VideoModeType;
-
-
-#define	MAX_VIDEO_MODES		30
-
-
 /**********************/
 /*     VARIABLES      */
 /**********************/
 
-float		gGammaFadePercent;
+float			gGammaFadePercent;
 int				gGameWindowWidth, gGameWindowHeight;
-short			g2DStackDepth = 0;
 
 
 /****************  INIT WINDOW STUFF *******************/
 
 void InitWindowStuff(void)
 {
+	// This is filled in from gSDLWindow in-game
 	gGameWindowWidth = 640;
-	gGameWindowHeight = 480;  // TODO read this from gSDLWindow
-}
-
-
-/************************** CHANGE WINDOW SCALE ***********************/
-//
-// Called whenever gGameWindowShrink is changed.  This updates
-// the view and everything else to accomodate new window size.
-//
-
-void ChangeWindowScale(void)
-{
-	IMPLEMENT_ME_SOFT();
-#if 0
-Rect			r;
-GDHandle 		phGD;
-DisplayIDType displayID;
-float		w,h;
-
-
-	if ((!gLoadedDrawSprocket) || (gCoverWindow == nil))
-		return;
-
-	w = gGamePrefs.screenWidth;
-	h = gGamePrefs.screenHeight;
-
-			/* CALC NEW INFO */
-
-	DSpContext_GetDisplayID(gDisplayContext, &displayID);			// get context display ID
-	DMGetGDeviceByDisplayID(displayID, &phGD, false);				// get GDHandle for ID'd device
-
-	r.top  		= (short) ((**phGD).gdRect.top + ((**phGD).gdRect.bottom - (**phGD).gdRect.top) / 2);	  	// h center
-	r.top  		-= (short) (h / 2);
-	r.left  	= (short) ((**phGD).gdRect.left + ((**phGD).gdRect.right - (**phGD).gdRect.left) / 2);		// v center
-	r.left  	-= (short) (w / 2);
-	r.right 	= (short) (r.left + w);
-	r.bottom 	= (short) (r.top + h);
-
-
-	gGameWindowWidth = r.right - r.left;
-	gGameWindowHeight = r.bottom - r.top;
-
-
-			/* MODIFY THE WINODW TO THE NEW PARMS */
-
-	HideWindow(gCoverWindow);
-	MoveWindow(gCoverWindow, r.left, r.top, true);
-	SizeWindow(gCoverWindow, gGameWindowWidth, gGameWindowHeight, false);
-	ShowWindow(gCoverWindow);
-#endif
+	gGameWindowHeight = 480;
 }
 
 
@@ -107,14 +49,16 @@ float		w,h;
 #pragma mark -
 
 
+/****************  DRAW FADE OVERLAY *******************/
+
 static void DrawFadePane(ObjNode* theNode, OGLSetupOutputType* setupInfo)
 {
 	OGL_PushState();
 
-	glMatrixMode(GL_PROJECTION);					// init projection matrix
+	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();								// init MODELVIEW matrix
+	glLoadIdentity();
 	OGL_DisableLighting();
 	glDisable(GL_CULL_FACE);
 	glDisable(GL_DEPTH_TEST);
@@ -145,6 +89,12 @@ void MakeFadeEvent(Boolean	fadeIn)
 {
 ObjNode	*newObj;
 ObjNode		*thisNodePtr;
+
+	if (gDebugMode)
+	{
+		gGammaFadePercent = fadeIn? 1: 0;
+		return;
+	}
 
 		/* SCAN FOR OLD FADE EVENTS STILL IN LIST */
 
@@ -214,6 +164,12 @@ void OGL_FadeOutScene(
 	void (*drawRoutine)(OGLSetupOutputType*),
 	void (*updateRoutine)(void))
 {
+	if (gDebugMode)
+	{
+		gGammaFadePercent = 0;
+		return;
+	}
+
 	NewObjectDefinitionType newObjDef =
 	{
 		.genre = CUSTOM_GENRE,
@@ -255,40 +211,6 @@ void OGL_FadeOutScene(
 
 void Enter2D(Boolean pauseDSp)
 {
-	IMPLEMENT_ME_SOFT();
-#if 0
-	InitCursor();
-	MyFlushEvents();
-
-	g2DStackDepth++;
-	if (g2DStackDepth > 1)						// see if already in 2D
-		return;
-
-	gOldISpFlag = gISpActive;					// remember if ISp was on
-	TurnOffISp();
-
-	if (!gLoadedDrawSprocket)
-		return;
-	if (!gDisplayContext)
-		return;
-
-	if (gAGLContext)
-	{
-		glFlush();
-		glFinish();
-		aglSetDrawable(gAGLContext, nil);		// diable gl for dialog
-		glFlush();
-		glFinish();
-	}
-
-
-
-	if (pauseDSp)
-	{
-		DSpContext_SetState(gDisplayContext, kDSpContextState_Paused);
-		gDisplayContextGrafPtr = nil;
-	}
-#endif
 }
 
 
@@ -299,86 +221,6 @@ void Enter2D(Boolean pauseDSp)
 
 void Exit2D(void)
 {
-	IMPLEMENT_ME_SOFT();
-#if 0
-AGLContext agl_ctx = gAGLContext;
-
-	g2DStackDepth--;
-	if (g2DStackDepth > 0)			// don't exit unless on final exit
-		return;
-
-	if (gOldISpFlag)
-		TurnOnISp();									// resume input sprockets if needed
-	HideCursor();
-
-
-	if (!gLoadedDrawSprocket)
-		return;
-	if (!gDisplayContext)
-		return;
-
-
-	ReadKeyboard_Real();			// do this to flush the keymap
-
-
-	if (gDisplayContextGrafPtr == nil)
-	{
-		DSpContext_SetState(gDisplayContext, kDSpContextState_Active);
-		DSpContext_GetFrontBuffer(gDisplayContext, &gDisplayContextGrafPtr);		// get this again since may have changed
-	}
-
-	if (gAGLContext)
-	{
-		gAGLWin = (AGLDrawable)gDisplayContextGrafPtr;
-		if (gAGLWin)
-		{
-			GLboolean      ok = aglSetDrawable(gAGLContext, gAGLWin);					// reenable gl
-			if ((!ok) || (aglGetError() != AGL_NO_ERROR))
-				DoFatalAlert("Exit2D: aglSetDrawable failed!");
-
-		}
-	}
-#endif
-}
-
-
-#pragma mark -
-
-/*********************** DUMP GWORLD 2 **********************/
-//
-//    copies to a destination RECT
-//
-
-void DumpGWorld2(GWorldPtr thisWorld, WindowPtr thisWindow,Rect *destRect)
-{
-	IMPLEMENT_ME_SOFT();
-#if 0
-PixMapHandle pm;
-GDHandle		oldGD;
-GWorldPtr		oldGW;
-Rect			r;
-
-	DoLockPixels(thisWorld);
-
-	GetGWorld (&oldGW,&oldGD);
-	pm = GetGWorldPixMap(thisWorld);
-	if ((pm == nil) | (*pm == nil) )
-		DoAlert("PixMap Handle or Ptr = Null?!");
-
-	SetPort(GetWindowPort(thisWindow));
-
-	ForeColor(blackColor);
-	BackColor(whiteColor);
-
-	GetPortBounds(thisWorld, &r);
-
-	CopyBits((BitMap *)*pm, GetPortBitMapForCopyBits(GetWindowPort(thisWindow)),
-			 &r,
-			 destRect,
-			 srcCopy, 0);
-
-	SetGWorld(oldGW,oldGD);								// restore gworld
-#endif
 }
 
 

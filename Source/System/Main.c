@@ -106,6 +106,11 @@ void ToolBoxInit(void)
 {
 OSErr		iErr;
 
+#if _DEBUG											// in debug builds, boot with debug mode (you can turn it off with F8)
+	gDebugMode = 1;
+#endif
+
+
 	gMainAppRezFile = CurResFile();
 
 		/* FIRST VERIFY SYSTEM BEFORE GOING TOO FAR */
