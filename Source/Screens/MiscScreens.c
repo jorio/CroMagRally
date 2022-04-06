@@ -10,6 +10,8 @@
 /****************************/
 
 #include "game.h"
+#include "miscscreens.h"
+
 
 /****************************/
 /*    PROTOTYPES            */
@@ -60,9 +62,13 @@ OGLSetupOutputType	*gScreenViewInfoPtr = nil;
 // If showAndBail == true, then show it and bail out
 //
 
-void DisplayPicture(const char* picturePath, Boolean showAndBail, Boolean doKeyText)
+void DisplayPicture(const char* picturePath, float timeout)
 {
 OGLSetupInputType	viewDef;
+ObjNode				*keyText = NULL;
+bool				showAndBail = timeout <= 0;
+bool				doKeyText = timeout > 9;
+float				keyTextFadeIn = -2.0f;		// fade in after a small delay
 
 
 			/* SETUP VIEW */
@@ -100,7 +106,8 @@ OGLSetupInputType	viewDef;
 			.slot		= SPRITE_SLOT,
 		};
 
-		TextMesh_New(Localize(STR_PRESS_ANY_KEY), kTextMeshAlignCenter, &def);
+		keyText = TextMesh_New(Localize(STR_PRESS_ANY_KEY), kTextMeshAlignCenter, &def);
+		keyText->ColorFilter.a = 0;
 	}
 
 
@@ -121,8 +128,6 @@ OGLSetupInputType	viewDef;
 	}
 	else
 	{
-		float	timeout = 20.0f;
-
 		MakeFadeEvent(true);
 		ReadKeyboard();
 		CalcFramesPerSecond();
@@ -141,6 +146,13 @@ OGLSetupInputType	viewDef;
 				break;
 
 			timeout -= gFramesPerSecondFrac;
+
+			
+			if (keyText)
+			{
+				keyTextFadeIn += gFramesPerSecondFrac;
+				keyText->ColorFilter.a = GAME_CLAMP(keyTextFadeIn * 3, 0, 1);
+			}
 		}
 
 				/* FADE OUT */
@@ -182,7 +194,7 @@ static const char*	names[NUM_AGES] =
 	":images:Ages:IronAgeIntro.jpg"
 };
 
-	DisplayPicture(names[age], false, true);
+	DisplayPicture(names[age], 20);
 }
 
 
@@ -194,7 +206,7 @@ void ShowLoadingPicture(void)
 FSSpec	spec;
 
 	FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":images:Loading1.jpg", &spec);
-	DisplayPicture(&spec, true, false);
+	DisplayPicture(&spec, -1);
 #endif
 }
 
@@ -207,8 +219,8 @@ FSSpec	spec;
 
 void DoTitleScreen(void)
 {
-	DisplayPicture(":images:PangeaLogo.jpg", false, false);
-	DisplayPicture(":images:TitleScreen.jpg", false, false);
+	DisplayPicture(":images:PangeaLogo.jpg", 4.0f);
+	DisplayPicture(":images:TitleScreen.jpg", 5.0f);
 }
 
 
@@ -926,6 +938,6 @@ static void FreeCreditsScreen(void)
 
 void DoHelpScreen(void)
 {
-	DisplayPicture(":images:Help.jpg", false, false);
+	DisplayPicture(":images:Help.jpg", 20);
 }
 
