@@ -146,8 +146,6 @@ float	scale;
 	if (newNode == nil)
 		return(nil);
 
-	newNode->StatusBits |= STATUS_BIT_ANIM;						// turn on animation
-
 			/* LOAD SKELETON FILE INTO OBJECT */
 
 	newNode->Skeleton = MakeNewSkeletonBaseData(type); 			// alloc & set skeleton data

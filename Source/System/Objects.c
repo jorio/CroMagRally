@@ -393,7 +393,7 @@ ObjNode		*thisNodePtr;
 
 				/* UPDATE ANIMATION */
 
-		if (thisNodePtr->StatusBits & STATUS_BIT_ANIM)
+		if (thisNodePtr->Skeleton != nil)
 			UpdateSkeletonAnimation(thisNodePtr);
 
 

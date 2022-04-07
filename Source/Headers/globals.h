@@ -132,7 +132,7 @@ enum
 	STATUS_BIT_DONTCULL		=	(1<<2),		// set if don't want to perform custom culling on this object
 	STATUS_BIT_NOCOLLISION  = 	(1<<3),		// set if want collision code to skip testing against this object
 	STATUS_BIT_NOMOVE  		= 	(1<<4),		// dont call object's move function
-	STATUS_BIT_ANIM  		= 	(1<<5),		// set if can animate
+	STATUS_BIT_MOVEINPAUSE	= 	(1<<5),		// set if can animate
 	STATUS_BIT_HIDDEN		=	(1<<6),		// dont draw object
 	STATUS_BIT_KEEPBACKFACES	=	(1<<7),	// keep both sides
 	STATUS_BIT_ONLYSHOWTHISPLAYER =	(1<<8),	// set if only draw this object for this PlayerNum
