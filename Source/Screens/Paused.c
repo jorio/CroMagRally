@@ -18,6 +18,8 @@
 /*    PROTOTYPES            */
 /****************************/
 
+static void OnToggleSplitscreenMode(const MenuItem* mi);
+
 
 /****************************/
 /*    CONSTANTS             */
@@ -28,6 +30,18 @@ static const MenuItem
 	{
 		{ kMenuItem_Pick, STR_RESUME_GAME, .id=0 },
 		{ kMenuItem_Pick, STR_RETIRE_GAME, .id=1 },
+		{ kMenuItem_CMRCycler, STR_SPLITSCREEN_MODE,
+			.callback = OnToggleSplitscreenMode,
+			.cycler =
+			{
+				.valuePtr = &gGamePrefs.desiredSplitScreenMode,
+				.choices =
+				{
+					{ .text = STR_SPLITSCREEN_HORIZ, .value = SPLITSCREEN_MODE_HORIZ },
+					{ .text = STR_SPLITSCREEN_VERT, .value = SPLITSCREEN_MODE_VERT },
+				},
+			}
+		},
 		{ kMenuItem_Pick, STR_QUIT_APPLICATION, .id=2 },
 		{ kMenuItem_END_SENTINEL },
 	};
@@ -44,6 +58,14 @@ static const MenuItem* gPauseMenuTree[] =
 /*********************/
 
 Boolean gGamePaused = false;
+
+
+/****************** TOGGLE SPLIT-SCREEN MODE ********************/
+
+void OnToggleSplitscreenMode(const MenuItem* mi)
+{
+	gActiveSplitScreenMode = gGamePrefs.desiredSplitScreenMode;
+}
 
 
 /********************** DO PAUSED **************************/
