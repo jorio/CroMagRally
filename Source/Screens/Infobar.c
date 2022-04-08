@@ -627,6 +627,10 @@ short	p;
 static void Infobar_DrawStartingLight(const OGLSetupOutputType *setupInfo)
 {
 int		oldTimer;
+
+	if (gGamePaused)
+		return;
+
 			/* CHECK TIMER */
 
 	if (gStartingLightTimer <= 0.0f)
