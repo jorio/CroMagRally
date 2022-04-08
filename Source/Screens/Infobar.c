@@ -1320,6 +1320,7 @@ static const float scale[3] =
 		.slot 		= SPRITE_SLOT,
 		.moveCall 	= MoveTrackName,
 		.scale 	    = scale[gActiveSplitScreenMode],
+		.flags		= STATUS_BIT_MOVEINPAUSE,
 	};
 
 	newObj = TextMesh_New(Localize(STR_LEVEL_1 + gTrackNum), kTextMeshAlignCenter, &def);
@@ -1332,6 +1333,13 @@ static const float scale[3] =
 
 static void MoveTrackName(ObjNode *theNode)
 {
+	if (gGamePaused)
+	{
+		theNode->StatusBits |= STATUS_BIT_HIDDEN;
+		return;
+	}
+
+	theNode->StatusBits &= ~STATUS_BIT_HIDDEN;
 	theNode->ColorFilter.a -= gFramesPerSecondFrac;
 	if (theNode->ColorFilter.a <= 0.0f)
 	{
