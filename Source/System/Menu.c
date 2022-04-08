@@ -1134,13 +1134,13 @@ static ObjNode* MakeTextAtRowCol(const char* text, int row, int col)
 			.coord = (OGLPoint3D) { startX + gNav->menuColXs[col], gNav->menuRowYs[row], 0 },
 			.scale = gNav->style.standardScale * kMenuItemHeightMultipliers[miType],
 			.slot = SLOT_OF_DUMB + 100,
+			.flags = STATUS_BIT_MOVEINPAUSE,
 		};
 
 		int alignment = gNav->style.centeredText? kTextMeshAlignCenter: kTextMeshAlignLeft;
 		node = TextMesh_New(text, alignment, &def);
 		node->SpecialRow = row;
 		node->SpecialCol = col;
-//		node->StatusBits |= STATUS_BIT_MOVEINPAUSE;
 		gNav->menuObjects[row][col] = node;
 	}
 

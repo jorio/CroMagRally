@@ -43,6 +43,8 @@ static const MenuItem* gPauseMenuTree[] =
 /*    VARIABLES      */
 /*********************/
 
+Boolean gGamePaused = false;
+
 
 /********************** DO PAUSED **************************/
 
@@ -76,6 +78,8 @@ void DoPaused(void)
 	if (!gMuteMusicFlag)							// see if pause music
 		ToggleMusic();
 
+	gGamePaused = true;
+
 				/*************/
 				/* MAIN LOOP */
 				/*************/
@@ -89,6 +93,8 @@ void DoPaused(void)
 		UpdatePausedMenuCallback,
 		DrawPausedMenuCallback
 		);
+
+	gGamePaused = false;
 	
 	PopKeys();										// restore key state
 

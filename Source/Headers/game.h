@@ -40,6 +40,7 @@ extern Boolean					gDisableAnimSounds;
 extern Boolean					gDisableHiccupTimer;
 extern Boolean					gDrawLensFlare;
 extern Boolean					gGameOver;
+extern Boolean					gGamePaused;
 extern Boolean					gHideInfobar;
 extern Boolean					gIsNetworkClient;
 extern Boolean					gIsNetworkHost;

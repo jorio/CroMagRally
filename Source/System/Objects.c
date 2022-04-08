@@ -388,6 +388,11 @@ ObjNode		*thisNodePtr;
 		gNextNode	 = thisNodePtr->NextNode;				// get next node now (cuz current node might get deleted)
 
 
+		if (gGamePaused && !(thisNodePtr->StatusBits & STATUS_BIT_MOVEINPAUSE))
+			goto next;
+
+
+
 		KeepOldCollisionBoxes(thisNodePtr);					// keep old boxes & other stuff
 
 
@@ -403,6 +408,8 @@ ObjNode		*thisNodePtr;
 		{
 			thisNodePtr->MoveCall(thisNodePtr);				// call object's move routine
 		}
+
+next:
 		thisNodePtr = gNextNode;							// next node
 	}
 	while (thisNodePtr != nil);
