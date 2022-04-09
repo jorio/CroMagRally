@@ -226,8 +226,13 @@ OGLSetupOutputType	*outputPtr;
 	*outputHandle = outputPtr;											// return value to caller
 
 
+			/* LOAD FONT */
+
 	TextMesh_LoadFont(outputPtr, setupDefPtr->view.fontName);
 	OGL_InitFont();
+
+
+			/* PRIME PILLARBOX */
 
 	if (outputPtr->pillarbox4x3)
 	{
@@ -238,6 +243,21 @@ OGLSetupOutputType	*outputPtr;
 	{
 		// Make pillarbox fade in next time we use it after this fullscreen scene
 		gPillarboxBrightness = 0;
+	}
+
+
+			/* PRIME 2D LOGICAL SIZE */
+			//
+			// The 2D logical size is updated on each frame, but computing it now
+			// lets us create 2D objects in fixed-AR screens before the 1st frame is shown.
+			//
+
+	{
+		int x, y, w, h;
+		OGL_GetCurrentViewport(outputPtr, &x, &y, &w, &h, 0);
+
+		gCurrentAspectRatio = (float) w / (float) (h == 0? 1: h);
+		OGL_Update2DLogicalSize();
 	}
 }
 
@@ -713,13 +733,8 @@ void OGL_DrawScene(OGLSetupOutputType *setupInfo, void (*drawRoutine)(OGLSetupOu
 
 		glViewport(x, y, w, h);
 		gCurrentAspectRatio = (float) w / (float) (h == 0? 1: h);
-
-		// Compute logical width & height for 2D elements
-		g2DLogicalHeight = 480.0f;
-		if (gCurrentAspectRatio < 4.0f/3.0f)
-			g2DLogicalWidth = 640.0f;
-		else
-			g2DLogicalWidth = 480.0f * gCurrentAspectRatio;
+	
+		OGL_Update2DLogicalSize();
 
 
 				/* GET UPDATED GLOBAL COPIES OF THE VARIOUS MATRICES */
@@ -808,16 +823,6 @@ int	t,b,l,r;
 	b = setupInfo->clip.bottom;
 	l = setupInfo->clip.left;
 	r = setupInfo->clip.right;
-
-#if 0
-	*x = l;
-	*y = t;
-	*w = gGameWindowWidth-l-r;
-	*h = gGameWindowHeight-t-b;
-
-	if (whichPane != 0)
-		IMPLEMENT_ME_SOFT();
-#endif
 
 	if (setupInfo->pillarbox4x3)
 	{
@@ -1310,6 +1315,20 @@ static void OGL_InitFont(void)
 
 
 
+/***************** UPDATE 2D LOGICAL SIZE *******************/
+//
+// This requires gCurrentAspectRatio to be set!
+//
+
+void OGL_Update2DLogicalSize(void)
+{
+	// Compute logical width & height for 2D elements
+	g2DLogicalHeight = 480.0f;
+	if (gCurrentAspectRatio < 4.0f/3.0f)
+		g2DLogicalWidth = 640.0f;
+	else
+		g2DLogicalWidth = 480.0f * gCurrentAspectRatio;
+}
 
 
 /***************** SET INFOBAR SPRITE STATE *******************/

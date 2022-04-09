@@ -258,4 +258,5 @@ void OGL_PopState(void);
 void OGL_EnableLighting(void);
 void OGL_DisableLighting(void);
 
+void OGL_Update2DLogicalSize(void);
 void OGL_Enter2D(void);
