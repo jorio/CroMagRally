@@ -54,16 +54,13 @@ enum
 
 #define	CAR_Y			70
 
-#define	VEHICLE_IMAGE_Y		.3
-#define	VEHICLE_IMAGE_SCALE	1.2
-
-#define	PARAMETERS_X		-.7
-#define	PARAMETERS_Y		-.4
+#define	PARAMETERS_X		96
+#define	PARAMETERS_Y		336
 #define	PARAMETERS_SCALE	.5
 
-#define	LINE_SPACING		.14f
+#define	LINE_SPACING		34
 
-#define	NAME_Y			.6
+#define	NAME_Y				96
 
 
 /*********************/
@@ -308,7 +305,7 @@ int					age;
 		for (int i = 0; i < NUM_VEHICLE_PARAMETERS; i++)
 		{
 			TextMesh_New(Localize(STR_CAR_STAT_1 + i), kTextMeshAlignLeft, &def);
-			def.coord.y -= LINE_SPACING;
+			def.coord.y += LINE_SPACING;
 		}
 	}
 
@@ -332,7 +329,7 @@ int					age;
 			def.type 	= VEHICLESELECT_SObjType_Meter1 + n;
 
 			gMeterIcon[i] = MakeSpriteObject(&def, gGameViewInfoPtr);
-			def.coord.y 	-= LINE_SPACING;
+			def.coord.y 	+= LINE_SPACING;
 		}
 	}
 
@@ -370,7 +367,7 @@ static void MakeVehicleName(void)
 
 	NewObjectDefinitionType def =
 	{
-		.coord		= {0, NAME_Y, 0},
+		.coord		= {g2DLogicalWidth/2, NAME_Y, 0},
 		.scale		= .6,
 		.slot 		= SPRITE_SLOT,
 	};

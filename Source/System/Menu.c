@@ -79,14 +79,15 @@ const MenuStyle kDefaultMenuStyle =
 	.highlightColor		= {0.3f, 0.5f, 0.2f, 1.0f},
 	.inactiveColor		= {1.0f, 1.0f, 1.0f, 1.0f},
 	.inactiveColor2		= {0.8f, 0.0f, 0.5f, 0.5f},
-	.standardScale		= .45f,
-	.rowHeight			= 0.15f,
+	.standardScale		= .5f,
+	.rowHeight			= 40,
 	.uniformXExtent		= 0,
 	.playMenuChangeSounds	= true,
 	.startButtonExits	= false,
 	.isInteractive		= true,
 	.canBackOutOfRootMenu	= false,
 	.textSlot			= SLOT_OF_DUMB + 100,
+	.yOffset			= 32,
 };
 
 static const float kMenuItemHeightMultipliers[kMenuItem_NUM_ITEM_TYPES] =  // acts as text scale as well
@@ -1127,7 +1128,8 @@ static ObjNode* MakeTextAtRowCol(const char* text, int row, int col)
 	}
 	else
 	{
-		float startX = gNav->style.centeredText ? 0 : -170;
+		//float startX = gNav->style.centeredText ? 0 : -170;
+		float startX = gNav->style.centeredText ? g2DLogicalWidth/2 : g2DLogicalWidth/2-100;
 
 		NewObjectDefinitionType def =
 		{
@@ -1240,7 +1242,7 @@ static void LayOutMenu(const MenuItem* menu)
 		totalHeight += kMenuItemHeightMultipliers[menu[row].type] * gNav->style.rowHeight;
 	}
 
-	float y = -0.1f + totalHeight/2.0f;
+	float y = g2DLogicalHeight*.5f - totalHeight*.5f + gNav->style.yOffset;
 
 	float sweepFactor = 0.0f;
 
@@ -1362,7 +1364,7 @@ static void LayOutMenu(const MenuItem* menu)
 				break;
 		}
 
-		y -= kMenuItemHeightMultipliers[entry->type] * gNav->style.rowHeight;
+		y += kMenuItemHeightMultipliers[entry->type] * gNav->style.rowHeight;
 
 		if (entry->type != kMenuItem_Spacer)
 			sweepFactor -= .2f;

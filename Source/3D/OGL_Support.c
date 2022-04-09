@@ -1304,8 +1304,37 @@ static void OGL_InitFont(void)
 	newObjDef.flags = STATUS_BIT_HIDDEN;
 	newObjDef.slot = SPRITE_SLOT + 100;
 	newObjDef.scale = 0.25f;
-	newObjDef.coord = (OGLPoint3D) { -1, 0, 0 };
+	newObjDef.coord = (OGLPoint3D) { 0, 480/2, 0 };
 	gDebugText = TextMesh_NewEmpty(sizeof(gDebugTextBuffer), &newObjDef);
+}
+
+
+
+
+
+/***************** SET INFOBAR SPRITE STATE *******************/
+
+void OGL_Enter2D(void)
+{
+	OGL_DisableLighting();
+	glEnable(GL_CULL_FACE);
+	glDisable(GL_DEPTH_TEST);								// no z-buffer
+
+	gGlobalMaterialFlags = BG3D_MATERIALFLAG_CLAMP_V|BG3D_MATERIALFLAG_CLAMP_U;	// clamp all textures
+
+
+			/* INIT MATRICES */
+
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	
+	//if (centered)
+	//	glOrtho(-g2DLogicalWidth*.5f, g2DLogicalWidth*.5f, g2DLogicalHeight*.5f, -g2DLogicalHeight*.5f, 0, 1);
+	//else
+	//	glOrtho(0, g2DLogicalWidth, g2DLogicalHeight, 0, 0, 1);
+	glOrtho(0, g2DLogicalWidth, g2DLogicalHeight, 0, 0, 1);
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
 }
 
 

@@ -816,24 +816,8 @@ short			skelType, playerNum;
 					{
 						OGL_PushState();								// keep state
 
-						glMatrixMode(GL_PROJECTION);
-						glLoadIdentity();
-						glMatrixMode(GL_MODELVIEW);
-						glLoadIdentity();
-
-// TODO: settle on one of the #if branches and remove the other
-#if 1  // Like original FONTSTRING_GENRE - based on window width
-						float scaleBasis = 1.0f / SPRITE_SCALE_BASIS_DENOMINATOR;
-						float aspectRatio = 1.0f; // font AR
-						// Hack: use Scale.z as scaling reference
-						theNode->Scale.x = theNode->Scale.z * scaleBasis;
-						theNode->Scale.y = theNode->Scale.z * scaleBasis * gCurrentAspectRatio * aspectRatio;
-#else  // Based on window height - makes more sense in 2022 I guess, because screen width is more likely to be variable
-						float scaleBasis = 1.0f / 480.0f;
-						theNode->Scale.x = theNode->Scale.z * scaleBasis / gCurrentAspectRatio;
-						theNode->Scale.y = theNode->Scale.z * scaleBasis;
-#endif
-						UpdateObjectTransforms(theNode);
+						// TODO: avoid entering/exiting 2D mode for consecutive sprite draws
+						OGL_Enter2D();
 
 						MO_DrawObject(theNode->BaseGroup, setupInfo);
 

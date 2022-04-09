@@ -415,7 +415,6 @@ static float Kern(const AtlasGlyph* glyph, const char* utftext)
 
 static void ComputeCounts(const char* text, int* numQuadsOut, int* numLinesOut, float* lineWidths, int maxLines)
 {
-	const float S = 2.0f;//.5f;
 	float spacing = 0;
 
 	// Compute number of quads and line width
@@ -442,7 +441,7 @@ static void ComputeCounts(const char* text, int* numQuadsOut, int* numLinesOut, 
 
 		const AtlasGlyph* glyph = GetGlyphFromCodepoint(c);
 		float kernFactor = Kern(glyph, utftext);
-		lineWidths[numLines-1] += S * (glyph->xadv * kernFactor + spacing);
+		lineWidths[numLines-1] += (glyph->xadv * kernFactor + spacing);
 		if (c != ' ')
 			numQuads++;
 	}
@@ -483,7 +482,6 @@ void TextMesh_Update(const char* text, int align, ObjNode* textNode)
 
 	//-----------------------------------
 
-	const float S = 2.0f;//.5f;
 	float x = 0;
 	float y = 0;
 	float z = 0;
@@ -507,16 +505,16 @@ void TextMesh_Update(const char* text, int align, ObjNode* textNode)
 	}
 
 	// Adjust y for ascender
-	y -= 0.5f * S * gFontLineHeight;
+	y += 0.5f * gFontLineHeight;
 
 	// Center vertically
-	y += 0.5f * S * gFontLineHeight * (numLines - 1);
+	y -= 0.5f * gFontLineHeight * (numLines - 1);
 
 	// Save extents
 	textNode->LeftOff	= GetLineStartX(align, longestLineWidth);
 	textNode->RightOff	= textNode->LeftOff + longestLineWidth;
-	textNode->TopOff	= y + S * gFontLineHeight;// * 0.5f;
-	textNode->BottomOff	= textNode->TopOff - S * gFontLineHeight * numLines;
+	textNode->TopOff	= y - gFontLineHeight;
+	textNode->BottomOff	= textNode->TopOff + gFontLineHeight * numLines;
 
 	// Ensure mesh has capacity for quads
 	if (textNode->TextQuadCapacity < numQuads)
@@ -553,7 +551,7 @@ void TextMesh_Update(const char* text, int align, ObjNode* textNode)
 		{
 			currentLine++;
 			x = GetLineStartX(align, lineWidths[currentLine]);
-			y -= gFontLineHeight * S;
+			y += gFontLineHeight;
 			continue;
 		}
 
@@ -567,30 +565,32 @@ void TextMesh_Update(const char* text, int align, ObjNode* textNode)
 
 		if (codepoint == ' ')
 		{
-			x += S*(g.xadv + spacing);
+			x += (g.xadv + spacing);
 			continue;
 		}
 
-		float qx = x + S*(g.xoff + g.w*.5f);
-		float qy = y + S*(g.yoff + g.h*.5f);
+		float hw = .5f * g.w;
+		float hh = .5f * g.h;
+		float qx = x + (g.xoff + hw);
+		float qy = y - (g.yoff + hh);
 
 		mesh->triangles[t + 0].vertexIndices[0] = p + 0;
-		mesh->triangles[t + 0].vertexIndices[1] = p + 1;
-		mesh->triangles[t + 0].vertexIndices[2] = p + 2;
+		mesh->triangles[t + 0].vertexIndices[1] = p + 2;
+		mesh->triangles[t + 0].vertexIndices[2] = p + 1;
 		mesh->triangles[t + 1].vertexIndices[0] = p + 0;
-		mesh->triangles[t + 1].vertexIndices[1] = p + 2;
-		mesh->triangles[t + 1].vertexIndices[2] = p + 3;
-		mesh->points[p + 0] = (OGLPoint3D) { qx - S*g.w*.5f, qy - S*g.h*.5f, z };
-		mesh->points[p + 1] = (OGLPoint3D) { qx + S*g.w*.5f, qy - S*g.h*.5f, z };
-		mesh->points[p + 2] = (OGLPoint3D) { qx + S*g.w*.5f, qy + S*g.h*.5f, z };
-		mesh->points[p + 3] = (OGLPoint3D) { qx - S*g.w*.5f, qy + S*g.h*.5f, z };
-		mesh->uvs[p + 0] = (OGLTextureCoord) { invAtlasW * g.x,			invAtlasH * (g.y+g.h) };
-		mesh->uvs[p + 1] = (OGLTextureCoord) { invAtlasW * (g.x+g.w),	invAtlasH * (g.y+g.h) };
-		mesh->uvs[p + 2] = (OGLTextureCoord) { invAtlasW * (g.x+g.w),	invAtlasH * g.y };
-		mesh->uvs[p + 3] = (OGLTextureCoord) { invAtlasW * g.x,			invAtlasH * g.y };
+		mesh->triangles[t + 1].vertexIndices[1] = p + 3;
+		mesh->triangles[t + 1].vertexIndices[2] = p + 2;
+		mesh->points[p + 0] = (OGLPoint3D) { qx - hw, qy - hh, z };
+		mesh->points[p + 1] = (OGLPoint3D) { qx + hw, qy - hh, z };
+		mesh->points[p + 2] = (OGLPoint3D) { qx + hw, qy + hh, z };
+		mesh->points[p + 3] = (OGLPoint3D) { qx - hw, qy + hh, z };
+		mesh->uvs[p + 0] = (OGLTextureCoord) { invAtlasW * g.x,			invAtlasH * g.y };
+		mesh->uvs[p + 1] = (OGLTextureCoord) { invAtlasW * (g.x+g.w),	invAtlasH * g.y };
+		mesh->uvs[p + 2] = (OGLTextureCoord) { invAtlasW * (g.x+g.w),	invAtlasH * (g.y+g.h) };
+		mesh->uvs[p + 3] = (OGLTextureCoord) { invAtlasW * g.x,			invAtlasH * (g.y+g.h) };
 
 		float kernFactor = Kern(&g, utftext);
-		x += S*(g.xadv*kernFactor + spacing);
+		x += (g.xadv*kernFactor + spacing);
 		t += 2;
 		p += 4;
 	}

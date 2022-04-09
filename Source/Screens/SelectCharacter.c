@@ -38,6 +38,8 @@ enum
 
 #define	ARROW_SCALE		.5
 
+#define ARROW_2D_SPREAD		276.0f
+
 
 
 /*********************/
@@ -193,12 +195,12 @@ ObjNode	*newObj;
 
 	NewObjectDefinitionType newObjDef_NameString =
 	{
-		.coord = {-.43, .8, .6},
+		.coord = {0.5f*(g2DLogicalWidth-ARROW_2D_SPREAD), 48, 0},
 		.scale = .6f
 	};
 	TextMesh_New(Localize(STR_BROG), kTextMeshAlignCenter, &newObjDef_NameString);
 
-	newObjDef_NameString.coord.x 	= -newObjDef_NameString.coord.x;
+	newObjDef_NameString.coord.x 	= 0.5f*(g2DLogicalWidth+ARROW_2D_SPREAD);
 	TextMesh_New(Localize(STR_GRAG), kTextMeshAlignCenter, &newObjDef_NameString);
 
 			/* CREATE MALE CHARACTER */

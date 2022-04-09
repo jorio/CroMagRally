@@ -72,6 +72,7 @@ typedef struct MenuStyle
 	bool			isInteractive;
 	bool			canBackOutOfRootMenu;
 	short			textSlot;
+	float			yOffset;
 } MenuStyle;
 
 extern const MenuStyle kDefaultMenuStyle;

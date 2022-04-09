@@ -1343,7 +1343,6 @@ static void MoveTrackName(ObjNode *theNode)
 		return;
 	}
 
-	theNode->StatusBits &= ~STATUS_BIT_HIDDEN;
 	theNode->ColorFilter.a -= gFramesPerSecondFrac;
 	if (theNode->ColorFilter.a <= 0.0f)
 	{
@@ -1351,5 +1350,9 @@ static void MoveTrackName(ObjNode *theNode)
 		return;
 	}
 
+	theNode->Coord.x = g2DLogicalWidth/2;
+	theNode->Coord.y = g2DLogicalHeight/2;
+	theNode->StatusBits &= ~STATUS_BIT_HIDDEN;
+	UpdateObjectTransforms(theNode);
 }
 
