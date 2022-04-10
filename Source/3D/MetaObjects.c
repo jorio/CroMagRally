@@ -984,10 +984,7 @@ float			screenScaleX,screenScaleY;
 			/* INIT MATRICES */
 
 	OGL_PushState();
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
+	OGL_SetProjection(kProjectionType2DNDC);
 
 			/* SET STATE */
 

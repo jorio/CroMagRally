@@ -231,6 +231,16 @@ enum
 };
 
 
+enum
+{
+	kProjectionType3D = 0,
+	kProjectionType2DNDC,
+	kProjectionType2DOrthoFullRect,
+	kProjectionType2DOrthoCentered,
+	kProjectionTypeUnspecified,
+};
+
+
 //=====================================================================
 
 void OGL_Boot(void);
@@ -259,4 +269,5 @@ void OGL_EnableLighting(void);
 void OGL_DisableLighting(void);
 
 void OGL_Update2DLogicalSize(void);
-void OGL_Enter2D(void);
+void OGL_SetProjection(int projectionType);
+

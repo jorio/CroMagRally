@@ -164,11 +164,7 @@ int				px,py,pw,ph;
 
 			/* INIT MATRICES */
 
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
-
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
+	OGL_SetProjection(kProjectionType2DNDC);
 
 
 	for (i = 0; i < NUM_FLARES; i++)

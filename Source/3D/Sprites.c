@@ -234,6 +234,8 @@ MOSpriteSetupData	spriteData;
 	if (newObj == nil)
 		return(nil);
 
+	newObj->Projection = kProjectionType2DNDC;
+
 			/* MAKE SPRITE META-OBJECT */
 
 	spriteData.material = NULL;											// these sprites are already loaded into gSpriteList
@@ -366,10 +368,7 @@ float			scaleBasis;
 			/* SET STATE */
 
 	OGL_PushState();								// keep state
-	glMatrixMode(GL_PROJECTION);					// init projection matrix
-	glLoadIdentity();
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();								// init MODELVIEW matrix
+	OGL_SetProjection(kProjectionType2DNDC);
 
 	OGL_DisableLighting();
 	glDisable(GL_CULL_FACE);

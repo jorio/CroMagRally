@@ -72,6 +72,7 @@ GLboolean	gStateStack_DepthMask[STATE_STACK_SIZE];
 GLint		gStateStack_BlendDst[STATE_STACK_SIZE];
 GLint		gStateStack_BlendSrc[STATE_STACK_SIZE];
 GLfloat		gStateStack_Color[STATE_STACK_SIZE][4];
+int			gStateStack_ProjectionType[STATE_STACK_SIZE];
 
 int			gStateStackIndex = 0;
 
@@ -79,6 +80,7 @@ int			gPolysThisFrame;
 int			gVRAMUsedThisFrame = 0;
 
 Boolean		gMyState_Lighting;
+int			gMyState_ProjectionType = kProjectionType3D;
 
 static ObjNode* gDebugText;
 static char gDebugTextBuffer[256];
@@ -500,11 +502,7 @@ void DrawPillarboxBackground(OGLSetupOutputType* setupInfo, int vpx, int vpy, in
 	glViewport(0, 0, gGameWindowWidth, gGameWindowHeight);
 
 	OGL_PushState();
-
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
+	OGL_SetProjection(kProjectionType2DNDC);
 
 	glDisable(GL_LIGHTING);
 	glEnable(GL_CULL_FACE);
@@ -1099,11 +1097,7 @@ OGLLightDefType	*lights;
 	OGL_GetCurrentViewport(setupInfo, &temp, &temp, &w, &h, 0);
 	aspect = (float)w/(float)h;
 
-			/* INIT PROJECTION MATRIX */
-
-	glMatrixMode(GL_PROJECTION);
-
-			/* SETUP STANDARD PERSPECTIVE CAMERA */
+			/* INIT PROJECTION MATRIX -- STANDARD PERSPECTIVE CAMERA */
 
 	OGL_SetGluPerspectiveMatrix(
 			&gViewToFrustumMatrix,
@@ -1111,20 +1105,22 @@ OGLLightDefType	*lights;
 			aspect,
 			setupInfo->hither,
 			setupInfo->yon);
-	glLoadMatrixf((const GLfloat*) &gViewToFrustumMatrix.value[0]);
 
 
 
 			/* INIT MODELVIEW MATRIX */
 
-	glMatrixMode(GL_MODELVIEW);
 	OGL_SetGluLookAtMatrix(
-			&gLocalToViewMatrix, //&gWorldToViewMatrix,
+			&gLocalToViewMatrix,
 			&setupInfo->cameraPlacement[camNum].cameraLocation,
 			&setupInfo->cameraPlacement[camNum].pointOfInterest,
 			&setupInfo->cameraPlacement[camNum].upVector);
-	//glLoadMatrixf((const GLfloat*) &gWorldToViewMatrix.value[0]);
-	glLoadMatrixf((const GLfloat*) &gLocalToViewMatrix.value[0]);
+	
+
+
+			/* ENABLE THOSE MATRICES */
+
+	OGL_SetProjection(kProjectionType3D);
 
 
 
@@ -1145,11 +1141,9 @@ OGLLightDefType	*lights;
 
 			/* GET VARIOUS CAMERA MATRICES */
 
-	//OGLMatrix4x4_Multiply(&gWorldToViewMatrix, &gViewToFrustumMatrix, &gWorldToFrustumMatrix);
 	OGLMatrix4x4_Multiply(&gLocalToViewMatrix, &gViewToFrustumMatrix, &gLocalToFrustumMatrix);
 
 	OGLMatrix4x4_GetFrustumToWindow(setupInfo, &gFrustumToWindowMatrix[camNum], camNum);
-	//OGLMatrix4x4_Multiply(&gWorldToFrustumMatrix, &gFrustumToWindowMatrix[camNum], &gWorldToWindowMatrix);
 	OGLMatrix4x4_Multiply(&gLocalToFrustumMatrix, &gFrustumToWindowMatrix[camNum], &gWorldToWindowMatrix[camNum]);
 
 	UpdateListenerLocation(setupInfo);
@@ -1207,6 +1201,7 @@ int	i;
 	gStateStack_Texture2D[i] = glIsEnabled(GL_TEXTURE_2D);
 	gStateStack_Fog[i] 		= glIsEnabled(GL_FOG);
 	gStateStack_Blend[i] 	= glIsEnabled(GL_BLEND);
+	gStateStack_ProjectionType[i] = gMyState_ProjectionType;
 
 	glGetFloatv(GL_CURRENT_COLOR, &gStateStack_Color[i][0]);
 
@@ -1278,6 +1273,8 @@ int		i;
 
 	glColor4fv(&gStateStack_Color[i][0]);
 
+	gMyState_ProjectionType = gStateStack_ProjectionType[i];
+
 }
 
 
@@ -1331,29 +1328,48 @@ void OGL_Update2DLogicalSize(void)
 }
 
 
-/***************** SET INFOBAR SPRITE STATE *******************/
 
-void OGL_Enter2D(void)
+/***************** SET 2D/3D PROJECTION *******************/
+
+void OGL_SetProjection(int projectionType)
 {
-	OGL_DisableLighting();
-	glEnable(GL_CULL_FACE);
-	glDisable(GL_DEPTH_TEST);								// no z-buffer
+	switch (projectionType)
+	{
+		case kProjectionType3D:
+			glMatrixMode(GL_PROJECTION);
+			glLoadMatrixf((const GLfloat*) &gViewToFrustumMatrix.value[0]);
+			glMatrixMode(GL_MODELVIEW);
+			glLoadMatrixf((const GLfloat*) &gLocalToViewMatrix.value[0]);
+			break;
 
-	gGlobalMaterialFlags = BG3D_MATERIALFLAG_CLAMP_V|BG3D_MATERIALFLAG_CLAMP_U;	// clamp all textures
+		case kProjectionType2DNDC:
+			glMatrixMode(GL_PROJECTION);
+			glLoadIdentity();
+			glMatrixMode(GL_MODELVIEW);
+			glLoadIdentity();
+			break;
 
+		case kProjectionType2DOrthoFullRect:
+			glMatrixMode(GL_PROJECTION);
+			glLoadIdentity();
+			glOrtho(0, g2DLogicalWidth, g2DLogicalHeight, 0, 0, 1);
+			glMatrixMode(GL_MODELVIEW);
+			glLoadIdentity();
+			break;
 
-			/* INIT MATRICES */
+		case kProjectionType2DOrthoCentered:
+			glMatrixMode(GL_PROJECTION);
+			glLoadIdentity();
+			glOrtho(-g2DLogicalWidth*.5f, g2DLogicalWidth*.5f, g2DLogicalHeight*.5f, -g2DLogicalHeight*.5f, 0, 1);
+			glMatrixMode(GL_MODELVIEW);
+			glLoadIdentity();
+			break;
 
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-	
-	//if (centered)
-	//	glOrtho(-g2DLogicalWidth*.5f, g2DLogicalWidth*.5f, g2DLogicalHeight*.5f, -g2DLogicalHeight*.5f, 0, 1);
-	//else
-	//	glOrtho(0, g2DLogicalWidth, g2DLogicalHeight, 0, 0, 1);
-	glOrtho(0, g2DLogicalWidth, g2DLogicalHeight, 0, 0, 1);
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
+		default:
+			GAME_ASSERT_MESSAGE("illegal projection type #%d", projectionType);
+			break;
+	}
+
+	gMyState_ProjectionType = projectionType;
 }
-
 

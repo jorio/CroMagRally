@@ -55,10 +55,7 @@ static void DrawFadePane(ObjNode* theNode, OGLSetupOutputType* setupInfo)
 {
 	OGL_PushState();
 
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
+	OGL_SetProjection(kProjectionType2DNDC);
 	OGL_DisableLighting();
 	glDisable(GL_CULL_FACE);
 	glDisable(GL_DEPTH_TEST);

@@ -268,6 +268,7 @@ struct ObjNode
 	Byte			Type;				// obj type
 	Byte			Group;				// obj group
 	Byte			Kind;				// kind
+	Byte			Projection;
 	void			(*MoveCall)(struct ObjNode *);			// pointer to object's move routine
 	void			(*SplineMoveCall)(struct ObjNode *);	// pointer to object's spline move routine
 	void			(*CustomDrawFunction)(struct ObjNode *, OGLSetupOutputType *setupInfo);// pointer to object's custom draw function

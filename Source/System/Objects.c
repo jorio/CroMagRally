@@ -12,6 +12,9 @@
 #include "game.h"
 #include "bones.h"
 
+extern int gMyState_ProjectionType;
+
+
 /****************************/
 /*    PROTOTYPES            */
 /****************************/
@@ -747,6 +750,17 @@ short			skelType, playerNum;
 			}
 		}
 
+			/***************************/
+			/* SET 2D OR 3D PROJECTION */
+			/***************************/
+
+		if (theNode->Projection != gMyState_ProjectionType)
+		{
+			OGL_SetProjection(theNode->Projection);
+			GAME_ASSERT(theNode->Projection == gMyState_ProjectionType);
+		}
+
+
 			/***********************/
 			/* SUBMIT THE GEOMETRY */
 			/***********************/
@@ -794,19 +808,11 @@ short			skelType, playerNum;
 			case	SPRITE_GENRE:
 					if (theNode->SpriteMO)
 					{
-						OGL_PushState();								// keep state
-
-						glMatrixMode(GL_PROJECTION);					// clear projection matrix
-						glLoadIdentity();
-						glMatrixMode(GL_MODELVIEW);
-						glLoadIdentity();
-
 						theNode->SpriteMO->objectData.coord = theNode->Coord;	// update Meta Object's coord info
 						theNode->SpriteMO->objectData.scaleX = theNode->Scale.x;
 						theNode->SpriteMO->objectData.scaleY = theNode->Scale.y;
 
 						MO_DrawObject(theNode->SpriteMO, setupInfo);
-						OGL_PopState();									// restore state
 					}
 					break;
 
@@ -814,19 +820,12 @@ short			skelType, playerNum;
 			case	TEXTMESH_GENRE:
 					if (theNode->BaseGroup)
 					{
-						OGL_PushState();								// keep state
-
-						// TODO: avoid entering/exiting 2D mode for consecutive sprite draws
-						OGL_Enter2D();
-
 						MO_DrawObject(theNode->BaseGroup, setupInfo);
 
 						if (gDebugMode >= 2)
 						{
 							TextMesh_DrawExtents(theNode);
 						}
-
-						OGL_PopState();									// restore state
 					}
 					break;
 
@@ -1404,29 +1403,4 @@ MOMatrixObject	*mo = theNode->BaseTransformObject;
 		mo->matrix =  theNode->BaseTransformMatrix;
 	}
 }
-
-
-
-
-
-
-#pragma mark -
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

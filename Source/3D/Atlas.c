@@ -612,6 +612,8 @@ ObjNode *TextMesh_NewEmpty(int capacity, NewObjectDefinitionType* newObjDef)
 		| STATUS_BIT_DONTCULL;   // TODO: make it so we don't need DONTCULL
 	ObjNode* textNode = MakeNewObject(newObjDef);
 
+	textNode->Projection = kProjectionType2DOrthoFullRect;
+
 	// Attach color mesh
 	MetaObjectPtr meshMO = MO_CreateNewObjectOfType(MO_TYPE_GEOMETRY, MO_GEOMETRY_SUBTYPE_VERTEXARRAY, &mesh);
 
@@ -697,10 +699,7 @@ void TextMesh_DrawImmediate(const char* text, float x, float y, float scale, flo
 			/* SET STATE */
 
 	OGL_PushState();								// keep state
-	glMatrixMode(GL_PROJECTION);					// init projection matrix
-	glLoadIdentity();
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();								// init MODELVIEW matrix
+	OGL_SetProjection(kProjectionType2DNDC);
 
 	OGL_DisableLighting();
 	glDisable(GL_CULL_FACE);
