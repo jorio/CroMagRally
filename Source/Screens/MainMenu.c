@@ -31,7 +31,7 @@ static void DoPhysicsEditor(void);
 
 enum
 {
-	MENU_ID_NULL,
+	MENU_ID_NULL,		// keep ID=0 unused
 	MENU_ID_TITLE,
 	MENU_ID_PLAY,
 	MENU_ID_OPTIONS,
@@ -189,7 +189,7 @@ static const MenuItem
 		{ kMenuItem_Pick, STR_OPTIONS, .gotoMenu=MENU_ID_OPTIONS, },
 		{ kMenuItem_Pick, STR_EXTRAS, .gotoMenu=MENU_ID_EXTRAS, },
 		{ kMenuItem_Pick, STR_QUIT, .id=MENU_EXITCODE_QUITGAME },
-		{ kMenuItem_END_SENTINEL },
+		{ .type=kMenuItem_END_SENTINEL },
 	},
 
 	gMenuPlay[] =
@@ -199,7 +199,7 @@ static const MenuItem
 #if 0	// TODO!
 		{ kMenuItem_Pick, STR_NET_GAME,	.id=3, .callback=OnConfirmPlayMenu, .gotoMenu=MENU_ID_NETGAME },
 #endif
-		{ kMenuItem_END_SENTINEL },
+		{ .type=kMenuItem_END_SENTINEL },
 	},
 
 	gMenuOptions[] =
@@ -210,7 +210,7 @@ static const MenuItem
 		{ kMenuItem_Pick, STR_CONFIGURE_GAMEPAD, .gotoMenu=MENU_ID_SETTINGS },
 #endif
 		{ kMenuItem_Pick, STR_CLEAR_SAVED_GAME, .gotoMenu=MENU_ID_CONFIRM_CLEAR_SAVE, .enableIf=IsClearSavedGameAvailable },
-		{ kMenuItem_END_SENTINEL },
+		{ .type=kMenuItem_END_SENTINEL },
 	},
 
 	gMenuExtras[] =
@@ -220,7 +220,7 @@ static const MenuItem
 #if 0	// TODO!
 		{ kMenuItem_Pick, STR_PHYSICS_EDITOR, .id=MENU_EXITCODE_PHYSICS, .gotoMenu=0 },
 #endif
-		{ kMenuItem_END_SENTINEL },
+		{ .type=kMenuItem_END_SENTINEL },
 	},
 
 	gMenuMPGameModes[] =
@@ -230,7 +230,7 @@ static const MenuItem
 		{ kMenuItem_Pick,	STR_STAMPEDE_TAG,	.callback=OnPickGameMode, .id=GAME_MODE_TAG2,				.gotoMenu=MENU_ID_STAMPEDETAG_DURATION, },
 		{ kMenuItem_Pick,	STR_SURVIVAL,		.callback=OnPickGameMode, .id=GAME_MODE_SURVIVAL		},
 		{ kMenuItem_Pick,	STR_QUEST_FOR_FIRE,	.callback=OnPickGameMode, .id=GAME_MODE_CAPTUREFLAG		},
-		{ kMenuItem_END_SENTINEL },
+		{ .type=kMenuItem_END_SENTINEL },
 	},
 
 	gMenu1PGameModes[] =
@@ -238,7 +238,7 @@ static const MenuItem
 		{ kMenuItem_Pick,	STR_PRACTICE,		.callback=OnPickGameMode, .id=GAME_MODE_PRACTICE		 },
 		{ kMenuItem_Pick,	STR_TOURNAMENT,		.callback=OnPickGameMode, .id=GAME_MODE_TOURNAMENT,			.gotoMenu=MENU_ID_TOURNAMENT, },
 		// ^^^ TODO: if picking tournament, pick saved game file?
-		{ kMenuItem_END_SENTINEL },
+		{ .type=kMenuItem_END_SENTINEL },
 	},
 
 	gMenuTournament[] =
@@ -246,14 +246,14 @@ static const MenuItem
 		{ kMenuItem_Pick, STR_STONE_AGE,	.callback=OnPickTournamentAge, .id=STONE_AGE,	},
 		{ kMenuItem_Pick, STR_BRONZE_AGE,	.callback=OnPickTournamentAge, .id=BRONZE_AGE,	.enableIf=IsTournamentAgeAvailable },
 		{ kMenuItem_Pick, STR_IRON_AGE,		.callback=OnPickTournamentAge, .id=IRON_AGE,	.enableIf=IsTournamentAgeAvailable },
-		{ kMenuItem_END_SENTINEL },
+		{ .type=kMenuItem_END_SENTINEL },
 	},
 
 	gMenuNetGame[] =
 	{
 		{ kMenuItem_Pick, STR_HOST_NET_GAME, .callback=OnPickHostOrJoin, .id=0, .gotoMenu=MENU_ID_MULTIPLAYERGAMETYPE }, // host gets to select game type
 		{ kMenuItem_Pick, STR_JOIN_NET_GAME, .callback=OnPickHostOrJoin, .id=1 },
-		{ kMenuItem_END_SENTINEL },
+		{ .type=kMenuItem_END_SENTINEL },
 	},
 
 	gMenuConfirmClearSave[] =
@@ -266,7 +266,7 @@ static const MenuItem
 		{ kMenuItem_Spacer, .text=STR_NULL },
 		{ kMenuItem_Pick, .text=STR_CLEAR_SAVED_GAME_CANCEL, .callback=MenuCallback_Back },
 		{ kMenuItem_Pick, .text=STR_CLEAR_SAVED_GAME, .callback=OnPickClearSavedGame },
-		{ kMenuItem_END_SENTINEL },
+		{ .type=kMenuItem_END_SENTINEL },
 	},
 
 	gMenuKeepAwayTagDuration[] =
@@ -279,7 +279,7 @@ static const MenuItem
 		{ kMenuItem_Pick, STR_2_MINUTES, .callback=OnPickTagDuration, .id=2 },
 		{ kMenuItem_Pick, STR_3_MINUTES, .callback=OnPickTagDuration, .id=3 },
 		{ kMenuItem_Pick, STR_4_MINUTES, .callback=OnPickTagDuration, .id=4 },
-		{ kMenuItem_END_SENTINEL },
+		{ .type=kMenuItem_END_SENTINEL },
 	},
 
 	gMenuStampedeTagDuration[] =
@@ -292,7 +292,7 @@ static const MenuItem
 		{ kMenuItem_Pick, STR_2_MINUTES, .callback=OnPickTagDuration, .id=2 },
 		{ kMenuItem_Pick, STR_3_MINUTES, .callback=OnPickTagDuration, .id=3 },
 		{ kMenuItem_Pick, STR_4_MINUTES, .callback=OnPickTagDuration, .id=4 },
-		{ kMenuItem_END_SENTINEL },
+		{ .type=kMenuItem_END_SENTINEL },
 	},
 
 	gMenuSettings[] =
@@ -346,7 +346,7 @@ static const MenuItem
 			}
 		},
 
-		{ kMenuItem_END_SENTINEL },
+		{ .type=kMenuItem_END_SENTINEL },
 	}
 	;
 
@@ -378,6 +378,8 @@ static const MenuItem* gMainMenuTree[NUM_MENU_IDS] =
 
 static void UpdateMainMenuScreen(void)
 {
+	MoveObjects();
+
 	if (GetCurrentMenu() == gMenuTitle &&
 		GetMenuIdleTime() > DEMO_DELAY && gNumLocalPlayers < 2)
 	{

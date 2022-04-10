@@ -77,11 +77,18 @@ typedef struct MenuStyle
 
 extern const MenuStyle kDefaultMenuStyle;
 
+int StartMenu(
+		const MenuItem* menu,
+		const MenuStyle* style,
+		void (*updateRoutine)(void),
+		void (*backgroundDrawRoutine)(OGLSetupOutputType *));
+
 int StartMenuTree(
 		const MenuItem** menus,
 		const MenuStyle* style,
 		void (*updateRoutine)(void),
 		void (*backgroundDrawRoutine)(OGLSetupOutputType *));
+
 void LayoutCurrentMenuAgain(void);
 const MenuItem* GetCurrentMenu(void);
 float GetMenuIdleTime(void);

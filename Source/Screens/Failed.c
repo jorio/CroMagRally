@@ -1,7 +1,8 @@
 /****************************/
 /*   	FAILED.C			*/
-/* (c)2000 Pangea Software  */
 /* By Brian Greenstone      */
+/* (c)2000 Pangea Software  */
+/* (c)2022 Iliyas Jorio     */
 /****************************/
 
 
@@ -10,14 +11,13 @@
 /****************************/
 
 #include "game.h"
+#include "menu.h"
 
 /****************************/
 /*    PROTOTYPES            */
 /****************************/
 
 static void BuildFailedMenu(const char* s);
-static Boolean NavigateFailedMenu(void);
-static void FreeFailedMenu(void);
 static void MoveFailedObject(ObjNode *theNode);
 
 
@@ -27,21 +27,21 @@ static void MoveFailedObject(ObjNode *theNode);
 
 #define	FAILED_ICON_SCALE	.4f
 
-#define	LINE_SPACING	.12f
-
 
 
 /*********************/
 /*    VARIABLES      */
 /*********************/
 
-static short	gFailedMenuSelection;
 
-static ObjNode	*gFailedIcons[2];
 
-static Boolean	gTryAgain;
+/********************** UPDATE FAILED MENU **************************/
 
-static const OGLColorRGBA gFailedMenuHiliteColor = {.3,.5,.2,1};
+static void UpdateFailedMenu(void)
+{
+	MoveEverything();
+	DoPlayerTerrainUpdate();							// need to call this to keep supertiles active
+}
 
 /********************** DO FAILED **************************/
 //
@@ -52,75 +52,55 @@ static const OGLColorRGBA gFailedMenuHiliteColor = {.3,.5,.2,1};
 
 Boolean DoFailedMenu(const char* headerString)
 {
-	BuildFailedMenu(headerString);
+	{
+		NewObjectDefinitionType def =
+		{
+			.coord 		= {g2DLogicalWidth/2, g2DLogicalHeight/2+144, 0},
+			.moveCall 	= MoveFailedObject,
+			.scale		= FAILED_ICON_SCALE * .8f,
+			.slot 		= SPRITE_SLOT,
+		};
+		ObjNode* header = TextMesh_New(headerString, kTextMeshAlignCenter, &def);
+		header->ColorFilter.a = 0;
+	}
+
+
+	static const MenuItem failedMenu[] =
+	{
+		{ kMenuItem_Pick, STR_TRY_AGAIN, .id=1 },
+		{ kMenuItem_Pick, STR_RETIRE, .id=0 },
+		{ .type=kMenuItem_END_SENTINEL },
+	};
+
+	MenuStyle failedMenuStyle = kDefaultMenuStyle;
+	failedMenuStyle.standardScale = FAILED_ICON_SCALE;
+	failedMenuStyle.rowHeight = 28;
+	failedMenuStyle.yOffset = 215;
+	failedMenuStyle.fadeOutSceneOnExit = false;
 
 
 				/*************/
 				/* MAIN LOOP */
 				/*************/
 
-	CalcFramesPerSecond();
-	ReadKeyboard();
+
 	gNoCarControls = true;									// nobody has control during this
 
-	while(true)
+	int outcome = StartMenu(failedMenu, &failedMenuStyle, UpdateFailedMenu, DrawTerrain);
+
+
+			/***************************/
+			/* SEE IF MAKE A SELECTION */
+			/***************************/
+
+	if (outcome == 0)								// retire
 	{
-			/* SEE IF MAKE SELECTION */
-
-		if (NavigateFailedMenu())
-			break;
-
-			/* MOVE STUFF */
-
-		MoveEverything();
-
-
-			/* DRAW STUFF */
-
-		CalcFramesPerSecond();
-		ReadKeyboard();
-		DoPlayerTerrainUpdate();							// need to call this to keep supertiles active
-		OGL_DrawScene(gGameViewInfoPtr, DrawTerrain);
+		return false;
 	}
-
-	FreeFailedMenu();
-
-	return(gTryAgain);
-}
-
-
-/**************************** BUILD FAILED MENU *********************************/
-
-static void BuildFailedMenu(const char* title)
-{
-ObjNode	*obj;
-
-	gFailedMenuSelection = 0;
-
-	gTryAgain = true;
-
-			/* BUILD NEW TEXT STRINGS */
-
-	NewObjectDefinitionType def =
+	else											// try again
 	{
-		.coord 		= {0, -.6f, 0},
-		.moveCall 	= MoveFailedObject,
-		.scale		= FAILED_ICON_SCALE * .8f,
-		.slot 		= SPRITE_SLOT,
-	};
-	obj = TextMesh_New(title, kTextMeshAlignCenter, &def);		// title
-	obj->ColorFilter.a = 0;
-
-	def.coord.y	-= LINE_SPACING * 1.5f;
-	def.scale	= FAILED_ICON_SCALE;
-
-	for (int i = 0; i < 2; i++)
-	{
-		const char* s = Localize(STR_TRY_AGAIN + i);
-
-		gFailedIcons[i] = TextMesh_New(s, kTextMeshAlignCenter, &def);
-		gFailedIcons[i]->ColorFilter.a = 0;
-		def.coord.y -= LINE_SPACING;
+		gGameOver = false;
+		return true;
 	}
 }
 
@@ -132,88 +112,3 @@ static void MoveFailedObject(ObjNode *theNode)
 	if (theNode->ColorFilter.a > 1.0f)
 		theNode->ColorFilter.a = 1.0f;
 }
-
-
-
-/******************** FREE FAILED MENU **********************/
-//
-// Free objects of current menu
-//
-
-static void FreeFailedMenu(void)
-{
-int		i;
-
-	for (i = 0; i < 2; i++)
-	{
-		DeleteObject(gFailedIcons[i]);
-	}
-}
-
-
-/*********************** NAVIGATE FAILED MENU **************************/
-
-static Boolean NavigateFailedMenu(void)
-{
-short	i;
-
-
-		/* SEE IF CHANGE SELECTION */
-
-	if (GetNewNeedStateAnyP(kNeed_UIUp) && (gFailedMenuSelection > 0))
-	{
-		PlayEffect(EFFECT_SELECTCLICK);
-		gFailedMenuSelection--;
-	}
-	else
-	if (GetNewNeedStateAnyP(kNeed_UIDown) && (gFailedMenuSelection < 1))
-	{
-		PlayEffect(EFFECT_SELECTCLICK);
-		gFailedMenuSelection++;
-	}
-
-		/* SET APPROPRIATE FRAMES FOR ICONS */
-
-	for (i = 0; i < 2; i++)
-	{
-		if (i != gFailedMenuSelection)
-		{
-			gFailedIcons[i]->ColorFilter.r = 										// normal
-			gFailedIcons[i]->ColorFilter.g =
-			gFailedIcons[i]->ColorFilter.b =
-			gFailedIcons[i]->ColorFilter.a = 1.0;
-		}
-		else
-		{
-			gFailedIcons[i]->ColorFilter = gFailedMenuHiliteColor;										// hilite
-		}
-
-	}
-
-
-			/***************************/
-			/* SEE IF MAKE A SELECTION */
-			/***************************/
-
-	if (GetNewNeedStateAnyP(kNeed_UIConfirm))
-	{
-		switch(gFailedMenuSelection)
-		{
-			case	0:								// try again
-					gTryAgain = true;
-					gGameOver = false;
-
-					break;
-
-			case	1:								// retire
-					gTryAgain = false;
-					break;
-
-		}
-		return(true);
-	}
-
-
-	return(false);
-}
-

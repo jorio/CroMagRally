@@ -1388,11 +1388,25 @@ void LayoutCurrentMenuAgain(void)
 	LayOutMenu(gNav->menu);
 }
 
+int StartMenu(
+		const MenuItem* menu,
+		const MenuStyle* style,
+		void (*update)(void),
+		void (*draw)(OGLSetupOutputType *))
+{
+	static const MenuItem* menuTree[2];
+
+	menuTree[0] = NULL;
+	menuTree[1] = menu;
+
+	return StartMenuTree(menuTree, style, update, draw);
+}
+
 int StartMenuTree(
 		const MenuItem** menuTree,
 		const MenuStyle* style,
-		void (*updateRoutine)(void),
-		void (*backgroundDrawRoutine)(OGLSetupOutputType *))
+		void (*update)(void),
+		void (*draw)(OGLSetupOutputType *))
 {
 //	int cursorStateBeforeMenu = SDL_ShowCursor(-1);
 //	gStandardCursor = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_ARROW);
@@ -1492,10 +1506,13 @@ int StartMenuTree(
 			/* DRAW STUFF */
 
 		CalcFramesPerSecond();
-		MoveObjects();
-		if (updateRoutine)
-			updateRoutine();
-		OGL_DrawScene(gGameViewInfoPtr, backgroundDrawRoutine);
+
+		if (update)
+			update();
+		else
+			MoveObjects();
+			
+		OGL_DrawScene(gGameViewInfoPtr, draw);
 	}
 
 
@@ -1503,7 +1520,7 @@ int StartMenuTree(
 
 	if (gNav->style.fadeOutSceneOnExit)
 	{
-		OGL_FadeOutScene(gGameViewInfoPtr, backgroundDrawRoutine, NULL);
+		OGL_FadeOutScene(gGameViewInfoPtr, draw, NULL);
 	}
 
 

@@ -43,14 +43,8 @@ static const MenuItem
 			}
 		},
 		{ kMenuItem_Pick, STR_QUIT_APPLICATION, .id=2 },
-		{ kMenuItem_END_SENTINEL },
+		{ .type=kMenuItem_END_SENTINEL },
 	};
-
-static const MenuItem* gPauseMenuTree[] =
-{
-	[0] = NULL,
-	[1] = gMenuPause,
-};
 
 
 /*********************/
@@ -72,6 +66,7 @@ void OnToggleSplitscreenMode(const MenuItem* mi)
 
 static void UpdatePausedMenuCallback(void)
 {
+	MoveObjects();
 	DoPlayerTerrainUpdate();							// need to call this to keep supertiles active
 
 
@@ -109,8 +104,8 @@ void DoPaused(void)
 	CalcFramesPerSecond();
 	ReadKeyboard();
 	
-	int outcome = StartMenuTree(
-		gPauseMenuTree,
+	int outcome = StartMenu(
+		gMenuPause,
 		&style,
 		UpdatePausedMenuCallback,
 		DrawPausedMenuCallback
