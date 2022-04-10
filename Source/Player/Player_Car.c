@@ -2363,7 +2363,7 @@ short	powType;
 
 static void DoCPUPOWLogic_Nitro(ObjNode *carObj, short playerNum)
 {
-	carObj;
+	(void) carObj;
 
 	if (gPlayerInfo[playerNum].nitroTimer > 0.0f)						// if already doing a nitro then dont do another one
 		return;

@@ -137,7 +137,6 @@ if(NOT MSVC)
 		$<$<CXX_COMPILER_ID:GNU>:-Wno-unused-but-set-variable>
 		-Werror=return-type
 		-Wno-unused-parameter
-		-Wno-unused-value #-------------
 		-Wno-unused-function #-------------
 	)
 else()

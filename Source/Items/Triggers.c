@@ -306,7 +306,7 @@ static Boolean DoTrig_POW(ObjNode *theNode, ObjNode *whoNode, Byte sideBits)
 short	powType,playerNum;
 Boolean	thud = false;
 
-	sideBits;
+	(void) sideBits;
 
 	playerNum = whoNode->PlayerNum;
 	powType = theNode->POWType;
@@ -440,7 +440,7 @@ static Boolean DoTrig_Token(ObjNode *theNode, ObjNode *whoNode, Byte sideBits)
 {
 short	playerNum;
 
-	sideBits;
+	(void) sideBits;
 
 	playerNum = whoNode->PlayerNum;
 	if (gPlayerInfo[playerNum].isComputer)		// CPU players cannot collect these, only real players can
@@ -534,7 +534,7 @@ static Boolean DoTrig_StickyTiresPOW(ObjNode *theNode, ObjNode *whoNode, Byte si
 {
 short	playerNum;
 
-	sideBits;
+	(void) sideBits;
 
 	playerNum = whoNode->PlayerNum;
 
@@ -631,7 +631,7 @@ static Boolean DoTrig_SuspensionPOW(ObjNode *theNode, ObjNode *whoNode, Byte sid
 {
 short	playerNum;
 
-	sideBits;
+	(void) sideBits;
 
 	playerNum = whoNode->PlayerNum;
 
@@ -727,7 +727,7 @@ static Boolean DoTrig_InvisibilityPOW(ObjNode *theNode, ObjNode *whoNode, Byte s
 {
 short	playerNum;
 
-	sideBits;
+	(void) sideBits;
 
 	playerNum = whoNode->PlayerNum;
 
@@ -872,7 +872,7 @@ static Boolean DoTrig_Cactus(ObjNode *theNode, ObjNode *whoNode, Byte sideBits)
 {
 float	speed;
 
-	sideBits;
+	(void) sideBits;
 
 		/* SEE IF GOING FAST ENOUGH TO SMASH IT */
 
@@ -954,7 +954,7 @@ ObjNode	*newObj;
 static Boolean DoTrig_SnoMan(ObjNode *theNode, ObjNode *whoNode, Byte sideBits)
 {
 
-	sideBits;
+	(void) sideBits;
 
 		/* SEE IF GOING FAST ENOUGH TO SMASH IT */
 
@@ -1101,7 +1101,7 @@ static void MoveCampFire(ObjNode *theNode)
 static Boolean DoTrig_CampFire(ObjNode *theNode, ObjNode *whoNode, Byte sideBits)
 {
 
-	sideBits;
+	(void) sideBits;
 
 
 	if (whoNode->Speed3D > 2000.0f)
@@ -1285,7 +1285,7 @@ OGLMatrix4x4	m1,m2;
 
 static Boolean DoTrig_TeamTorch(ObjNode *theNode, ObjNode *whoNode, Byte sideBits)
 {
-	sideBits;
+	(void) sideBits;
 
 	if (whoNode->CapturedFlag)					// see if player already has a flag
 		return(true);
@@ -1380,7 +1380,7 @@ static Boolean DoTrig_TeamBase(ObjNode *theNode, ObjNode *whoNode, Byte sideBits
 ObjNode	*theTorch;
 short	teamNum;
 
-	sideBits;
+	(void) sideBits;
 
 	theTorch = (ObjNode *)whoNode->CapturedFlag;				// get torch object that player is carrying
 	if (theTorch == nil)										// bail if none
@@ -1482,7 +1482,7 @@ ObjNode	*newObj;
 static Boolean DoTrig_Vase(ObjNode *theNode, ObjNode *whoNode, Byte sideBits)
 {
 
-	sideBits;
+	(void) sideBits;
 
 		/* SEE IF GOING FAST ENOUGH TO SMASH IT */
 
@@ -1627,7 +1627,7 @@ static void MoveCauldron(ObjNode *theNode)
 
 static Boolean DoTrig_Cauldron(ObjNode *theNode, ObjNode *whoNode, Byte sideBits)
 {
-	sideBits;
+	(void) sideBits;
 
 		/* SEE IF GOING FAST ENOUGH TO SMASH IT */
 
@@ -1797,7 +1797,7 @@ ObjNode	*gongObj;
 
 static Boolean DoTrig_Gong(ObjNode *theNode, ObjNode *whoNode, Byte sideBits)
 {
-	sideBits;
+	(void) sideBits;
 
 	if (theNode->Mode != GONE_MODE_READY)
 		return(false);
@@ -1900,7 +1900,8 @@ OGLVector3D				d;
 OGLPoint3D				pt;
 NewParticleDefType		newParticleDef;
 
-	sideBits; whoNode;
+	(void) sideBits;
+	(void) whoNode;
 
 	x = theNode->Coord.x;
 	y = theNode->Coord.y;
@@ -2010,7 +2011,7 @@ static Boolean DoTrig_Druid(ObjNode *theNode, ObjNode *whoNode, Byte sideBits)
 {
 short	p;
 
-	sideBits;
+	(void) sideBits;
 
 	p = whoNode->PlayerNum;
 

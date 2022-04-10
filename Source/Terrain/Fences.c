@@ -390,7 +390,7 @@ static void DrawFences(ObjNode *theNode, OGLSetupOutputType *setupInfo)
 long			f,type;
 float			cameraX, cameraZ;
 
-	theNode;
+	(void) theNode;
 
 			/* UPDATE SEAWEED ANIMATION */
 

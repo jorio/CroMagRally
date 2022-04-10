@@ -467,14 +467,8 @@ uint16_t				superTileNum;
 float				height,miny,maxy;
 MOVertexArrayData	*meshData;
 SuperTileMemoryType	*superTilePtr;
-float				ambientR,ambientG,ambientB;
-float				fillR0,fillG0,fillB0;
-float				fillR1,fillG1,fillB1;
-OGLVector3D			*fillDir0,*fillDir1;
-Byte				numFillLights;
 MOTriangleIndecies	*triangleList;
 OGLPoint3D			*vertexPointList;
-OGLTextureCoord		*uvs;
 OGLVector3D			faceNormal[NUM_TRIS_IN_SUPERTILE];
 OGLVector3D			vertexNormalList[NUM_VERTICES_IN_SUPERTILE];
 
@@ -488,26 +482,6 @@ OGLVector3D			vertexNormalList[NUM_VERTICES_IN_SUPERTILE];
 	superTilePtr->back = (startRow * TERRAIN_POLYGON_SIZE);
 
 
-		/* GET LIGHT DATA */
-
-	ambientR = gGameViewInfoPtr->lightList.ambientColor.r;			// get ambient color
-	ambientG = gGameViewInfoPtr->lightList.ambientColor.g;
-	ambientB = gGameViewInfoPtr->lightList.ambientColor.b;
-
-	fillR0 = gGameViewInfoPtr->lightList.fillColor[0].r;			// get fill color
-	fillG0 = gGameViewInfoPtr->lightList.fillColor[0].g;
-	fillB0 = gGameViewInfoPtr->lightList.fillColor[0].b;
-	fillDir0 = &gGameViewInfoPtr->lightList.fillDirection[0];		// get fill direction
-
-	numFillLights = gGameViewInfoPtr->lightList.numFillLights;
-	if (numFillLights > 1)
-	{
-		fillR1 = gGameViewInfoPtr->lightList.fillColor[1].r;
-		fillG1 = gGameViewInfoPtr->lightList.fillColor[1].g;
-		fillB1 = gGameViewInfoPtr->lightList.fillColor[1].b;
-		fillDir1 = &gGameViewInfoPtr->lightList.fillDirection[1];
-	}
-
 
 
 				/*******************/
@@ -517,7 +491,6 @@ OGLVector3D			vertexNormalList[NUM_VERTICES_IN_SUPERTILE];
 	meshData 		= gSuperTileMemoryList[superTileNum].meshData;		// get ptr to mesh data
 	triangleList 	= meshData->triangles;								// get ptr to triangle index list
 	vertexPointList = meshData->points;									// get ptr to points list
-	uvs				= meshData->uvs;									// get ptr to uvs
 
 	GAME_ASSERT_MESSAGE(meshData->colorsByte == NULL, "per-vertex colors unsupported in CMR terrain! (byte)");
 	GAME_ASSERT_MESSAGE(meshData->colorsFloat == NULL, "per-vertex colors unsupported in CMR terrain! (float)");

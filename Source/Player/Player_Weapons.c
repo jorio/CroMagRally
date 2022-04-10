@@ -1837,7 +1837,7 @@ static void MoveLandMine(ObjNode *theNode)
 Boolean DoTrig_LandMine(ObjNode *theNode, ObjNode *whoNode, Byte sideBits)
 {
 
-	sideBits;
+	(void) sideBits;
 
 	if (theNode->MineArmingTimer > 0.0f)					// do nothing if not armed yet
 		return(false);
