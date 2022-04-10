@@ -76,6 +76,17 @@ typedef struct
 #define PREFS_FOLDER_NAME "CroMagRally"
 #define PREFS_FILE_PATH (":" PREFS_FOLDER_NAME ":Prefs")
 
+
+
+		/* COMMAND-LINE OPTIONS */
+
+typedef struct
+{
+	int		msaa;
+	int		vsync;
+	int		bootToTrack;
+} CommandLineOptions;
+
 //=================================================
 
 SkeletonDefType *LoadSkeletonFile(short skeletonType, OGLSetupOutputType *setupInfo);

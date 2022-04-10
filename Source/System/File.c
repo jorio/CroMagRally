@@ -719,6 +719,7 @@ static const char*	levelModelFiles[NUM_TRACKS] =
 };
 
 
+	GAME_ASSERT_MESSAGE((size_t)gTrackNum < (size_t)NUM_TRACKS, "illegal track#!");
 
 				/* LOAD AUDIO */
 

@@ -55,6 +55,7 @@ extern Byte						gActiveSplitScreenMode;
 extern Byte						gDebugMode;
 extern CheckpointDefType		gCheckpointList[MAX_CHECKPOINTS];
 extern CollisionRec				gCollisionList[];
+extern CommandLineOptions		gCommandLine;
 extern const float				gWaterHeights[NUM_TRACKS][6];
 extern const KeyBinding			kDefaultKeyBindings[NUM_CONTROL_NEEDS];
 extern FenceDefType				*gFenceList;

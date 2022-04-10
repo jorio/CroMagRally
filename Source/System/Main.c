@@ -1560,6 +1560,19 @@ Boolean			userAbortedBeforeGameStarted;
 	SetMyRandomSeed(someLong);
 //	HideCursor();
 
+
+	if (gCommandLine.bootToTrack != 0)
+	{
+		gGameMode = GAME_MODE_PRACTICE;
+		gTrackNum = gCommandLine.bootToTrack - 1;
+		InitPlayerInfo_Game();
+		InitArea();
+		PlayArea();
+		CleanupLevel();
+		gCommandLine.bootToTrack = 0;
+	}
+
+
 	PlaySong(SONG_THEME, true);
 
 

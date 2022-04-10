@@ -7,8 +7,8 @@
 #include <stdio.h>
 
 void	DoAlert(const char* format, ...);
-_Noreturn void DoFatalAlert(const char* format, ...);
-_Noreturn void CleanQuit(void);
+POMME_NORETURN void DoFatalAlert(const char* format, ...);
+POMME_NORETURN void CleanQuit(void);
 extern	void SetMyRandomSeed(unsigned long seed);
 extern	unsigned long MyRandomLong(void);
 extern	Handle	AllocHandle(long size);

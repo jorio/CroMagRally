@@ -10,9 +10,6 @@
 #include <iostream>
 #include <cstring>
 
-//#include "game.h"
-#include "version.h"
-
 #if __APPLE__
 #include <libproc.h>
 #include <unistd.h>
@@ -20,14 +17,12 @@
 
 extern "C"
 {
-	// bare minimum to satisfy externs in game code
+	#include "game.h"
+	#include "version.h"
+
 	SDL_Window* gSDLWindow = nullptr;
-
 	FSSpec gDataSpec;
-
-#if 0
 	CommandLineOptions gCommandLine;
-#endif
 
 #if 0 //_WIN32
 	// Tell Windows graphics driver that we prefer running on a dedicated GPU if available
@@ -79,7 +74,6 @@ static fs::path FindGameData()
 
 static void ParseCommandLine(int argc, char** argv)
 {
-#if 0
 	memset(&gCommandLine, 0, sizeof(gCommandLine));
 	gCommandLine.msaa = 0;
 	gCommandLine.vsync = 1;
@@ -88,8 +82,15 @@ static void ParseCommandLine(int argc, char** argv)
 	{
 		std::string argument = argv[i];
 
+		if (argument == "--practice-track")
+		{
+			GAME_ASSERT_MESSAGE(i + 1 < argc, "practice track # unspecified");
+			gCommandLine.bootToTrack = atoi(argv[i + 1]);
+			i += 1;
+		}
+
 		if (argument == "--stats")
-			gShowDebugStats = true;
+			gDebugMode = 1;
 		else if (argument == "--no-vsync")
 			gCommandLine.vsync = 0;
 		else if (argument == "--vsync")
@@ -104,6 +105,7 @@ static void ParseCommandLine(int argc, char** argv)
 			gCommandLine.msaa = 8;
 		else if (argument == "--msaa16x")
 			gCommandLine.msaa = 16;
+#if 0
 		else if (argument == "--fullscreen-resolution")
 		{
 			GAME_ASSERT_MESSAGE(i + 2 < argc, "fullscreen width & height unspecified");
@@ -117,8 +119,8 @@ static void ParseCommandLine(int argc, char** argv)
 			gCommandLine.fullscreenRefreshRate = atoi(argv[i + 1]);
 			i += 1;
 		}
-	}
 #endif
+	}
 }
 
 static void Boot()
@@ -134,13 +136,11 @@ static void Boot()
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_COMPATIBILITY);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
-#if 0
 	if (gCommandLine.msaa != 0)
 	{
 		SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
 		SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, gCommandLine.msaa);
 	}
-#endif
 
 	gSDLWindow = SDL_CreateWindow(
 			"Cro-Mag Rally " PROJECT_VERSION,

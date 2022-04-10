@@ -2,8 +2,7 @@
 // structs.h
 //
 
-#ifndef STRUCTS_H
-#define STRUCTS_H
+#pragma once
 
 
 #include "globals.h"
@@ -346,11 +345,3 @@ typedef struct
 	void		(*moveCall)(ObjNode *);
 	float		rot,scale;
 }NewObjectDefinitionType;
-
-
-
-#endif
-
-
-
-
