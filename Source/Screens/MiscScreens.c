@@ -101,7 +101,7 @@ float				keyTextFadeIn = -2.0f;		// fade in after a small delay
 	{
 		NewObjectDefinitionType def =
 		{
-			.coord		= {0, -.94, 0},
+			.coord		= {0, 225, 0},
 			.scale		= .3,
 			.slot		= SPRITE_SLOT,
 		};

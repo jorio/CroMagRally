@@ -1308,6 +1308,7 @@ static void OGL_InitFont(void)
 	newObjDef.scale = 0.25f;
 	newObjDef.coord = (OGLPoint3D) { 0, 480/2, 0 };
 	gDebugText = TextMesh_NewEmpty(sizeof(gDebugTextBuffer), &newObjDef);
+	gDebugText->Projection = kProjectionType2DOrthoFullRect;
 }
 
 

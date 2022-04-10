@@ -195,12 +195,12 @@ ObjNode	*newObj;
 
 	NewObjectDefinitionType newObjDef_NameString =
 	{
-		.coord = {0.5f*(g2DLogicalWidth-ARROW_2D_SPREAD), 48, 0},
+		.coord = {-0.5f*ARROW_2D_SPREAD, -192, 0},
 		.scale = .6f
 	};
 	TextMesh_New(Localize(STR_BROG), kTextMeshAlignCenter, &newObjDef_NameString);
 
-	newObjDef_NameString.coord.x 	= 0.5f*(g2DLogicalWidth+ARROW_2D_SPREAD);
+	newObjDef_NameString.coord.x 	= 0.5f*ARROW_2D_SPREAD;
 	TextMesh_New(Localize(STR_GRAG), kTextMeshAlignCenter, &newObjDef_NameString);
 
 			/* CREATE MALE CHARACTER */

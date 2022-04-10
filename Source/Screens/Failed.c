@@ -55,7 +55,7 @@ Boolean DoFailedMenu(const char* headerString)
 	{
 		NewObjectDefinitionType def =
 		{
-			.coord 		= {g2DLogicalWidth/2, g2DLogicalHeight/2+144, 0},
+			.coord 		= {0, 144, 0},
 			.moveCall 	= MoveFailedObject,
 			.scale		= FAILED_ICON_SCALE * .8f,
 			.slot 		= SPRITE_SLOT,

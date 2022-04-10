@@ -1128,8 +1128,7 @@ static ObjNode* MakeTextAtRowCol(const char* text, int row, int col)
 	}
 	else
 	{
-		//float startX = gNav->style.centeredText ? 0 : -170;
-		float startX = gNav->style.centeredText ? g2DLogicalWidth/2 : g2DLogicalWidth/2-100;
+		float startX = gNav->style.centeredText ? 0 : -170;
 
 		NewObjectDefinitionType def =
 		{
@@ -1242,7 +1241,7 @@ static void LayOutMenu(const MenuItem* menu)
 		totalHeight += kMenuItemHeightMultipliers[menu[row].type] * gNav->style.rowHeight;
 	}
 
-	float y = g2DLogicalHeight*.5f - totalHeight*.5f + gNav->style.yOffset;
+	float y = -totalHeight*.5f + gNav->style.yOffset;
 
 	float sweepFactor = 0.0f;
 

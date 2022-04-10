@@ -1348,9 +1348,6 @@ static void MoveTrackName(ObjNode *theNode)
 		return;
 	}
 
-	theNode->Coord.x = g2DLogicalWidth/2;
-	theNode->Coord.y = g2DLogicalHeight/2;
 	theNode->StatusBits &= ~STATUS_BIT_HIDDEN;
-	UpdateObjectTransforms(theNode);
 }
 

@@ -54,13 +54,13 @@ enum
 
 #define	CAR_Y			70
 
-#define	PARAMETERS_X		96
-#define	PARAMETERS_Y		336
+#define	PARAMETERS_X		-224
+#define	PARAMETERS_Y		96
 #define	PARAMETERS_SCALE	.5
 
 #define	LINE_SPACING		34
 
-#define	NAME_Y				96
+#define	NAME_Y				-144
 
 
 /*********************/
@@ -283,7 +283,7 @@ int					age;
 	{
 		NewObjectDefinitionType def =
 		{
-			.coord		= {0, 0.1, 0},
+			.coord		= {0, -48, 0},
 			.slot		= SPRITE_SLOT,
 			.scale		= 1,
 			.flags		= STATUS_BIT_HIDDEN,
@@ -367,7 +367,7 @@ static void MakeVehicleName(void)
 
 	NewObjectDefinitionType def =
 	{
-		.coord		= {g2DLogicalWidth/2, NAME_Y, 0},
+		.coord		= {0, NAME_Y, 0},
 		.scale		= .6,
 		.slot 		= SPRITE_SLOT,
 	};

@@ -611,7 +611,7 @@ ObjNode *TextMesh_NewEmpty(int capacity, NewObjectDefinitionType* newObjDef)
 	newObjDef->flags |= STATUS_BITS_FOR_2D;
 	ObjNode* textNode = MakeNewObject(newObjDef);
 
-	textNode->Projection = kProjectionType2DOrthoFullRect;
+	textNode->Projection = kProjectionType2DOrthoCentered;
 
 	// Attach color mesh
 	MetaObjectPtr meshMO = MO_CreateNewObjectOfType(MO_TYPE_GEOMETRY, MO_GEOMETRY_SUBTYPE_VERTEXARRAY, &mesh);

@@ -234,7 +234,7 @@ static void MakeTrackName(void)
 
 	NewObjectDefinitionType def =
 	{
-		.coord		= {g2DLogicalWidth/2, 72, 0},
+		.coord		= {0, -168, 0},
 		.scale		= .7,
 		.slot		= SPRITE_SLOT,
 	};
