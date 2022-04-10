@@ -209,6 +209,8 @@ static const char*	maps[] =
 	MOMaterialObject* material = MO_GetTextureFromFile(maps[gTrackNum], setupInfo, GL_RGBA);
 	GAME_ASSERT_MESSAGE(material, "Can't find overhead map image");
 
+	material->objectData.flags |= BG3D_MATERIALFLAG_CLAMP_U | BG3D_MATERIALFLAG_CLAMP_V;
+
 	MOSpriteSetupData spriteData = { .material = material };
 
 	gMapSprite = MO_CreateNewObjectOfType(MO_TYPE_SPRITE, (uintptr_t) setupInfo, &spriteData);

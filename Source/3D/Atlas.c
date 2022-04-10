@@ -608,8 +608,7 @@ ObjNode *TextMesh_NewEmpty(int capacity, NewObjectDefinitionType* newObjDef)
 	TextMesh_InitMesh(&mesh, capacity);
 
 	newObjDef->genre = TEXTMESH_GENRE;
-	newObjDef->flags |= STATUS_BIT_NOFOG | STATUS_BIT_NOLIGHTING | STATUS_BIT_NOZWRITES | STATUS_BIT_NOZBUFFER
-		| STATUS_BIT_DONTCULL;   // TODO: make it so we don't need DONTCULL
+	newObjDef->flags |= STATUS_BITS_FOR_2D;
 	ObjNode* textNode = MakeNewObject(newObjDef);
 
 	textNode->Projection = kProjectionType2DOrthoFullRect;

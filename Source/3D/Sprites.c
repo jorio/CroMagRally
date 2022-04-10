@@ -228,7 +228,7 @@ MOSpriteSetupData	spriteData;
 			/* MAKE OBJNODE */
 
 	newObjDef->genre = SPRITE_GENRE;
-	newObjDef->flags |= STATUS_BIT_KEEPBACKFACES|STATUS_BIT_NOZBUFFER|STATUS_BIT_NOLIGHTING;
+	newObjDef->flags |= STATUS_BITS_FOR_2D;
 
 	newObj = MakeNewObject(newObjDef);
 	if (newObj == nil)

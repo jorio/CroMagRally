@@ -1061,11 +1061,10 @@ float			spriteAspectRatio;
 
 		/* ACTIVATE THE MATERIAL */
 
+//	GAME_ASSERT((gGlobalMaterialFlags | spriteData->material->objectData.flags) & BG3D_MATERIALFLAG_CLAMP_U);
+//	GAME_ASSERT((gGlobalMaterialFlags | spriteData->material->objectData.flags) & BG3D_MATERIALFLAG_CLAMP_V);
+
 	MO_DrawMaterial(spriteData->material, setupInfo);
-
-    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);		// set clamp mode after each texture set since OGL just likes it that way
-    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-
 
 		/* PREP COORDS */
 
@@ -1083,17 +1082,14 @@ float			spriteAspectRatio;
 			/* DRAW IT */
 
 	glBegin(GL_QUADS);
-	glTexCoord2f(u1,v2);	glVertex3f(x1, y1, 0);
-	glTexCoord2f(u2,v2);	glVertex3f(x2, y1, 0);
-	glTexCoord2f(u2,v1);	glVertex3f(x2, y2, 0);
 	glTexCoord2f(u1,v1);	glVertex3f(x1, y2, 0);
+	glTexCoord2f(u2,v1);	glVertex3f(x2, y2, 0);
+	glTexCoord2f(u2,v2);	glVertex3f(x2, y1, 0);
+	glTexCoord2f(u1,v2);	glVertex3f(x1, y1, 0);
 	glEnd();
 
 
 		/* CLEAN UP */
-
-    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);		// set this back to normal
-    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
 	gPolysThisFrame += 2;						// 2 more tris
 }
@@ -1618,34 +1614,14 @@ MOMaterialObject *MO_GetTextureFromFile(const char* path, OGLSetupOutputType *se
 {
 MetaObjectPtr	obj;
 MOMaterialData	matData;
-int				width,height,depth,destDepth;
+int				width,height;
 Ptr				buffer;
 Ptr 			pictMapAddr;
 uint32_t		pictRowBytes;
-Boolean			destHasAlpha;
 
 		/*******************************/
 		/* CREATE TEXTURE PIXEL BUFFER */
 		/*******************************/
-
-	switch(destPixelFormat)
-	{
-		case	GL_RGB:
-				destHasAlpha 	= false;
-				destDepth 		= 32;
-				break;
-
-		case	GL_RGBA:
-				destHasAlpha 	= true;
-				destDepth 		= 32;
-				break;
-
-		case	GL_RGB5_A1:
-				destHasAlpha 	= true;
-				destDepth 		= 16;
-				break;
-	}
-
 
 		/* LOAD PICTURE FILE */
 
@@ -1661,7 +1637,6 @@ Boolean			destHasAlpha;
 		imageData = NULL;
 	}
 
-	depth = 32;
 	pictRowBytes = 4*width;
 
 
@@ -1682,9 +1657,8 @@ Boolean			destHasAlpha;
 		DoFatalAlert("MO_GetTextureFromResource: AllocPtr failed!");
 
 
-			/* COPY 32-BIT */
+		/* FLIP IMAGE VERTICALLY */
 
-	if (depth == 32)
 	{
 		uint32_t	*dest, *src;
 
@@ -1697,14 +1671,6 @@ Boolean			destHasAlpha;
 			dest += width;
 			src -= pictRowBytes/4;
 		}
-	}
-
-		/* COPY 16-BIT */
-
-	else
-	{
-		DoFatalAlert("MO_GetTextureFromFile: 16 bit textures not supported yet.");
-		//-------- TODO
 	}
 
 	stbi_image_free(pictMapAddr);
@@ -1722,15 +1688,7 @@ Boolean			destHasAlpha;
 	matData.numMipmaps		= 1;
 	matData.width			= width;
 	matData.height			= height;
-
-	if (depth == 32)
-		matData.pixelSrcFormat	= GL_RGBA;
-	else
-	{
-		DoFatalAlert("MO_GetTextureFromFile: 16 bit textures not supported yet.");
-		//-------- TODO
-	}
-
+	matData.pixelSrcFormat	= GL_RGBA;
 	matData.pixelDstFormat	= destPixelFormat;
 	matData.texturePixels[0]= nil;						// we're going to preload
 	matData.textureName[0] 	= OGL_TextureMap_Load(buffer, width, height,
