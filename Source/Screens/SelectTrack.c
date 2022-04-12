@@ -261,6 +261,7 @@ static void FreeTrackSelectArt(void)
 	DeleteAllObjects();
 	MO_DisposeObjectReference(gBackgoundPicture);
 	DisposeAllSpriteGroups();
+	Atlas_DisposeAllSlots();
 }
 
 

@@ -564,6 +564,7 @@ static void FreeMainMenuArt(void)
 	DeleteAllObjects();
 	MO_DisposeObjectReference(gBackgoundPicture);
 	DisposeAllSpriteGroups();
+	Atlas_DisposeAllSlots();
 	OGL_DisposeWindowSetup(&gGameViewInfoPtr);
 }
 

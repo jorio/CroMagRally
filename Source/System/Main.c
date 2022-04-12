@@ -1341,6 +1341,7 @@ static void CleanupLevel(void)
 	DisposeInfobar();
 	DisposeParticleSystem();
 	DisposeAllSpriteGroups();
+	Atlas_DisposeAllSlots();
 	DisposeFences();
 
 	DisposeAllBG3DContainers();

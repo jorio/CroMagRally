@@ -61,7 +61,7 @@ typedef struct Atlas
 /*    VARIABLES             */
 /****************************/
 
-static Atlas* gFontAtlas = NULL;
+static Atlas* gAtlases[MAX_SPRITE_GROUPS];
 
 #pragma mark -
 
@@ -279,13 +279,36 @@ static void ParseKerningFile(Atlas* atlas, const char* data)
 /*                       INIT/SHUTDOWN                         */
 /***************************************************************/
 
+void Atlas_LoadSlot(int slot, const char* atlasName, OGLSetupOutputType* setupInfo)
+{
+	GAME_ASSERT(!gAtlases[slot]);
+	gAtlases[slot] = Atlas_Load(atlasName, setupInfo);
+}
+
+void Atlas_DisposeSlot(int slot)
+{
+	if (gAtlases[slot])
+	{
+		Atlas_Dispose(gAtlases[slot]);
+		gAtlases[slot] = NULL;
+	}
+}
+
+void Atlas_DisposeAllSlots(void)
+{
+	for (int i = 0; i < MAX_SPRITE_GROUPS; i++)
+	{
+		Atlas_DisposeSlot(i);
+	}
+}
+
 Atlas* Atlas_Load(const char* fontName, OGLSetupOutputType* setupInfo)
 {
 	Atlas* atlas = AllocPtrClear(sizeof(Atlas));
 
 	char pathBuf[256];
 
-	snprintf(pathBuf, sizeof(pathBuf), ":fonts:%s.sfl", fontName);
+	snprintf(pathBuf, sizeof(pathBuf), ":sprites:%s.sfl", fontName);
 	{
 		// Parse metrics from SFL file
 		const char* sflPath = pathBuf;
@@ -297,13 +320,13 @@ Atlas* Atlas_Load(const char* fontName, OGLSetupOutputType* setupInfo)
 
 	{
 		// Parse kerning table
-		char* data = LoadTextFile(":fonts:kerning.txt", NULL);
+		char* data = LoadTextFile(":sprites:kerning.txt", NULL);
 		GAME_ASSERT(data);
 		ParseKerningFile(atlas, data);
 		SafeDisposePtr(data);
 	}
 
-	snprintf(pathBuf, sizeof(pathBuf), ":fonts:%s.png", fontName);
+	snprintf(pathBuf, sizeof(pathBuf), ":sprites:%s.png", fontName);
 	{
 		// Create font material
 		const char* texturePath = pathBuf;
@@ -348,22 +371,6 @@ void Atlas_Dispose(Atlas* atlas)
 	SafeDisposePtr((Ptr) atlas);
 }
 
-Atlas* TextMesh_LoadDefaultFont(const char* fontName, OGLSetupOutputType* setupInfo)
-{
-	GAME_ASSERT_MESSAGE(!gFontAtlas, "Previous font not freed");
-	gFontAtlas = Atlas_Load(fontName, setupInfo);
-	return gFontAtlas;
-}
-
-void TextMesh_DisposeDefaultFont(void)
-{
-	if (!gFontAtlas)
-		return;
-	
-	Atlas_Dispose(gFontAtlas);
-	gFontAtlas = NULL;
-}
-
 /***************************************************************/
 /*                MESH ALLOCATION/LAYOUT                       */
 /***************************************************************/
@@ -403,9 +410,10 @@ static void TextMesh_InitMesh(MOVertexArrayData* mesh, int numQuads)
 {
 	memset(mesh, 0, sizeof(*mesh));
 	
-	GAME_ASSERT(gFontAtlas);
+	GAME_ASSERT(gAtlases[0]);
+
 	mesh->numMaterials = 1;
-	mesh->materials[0] = gFontAtlas->material;
+	mesh->materials[0] = gAtlases[0]->material;
 
 	TextMesh_ReallocateMesh(mesh, numQuads);
 }
@@ -475,7 +483,7 @@ static float GetLineStartX(int align, float lineWidth)
 
 void TextMesh_Update(const char* text, int align, ObjNode* textNode)
 {
-	const Atlas* font = gFontAtlas;
+	const Atlas* font = gAtlases[0];
 	GAME_ASSERT(font);
 
 	//-----------------------------------
@@ -706,9 +714,19 @@ void TextMesh_DrawExtents(ObjNode* textNode)
 	OGL_PopState();
 }
 
-void TextMesh_DrawImmediate(const char* text, float x, float y, float scale, float rot, uint32_t flags, const OGLSetupOutputType *setupInfo)
+void Atlas_DrawImmediate(
+	int slot,
+	const char* text,
+	float x,
+	float y,
+	float scale,
+	float rot,
+	uint32_t flags,
+	const OGLSetupOutputType *setupInfo)
 {
-	const Atlas* font = gFontAtlas;
+	GAME_ASSERT((size_t)slot < (size_t)MAX_SPRITE_GROUPS);
+
+	const Atlas* font = gAtlases[slot];
 	GAME_ASSERT(font);
 
 			/* SET STATE */
@@ -734,7 +752,7 @@ void TextMesh_DrawImmediate(const char* text, float x, float y, float scale, flo
 
 		/* ACTIVATE THE MATERIAL */
 
-	MO_DrawMaterial(gFontAtlas->material, setupInfo);
+	MO_DrawMaterial(font->material, setupInfo);
 
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);						// set clamp mode after each texture set since OGL just likes it that way
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
@@ -742,8 +760,8 @@ void TextMesh_DrawImmediate(const char* text, float x, float y, float scale, flo
 
 			/* DRAW IT */
 
-	const float invAtlasW = 1.0f / gFontAtlas->textureWidth;
-	const float invAtlasH = 1.0f / gFontAtlas->textureHeight;
+	const float invAtlasW = 1.0f / font->textureWidth;
+	const float invAtlasH = 1.0f / font->textureHeight;
 
 	glBegin(GL_QUADS);
 	float cx = -32;  // hack to make text origin fit where CMR infobar expects it

@@ -230,7 +230,7 @@ OGLSetupOutputType	*outputPtr;
 
 			/* LOAD FONT */
 
-	TextMesh_LoadDefaultFont(setupDefPtr->view.fontName, outputPtr);
+	Atlas_LoadSlot(SPRITE_GROUP_FONT, setupDefPtr->view.fontName, outputPtr);
 	OGL_InitFont();
 
 
@@ -275,10 +275,6 @@ OGLSetupOutputType	*data;
 
 	data = *dataHandle;
 	GAME_ASSERT(data);										// see if this setup exists
-
-			/* KILL FONT MATERIAL */
-
-	TextMesh_DisposeDefaultFont();
 
 			/* KILL PILLARBOX TEXTURE, IF ANY */
 	

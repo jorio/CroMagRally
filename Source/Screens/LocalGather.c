@@ -191,6 +191,7 @@ static void FreeLocalGatherArt(void)
 	MO_DisposeObjectReference(gBackgoundPicture);
 	FreeAllSkeletonFiles(-1);
 	DisposeAllSpriteGroups();
+	Atlas_DisposeAllSlots();
 	DisposeAllBG3DContainers();
 }
 

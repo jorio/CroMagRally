@@ -161,6 +161,8 @@ ObjNode	*newObj;
 	FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":sprites:charselect.sprites", &spec);
 	LoadSpriteFile(&spec, SPRITE_GROUP_CHARACTERSELECTSCREEN, gGameViewInfoPtr);
 
+	Atlas_LoadSlot(SPRITE_GROUP_MAINMENU, "menus", gGameViewInfoPtr);
+
 
 			/* LOAD SKELETONS */
 
@@ -234,6 +236,7 @@ static void FreeCharacterSelectArt(void)
 	MO_DisposeObjectReference(gBackgoundPicture);
 	FreeAllSkeletonFiles(-1);
 	DisposeAllSpriteGroups();
+	Atlas_DisposeAllSlots();
 	DisposeAllBG3DContainers();
 }
 
@@ -252,11 +255,17 @@ static void DrawCharacterSelectCallback(OGLSetupOutputType *info)
 
 	if (gSelectedCharacterIndex == 0)
 	{
+		Atlas_DrawImmediate(SPRITE_GROUP_MAINMENU, "\x04",
+					-.43, -.85, ARROW_SCALE, 0, 0, info);
+
 		DrawSprite(SPRITE_GROUP_VEHICLESELECTSCREEN, CHARACTERSELECT_SObjType_Arrow,
 					-.43, -.85, ARROW_SCALE, 0, 0, info);
 	}
 	else if (gSelectedCharacterIndex == 1)
 	{
+		Atlas_DrawImmediate(SPRITE_GROUP_MAINMENU, "\x04",
+					.43, -.85, ARROW_SCALE, 0, 0, info);
+
 		DrawSprite(SPRITE_GROUP_VEHICLESELECTSCREEN, CHARACTERSELECT_SObjType_Arrow,
 					.43, -.85, ARROW_SCALE, 0, 0, info);
 	}

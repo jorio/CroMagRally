@@ -588,7 +588,7 @@ float		x,y,scale, spacing, fontScale;
 	snprintf(s, sizeof(s), "%d", q);
 
 	x += spacing;
-	TextMesh_DrawImmediate(s, x, y, fontScale, 0, 0, setupInfo);
+	Atlas_DrawImmediate(SPRITE_GROUP_FONT, s, x, y, fontScale, 0, 0, setupInfo);
 
 
 	gGlobalColorFilter.r = 1;
@@ -784,7 +784,7 @@ static const OGLColorRGB noTint = {1,1,1};
 		snprintf(s, sizeof(s), "%d", (int) (timer+.5f));
 
 		x2 = x + spacing;
-		TextMesh_DrawImmediate(s, x2, y, fontScale, 0, 0, setupInfo);
+		Atlas_DrawImmediate(SPRITE_GROUP_FONT, s, x2, y, fontScale, 0, 0, setupInfo);
 
 		y -= lineSpacing;												// move down to prep for next item
 
@@ -811,7 +811,7 @@ static const OGLColorRGB noTint = {1,1,1};
 		snprintf(s, sizeof(s), "%d", (int) (timer+.5f));
 
 		x2 = x + spacing;
-		TextMesh_DrawImmediate(s, x2, y, fontScale, 0, 0, setupInfo);
+		Atlas_DrawImmediate(SPRITE_GROUP_FONT, s, x2, y, fontScale, 0, 0, setupInfo);
 		gGlobalColorFilter = noTint;
 
 		y -= lineSpacing;												// move down to prep for next item
@@ -837,7 +837,7 @@ static const OGLColorRGB noTint = {1,1,1};
 		snprintf(s, sizeof(s), "%d", (int) (timer+.5f));
 
 		x2 = x + spacing;
-		TextMesh_DrawImmediate(s, x2, y, fontScale, 0, 0, setupInfo);
+		Atlas_DrawImmediate(SPRITE_GROUP_FONT, s, x2, y, fontScale, 0, 0, setupInfo);
 		gGlobalColorFilter = noTint;
 
 		y -= lineSpacing;												// move down to prep for next item
@@ -863,7 +863,7 @@ static const OGLColorRGB noTint = {1,1,1};
 		snprintf(s, sizeof(s), "%d", (int) (timer+.5f));
 
 		x2 = x + spacing;
-		TextMesh_DrawImmediate(s, x2, y, fontScale, 0, 0, setupInfo);
+		Atlas_DrawImmediate(SPRITE_GROUP_FONT, s, x2, y, fontScale, 0, 0, setupInfo);
 		gGlobalColorFilter = noTint;
 
 		y -= lineSpacing;												// move down to prep for next item
@@ -889,7 +889,7 @@ static const OGLColorRGB noTint = {1,1,1};
 		snprintf(s, sizeof(s), "%d", (int) (timer+.5f));
 
 		x2 = x + spacing;
-		TextMesh_DrawImmediate(s, x2, y, fontScale, 0, 0, setupInfo);
+		Atlas_DrawImmediate(SPRITE_GROUP_FONT, s, x2, y, fontScale, 0, 0, setupInfo);
 		gGlobalColorFilter = noTint;
 
 		y -= lineSpacing;												// move down to prep for next item
@@ -915,7 +915,7 @@ static const OGLColorRGB noTint = {1,1,1};
 		snprintf(s, sizeof(s), "%d", (int) (timer+.5f));
 
 		x2 = x + spacing;
-		TextMesh_DrawImmediate(s, x2, y, fontScale, 0, 0, setupInfo);
+		Atlas_DrawImmediate(SPRITE_GROUP_FONT, s, x2, y, fontScale, 0, 0, setupInfo);
 		gGlobalColorFilter = noTint;
 
 		y -= lineSpacing;												// move down to prep for next item

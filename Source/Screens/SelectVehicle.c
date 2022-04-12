@@ -385,6 +385,7 @@ static void FreeVehicleSelectArt(void)
 	DeleteAllObjects();
 	MO_DisposeObjectReference(gBackgoundPicture);
 	DisposeAllSpriteGroups();
+	Atlas_DisposeAllSlots();
 	DisposeAllBG3DContainers();
 	OGL_DisposeWindowSetup(&gGameViewInfoPtr);
 }
