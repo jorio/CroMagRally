@@ -256,6 +256,7 @@ int					age;
 	FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":sprites:vehicleselect.sprites", &spec);
 	LoadSpriteFile(&spec, SPRITE_GROUP_VEHICLESELECTSCREEN, gGameViewInfoPtr);
 
+	Atlas_LoadSlot(SPRITE_GROUP_MAINMENU, "menus", gGameViewInfoPtr);
 
 			/* LOAD MODELS */
 
@@ -411,6 +412,9 @@ static void DrawVehicleSelectCallback(OGLSetupOutputType *info)
 
 		if (gSelectedVehicleIndex > 0)
 		{
+			Atlas_DrawImmediate(SPRITE_GROUP_MAINMENU, "\x02",
+						LEFT_ARROW_X, ARROW_Y, ARROW_SCALE, 0, 0, info);
+
 			DrawSprite(SPRITE_GROUP_VEHICLESELECTSCREEN, VEHICLESELECT_SObjType_Arrow_LeftOn,
 						LEFT_ARROW_X, ARROW_Y, ARROW_SCALE, 0, 0, info);
 		}
@@ -419,6 +423,9 @@ static void DrawVehicleSelectCallback(OGLSetupOutputType *info)
 
 		if (gSelectedVehicleIndex < NUM_LAND_CAR_TYPES-1)
 		{
+			Atlas_DrawImmediate(SPRITE_GROUP_MAINMENU, "\x03",
+						RIGHT_ARROW_X, ARROW_Y, ARROW_SCALE, 0, 0, info);
+
 			DrawSprite(SPRITE_GROUP_VEHICLESELECTSCREEN, VEHICLESELECT_SObjType_Arrow_RightOn,
 						RIGHT_ARROW_X, ARROW_Y, ARROW_SCALE, 0, 0, info);
 		}

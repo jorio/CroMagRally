@@ -5,6 +5,7 @@ enum
 	kTextMeshAlignCenter = 0,
 	kTextMeshAlignLeft = 1,
 	kTextMeshAlignRight = 2,
+	kTextMeshNoSpecialASCII = 4,
 };
 
 void Atlas_LoadSlot(int slot, const char* atlasName, OGLSetupOutputType* setupInfo);

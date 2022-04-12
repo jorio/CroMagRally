@@ -192,6 +192,8 @@ OGLSetupInputType	viewDef;
 	}
 	LoadSpriteFile(&spec, SPRITE_GROUP_TRACKSELECTSCREEN, gGameViewInfoPtr);
 
+	Atlas_LoadSlot(SPRITE_GROUP_MAINMENU, "menus", gGameViewInfoPtr);
+
 
 
 			/*****************/
@@ -288,6 +290,9 @@ short				highestUnlocked;
 
 		if (gSelectedTrackIndex > 0)
 		{
+			Atlas_DrawImmediate(SPRITE_GROUP_MAINMENU, "\x02",
+						LEFT_ARROW_X, ARROW_Y, ARROW_SCALE, 0, 0, info);
+
 			DrawSprite(SPRITE_GROUP_TRACKSELECTSCREEN, TRACKSELECT_SObjType_Arrow_LeftOn,
 						LEFT_ARROW_X, ARROW_Y, ARROW_SCALE, 0, 0, info);
 		}
@@ -296,6 +301,9 @@ short				highestUnlocked;
 
 		if (gSelectedTrackIndex < (gNumTracksInSelection-1))
 		{
+			Atlas_DrawImmediate(SPRITE_GROUP_MAINMENU, "\x03",
+						RIGHT_ARROW_X, ARROW_Y, ARROW_SCALE, 0, 0, info);
+
 			DrawSprite(SPRITE_GROUP_TRACKSELECTSCREEN, TRACKSELECT_SObjType_Arrow_RightOn,
 						RIGHT_ARROW_X, ARROW_Y, ARROW_SCALE, 0, 0, info);
 		}
@@ -322,6 +330,10 @@ short				highestUnlocked;
 
 	if (gSelectedTrackIndex > highestUnlocked)
 	{
+
+		Atlas_DrawImmediate(SPRITE_GROUP_MAINMENU, "\x01",
+					0, 0, .5, 0, 0, info);
+
 		DrawSprite(SPRITE_GROUP_TRACKSELECTSCREEN, TRACKSELECT_SObjType_Padlock,
 					0, 0, .5, 0, 0, info);
 	}
