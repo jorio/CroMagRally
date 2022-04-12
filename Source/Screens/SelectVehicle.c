@@ -24,6 +24,8 @@ static void DrawVehicleSelectCallback(OGLSetupOutputType *info);
 static void FreeVehicleSelectArt(void);
 static void MoveCarModel(ObjNode *theNode);
 static void MakeVehicleName(void);
+static void RefreshSelectedCarGraphics(void);
+static const char* GetBoneString(int n);
 
 
 
@@ -62,15 +64,18 @@ enum
 
 #define	NAME_Y				-144
 
+#define	NUM_PARAM_BONES		8
+
 
 /*********************/
 /*    VARIABLES      */
 /*********************/
 
 static int		gSelectedVehicleIndex;
-static ObjNode	*gVehicleObj, *gMeterIcon[NUM_VEHICLE_PARAMETERS];
+static ObjNode	*gVehicleObj;
 static ObjNode	*gVehicleName;
 static ObjNode	*gVehicleLockIcon;
+static ObjNode	*gBoneMeters[NUM_VEHICLE_PARAMETERS];
 
 static int		gNumVehiclesToChooseFrom;
 
@@ -90,6 +95,7 @@ int		gDefaultVehicleParameters[NUM_CAR_TYPES_TOTAL][NUM_VEHICLE_PARAMETERS] =			
 	[CAR_TYPE_CHARIOT]		= {  7,  7,  4,  3 },
 	[CAR_TYPE_SUB]			= {  0,  7,  0,  0 },
 };
+
 
 
 
@@ -194,6 +200,9 @@ int					age;
 
 	gVehicleName = nil;
 	gSelectedVehicleIndex = 0;
+
+	for (int i = 0; i < NUM_VEHICLE_PARAMETERS; i++)
+		gBoneMeters[i] = nil;
 
 	age = GetNumAgesCompleted();
 	if (age > 2)											// prevent extra cars after winning Iron Age
@@ -304,34 +313,18 @@ int					age;
 
 		for (int i = 0; i < NUM_VEHICLE_PARAMETERS; i++)
 		{
+			OGLPoint3D leftCoord = def.coord;
+
 			TextMesh_New(Localize(STR_CAR_STAT_1 + i), kTextMeshAlignLeft, &def);
+
+			def.coord.x += 320;
+			gBoneMeters[i] = TextMesh_New(GetBoneString(gVehicleParameters[gSelectedVehicleIndex][i]), kTextMeshAlignLeft, &def);
+	
+			def.coord = leftCoord;
 			def.coord.y += LINE_SPACING;
 		}
 	}
 
-			/* METER ICONS */
-
-	{
-		NewObjectDefinitionType def =
-		{
-			.group		= SPRITE_GROUP_VEHICLESELECTSCREEN,
-			.coord		= {PARAMETERS_X + 1.2, PARAMETERS_Y, 0},
-			.slot		= SPRITE_SLOT,
-			.scale		= PARAMETERS_SCALE,
-		};
-
-		for (int i = 0; i < NUM_VEHICLE_PARAMETERS; i++)
-		{
-			int n = gVehicleParameters[gSelectedVehicleIndex][i];
-			if (n > 7)
-				n = 7;
-
-			def.type 	= VEHICLESELECT_SObjType_Meter1 + n;
-
-			gMeterIcon[i] = MakeSpriteObject(&def, gGameViewInfoPtr);
-			def.coord.y 	+= LINE_SPACING;
-		}
-	}
 
 			/* SEE IF DOING 2-PLAYER LOCALLY */
 
@@ -435,6 +428,8 @@ static void DrawVehicleSelectCallback(OGLSetupOutputType *info)
 
 
 
+/*************** REFERSH GRAPHICS FOR SELECTED CAR ********************/
+
 
 static void RefreshSelectedCarGraphics(void)
 {
@@ -447,7 +442,7 @@ static void RefreshSelectedCarGraphics(void)
 		int n = gVehicleParameters[gSelectedVehicleIndex][i];
 		if (n > 7)
 			n = 7;
-		ModifySpriteObjectFrame(gMeterIcon[i], VEHICLESELECT_SObjType_Meter1 + n, gGameViewInfoPtr);
+		TextMesh_Update(GetBoneString(n), kTextMeshAlignLeft, gBoneMeters[i]);
 	}
 
 	if (gSelectedVehicleIndex >= gNumVehiclesToChooseFrom)
@@ -461,6 +456,28 @@ static void RefreshSelectedCarGraphics(void)
 		gVehicleLockIcon->StatusBits |= STATUS_BIT_HIDDEN;
 	}
 }
+
+
+/*********** GET "BONE METER" STRING TO DISPLAY VEHICLE STATS **********/
+
+static const char* GetBoneString(int n)
+{
+	static char boneString[NUM_PARAM_BONES+1];
+
+	if (n > NUM_PARAM_BONES-1)
+		n = NUM_PARAM_BONES-1;
+
+	int i = 0;
+	for (i = 0; i < n; i++)
+		boneString[i] = '\\';
+	for (; i < NUM_PARAM_BONES; i++)
+		boneString[i] = '`';
+
+	boneString[i] = '\0';
+
+	return boneString;
+}
+
 
 
 /***************** DO VEHICLESELECT CONTROLS *******************/
