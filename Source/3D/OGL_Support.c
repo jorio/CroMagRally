@@ -230,7 +230,7 @@ OGLSetupOutputType	*outputPtr;
 
 			/* LOAD FONT */
 
-	TextMesh_LoadFont(outputPtr, setupDefPtr->view.fontName);
+	TextMesh_LoadDefaultFont(setupDefPtr->view.fontName, outputPtr);
 	OGL_InitFont();
 
 
@@ -278,7 +278,7 @@ OGLSetupOutputType	*data;
 
 			/* KILL FONT MATERIAL */
 
-	TextMesh_DisposeFont();
+	TextMesh_DisposeDefaultFont();
 
 			/* KILL PILLARBOX TEXTURE, IF ANY */
 	

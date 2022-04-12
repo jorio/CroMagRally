@@ -11,6 +11,20 @@
 #include <stdio.h>
 
 /****************************/
+/*    CONSTANTS             */
+/****************************/
+
+// This covers the basic multilingual plane (0000-FFFF)
+#define MAX_CODEPOINT_PAGES 256
+
+#define TAB_STOP 60.0f
+
+#define MAX_KERNPAIRS		256
+
+#define MAX_LINEBREAKS_PER_OBJNODE	16
+
+
+/****************************/
 /*    PROTOTYPES            */
 /****************************/
 
@@ -28,35 +42,26 @@ typedef struct
 	int8_t		numKernPairs;
 } AtlasGlyph;
 
-/****************************/
-/*    CONSTANTS             */
-/****************************/
+typedef struct Atlas
+{
+	// The font material must be reloaded everytime a new GL context is created
+	MOMaterialObject* material;
+	int textureWidth;
+	int textureHeight;
+	float invTextureWidth;
+	float invTextureHeight;
+	float lineHeight;
+	AtlasGlyph* glyphPages[MAX_CODEPOINT_PAGES];
 
-// This covers the basic multilingual plane (0000-FFFF)
-#define MAX_CODEPOINT_PAGES 256
-
-#define TAB_STOP 60.0f
-
-#define MAX_KERNPAIRS		256
-
-#define MAX_LINEBREAKS_PER_OBJNODE	16
+	uint16_t kernPairs[MAX_KERNPAIRS];
+	uint8_t kernTracking[MAX_KERNPAIRS];
+} Atlas;
 
 /****************************/
 /*    VARIABLES             */
 /****************************/
 
-// The font material must be reloaded everytime a new GL context is created
-static MetaObjectPtr gFontMaterial = NULL;
-static int gFontAtlasWidth = 0;
-static int gFontAtlasHeight = 0;
-
-static bool gFontMetricsLoaded = false;
-static float gFontLineHeight = 0;
-
-static AtlasGlyph* gAtlasGlyphsPages[MAX_CODEPOINT_PAGES];
-
-static uint16_t gKernPairs[MAX_KERNPAIRS];
-static uint8_t gKernTracking[MAX_KERNPAIRS];
+static Atlas* gFontAtlas = NULL;
 
 #pragma mark -
 
@@ -64,7 +69,7 @@ static uint8_t gKernTracking[MAX_KERNPAIRS];
 /*                         UTF-8                               */
 /***************************************************************/
 
-static AtlasGlyph* GetGlyphFromCodepoint(uint32_t c)
+static AtlasGlyph* GetGlyphFromCodepoint(const Atlas* atlas, uint32_t c)
 {
 	uint32_t page = c >> 8;
 
@@ -74,13 +79,13 @@ static AtlasGlyph* GetGlyphFromCodepoint(uint32_t c)
 		c = '?';
 	}
 
-	if (!gAtlasGlyphsPages[page])
+	if (!atlas->glyphPages[page])
 	{
 		page = 0; // ascii
 		c = '#';
 	}
 
-	return &gAtlasGlyphsPages[page][c & 0xFF];
+	return &atlas->glyphPages[page][c & 0xFF];
 }
 
 static uint32_t ReadNextCodepointFromUTF8(const char** utf8TextPtr)
@@ -149,7 +154,7 @@ static void ParseSFL_SkipLine(const char** dataPtr)
 }
 
 // Parse an SFL file produced by fontbuilder
-static void ParseSFL(const char* data)
+static void ParseSFL(Atlas* atlas, const char* data)
 {
 	int nArgs = 0;
 	int nGlyphs = 0;
@@ -157,7 +162,7 @@ static void ParseSFL(const char* data)
 
 	ParseSFL_SkipLine(&data);	// Skip font name
 
-	nArgs = sscanf(data, "%d %f", &junk, &gFontLineHeight);
+	nArgs = sscanf(data, "%d %f", &junk, &atlas->lineHeight);
 	GAME_ASSERT(nArgs == 2);
 	ParseSFL_SkipLine(&data);  // Skip rest of line
 
@@ -193,18 +198,19 @@ static void ParseSFL(const char* data)
 			continue;
 		}
 
-		if (gAtlasGlyphsPages[codePointPage] == NULL)
+		// Allocate codepoint page
+		if (atlas->glyphPages[codePointPage] == NULL)
 		{
-			gAtlasGlyphsPages[codePointPage] = AllocPtrClear(sizeof(AtlasGlyph) * 256);
+			atlas->glyphPages[codePointPage] = AllocPtrClear(sizeof(AtlasGlyph) * 256);
 		}
 
-		gAtlasGlyphsPages[codePointPage][codePoint & 0xFF] = newGlyph;
+		atlas->glyphPages[codePointPage][codePoint & 0xFF] = newGlyph;
 
 		ParseSFL_SkipLine(&data);  // Skip rest of line
 	}
 
 	// Force monospaced numbers
-	AtlasGlyph* asciiPage = gAtlasGlyphsPages[0];
+	AtlasGlyph* asciiPage = atlas->glyphPages[0];
 	AtlasGlyph referenceNumber = asciiPage['4'];
 	for (int c = '0'; c <= '9'; c++)
 	{
@@ -225,7 +231,7 @@ static void SkipWhitespace(const char** data)
 	}
 }
 
-static void ParseKerningFile(const char* data)
+static void ParseKerningFile(Atlas* atlas, const char* data)
 {
 	int kernTableOffset = 0;
 
@@ -246,21 +252,24 @@ static void ParseKerningFile(const char* data)
 		GAME_ASSERT(scannedTokens == 1);
 		data += scannedChars;
 
-		AtlasGlyph* g = GetGlyphFromCodepoint(codepoint1);
+		AtlasGlyph* g = GetGlyphFromCodepoint(atlas, codepoint1);
 
-		if (g->numKernPairs == 0)
+		if (g)
 		{
-			GAME_ASSERT(g->kernTableOffset == 0);
-			g->kernTableOffset = kernTableOffset;
+			if (g->numKernPairs == 0)
+			{
+				GAME_ASSERT(g->kernTableOffset == 0);
+				g->kernTableOffset = kernTableOffset;
+			}
+
+			GAME_ASSERT_MESSAGE(g->numKernPairs == kernTableOffset - g->kernTableOffset, "kern pair blocks aren't contiguous!");
+
+			atlas->kernPairs[kernTableOffset] = codepoint2;
+			atlas->kernTracking[kernTableOffset] = tracking;
+			kernTableOffset++;
+			GAME_ASSERT(kernTableOffset <= MAX_KERNPAIRS);
+			g->numKernPairs++;
 		}
-
-		GAME_ASSERT_MESSAGE(g->numKernPairs == kernTableOffset - g->kernTableOffset, "kern pair blocks aren't contiguous!");
-
-		gKernPairs[kernTableOffset] = codepoint2;
-		gKernTracking[kernTableOffset] = tracking;
-		kernTableOffset++;
-		GAME_ASSERT(kernTableOffset <= MAX_KERNPAIRS);
-		g->numKernPairs++;
 
 		SkipWhitespace(&data);
 	}
@@ -270,85 +279,89 @@ static void ParseKerningFile(const char* data)
 /*                       INIT/SHUTDOWN                         */
 /***************************************************************/
 
-void TextMesh_LoadFont(OGLSetupOutputType* setupInfo, const char* fontName)
+Atlas* Atlas_Load(const char* fontName, OGLSetupOutputType* setupInfo)
 {
+	Atlas* atlas = AllocPtrClear(sizeof(Atlas));
+
 	char pathBuf[256];
 
 	snprintf(pathBuf, sizeof(pathBuf), ":fonts:%s.sfl", fontName);
-	TextMesh_LoadMetrics(pathBuf);
+	{
+		// Parse metrics from SFL file
+		const char* sflPath = pathBuf;
+		char* data = LoadTextFile(sflPath, NULL);
+		GAME_ASSERT(data);
+		ParseSFL(atlas, data);
+		SafeDisposePtr(data);
+	}
+
+	{
+		// Parse kerning table
+		char* data = LoadTextFile(":fonts:kerning.txt", NULL);
+		GAME_ASSERT(data);
+		ParseKerningFile(atlas, data);
+		SafeDisposePtr(data);
+	}
 
 	snprintf(pathBuf, sizeof(pathBuf), ":fonts:%s.png", fontName);
-	TextMesh_InitMaterial(setupInfo, pathBuf);
+	{
+		// Create font material
+		const char* texturePath = pathBuf;
+		GLuint textureName = 0;
+		textureName = OGL_TextureMap_LoadImageFile(texturePath, &atlas->textureWidth, &atlas->textureHeight);
+
+		GAME_ASSERT(atlas->textureWidth != 0);
+		GAME_ASSERT(atlas->textureHeight != 0);
+		atlas->invTextureWidth = 1.0f / atlas->textureWidth;
+		atlas->invTextureHeight = 1.0f / atlas->textureHeight;
+
+		GAME_ASSERT_MESSAGE(!atlas->material, "atlas material already created");
+		MOMaterialData matData;
+		memset(&matData, 0, sizeof(matData));
+		matData.setupInfo		= setupInfo;
+		matData.flags			= BG3D_MATERIALFLAG_ALWAYSBLEND | BG3D_MATERIALFLAG_TEXTURED | BG3D_MATERIALFLAG_CLAMP_U | BG3D_MATERIALFLAG_CLAMP_V;
+		matData.diffuseColor	= (OGLColorRGBA) {1, 1, 1, 1};
+		matData.numMipmaps		= 1;
+		matData.width			= atlas->textureWidth;
+		matData.height			= atlas->textureHeight;
+		matData.textureName[0]	= textureName;
+		atlas->material = MO_CreateNewObjectOfType(MO_TYPE_MATERIAL, 0, &matData);
+	}
+
+	return atlas;
 }
 
-void TextMesh_DisposeFont(void)
+void Atlas_Dispose(Atlas* atlas)
 {
-	TextMesh_DisposeMaterial();
-	TextMesh_DisposeMetrics();
-}
-
-void TextMesh_LoadMetrics(const char* sflPath)
-{
-	GAME_ASSERT_MESSAGE(!gFontMetricsLoaded, "Metrics already loaded");
-
-	memset(gAtlasGlyphsPages, 0, sizeof(gAtlasGlyphsPages));
-
-	// Parse metrics (gAtlasGlyphs) from SFL file
-	char* data = LoadTextFile(sflPath, NULL);
-	GAME_ASSERT(data);
-	ParseSFL(data);
-	SafeDisposePtr(data);
-
-	// Parse kerning table
-	data = LoadTextFile(":fonts:kerning.txt", NULL);
-	GAME_ASSERT(data);
-	ParseKerningFile(data);
-	SafeDisposePtr(data);
-
-	gFontMetricsLoaded = true;
-}
-
-void TextMesh_InitMaterial(OGLSetupOutputType* setupInfo, const char* texturePath)
-{
-	GLuint textureName = 0;
-	textureName = OGL_TextureMap_LoadImageFile(texturePath, &gFontAtlasWidth, &gFontAtlasHeight);
-
-		/* CREATE FONT MATERIAL */
-
-	GAME_ASSERT_MESSAGE(!gFontMaterial, "gFontMaterial already created");
-	MOMaterialData matData;
-	memset(&matData, 0, sizeof(matData));
-	matData.setupInfo		= setupInfo;
-	matData.flags			= BG3D_MATERIALFLAG_ALWAYSBLEND | BG3D_MATERIALFLAG_TEXTURED | BG3D_MATERIALFLAG_CLAMP_U | BG3D_MATERIALFLAG_CLAMP_V;
-	matData.diffuseColor	= (OGLColorRGBA) {1, 1, 1, 1};
-	matData.numMipmaps		= 1;
-	matData.width			= gFontAtlasWidth;
-	matData.height			= gFontAtlasHeight;
-	matData.textureName[0]	= textureName;
-	gFontMaterial = MO_CreateNewObjectOfType(MO_TYPE_MATERIAL, 0, &matData);
-}
-
-void TextMesh_DisposeMaterial(void)
-{
-	MO_DisposeObjectReference(gFontMaterial);
-	gFontMaterial = NULL;
-}
-
-void TextMesh_DisposeMetrics(void)
-{
-	if (!gFontMetricsLoaded)
-		return;
-
-	gFontMetricsLoaded = false;
+	MO_DisposeObjectReference(atlas->material);
+	atlas->material = NULL;
 
 	for (int i = 0; i < MAX_CODEPOINT_PAGES; i++)
 	{
-		if (gAtlasGlyphsPages[i])
+		if (atlas->glyphPages[i])
 		{
-			SafeDisposePtr((Ptr) gAtlasGlyphsPages[i]);
-			gAtlasGlyphsPages[i] = NULL;
+			SafeDisposePtr((Ptr) atlas->glyphPages[i]);
+			atlas->glyphPages[i] = NULL;
 		}
 	}
+
+	SafeDisposePtr((Ptr) atlas);
+}
+
+Atlas* TextMesh_LoadDefaultFont(const char* fontName, OGLSetupOutputType* setupInfo)
+{
+	GAME_ASSERT_MESSAGE(!gFontAtlas, "Previous font not freed");
+	gFontAtlas = Atlas_Load(fontName, setupInfo);
+	return gFontAtlas;
+}
+
+void TextMesh_DisposeDefaultFont(void)
+{
+	if (!gFontAtlas)
+		return;
+	
+	Atlas_Dispose(gFontAtlas);
+	gFontAtlas = NULL;
 }
 
 /***************************************************************/
@@ -390,14 +403,14 @@ static void TextMesh_InitMesh(MOVertexArrayData* mesh, int numQuads)
 {
 	memset(mesh, 0, sizeof(*mesh));
 	
-	GAME_ASSERT(gFontMaterial);
+	GAME_ASSERT(gFontAtlas);
 	mesh->numMaterials = 1;
-	mesh->materials[0] = gFontMaterial;
+	mesh->materials[0] = gFontAtlas->material;
 
 	TextMesh_ReallocateMesh(mesh, numQuads);
 }
 
-static float Kern(const AtlasGlyph* glyph, const char* utftext)
+static float Kern(const Atlas* font, const AtlasGlyph* glyph, const char* utftext)
 {
 	if (!glyph || !glyph->numKernPairs)
 		return 1;
@@ -406,14 +419,14 @@ static float Kern(const AtlasGlyph* glyph, const char* utftext)
 
 	for (int i = glyph->kernTableOffset; i < glyph->kernTableOffset + glyph->numKernPairs; i++)
 	{
-		if (gKernPairs[i] == buddy)
-			return gKernTracking[i] * .01f;
+		if (font->kernPairs[i] == buddy)
+			return font->kernTracking[i] * .01f;
 	}
 
 	return 1;
 }
 
-static void ComputeCounts(const char* text, int* numQuadsOut, int* numLinesOut, float* lineWidths, int maxLines)
+static void ComputeCounts(const Atlas* font, const char* text, int* numQuadsOut, int* numLinesOut, float* lineWidths, int maxLines)
 {
 	float spacing = 0;
 
@@ -439,8 +452,8 @@ static void ComputeCounts(const char* text, int* numQuadsOut, int* numLinesOut, 
 			continue;
 		}
 
-		const AtlasGlyph* glyph = GetGlyphFromCodepoint(c);
-		float kernFactor = Kern(glyph, utftext);
+		const AtlasGlyph* glyph = GetGlyphFromCodepoint(font, c);
+		float kernFactor = Kern(font, glyph, utftext);
 		lineWidths[numLines-1] += (glyph->xadv * kernFactor + spacing);
 		if (c != ' ')
 			numQuads++;
@@ -462,8 +475,8 @@ static float GetLineStartX(int align, float lineWidth)
 
 void TextMesh_Update(const char* text, int align, ObjNode* textNode)
 {
-	GAME_ASSERT_MESSAGE(gFontMaterial, "Can't lay out text if the font material isn't loaded!");
-	GAME_ASSERT_MESSAGE(gFontMetricsLoaded, "Can't lay out text if the font metrics aren't loaded!");
+	const Atlas* font = gFontAtlas;
+	GAME_ASSERT(font);
 
 	//-----------------------------------
 	// Get mesh from ObjNode
@@ -487,14 +500,14 @@ void TextMesh_Update(const char* text, int align, ObjNode* textNode)
 	float z = 0;
 	float spacing = 0;
 
-	const float invAtlasW = 1.0f / gFontAtlasWidth;
-	const float invAtlasH = 1.0f / gFontAtlasHeight;
+	const float invAtlasW = 1.0f / font->textureWidth;
+	const float invAtlasH = 1.0f / font->textureHeight;
 
 	// Compute number of quads and line width
 	float lineWidths[MAX_LINEBREAKS_PER_OBJNODE];
 	int numLines = 0;
 	int numQuads = 0;
-	ComputeCounts(text, &numQuads, &numLines, lineWidths, MAX_LINEBREAKS_PER_OBJNODE);
+	ComputeCounts(font, text, &numQuads, &numLines, lineWidths, MAX_LINEBREAKS_PER_OBJNODE);
 
 	// Compute longest line width
 	float longestLineWidth = 0;
@@ -505,16 +518,16 @@ void TextMesh_Update(const char* text, int align, ObjNode* textNode)
 	}
 
 	// Adjust y for ascender
-	y += 0.5f * gFontLineHeight;
+	y += 0.5f * font->lineHeight;
 
 	// Center vertically
-	y -= 0.5f * gFontLineHeight * (numLines - 1);
+	y -= 0.5f * font->lineHeight * (numLines - 1);
 
 	// Save extents
 	textNode->LeftOff	= GetLineStartX(align, longestLineWidth);
 	textNode->RightOff	= textNode->LeftOff + longestLineWidth;
-	textNode->TopOff	= y - gFontLineHeight;
-	textNode->BottomOff	= textNode->TopOff + gFontLineHeight * numLines;
+	textNode->TopOff	= y - font->lineHeight;
+	textNode->BottomOff	= textNode->TopOff + font->lineHeight * numLines;
 
 	// Ensure mesh has capacity for quads
 	if (textNode->TextQuadCapacity < numQuads)
@@ -551,7 +564,7 @@ void TextMesh_Update(const char* text, int align, ObjNode* textNode)
 		{
 			currentLine++;
 			x = GetLineStartX(align, lineWidths[currentLine]);
-			y += gFontLineHeight;
+			y += font->lineHeight;
 			continue;
 		}
 
@@ -561,7 +574,7 @@ void TextMesh_Update(const char* text, int align, ObjNode* textNode)
 			continue;
 		}
 
-		const AtlasGlyph g = *GetGlyphFromCodepoint(codepoint);
+		const AtlasGlyph g = *GetGlyphFromCodepoint(font, codepoint);
 
 		if (codepoint == ' ')
 		{
@@ -589,7 +602,7 @@ void TextMesh_Update(const char* text, int align, ObjNode* textNode)
 		mesh->uvs[p + 2] = (OGLTextureCoord) { invAtlasW * (g.x+g.w),	invAtlasH * (g.y+g.h) };
 		mesh->uvs[p + 3] = (OGLTextureCoord) { invAtlasW * g.x,			invAtlasH * (g.y+g.h) };
 
-		float kernFactor = Kern(&g, utftext);
+		float kernFactor = Kern(font, &g, utftext);
 		x += (g.xadv*kernFactor + spacing);
 		t += 2;
 		p += 4;
@@ -695,6 +708,9 @@ void TextMesh_DrawExtents(ObjNode* textNode)
 
 void TextMesh_DrawImmediate(const char* text, float x, float y, float scale, float rot, uint32_t flags, const OGLSetupOutputType *setupInfo)
 {
+	const Atlas* font = gFontAtlas;
+	GAME_ASSERT(font);
+
 			/* SET STATE */
 
 	OGL_PushState();								// keep state
@@ -718,7 +734,7 @@ void TextMesh_DrawImmediate(const char* text, float x, float y, float scale, flo
 
 		/* ACTIVATE THE MATERIAL */
 
-	MO_DrawMaterial(gFontMaterial, setupInfo);
+	MO_DrawMaterial(gFontAtlas->material, setupInfo);
 
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);						// set clamp mode after each texture set since OGL just likes it that way
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
@@ -726,8 +742,8 @@ void TextMesh_DrawImmediate(const char* text, float x, float y, float scale, flo
 
 			/* DRAW IT */
 
-	const float invAtlasW = 1.0f / gFontAtlasWidth;
-	const float invAtlasH = 1.0f / gFontAtlasHeight;
+	const float invAtlasW = 1.0f / gFontAtlas->textureWidth;
+	const float invAtlasH = 1.0f / gFontAtlas->textureHeight;
 
 	glBegin(GL_QUADS);
 	float cx = -32;  // hack to make text origin fit where CMR infobar expects it
@@ -735,7 +751,7 @@ void TextMesh_DrawImmediate(const char* text, float x, float y, float scale, flo
 	for (const char* utftext = text; *utftext; )
 	{
 		uint32_t codepoint = ReadNextCodepointFromUTF8(&utftext);
-		const AtlasGlyph* glyph = GetGlyphFromCodepoint(codepoint);
+		const AtlasGlyph* glyph = GetGlyphFromCodepoint(font, codepoint);
 
 		const float gl = invAtlasW * glyph->x;
 		const float gt = invAtlasH * glyph->y;
@@ -752,7 +768,7 @@ void TextMesh_DrawImmediate(const char* text, float x, float y, float scale, flo
 		glTexCoord2f(gr,gb);	glVertex3f(qx + halfw, qy - halfh, 0);
 		glTexCoord2f(gl,gb);	glVertex3f(qx - halfw, qy - halfh, 0);
 
-		cx += glyph->xadv * Kern(glyph, utftext);
+		cx += glyph->xadv * Kern(font, glyph, utftext);
 
 		gPolysThisFrame += 2;						// 2 tris drawn
 	}

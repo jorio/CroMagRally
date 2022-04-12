@@ -7,12 +7,12 @@ enum
 	kTextMeshAlignRight = 2,
 };
 
-void TextMesh_LoadFont(OGLSetupOutputType* setupInfo, const char* fontName);
-void TextMesh_DisposeFont(void);
-void TextMesh_LoadMetrics(const char* sflPath);
-void TextMesh_DisposeMetrics(void);
-void TextMesh_InitMaterial(OGLSetupOutputType* setupInfo, const char* pngPath);
-void TextMesh_DisposeMaterial(void);
+struct Atlas* Atlas_Load(const char* fontName, OGLSetupOutputType* setupInfo);
+void Atlas_Dispose(struct Atlas* atlas);
+
+struct Atlas* TextMesh_LoadDefaultFont(const char* fontName, OGLSetupOutputType* setupInfo);
+void TextMesh_DisposeDefaultFont(void);
+
 ObjNode* TextMesh_NewEmpty(int capacity, NewObjectDefinitionType *newObjDef);
 ObjNode* TextMesh_New(const char *text, int align, NewObjectDefinitionType *newObjDef);
 void TextMesh_Update(const char* text, int align, ObjNode* textNode);
