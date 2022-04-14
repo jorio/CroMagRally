@@ -22,9 +22,19 @@ float TextMesh_GetCharX(const char* text, int n);
 OGLRect TextMesh_GetExtents(ObjNode* textNode);
 void TextMesh_DrawExtents(ObjNode* textNode);
 
-void Atlas_DrawImmediate(
+void Atlas_DrawString(
 	int slot,
 	const char* text,
+	float x,
+	float y,
+	float scale,
+	float rot,
+	uint32_t flags,
+	const OGLSetupOutputType *setupInfo);
+
+void Atlas_DrawQuad(
+	int slot,
+	int spriteNo,
 	float x,
 	float y,
 	float scale,

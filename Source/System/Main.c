@@ -716,6 +716,7 @@ Boolean	done = false;
 				{
 						stageTimer = 1.5;										// reset stage timer
 
+GAME_ASSERT_MESSAGE(false, "reimplement me");
 						NewObjectDefinitionType def =
 						{
 							.group		= SPRITE_GROUP_INFOBAR,
@@ -737,6 +738,7 @@ Boolean	done = false;
 
 								/* MAKE X */
 
+GAME_ASSERT_MESSAGE(false, "reimplement me");
 						NewObjectDefinitionType def =
 						{
 							.group		= SPRITE_GROUP_INFOBAR,

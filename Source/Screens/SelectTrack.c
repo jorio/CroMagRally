@@ -290,7 +290,7 @@ short				highestUnlocked;
 
 		if (gSelectedTrackIndex > 0)
 		{
-			Atlas_DrawImmediate(SPRITE_GROUP_MAINMENU, "\x02",
+			Atlas_DrawQuad(SPRITE_GROUP_MAINMENU, MENUS_SObjType_LeftArrow,
 						LEFT_ARROW_X, ARROW_Y, ARROW_SCALE, 0, 0, info);
 		}
 
@@ -298,7 +298,7 @@ short				highestUnlocked;
 
 		if (gSelectedTrackIndex < (gNumTracksInSelection-1))
 		{
-			Atlas_DrawImmediate(SPRITE_GROUP_MAINMENU, "\x03",
+			Atlas_DrawQuad(SPRITE_GROUP_MAINMENU, MENUS_SObjType_RightArrow,
 						RIGHT_ARROW_X, ARROW_Y, ARROW_SCALE, 0, 0, info);
 		}
 	}
@@ -325,7 +325,7 @@ short				highestUnlocked;
 	if (gSelectedTrackIndex > highestUnlocked)
 	{
 		// Draw padlock
-		Atlas_DrawImmediate(SPRITE_GROUP_MAINMENU, "\x01",
+		Atlas_DrawQuad(SPRITE_GROUP_MAINMENU, MENUS_SObjType_Padlock,
 					0, 0, .5, 0, 0, info);
 	}
 }

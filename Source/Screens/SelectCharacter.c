@@ -252,12 +252,12 @@ static void DrawCharacterSelectCallback(OGLSetupOutputType *info)
 
 	if (gSelectedCharacterIndex == 0)
 	{
-		Atlas_DrawImmediate(SPRITE_GROUP_MAINMENU, "\x04",
+		Atlas_DrawQuad(SPRITE_GROUP_MAINMENU, MENUS_SObjType_UpArrow,
 					-.43, -.85, ARROW_SCALE, 0, 0, info);
 	}
 	else if (gSelectedCharacterIndex == 1)
 	{
-		Atlas_DrawImmediate(SPRITE_GROUP_MAINMENU, "\x04",
+		Atlas_DrawQuad(SPRITE_GROUP_MAINMENU, MENUS_SObjType_UpArrow,
 					.43, -.85, ARROW_SCALE, 0, 0, info);
 	}
 

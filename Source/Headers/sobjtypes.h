@@ -20,6 +20,18 @@ enum
 	MAX_SPRITE_GROUPS
 };
 
+
+
+enum
+{
+	MENUS_SObjType_NULL = 0,
+	MENUS_SObjType_Padlock,
+	MENUS_SObjType_LeftArrow,
+	MENUS_SObjType_RightArrow,
+	MENUS_SObjType_UpArrow,
+};
+
+
 		/* GLOBAL SPRITES */
 
 enum
@@ -50,14 +62,6 @@ enum
 
 
 
-		/* LIQUID SPRITES */
-
-enum
-{
-	LIQUID_SObjType_Water
-};
-
-
 		/* PARTICLE SPRITES */
 
 enum
@@ -78,26 +82,12 @@ enum
 
 
 
-
-/******************* MODE SCREEN *************************/
-
-enum
-{
-	MODE_SObjType_1Player,
-	MODE_SObjType_2Player,
-	MODE_SObjType_HorizSplit,
-	MODE_SObjType_VertSplit,
-	MODE_SObjType_NetPlay,
-	MODE_SObjType_NetHost,
-	MODE_SObjType_NetJoin,
-	MODE_SObjType_Cursor
-};
-
-
 /******************* INFOBAR SOBJTYPES *************************/
 
 enum
 {
+	INFOBAR_SObjType_NULL = 0,
+
 	INFOBAR_SObjType_Ready,
 	INFOBAR_SObjType_Set,
 	INFOBAR_SObjType_Go,
@@ -143,12 +133,4 @@ enum
 	INFOBAR_SObjType_RedTorch,
 	INFOBAR_SObjType_GreenTorch
 };
-
-
-
-
-
-
-
-
 

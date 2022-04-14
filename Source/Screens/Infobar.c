@@ -224,7 +224,7 @@ static const char*	maps[] =
 
 		/* SET GLOWING */
 
-	BlendASprite(SPRITE_GROUP_INFOBAR, INFOBAR_SObjType_Invisibility);
+//	BlendASprite(SPRITE_GROUP_INFOBAR, INFOBAR_SObjType_Invisibility);
 
 
 			/* PUT SELF-RUNNING DEMO MESSAGE UP */
@@ -536,7 +536,7 @@ int	place,playerNum;
 	playerNum = GetPlayerNum(gCurrentSplitScreenPane);
 	place = gPlayerInfo[playerNum].place;
 
-	DrawSprite(SPRITE_GROUP_INFOBAR, INFOBAR_SObjType_Place1+place,
+	Atlas_DrawQuad(SPRITE_GROUP_INFOBAR, INFOBAR_SObjType_Place1+place,
 				gIconInfo[ICON_PLACE][gActiveSplitScreenMode][iX],
 				gIconInfo[ICON_PLACE][gActiveSplitScreenMode][iY],
 				gIconInfo[ICON_PLACE][gActiveSplitScreenMode][iS],
@@ -568,14 +568,14 @@ float		x,y,scale, spacing, fontScale;
 
 		/* DRAW WEAPON ICON */
 
-	DrawSprite(SPRITE_GROUP_INFOBAR, INFOBAR_SObjType_Weapon_Bone + powType,
+	Atlas_DrawQuad(SPRITE_GROUP_INFOBAR, INFOBAR_SObjType_Weapon_Bone + powType,
 				x, y, scale, 0, 0, setupInfo);
 
 
 		/* DRAW X-QUANTITY ICON */
 
 	x += spacing;
-	DrawSprite(SPRITE_GROUP_INFOBAR, INFOBAR_SObjType_WeaponX, x, y, scale * .8f, 0, 0, setupInfo);
+	Atlas_DrawQuad(SPRITE_GROUP_INFOBAR, INFOBAR_SObjType_WeaponX, x, y, scale * .8f, 0, 0, setupInfo);
 
 
 		/* DRAW QUANTITY NUMBER */
@@ -588,7 +588,7 @@ float		x,y,scale, spacing, fontScale;
 	snprintf(s, sizeof(s), "%d", q);
 
 	x += spacing;
-	Atlas_DrawImmediate(SPRITE_GROUP_FONT, s, x, y, fontScale, 0, 0, setupInfo);
+	Atlas_DrawString(SPRITE_GROUP_FONT, s, x, y, fontScale, 0, 0, setupInfo);
 
 
 	gGlobalColorFilter.r = 1;
@@ -611,7 +611,7 @@ short	p;
 
 	if (wrongWay)
 	{
-		DrawSprite(SPRITE_GROUP_INFOBAR, INFOBAR_SObjType_WrongWay,
+		Atlas_DrawQuad(SPRITE_GROUP_INFOBAR, INFOBAR_SObjType_WrongWay,
 					gIconInfo[ICON_WRONGWAY][gActiveSplitScreenMode][iX],
 					gIconInfo[ICON_WRONGWAY][gActiveSplitScreenMode][iY],
 					gIconInfo[ICON_WRONGWAY][gActiveSplitScreenMode][iS],
@@ -647,7 +647,7 @@ int		oldTimer;
 	if (gStartingLightTimer <= 1.0f)								// green
 	{
 		gNoCarControls = false;										// once green we have control
-		DrawSprite(SPRITE_GROUP_INFOBAR, INFOBAR_SObjType_Go,
+		Atlas_DrawQuad(SPRITE_GROUP_INFOBAR, INFOBAR_SObjType_Go,
 					gIconInfo[ICON_STARTLIGHT][gActiveSplitScreenMode][iX],
 					gIconInfo[ICON_STARTLIGHT][gActiveSplitScreenMode][iY],
 					gIconInfo[ICON_STARTLIGHT][gActiveSplitScreenMode][iS],
@@ -656,7 +656,7 @@ int		oldTimer;
 	else
 	if (gStartingLightTimer <= 2.0f)								// yellow
 	{
-		DrawSprite(SPRITE_GROUP_INFOBAR, INFOBAR_SObjType_Set,
+		Atlas_DrawQuad(SPRITE_GROUP_INFOBAR, INFOBAR_SObjType_Set,
 					gIconInfo[ICON_STARTLIGHT][gActiveSplitScreenMode][iX],
 					gIconInfo[ICON_STARTLIGHT][gActiveSplitScreenMode][iY],
 					gIconInfo[ICON_STARTLIGHT][gActiveSplitScreenMode][iS],
@@ -664,7 +664,7 @@ int		oldTimer;
 	}
 	else															// red
 	{
-		DrawSprite(SPRITE_GROUP_INFOBAR, INFOBAR_SObjType_Ready,
+		Atlas_DrawQuad(SPRITE_GROUP_INFOBAR, INFOBAR_SObjType_Ready,
 					gIconInfo[ICON_STARTLIGHT][gActiveSplitScreenMode][iX],
 					gIconInfo[ICON_STARTLIGHT][gActiveSplitScreenMode][iY],
 					gIconInfo[ICON_STARTLIGHT][gActiveSplitScreenMode][iS],
@@ -707,7 +707,7 @@ int	lap,playerNum;
 		lap = 2;
 
 
-	DrawSprite(SPRITE_GROUP_INFOBAR, INFOBAR_SObjType_Lap1of3+lap,
+	Atlas_DrawQuad(SPRITE_GROUP_INFOBAR, INFOBAR_SObjType_Lap1of3+lap,
 				gIconInfo[ICON_LAP][gActiveSplitScreenMode][iX],
 				gIconInfo[ICON_LAP][gActiveSplitScreenMode][iY],
 				gIconInfo[ICON_LAP][gActiveSplitScreenMode][iS],
@@ -736,9 +736,9 @@ float	x,y,scale,spacing;
 	for (i = 1; i <= MAX_TOKENS; i++)
 	{
 		if (i > numTokens)
-			DrawSprite(	SPRITE_GROUP_INFOBAR, INFOBAR_SObjType_Token_ArrowheadDim,	x, y, scale, 0, 0, setupInfo);
+			Atlas_DrawQuad(	SPRITE_GROUP_INFOBAR, INFOBAR_SObjType_Token_ArrowheadDim,	x, y, scale, 0, 0, setupInfo);
 		else
-			DrawSprite(	SPRITE_GROUP_INFOBAR, INFOBAR_SObjType_Token_Arrowhead,	x, y, scale, 0, 0, setupInfo);
+			Atlas_DrawQuad(	SPRITE_GROUP_INFOBAR, INFOBAR_SObjType_Token_Arrowhead,	x, y, scale, 0, 0, setupInfo);
 
 		x += spacing;
 	}
@@ -774,7 +774,7 @@ static const OGLColorRGB noTint = {1,1,1};
 	{
 			/* DRAW ICON */
 
-		DrawSprite(SPRITE_GROUP_INFOBAR, INFOBAR_SObjType_StickyTires,	x, y, scale, 0, 0, setupInfo);
+		Atlas_DrawQuad(SPRITE_GROUP_INFOBAR, INFOBAR_SObjType_StickyTires,	x, y, scale, 0, 0, setupInfo);
 
 
 			/* DRAW TIME */
@@ -784,7 +784,7 @@ static const OGLColorRGB noTint = {1,1,1};
 		snprintf(s, sizeof(s), "%d", (int) (timer+.5f));
 
 		x2 = x + spacing;
-		Atlas_DrawImmediate(SPRITE_GROUP_FONT, s, x2, y, fontScale, 0, 0, setupInfo);
+		Atlas_DrawString(SPRITE_GROUP_FONT, s, x2, y, fontScale, 0, 0, setupInfo);
 
 		y -= lineSpacing;												// move down to prep for next item
 
@@ -801,7 +801,7 @@ static const OGLColorRGB noTint = {1,1,1};
 	{
 			/* DRAW ICON */
 
-		DrawSprite(SPRITE_GROUP_INFOBAR, INFOBAR_SObjType_Weapon_Nitro,	x, y, scale, 0, 0, setupInfo);
+		Atlas_DrawQuad(SPRITE_GROUP_INFOBAR, INFOBAR_SObjType_Weapon_Nitro,	x, y, scale, 0, 0, setupInfo);
 
 
 			/* DRAW TIME */
@@ -811,7 +811,7 @@ static const OGLColorRGB noTint = {1,1,1};
 		snprintf(s, sizeof(s), "%d", (int) (timer+.5f));
 
 		x2 = x + spacing;
-		Atlas_DrawImmediate(SPRITE_GROUP_FONT, s, x2, y, fontScale, 0, 0, setupInfo);
+		Atlas_DrawString(SPRITE_GROUP_FONT, s, x2, y, fontScale, 0, 0, setupInfo);
 		gGlobalColorFilter = noTint;
 
 		y -= lineSpacing;												// move down to prep for next item
@@ -827,7 +827,7 @@ static const OGLColorRGB noTint = {1,1,1};
 	{
 			/* DRAW ICON */
 
-		DrawSprite(SPRITE_GROUP_INFOBAR, INFOBAR_SObjType_Suspension,	x, y, scale, 0, 0, setupInfo);
+		Atlas_DrawQuad(SPRITE_GROUP_INFOBAR, INFOBAR_SObjType_Suspension,	x, y, scale, 0, 0, setupInfo);
 
 
 			/* DRAW TIME */
@@ -837,7 +837,7 @@ static const OGLColorRGB noTint = {1,1,1};
 		snprintf(s, sizeof(s), "%d", (int) (timer+.5f));
 
 		x2 = x + spacing;
-		Atlas_DrawImmediate(SPRITE_GROUP_FONT, s, x2, y, fontScale, 0, 0, setupInfo);
+		Atlas_DrawString(SPRITE_GROUP_FONT, s, x2, y, fontScale, 0, 0, setupInfo);
 		gGlobalColorFilter = noTint;
 
 		y -= lineSpacing;												// move down to prep for next item
@@ -853,7 +853,7 @@ static const OGLColorRGB noTint = {1,1,1};
 	{
 			/* DRAW ICON */
 
-		DrawSprite(SPRITE_GROUP_INFOBAR, INFOBAR_SObjType_Invisibility,	x, y, scale, 0, 0, setupInfo);
+		Atlas_DrawQuad(SPRITE_GROUP_INFOBAR, INFOBAR_SObjType_Invisibility,	x, y, scale, 0, 0, setupInfo);
 
 
 			/* DRAW TIME */
@@ -863,7 +863,7 @@ static const OGLColorRGB noTint = {1,1,1};
 		snprintf(s, sizeof(s), "%d", (int) (timer+.5f));
 
 		x2 = x + spacing;
-		Atlas_DrawImmediate(SPRITE_GROUP_FONT, s, x2, y, fontScale, 0, 0, setupInfo);
+		Atlas_DrawString(SPRITE_GROUP_FONT, s, x2, y, fontScale, 0, 0, setupInfo);
 		gGlobalColorFilter = noTint;
 
 		y -= lineSpacing;												// move down to prep for next item
@@ -879,7 +879,7 @@ static const OGLColorRGB noTint = {1,1,1};
 	{
 			/* DRAW ICON */
 
-		DrawSprite(SPRITE_GROUP_INFOBAR, INFOBAR_SObjType_Weapon_Freeze, x, y, scale, 0, 0, setupInfo);
+		Atlas_DrawQuad(SPRITE_GROUP_INFOBAR, INFOBAR_SObjType_Weapon_Freeze, x, y, scale, 0, 0, setupInfo);
 
 
 			/* DRAW TIME */
@@ -889,7 +889,7 @@ static const OGLColorRGB noTint = {1,1,1};
 		snprintf(s, sizeof(s), "%d", (int) (timer+.5f));
 
 		x2 = x + spacing;
-		Atlas_DrawImmediate(SPRITE_GROUP_FONT, s, x2, y, fontScale, 0, 0, setupInfo);
+		Atlas_DrawString(SPRITE_GROUP_FONT, s, x2, y, fontScale, 0, 0, setupInfo);
 		gGlobalColorFilter = noTint;
 
 		y -= lineSpacing;												// move down to prep for next item
@@ -905,7 +905,7 @@ static const OGLColorRGB noTint = {1,1,1};
 	{
 			/* DRAW ICON */
 
-		DrawSprite(SPRITE_GROUP_INFOBAR, INFOBAR_SObjType_RedTorch, x, y, scale, 0, 0, setupInfo);
+		Atlas_DrawQuad(SPRITE_GROUP_INFOBAR, INFOBAR_SObjType_RedTorch, x, y, scale, 0, 0, setupInfo);
 
 
 			/* DRAW TIME */
@@ -915,7 +915,7 @@ static const OGLColorRGB noTint = {1,1,1};
 		snprintf(s, sizeof(s), "%d", (int) (timer+.5f));
 
 		x2 = x + spacing;
-		Atlas_DrawImmediate(SPRITE_GROUP_FONT, s, x2, y, fontScale, 0, 0, setupInfo);
+		Atlas_DrawString(SPRITE_GROUP_FONT, s, x2, y, fontScale, 0, 0, setupInfo);
 		gGlobalColorFilter = noTint;
 
 		y -= lineSpacing;												// move down to prep for next item
@@ -945,7 +945,7 @@ float	timer,x,y, scale, spacing;
 
 				/* DRAW BAR */
 
-	DrawSprite(SPRITE_GROUP_INFOBAR, INFOBAR_SObjType_TimeBar,	x, y, scale, 0, 0, setupInfo);
+	Atlas_DrawQuad(SPRITE_GROUP_INFOBAR, INFOBAR_SObjType_TimeBar,	x, y, scale, 0, 0, setupInfo);
 
 
 
@@ -961,7 +961,7 @@ float	timer,x,y, scale, spacing;
 	timer = (gPlayerInfo[p].tagTimer / TAG_TIME_LIMIT);							// get timer value 0..1
 	x += timer * spacing;
 
-	DrawSprite(SPRITE_GROUP_INFOBAR, INFOBAR_SObjType_Marker, x, y, scale, 0, 0, setupInfo);
+	Atlas_DrawQuad(SPRITE_GROUP_INFOBAR, INFOBAR_SObjType_Marker, x, y, scale, 0, 0, setupInfo);
 
 
 		/**********************************************/
@@ -979,7 +979,7 @@ float	timer,x,y, scale, spacing;
 		gGlobalColorFilter = gTagColor;							// tint
 		gGlobalTransparency = .35;
 
-		DrawSprite(SPRITE_GROUP_INFOBAR, INFOBAR_SObjType_Marker, x, y, scale, 0, 0, setupInfo);
+		Atlas_DrawQuad(SPRITE_GROUP_INFOBAR, INFOBAR_SObjType_Marker, x, y, scale, 0, 0, setupInfo);
 
 		gGlobalColorFilter.r =
 		gGlobalColorFilter.g =
@@ -1010,7 +1010,7 @@ float	timer,x,y, scale, spacing, dist;
 
 				/* DRAW BAR */
 
-	DrawSprite(SPRITE_GROUP_INFOBAR, INFOBAR_SObjType_TimeBar,	x, y, scale, 0, 0, setupInfo);
+	Atlas_DrawQuad(SPRITE_GROUP_INFOBAR, INFOBAR_SObjType_TimeBar,	x, y, scale, 0, 0, setupInfo);
 
 
 
@@ -1026,7 +1026,7 @@ float	timer,x,y, scale, spacing, dist;
 	timer = gPlayerInfo[p].health;							// get timer value 0..1
 	x += timer * spacing;
 
-	DrawSprite(SPRITE_GROUP_INFOBAR, INFOBAR_SObjType_Marker, x, y, scale, 0, 0, setupInfo);
+	Atlas_DrawQuad(SPRITE_GROUP_INFOBAR, INFOBAR_SObjType_Marker, x, y, scale, 0, 0, setupInfo);
 
 
 		/**********************************************/
@@ -1048,7 +1048,7 @@ float	timer,x,y, scale, spacing, dist;
 		gGlobalColorFilter.b = 0;
 		gGlobalTransparency = .35;
 
-		DrawSprite(SPRITE_GROUP_INFOBAR, INFOBAR_SObjType_Marker, x, y, scale, 0, 0, setupInfo);
+		Atlas_DrawQuad(SPRITE_GROUP_INFOBAR, INFOBAR_SObjType_Marker, x, y, scale, 0, 0, setupInfo);
 
 		gGlobalColorFilter.r =
 		gGlobalColorFilter.g =
@@ -1078,7 +1078,7 @@ float	x,y, scale, spacing;
 
 	for (i = 0; i < gCapturedFlagCount[t]; i++)
 	{
-		DrawSprite(SPRITE_GROUP_INFOBAR, INFOBAR_SObjType_RedTorch + t,	x, y, scale, 0, 0, setupInfo);
+		Atlas_DrawQuad(SPRITE_GROUP_INFOBAR, INFOBAR_SObjType_RedTorch + t,	x, y, scale, 0, 0, setupInfo);
 		x += spacing;
 	}
 

@@ -399,7 +399,7 @@ static void DrawVehicleSelectCallback(OGLSetupOutputType *info)
 
 		if (gSelectedVehicleIndex > 0)
 		{
-			Atlas_DrawImmediate(SPRITE_GROUP_MAINMENU, "\x02",
+			Atlas_DrawQuad(SPRITE_GROUP_MAINMENU, MENUS_SObjType_LeftArrow,
 						LEFT_ARROW_X, ARROW_Y, ARROW_SCALE, 0, 0, info);
 		}
 
@@ -407,7 +407,7 @@ static void DrawVehicleSelectCallback(OGLSetupOutputType *info)
 
 		if (gSelectedVehicleIndex < NUM_LAND_CAR_TYPES-1)
 		{
-			Atlas_DrawImmediate(SPRITE_GROUP_MAINMENU, "\x03",
+			Atlas_DrawQuad(SPRITE_GROUP_MAINMENU, MENUS_SObjType_RightArrow,
 						RIGHT_ARROW_X, ARROW_Y, ARROW_SCALE, 0, 0, info);
 		}
 
@@ -415,8 +415,8 @@ static void DrawVehicleSelectCallback(OGLSetupOutputType *info)
 
 		if (gSelectedVehicleIndex >= gNumVehiclesToChooseFrom)
 		{
-			Atlas_DrawImmediate(SPRITE_GROUP_MAINMENU, "\x01",
-					0, .2, .5, 0, 0, info);
+			Atlas_DrawQuad(SPRITE_GROUP_MAINMENU, MENUS_SObjType_Padlock,
+					0, ARROW_Y, ARROW_SCALE, 0, 0, info);
 		}
 	}
 }

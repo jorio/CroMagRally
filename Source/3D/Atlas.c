@@ -725,7 +725,7 @@ void TextMesh_DrawExtents(ObjNode* textNode)
 	OGL_PopState();
 }
 
-void Atlas_DrawImmediate(
+void Atlas_DrawString(
 	int slot,
 	const char* text,
 	float x,
@@ -810,4 +810,20 @@ void Atlas_DrawImmediate(
 		/* CLEAN UP */
 
 	OGL_PopState();									// restore state
+}
+
+
+
+void Atlas_DrawQuad(
+	int slot,
+	int spriteNo,
+	float x,
+	float y,
+	float scale,
+	float rot,
+	uint32_t flags,
+	const OGLSetupOutputType *setupInfo)
+{
+	char text[2] = { spriteNo, 0 };
+	Atlas_DrawString(slot, text, x, y, scale, rot, flags, setupInfo);
 }
