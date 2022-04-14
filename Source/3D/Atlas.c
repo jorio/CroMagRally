@@ -320,7 +320,7 @@ Atlas* Atlas_Load(const char* fontName, OGLSetupOutputType* setupInfo)
 
 	{
 		// Parse kerning table
-		char* data = LoadTextFile(":sprites:kerning.txt", NULL);
+		char* data = LoadTextFile(":system:kerning.txt", NULL);
 		GAME_ASSERT(data);
 		ParseKerningFile(atlas, data);
 		SafeDisposePtr(data);
