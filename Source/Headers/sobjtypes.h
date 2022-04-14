@@ -66,6 +66,7 @@ enum
 
 enum
 {
+	PARTICLE_SObjType_NULL = 0,
 	PARTICLE_SObjType_WhiteSpark,
 	PARTICLE_SObjType_Dirt,
 	PARTICLE_SObjType_GreySmoke,

@@ -14,15 +14,9 @@
 /*    CONSTANTS             */
 /****************************/
 
-// This covers the basic multilingual plane (0000-FFFF)
-#define MAX_CODEPOINT_PAGES 256
-
 #define TAB_STOP 60.0f
 
-#define MAX_KERNPAIRS		256
-
 #define MAX_LINEBREAKS_PER_OBJNODE	16
-
 
 /****************************/
 /*    PROTOTYPES            */
@@ -30,38 +24,17 @@
 
 typedef struct
 {
-	float x;
-	float y;
-	float w;
-	float h;
-	float xoff;
-	float yoff;
-	float xadv;
-
-	uint16_t	kernTableOffset;
-	int8_t		numKernPairs;
-} AtlasGlyph;
-
-typedef struct Atlas
-{
-	// The font material must be reloaded everytime a new GL context is created
-	MOMaterialObject* material;
-	int textureWidth;
-	int textureHeight;
-	float invTextureWidth;
-	float invTextureHeight;
-	float lineHeight;
-	AtlasGlyph* glyphPages[MAX_CODEPOINT_PAGES];
-
-	uint16_t kernPairs[MAX_KERNPAIRS];
-	uint8_t kernTracking[MAX_KERNPAIRS];
-} Atlas;
+	int numQuads;
+	int numLines;
+	float lineWidths[MAX_LINEBREAKS_PER_OBJNODE];
+	float longestLineWidth;
+} TextMetrics;
 
 /****************************/
 /*    VARIABLES             */
 /****************************/
 
-static Atlas* gAtlases[MAX_SPRITE_GROUPS];
+Atlas* gAtlases[MAX_SPRITE_GROUPS];
 
 #pragma mark -
 
@@ -335,8 +308,6 @@ Atlas* Atlas_Load(const char* fontName, OGLSetupOutputType* setupInfo)
 
 		GAME_ASSERT(atlas->textureWidth != 0);
 		GAME_ASSERT(atlas->textureHeight != 0);
-		atlas->invTextureWidth = 1.0f / atlas->textureWidth;
-		atlas->invTextureHeight = 1.0f / atlas->textureHeight;
 
 		GAME_ASSERT_MESSAGE(!atlas->material, "atlas material already created");
 		MOMaterialData matData;
@@ -433,14 +404,6 @@ static float Kern(const Atlas* font, const AtlasGlyph* glyph, const char* utftex
 
 	return 1;
 }
-
-typedef struct
-{
-	int numQuads;
-	int numLines;
-	float lineWidths[MAX_LINEBREAKS_PER_OBJNODE];
-	float longestLineWidth;
-} TextMetrics;
 
 static void ComputeMetrics(const Atlas* font, const char* text, TextMetrics* metrics, bool specialASCII)
 {

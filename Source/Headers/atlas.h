@@ -1,5 +1,9 @@
 #pragma once
 
+// This covers the basic multilingual plane (0000-FFFF)
+#define MAX_CODEPOINT_PAGES 256
+#define MAX_KERNPAIRS		256
+
 enum
 {
 	kTextMeshAlignCenter = 0,
@@ -7,6 +11,32 @@ enum
 	kTextMeshAlignRight = 2,
 	kTextMeshNoSpecialASCII = 4,
 };
+
+typedef struct
+{
+	float x;
+	float y;
+	float w;
+	float h;
+	float xoff;
+	float yoff;
+	float xadv;
+
+	uint16_t	kernTableOffset;
+	int8_t		numKernPairs;
+} AtlasGlyph;
+
+typedef struct Atlas
+{
+	MOMaterialObject* material;
+	int textureWidth;
+	int textureHeight;
+	float lineHeight;
+	AtlasGlyph* glyphPages[MAX_CODEPOINT_PAGES];
+
+	uint16_t kernPairs[MAX_KERNPAIRS];
+	uint8_t kernTracking[MAX_KERNPAIRS];
+} Atlas;
 
 void Atlas_LoadSlot(int slot, const char* atlasName, OGLSetupOutputType* setupInfo);
 void Atlas_DisposeSlot(int slot);

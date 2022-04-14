@@ -33,6 +33,7 @@
 #include "atlas.h"
 #include "window.h"
 
+extern Atlas*					gAtlases[MAX_SPRITE_GROUPS];
 extern BG3DFileContainer		*gBG3DContainerList[MAX_BG3D_GROUPS];
 extern Boolean					gAnnouncedPOW[MAX_POW_TYPES];
 extern Boolean					gAutoPilot;

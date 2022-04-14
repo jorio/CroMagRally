@@ -76,14 +76,6 @@ void InitEffects(OGLSetupOutputType *setupInfo)
 
 	BG3D_SetContainerMaterialFlags(MODEL_GROUP_WEAPONS, WEAPONS_ObjType_RomanCandleBullet, BG3D_MATERIALFLAG_ALWAYSBLEND);
 	BG3D_SetContainerMaterialFlags(MODEL_GROUP_WEAPONS, WEAPONS_ObjType_FreezeBullet, BG3D_MATERIALFLAG_ALWAYSBLEND);
-
-
-			/* SET SPRITE BLENDING FLAGS */
-
-	BlendASprite(SPRITE_GROUP_PARTICLES, PARTICLE_SObjType_Splash);
-
-
-
 }
 
 
@@ -154,14 +146,12 @@ float	fps = gFramesPerSecondFrac;
 
 void InitParticleSystem(OGLSetupOutputType *setupInfo)
 {
-short	i;
-FSSpec	spec;
 ObjNode	*obj;
 
 
 			/* INIT GROUP ARRAY */
 
-	for (i = 0; i < MAX_PARTICLE_GROUPS; i++)
+	for (int i = 0; i < MAX_PARTICLE_GROUPS; i++)
 		gParticleGroups[i] = nil;
 
 	gNumActiveParticleGroups = 0;
@@ -170,10 +160,7 @@ ObjNode	*obj;
 
 			/* LOAD SPRITES */
 
-	FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":sprites:particle.sprites", &spec);
-	LoadSpriteFile(&spec, SPRITE_GROUP_PARTICLES, setupInfo);
-
-	BlendAllSpritesInGroup(SPRITE_GROUP_PARTICLES);
+	Atlas_LoadSlot(SPRITE_GROUP_PARTICLES, "particle", setupInfo);
 
 
 		/*************************************************************************/
@@ -202,7 +189,7 @@ ObjNode	*obj;
 
 void DisposeParticleSystem(void)
 {
-	DisposeSpriteGroup(SPRITE_GROUP_PARTICLES);
+	Atlas_DisposeSlot(SPRITE_GROUP_PARTICLES);
 }
 
 
@@ -257,7 +244,6 @@ OGLTextureCoord			*uv;
 MOVertexArrayData 		vertexArrayData;
 MOTriangleIndecies		*t;
 
-
 			/*************************/
 			/* SCAN FOR A FREE GROUP */
 			/*************************/
@@ -298,7 +284,7 @@ MOTriangleIndecies		*t;
 					/* SET THE DATA */
 
 			vertexArrayData.numMaterials 	= 1;
-			vertexArrayData.materials[0]	= gSpriteGroupList[SPRITE_GROUP_PARTICLES][def->particleTextureNum].materialObject;	// set illegal ref because it is made legit below
+			vertexArrayData.materials[0]	= gAtlases[SPRITE_GROUP_PARTICLES]->material;	// set illegal ref because it is made legit below
 
 			vertexArrayData.numPoints 		= 0;
 			vertexArrayData.numTriangles 	= 0;
@@ -310,19 +296,28 @@ MOTriangleIndecies		*t;
 			vertexArrayData.triangles		= (MOTriangleIndecies *)AllocPtr(sizeof(MOTriangleIndecies) * MAX_PARTICLES * 2);
 
 
+					/* GET ATLAS SLICE */
+
+			const AtlasGlyph* glyph = &gAtlases[SPRITE_GROUP_PARTICLES]->glyphPages[0][def->particleTextureNum & 0xFF];
+			float uMult = 1.0f / gAtlases[SPRITE_GROUP_PARTICLES]->material->objectData.width;
+			float vMult = 1.0f / gAtlases[SPRITE_GROUP_PARTICLES]->material->objectData.height;
+
 					/* INIT UV ARRAYS */
 
 			uv = vertexArrayData.uvs;
 			for (j=0; j < (MAX_PARTICLES*4); j+=4)
 			{
-				uv[j].u = 0;									// upper left
-				uv[j].v = 1;
-				uv[j+1].u = 0;									// lower left
-				uv[j+1].v = 0;
-				uv[j+2].u = 1;									// lower right
-				uv[j+2].v = 0;
-				uv[j+3].u = 1;									// upper right
-				uv[j+3].v = 1;
+				uv[j+0].u = uMult * glyph->x;							// upper left
+				uv[j+0].v = vMult * glyph->y;
+
+				uv[j+1].u = uMult * glyph->x;							// lower left
+				uv[j+1].v = vMult * (glyph->y + glyph->h);
+
+				uv[j+2].u = uMult * (glyph->x + glyph->w);				// lower right
+				uv[j+2].v = vMult * (glyph->y + glyph->h);
+
+				uv[j+3].u = uMult * (glyph->x + glyph->w);				// upper right
+				uv[j+3].v = vMult * glyph->y;
 			}
 
 					/* INIT TRIANGLE ARRAYS */
