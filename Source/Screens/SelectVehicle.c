@@ -74,7 +74,6 @@ enum
 static int		gSelectedVehicleIndex;
 static ObjNode	*gVehicleObj;
 static ObjNode	*gVehicleName;
-static ObjNode	*gVehicleLockIcon;
 static ObjNode	*gBoneMeters[NUM_VEHICLE_PARAMETERS];
 
 static int		gNumVehiclesToChooseFrom;
@@ -253,9 +252,6 @@ int					age;
 
 			/* LOAD SPRITES */
 
-	FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":sprites:vehicleselect.sprites", &spec);
-	LoadSpriteFile(&spec, SPRITE_GROUP_VEHICLESELECTSCREEN, gGameViewInfoPtr);
-
 	Atlas_LoadSlot(SPRITE_GROUP_MAINMENU, "menus", gGameViewInfoPtr);
 
 			/* LOAD MODELS */
@@ -286,20 +282,6 @@ int					age;
 			/* VEHICLE NAME */
 
 	MakeVehicleName();
-
-
-			/* BIG LOCK ICON */
-
-	{
-		NewObjectDefinitionType def =
-		{
-			.coord		= {0, -48, 0},
-			.slot		= SPRITE_SLOT,
-			.scale		= 1,
-			.flags		= STATUS_BIT_HIDDEN,
-		};
-		gVehicleLockIcon = TextMesh_New("~", 0, &def);
-	}
 
 
 			/* PARAMETER STRINGS */
@@ -402,6 +384,11 @@ static void DrawVehicleSelectCallback(OGLSetupOutputType *info)
 	MO_DrawObject(gBackgoundPicture, info);
 
 
+			/* DRAW OBJECTS */
+
+	DrawObjects(info);
+
+
 			/**************************/
 			/* DRAW THE SCROLL ARROWS */
 			/**************************/
@@ -414,9 +401,6 @@ static void DrawVehicleSelectCallback(OGLSetupOutputType *info)
 		{
 			Atlas_DrawImmediate(SPRITE_GROUP_MAINMENU, "\x02",
 						LEFT_ARROW_X, ARROW_Y, ARROW_SCALE, 0, 0, info);
-
-			DrawSprite(SPRITE_GROUP_VEHICLESELECTSCREEN, VEHICLESELECT_SObjType_Arrow_LeftOn,
-						LEFT_ARROW_X, ARROW_Y, ARROW_SCALE, 0, 0, info);
 		}
 
 			/* RIGHT ARROW */
@@ -425,13 +409,16 @@ static void DrawVehicleSelectCallback(OGLSetupOutputType *info)
 		{
 			Atlas_DrawImmediate(SPRITE_GROUP_MAINMENU, "\x03",
 						RIGHT_ARROW_X, ARROW_Y, ARROW_SCALE, 0, 0, info);
+		}
 
-			DrawSprite(SPRITE_GROUP_VEHICLESELECTSCREEN, VEHICLESELECT_SObjType_Arrow_RightOn,
-						RIGHT_ARROW_X, ARROW_Y, ARROW_SCALE, 0, 0, info);
+			/* DRAW PADLOCK */
+
+		if (gSelectedVehicleIndex >= gNumVehiclesToChooseFrom)
+		{
+			Atlas_DrawImmediate(SPRITE_GROUP_MAINMENU, "\x01",
+					0, .2, .5, 0, 0, info);
 		}
 	}
-
-	DrawObjects(info);
 }
 
 
@@ -456,12 +443,10 @@ static void RefreshSelectedCarGraphics(void)
 	if (gSelectedVehicleIndex >= gNumVehiclesToChooseFrom)
 	{
 		gVehicleObj->ColorFilter = (OGLColorRGBA) {0,0,0,1};
-		gVehicleLockIcon->StatusBits &= ~STATUS_BIT_HIDDEN;
 	}
 	else
 	{
 		gVehicleObj->ColorFilter = (OGLColorRGBA) {1,1,1,1};
-		gVehicleLockIcon->StatusBits |= STATUS_BIT_HIDDEN;
 	}
 }
 

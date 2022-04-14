@@ -158,9 +158,6 @@ ObjNode	*newObj;
 
 			/* LOAD SPRITES */
 
-	FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":sprites:charselect.sprites", &spec);
-	LoadSpriteFile(&spec, SPRITE_GROUP_CHARACTERSELECTSCREEN, gGameViewInfoPtr);
-
 	Atlas_LoadSlot(SPRITE_GROUP_MAINMENU, "menus", gGameViewInfoPtr);
 
 
@@ -257,16 +254,10 @@ static void DrawCharacterSelectCallback(OGLSetupOutputType *info)
 	{
 		Atlas_DrawImmediate(SPRITE_GROUP_MAINMENU, "\x04",
 					-.43, -.85, ARROW_SCALE, 0, 0, info);
-
-		DrawSprite(SPRITE_GROUP_VEHICLESELECTSCREEN, CHARACTERSELECT_SObjType_Arrow,
-					-.43, -.85, ARROW_SCALE, 0, 0, info);
 	}
 	else if (gSelectedCharacterIndex == 1)
 	{
 		Atlas_DrawImmediate(SPRITE_GROUP_MAINMENU, "\x04",
-					.43, -.85, ARROW_SCALE, 0, 0, info);
-
-		DrawSprite(SPRITE_GROUP_VEHICLESELECTSCREEN, CHARACTERSELECT_SObjType_Arrow,
 					.43, -.85, ARROW_SCALE, 0, 0, info);
 	}
 
