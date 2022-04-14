@@ -127,7 +127,7 @@ static void ParseSFL_SkipLine(const char** dataPtr)
 }
 
 // Parse an SFL file produced by fontbuilder
-static void ParseSFL(Atlas* atlas, const char* data)
+static void ParseSFL(Atlas* atlas, const char* data, int imageWidth, int imageHeight)
 {
 	int nArgs = 0;
 	int nGlyphs = 0;
@@ -151,18 +151,24 @@ static void ParseSFL(Atlas* atlas, const char* data)
 		memset(&newGlyph, 0, sizeof(newGlyph));
 
 		uint32_t codePoint = 0;
+		float x, y;
 		nArgs = sscanf(
 				data,
 				"%d %f %f %f %f %f %f %f",
 				&codePoint,
-				&newGlyph.x,
-				&newGlyph.y,
+				&x,
+				&y,
 				&newGlyph.w,
 				&newGlyph.h,
 				&newGlyph.xoff,
 				&newGlyph.yoff,
 				&newGlyph.xadv);
 		GAME_ASSERT(nArgs == 8);
+
+		newGlyph.u1 =  x               / (float)imageWidth;
+		newGlyph.u2 = (x + newGlyph.w) / (float)imageWidth;
+		newGlyph.v1 =  y               / (float)imageHeight;
+		newGlyph.v2 = (y + newGlyph.h) / (float)imageHeight;
 
 		uint32_t codePointPage = codePoint >> 8;
 		if (codePointPage >= MAX_CODEPOINT_PAGES)
@@ -281,24 +287,6 @@ Atlas* Atlas_Load(const char* fontName, OGLSetupOutputType* setupInfo)
 
 	char pathBuf[256];
 
-	snprintf(pathBuf, sizeof(pathBuf), ":sprites:%s.sfl", fontName);
-	{
-		// Parse metrics from SFL file
-		const char* sflPath = pathBuf;
-		char* data = LoadTextFile(sflPath, NULL);
-		GAME_ASSERT(data);
-		ParseSFL(atlas, data);
-		SafeDisposePtr(data);
-	}
-
-	{
-		// Parse kerning table
-		char* data = LoadTextFile(":system:kerning.txt", NULL);
-		GAME_ASSERT(data);
-		ParseKerningFile(atlas, data);
-		SafeDisposePtr(data);
-	}
-
 	snprintf(pathBuf, sizeof(pathBuf), ":sprites:%s.png", fontName);
 	{
 		// Create font material
@@ -320,6 +308,24 @@ Atlas* Atlas_Load(const char* fontName, OGLSetupOutputType* setupInfo)
 		matData.height			= atlas->textureHeight;
 		matData.textureName[0]	= textureName;
 		atlas->material = MO_CreateNewObjectOfType(MO_TYPE_MATERIAL, 0, &matData);
+	}
+
+	snprintf(pathBuf, sizeof(pathBuf), ":sprites:%s.sfl", fontName);
+	{
+		// Parse metrics from SFL file
+		const char* sflPath = pathBuf;
+		char* data = LoadTextFile(sflPath, NULL);
+		GAME_ASSERT(data);
+		ParseSFL(atlas, data, atlas->textureWidth, atlas->textureHeight);
+		SafeDisposePtr(data);
+	}
+
+	{
+		// Parse kerning table
+		char* data = LoadTextFile(":system:kerning.txt", NULL);
+		GAME_ASSERT(data);
+		ParseKerningFile(atlas, data);
+		SafeDisposePtr(data);
 	}
 
 	return atlas;
@@ -490,9 +496,6 @@ void TextMesh_Update(const char* text, int align, ObjNode* textNode)
 	float z = 0;
 	float spacing = 0;
 
-	const float invAtlasW = 1.0f / font->textureWidth;
-	const float invAtlasH = 1.0f / font->textureHeight;
-
 	// Compute number of quads and line width
 	TextMetrics metrics;
 	ComputeMetrics(font, text, &metrics, specialASCII);
@@ -579,10 +582,10 @@ void TextMesh_Update(const char* text, int align, ObjNode* textNode)
 		mesh->points[p + 1] = (OGLPoint3D) { qx + hw, qy - hh, z };
 		mesh->points[p + 2] = (OGLPoint3D) { qx + hw, qy + hh, z };
 		mesh->points[p + 3] = (OGLPoint3D) { qx - hw, qy + hh, z };
-		mesh->uvs[p + 0] = (OGLTextureCoord) { invAtlasW * g.x,			invAtlasH * g.y };
-		mesh->uvs[p + 1] = (OGLTextureCoord) { invAtlasW * (g.x+g.w),	invAtlasH * g.y };
-		mesh->uvs[p + 2] = (OGLTextureCoord) { invAtlasW * (g.x+g.w),	invAtlasH * (g.y+g.h) };
-		mesh->uvs[p + 3] = (OGLTextureCoord) { invAtlasW * g.x,			invAtlasH * (g.y+g.h) };
+		mesh->uvs[p + 0] = (OGLTextureCoord) { g.u1, g.v1 };
+		mesh->uvs[p + 1] = (OGLTextureCoord) { g.u2, g.v1 };
+		mesh->uvs[p + 2] = (OGLTextureCoord) { g.u2, g.v2 };
+		mesh->uvs[p + 3] = (OGLTextureCoord) { g.u1, g.v2 };
 
 		float kernFactor = Kern(font, &g, utftext);
 		x += (g.xadv*kernFactor + spacing);
@@ -731,9 +734,6 @@ void Atlas_DrawString(
 
 			/* DRAW IT */
 
-	const float invAtlasW = 1.0f / font->textureWidth;
-	const float invAtlasH = 1.0f / font->textureHeight;
-
 	glBegin(GL_QUADS);
 //	float cx = -32;  // hack to make text origin fit where CMR infobar expects it
 //	float cy = -32;
@@ -747,24 +747,19 @@ void Atlas_DrawString(
 	for (const char* utftext = text; *utftext; )
 	{
 		uint32_t codepoint = ReadNextCodepointFromUTF8(&utftext);
-		const AtlasGlyph* glyph = GetGlyphFromCodepoint(font, codepoint);
+		const AtlasGlyph g = *GetGlyphFromCodepoint(font, codepoint);
 
-		const float gl = invAtlasW * glyph->x;
-		const float gt = invAtlasH * glyph->y;
-		const float gr = invAtlasW * (glyph->x + glyph->w);
-		const float gb = invAtlasH * (glyph->y + glyph->h);
+		float halfw = .5f * g.w;
+		float halfh = .5f * g.h;
+		float qx = cx + (g.xoff + halfw);
+		float qy = cy + (g.yoff + halfh);
 
-		float halfw = .5f * glyph->w;
-		float halfh = .5f * glyph->h;
-		float qx = cx + (glyph->xoff + halfw);
-		float qy = cy + (glyph->yoff + halfh);
+		glTexCoord2f(g.u1, g.v1);	glVertex3f(qx - halfw, qy + halfh, 0);
+		glTexCoord2f(g.u2, g.v1);	glVertex3f(qx + halfw, qy + halfh, 0);
+		glTexCoord2f(g.u2, g.v2);	glVertex3f(qx + halfw, qy - halfh, 0);
+		glTexCoord2f(g.u1, g.v2);	glVertex3f(qx - halfw, qy - halfh, 0);
 
-		glTexCoord2f(gl,gt);	glVertex3f(qx - halfw, qy + halfh, 0);
-		glTexCoord2f(gr,gt);	glVertex3f(qx + halfw, qy + halfh, 0);
-		glTexCoord2f(gr,gb);	glVertex3f(qx + halfw, qy - halfh, 0);
-		glTexCoord2f(gl,gb);	glVertex3f(qx - halfw, qy - halfh, 0);
-
-		cx += glyph->xadv * Kern(font, glyph, utftext);
+		cx += g.xadv * Kern(font, &g, utftext);
 
 		gPolysThisFrame += 2;						// 2 tris drawn
 	}

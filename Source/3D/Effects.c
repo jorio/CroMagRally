@@ -299,25 +299,23 @@ MOTriangleIndecies		*t;
 					/* GET ATLAS SLICE */
 
 			const AtlasGlyph* glyph = &gAtlases[SPRITE_GROUP_PARTICLES]->glyphPages[0][def->particleTextureNum & 0xFF];
-			float uMult = 1.0f / gAtlases[SPRITE_GROUP_PARTICLES]->material->objectData.width;
-			float vMult = 1.0f / gAtlases[SPRITE_GROUP_PARTICLES]->material->objectData.height;
 
 					/* INIT UV ARRAYS */
 
 			uv = vertexArrayData.uvs;
 			for (j=0; j < (MAX_PARTICLES*4); j+=4)
 			{
-				uv[j+0].u = uMult * glyph->x;							// upper left
-				uv[j+0].v = vMult * glyph->y;
+				uv[j+0].u = glyph->u1;				// upper left
+				uv[j+0].v = glyph->v1;
 
-				uv[j+1].u = uMult * glyph->x;							// lower left
-				uv[j+1].v = vMult * (glyph->y + glyph->h);
+				uv[j+1].u = glyph->u1;				// lower left
+				uv[j+1].v = glyph->v2;
 
-				uv[j+2].u = uMult * (glyph->x + glyph->w);				// lower right
-				uv[j+2].v = vMult * (glyph->y + glyph->h);
+				uv[j+2].u = glyph->u2;				// lower right
+				uv[j+2].v = glyph->v2;
 
-				uv[j+3].u = uMult * (glyph->x + glyph->w);				// upper right
-				uv[j+3].v = vMult * glyph->y;
+				uv[j+3].u = glyph->u2;				// upper right
+				uv[j+3].v = glyph->v1;
 			}
 
 					/* INIT TRIANGLE ARRAYS */

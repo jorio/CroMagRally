@@ -14,13 +14,16 @@ enum
 
 typedef struct
 {
-	float x;
-	float y;
 	float w;
 	float h;
 	float xoff;
 	float yoff;
 	float xadv;
+
+	float u1;
+	float v1;
+	float u2;
+	float v2;
 
 	uint16_t	kernTableOffset;
 	int8_t		numKernPairs;
