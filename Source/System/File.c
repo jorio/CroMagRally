@@ -843,9 +843,6 @@ static const char*	levelModelFiles[NUM_TRACKS] =
 
 	Atlas_LoadSlot(SPRITE_GROUP_INFOBAR, "infobar", setupInfo);
 
-	FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":sprites:fence.sprites", &spec);
-	LoadSpriteFile(&spec, SPRITE_GROUP_FENCES, setupInfo);
-
 	FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":sprites:global.sprites", &spec);
 	LoadSpriteFile(&spec, SPRITE_GROUP_GLOBAL, setupInfo);
 

@@ -59,7 +59,41 @@ enum
 
 	FENCE_TYPE_CHINACONCRETE,
 	FENCE_TYPE_CHINADESIGN,
-	FENCE_TYPE_VIKING
+	FENCE_TYPE_VIKING,
+
+	NUM_FENCE_TYPES
+};
+
+
+const char* kFenceNames[] =
+{
+	[FENCE_TYPE_DESERTSKIN]		= "desertskin",
+	[FENCE_TYPE_INVISIBLE]		= "invisible",
+	[FENCE_TYPE_CHINA1]			= "china1",
+	[FENCE_TYPE_CHINA2]			= "china2",
+	[FENCE_TYPE_CHINA3]			= "china3",
+	[FENCE_TYPE_CHINA4]			= "china4",
+	[FENCE_TYPE_HIEROGLYPHS]	= "hieroglyphs",
+	[FENCE_TYPE_CAMEL]			= "camel",
+	[FENCE_TYPE_FARM]			= "farm",
+	[FENCE_TYPE_AZTEC]			= "aztec",
+	[FENCE_TYPE_ROCKWALL]		= "rockwall",
+	[FENCE_TYPE_TALLROCKWALL]	= "tallrockwall",
+	[FENCE_TYPE_ROCKPILE]		= "rockpile",
+	[FENCE_TYPE_TRIBAL]			= "tribal",
+	[FENCE_TYPE_HORNS]			= "horns",
+	[FENCE_TYPE_CRETE]			= "crete",
+	[FENCE_TYPE_ROCKPILE2]		= "rockpile2",
+	[FENCE_TYPE_ORANGEROCK]		= "orangerock",
+	[FENCE_TYPE_SEAWEED]		= "seaweed1",
+	[FENCE_TYPE_SEAWEED2]		= "seaweed2",
+	[FENCE_TYPE_SEAWEED3]		= "seaweed3",
+	[FENCE_TYPE_SEAWEED4]		= "seaweed4",
+	[FENCE_TYPE_SEAWEED5]		= "seaweed5",
+	[FENCE_TYPE_SEAWEED6]		= "seaweed6",
+	[FENCE_TYPE_CHINACONCRETE]	= "chinaconcrete",
+	[FENCE_TYPE_CHINADESIGN]	= "chinadesign",
+	[FENCE_TYPE_VIKING]			= "viking",
 };
 
 
@@ -71,8 +105,9 @@ long			gNumFences = 0;
 short			gNumFencesDrawn;
 FenceDefType	*gFenceList = nil;
 
+MOMaterialObject	*gFenceMaterials[NUM_FENCE_TYPES];
 
-float			gFenceHeight[] =
+const float			gFenceHeight[] =
 {
 	2000,					// desert skin
 	3200,					// INVISIBLE
@@ -116,16 +151,27 @@ static short	gSeaweedFrame;
 static float	gSeaweedFrameTimer;
 
 
+
+/******************* LOAD FENCE TEXTURE *******************/
+
+static void LoadFenceMaterial(int type)
+{
+	char fencePath[256];
+	snprintf(fencePath, sizeof(fencePath), ":sprites:fences:%s.png", kFenceNames[type]);
+
+	gFenceMaterials[type] = MO_GetTextureFromFile(fencePath, gGameViewInfoPtr, /*GL_RGB5_A1*/ GL_RGBA);
+	gFenceMaterials[type]->objectData.flags |= BG3D_MATERIALFLAG_CLAMP_V;		// don't wrap v, only u
+}
+
+
 /********************** DISPOSE FENCES *********************/
 
 void DisposeFences(void)
 {
-int		i;
-
 	if (!gFenceList)
 		return;
 
-	for (i = 0; i < gNumFences; i++)
+	for (int i = 0; i < gNumFences; i++)
 	{
 		if (gFenceList[i].sectionVectors)
 			SafeDisposePtr((Ptr)gFenceList[i].sectionVectors);			// nuke section vectors
@@ -139,6 +185,16 @@ int		i;
 	SafeDisposePtr((Ptr)gFenceList);
 	gFenceList = nil;
 	gNumFences = 0;
+
+
+	for (int i = 0; i < NUM_FENCE_TYPES; i++)
+	{
+		if (gFenceMaterials[i])
+		{
+			MO_DisposeObjectReference(gFenceMaterials[i]);
+			gFenceMaterials[i] = NULL;
+		}
+	}
 }
 
 
@@ -150,7 +206,7 @@ int		i;
 
 void PrimeFences(void)
 {
-long					f,i,numNubs;
+long					numNubs;
 FenceDefType			*fence;
 OGLPoint3D				*nubs;
 ObjNode					*obj;
@@ -162,22 +218,43 @@ ObjNode					*obj;
 	if (gNumFences > MAX_FENCES)
 		DoFatalAlert("PrimeFences: gNumFences > MAX_FENCES");
 
-		/* SET TEXTURE WARPPING MODE ON ALL FENCE SPRITE TEXTURES */
 
-	for (i = 0; i < gNumSpritesInGroupList[SPRITE_GROUP_FENCES]; i++)
+
+			/***********************/
+			/* LOAD FENCE TEXTURES */
+			/***********************/
+
+	memset(gFenceMaterials, 0, sizeof(gFenceMaterials));
+
+	for (int f = 0; f < gNumFences; f++)
 	{
-		MOMaterialObject	*mat;
+		fence = &gFenceList[f];					// point to this fence
 
-		mat = gSpriteGroupList[SPRITE_GROUP_FENCES][i].materialObject;
-		mat->objectData.flags |= BG3D_MATERIALFLAG_CLAMP_V;				// don't wrap v, only u
+		GAME_ASSERT(fence->type < NUM_FENCE_TYPES);
+
+		if (gFenceMaterials[fence->type] == NULL)
+		{
+			if (fence->type == FENCE_TYPE_SEAWEED)
+			{
+				LoadFenceMaterial(FENCE_TYPE_SEAWEED);
+				LoadFenceMaterial(FENCE_TYPE_SEAWEED2);
+				LoadFenceMaterial(FENCE_TYPE_SEAWEED3);
+				LoadFenceMaterial(FENCE_TYPE_SEAWEED4);
+				LoadFenceMaterial(FENCE_TYPE_SEAWEED5);
+				LoadFenceMaterial(FENCE_TYPE_SEAWEED6);
+			}
+			else
+			{
+				LoadFenceMaterial(fence->type);
+			}
+		}
 	}
-
 
 			/******************************/
 			/* ADJUST TO GAME COORDINATES */
 			/******************************/
 
-	for (f = 0; f < gNumFences; f++)
+	for (int f = 0; f < gNumFences; f++)
 	{
 		fence 				= &gFenceList[f];					// point to this fence
 		nubs 				= fence->nubList;					// point to nub list
@@ -189,7 +266,7 @@ ObjNode					*obj;
 		if (numNubs > MAX_NUBS_IN_FENCE)
 			DoFatalAlert("PrimeFences: numNubs > MAX_NUBS_IN_FENCE");
 
-		for (i = 0; i < numNubs; i++)							// adjust nubs
+		for (int i = 0; i < numNubs; i++)							// adjust nubs
 		{
 			nubs[i].x *= MAP2UNIT_VALUE;
 			nubs[i].z *= MAP2UNIT_VALUE;
@@ -202,7 +279,7 @@ ObjNode					*obj;
 		if (fence->sectionVectors == nil)
 			DoFatalAlert("PrimeFences: AllocPtr failed!");
 
-		for (i = 0; i < (numNubs-1); i++)
+		for (int i = 0; i < (numNubs-1); i++)
 		{
 			float	dx,dz;
 
@@ -211,7 +288,6 @@ ObjNode					*obj;
 
 			FastNormalizeVector2D(dx, dz, &fence->sectionVectors[i], false);
 		}
-
 	}
 
 			/*****************************/
@@ -244,15 +320,15 @@ ObjNode					*obj;
 
 static void MakeFenceGeometry(void)
 {
-int						f;
-uint16_t					type;
+uint16_t				type;
 float					u,height,aspectRatio,textureUOff;
 long					i,numNubs,j;
 FenceDefType			*fence;
 OGLPoint3D				*nubs;
+MOMaterialObject		*material;
 float					minX,minY,minZ,maxX,maxY,maxZ;
 
-	for (f = 0; f < gNumFences; f++)
+	for (int f = 0; f < gNumFences; f++)
 	{
 				/******************/
 				/* GET FENCE INFO */
@@ -262,12 +338,14 @@ float					minX,minY,minZ,maxX,maxY,maxZ;
 		nubs = fence->nubList;								// point to nub list
 		numNubs = fence->numNubs;							// get # nubs in fence
 		type = fence->type;									// get fence type
-		if (type > gNumSpritesInGroupList[SPRITE_GROUP_FENCES])
-			DoFatalAlert("MakeFenceGeometry: illegal fence type");
+
+		GAME_ASSERT_MESSAGE(type < NUM_FENCE_TYPES, "Illegal fence type!");
+		GAME_ASSERT_MESSAGE(gFenceMaterials[type], "No material for fence type!");
+
 		height = gFenceHeight[type];						// get fence height
+		material = gFenceMaterials[type];					// get material
 
-		aspectRatio = gSpriteGroupList[SPRITE_GROUP_FENCES][type].aspectRatio;	// get aspect ratio
-
+		aspectRatio = material->objectData.height / (float)material->objectData.width;
 		textureUOff = 1.0f / height * aspectRatio;			// calc UV offset
 
 
@@ -309,7 +387,7 @@ float					minX,minY,minZ,maxX,maxY,maxZ;
 
 				/* SET TEXTURE */
 
-		gFenceTriMeshData[f].materials[0] = gSpriteGroupList[SPRITE_GROUP_FENCES][type].materialObject;	// set illegal temporary ref to material
+		gFenceTriMeshData[f].materials[0] = gFenceMaterials[type];		// set illegal temporary ref to material
 
 
 				/**********************/
@@ -502,7 +580,7 @@ OGLPoint3D				*nubs;
 
 	if (fence->type == FENCE_TYPE_SEAWEED)
 	{
-		gFenceTriMeshData[f].materials[0] = gSpriteGroupList[SPRITE_GROUP_FENCES][FENCE_TYPE_SEAWEED + gSeaweedFrame].materialObject;	// set illegal temporary ref to material
+		gFenceTriMeshData[f].materials[0] = gFenceMaterials[FENCE_TYPE_SEAWEED + gSeaweedFrame];	// set illegal temporary ref to material
 	}
 
 	MO_DrawGeometry_VertexArray(&gFenceTriMeshData[f], setupInfo);
@@ -704,8 +782,4 @@ float			oldX,oldZ,newX,newZ;
 		} // for i
 	}
 }
-
-
-
-
 

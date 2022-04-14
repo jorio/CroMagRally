@@ -221,8 +221,7 @@ MOSpriteSetupData	spriteData;
 
 			/* ERROR CHECK */
 
-	if (newObjDef->type >= gNumSpritesInGroupList[newObjDef->group])
-		DoFatalAlert("MakeSpriteObject: illegal type");
+	GAME_ASSERT_MESSAGE(newObjDef->type < gNumSpritesInGroupList[newObjDef->group], "illegal type");
 
 
 			/* MAKE OBJNODE */
@@ -244,8 +243,7 @@ MOSpriteSetupData	spriteData;
 
 
 	spriteMO = MO_CreateNewObjectOfType(MO_TYPE_SPRITE, (uintptr_t) setupInfo, &spriteData);
-	if (!spriteMO)
-		DoFatalAlert("MakeSpriteObject: MO_CreateNewObjectOfType failed!");
+	GAME_ASSERT(spriteMO);
 
 
 			/* SET SPRITE MO INFO */
