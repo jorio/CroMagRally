@@ -111,7 +111,6 @@ Boolean DoCharacterSelectScreen(short whichPlayer, Boolean allowAborting)
 
 static void SetupCharacterSelectScreen(short whichPlayer)
 {
-FSSpec				spec;
 OGLSetupInputType	viewDef;
 OGLColorRGBA		ambientColor = { .5, .5, .5, 1 };
 OGLColorRGBA		fillColor1 = { 1.0, 1.0, 1.0, 1 };

@@ -2727,13 +2727,13 @@ ObjNode			*wheel,*link;
 
 		case	GAME_MODE_CAPTUREFLAG:
 				if (gPlayerInfo[playerNum].team == 0)
-					wheel->Skeleton->overrideTexture = gSpriteGroupList[SPRITE_GROUP_GLOBAL][GLOBAL_SObjType_Shadow_Brog_Red + (sex * MAX_PLAYERS)].materialObject;
+					wheel->Skeleton->overrideTexture = gCavemanSkins[sex][4];		// red
 				else
-					wheel->Skeleton->overrideTexture = gSpriteGroupList[SPRITE_GROUP_GLOBAL][GLOBAL_SObjType_Shadow_Brog_Green + (sex * MAX_PLAYERS)].materialObject;
+					wheel->Skeleton->overrideTexture = gCavemanSkins[sex][1];		// green
 				break;
 
 		default:
-				wheel->Skeleton->overrideTexture = gSpriteGroupList[SPRITE_GROUP_GLOBAL][GLOBAL_SObjType_Shadow_Brog_Brown + (sex * MAX_PLAYERS) + playerNum].materialObject;	// get illegal ref to texture
+				wheel->Skeleton->overrideTexture = gCavemanSkins[sex][playerNum];	// get illegal ref to texture
 	}
 #endif
 

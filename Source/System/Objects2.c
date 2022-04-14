@@ -24,6 +24,7 @@ static void DrawShadow(ObjNode *theNode, OGLSetupOutputType *setupInfo);
 /****************************/
 
 #define	SHADOW_Y_OFF	6.0f
+#define	SHADOW_RADIUS	20.0f
 
 /**********************/
 /*     VARIABLES      */
@@ -457,20 +458,20 @@ int	shadowType = theNode->Kind;
 
 			/* SUBMIT SHADOW TEXTURE */
 
-
-	MO_DrawMaterial(gSpriteGroupList[SPRITE_GROUP_GLOBAL][GLOBAL_SObjType_Shadow_Circular+shadowType].materialObject, setupInfo);
+	MO_DrawMaterial(gAtlases[SPRITE_GROUP_SHADOWS]->material, setupInfo);
 
 
 			/* DRAW THE SHADOW */
 
-	glDisable(GL_CULL_FACE);
-	glBegin(GL_QUADS);
-	glTexCoord2f(0,0);	glVertex3f(-20, 0, 20);
-	glTexCoord2f(1,0);	glVertex3f(20, 0, 20);
-	glTexCoord2f(1,1);	glVertex3f(20, 0, -20);
-	glTexCoord2f(0,1);	glVertex3f(-20, 0, -20);
-	glEnd();
+	const AtlasGlyph* g = &gAtlases[SPRITE_GROUP_SHADOWS]->glyphPages[0][SHADOW_SObjType_Circular + shadowType];
+
 	glEnable(GL_CULL_FACE);
+	glBegin(GL_QUADS);
+	glTexCoord2f(g->u1, g->v2);	glVertex3f(-SHADOW_RADIUS, 0,  SHADOW_RADIUS);
+	glTexCoord2f(g->u2, g->v2);	glVertex3f( SHADOW_RADIUS, 0,  SHADOW_RADIUS);
+	glTexCoord2f(g->u2, g->v1);	glVertex3f( SHADOW_RADIUS, 0, -SHADOW_RADIUS);
+	glTexCoord2f(g->u1, g->v1);	glVertex3f(-SHADOW_RADIUS, 0, -SHADOW_RADIUS);
+	glEnd();
 
 	OGL_PopState();
 }

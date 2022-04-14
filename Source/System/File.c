@@ -93,6 +93,9 @@ typedef struct
 
 float	g3DTileSize, g3DMinY, g3DMaxY;
 
+MOMaterialObject* gCavemanSkins[2][6];
+
+
 /****************** SET DEFAULT DIRECTORY ********************/
 //
 // This function needs to be called for OS X because OS X doesnt automatically
@@ -664,6 +667,40 @@ void SetPlayerProgression(int age, int stage)
 
 #pragma mark -
 
+
+void LoadCavemanSkins(OGLSetupOutputType *setupInfo)
+{
+	for (int i = 0; i < 6; i++)
+	{
+		char skinPath[256];
+
+		snprintf(skinPath, sizeof(skinPath), ":sprites:skins:brog%d.png", i+1);
+		gCavemanSkins[0][i] = MO_GetTextureFromFile(skinPath, setupInfo, GL_RGBA);
+
+		snprintf(skinPath, sizeof(skinPath), ":sprites:skins:grag%d.png", i+1);
+		gCavemanSkins[1][i] = MO_GetTextureFromFile(skinPath, setupInfo, GL_RGBA);
+	}
+}
+
+
+void DisposeCavemanSkins(void)
+{
+	for (int i = 0; i < 6; i++)
+	{
+		for (int sex = 0; sex < 2; sex++)
+		{
+			if (gCavemanSkins[sex][i])
+			{
+				MO_DisposeObjectReference(gCavemanSkins[sex][i]);
+				gCavemanSkins[sex][i] = NULL;
+			}
+		}
+	}
+}
+
+#pragma mark -
+
+
 /************************** LOAD LEVEL ART ***************************/
 
 void LoadLevelArt(OGLSetupOutputType *setupInfo)
@@ -842,9 +879,8 @@ static const char*	levelModelFiles[NUM_TRACKS] =
 			/* LOAD SPRITES */
 
 	Atlas_LoadSlot(SPRITE_GROUP_INFOBAR, "infobar", setupInfo);
-
-	FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":sprites:global.sprites", &spec);
-	LoadSpriteFile(&spec, SPRITE_GROUP_GLOBAL, setupInfo);
+	Atlas_LoadSlot(SPRITE_GROUP_SHADOWS, "shadows", setupInfo);
+	LoadCavemanSkins(setupInfo);
 
 
 			/* LOAD TERRAIN */

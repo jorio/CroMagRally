@@ -95,6 +95,8 @@ extern	OSErr LoadPrefs(PrefsType *prefBlock);
 void SavePrefs(void);
 void LoadPlayfield(FSSpec *specPtr);
 void LoadLevelArt(OGLSetupOutputType *setupInfo);
+void LoadCavemanSkins(OGLSetupOutputType *setupInfo);
+void DisposeCavemanSkins(void);
 void SetDefaultDirectory(void);
 
 void SetDefaultPlayerSaveData(void);

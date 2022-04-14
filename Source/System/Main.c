@@ -1343,6 +1343,7 @@ static void CleanupLevel(void)
 	DisposeInfobar();
 	DisposeParticleSystem();
 	DisposeAllSpriteGroups();
+	DisposeCavemanSkins();
 	Atlas_DisposeAllSlots();
 	DisposeFences();
 
