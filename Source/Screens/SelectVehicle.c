@@ -252,7 +252,7 @@ int					age;
 
 			/* LOAD SPRITES */
 
-	Atlas_LoadSlot(SPRITE_GROUP_MAINMENU, "menus", gGameViewInfoPtr);
+	LoadSpriteGroup(SPRITE_GROUP_MAINMENU, "menus", 0, gGameViewInfoPtr);
 
 			/* LOAD MODELS */
 
@@ -368,7 +368,6 @@ static void FreeVehicleSelectArt(void)
 	DeleteAllObjects();
 	MO_DisposeObjectReference(gBackgoundPicture);
 	DisposeAllSpriteGroups();
-	Atlas_DisposeAllSlots();
 	DisposeAllBG3DContainers();
 	OGL_DisposeWindowSetup(&gGameViewInfoPtr);
 }
@@ -399,7 +398,7 @@ static void DrawVehicleSelectCallback(OGLSetupOutputType *info)
 
 		if (gSelectedVehicleIndex > 0)
 		{
-			Atlas_DrawQuad(SPRITE_GROUP_MAINMENU, MENUS_SObjType_LeftArrow,
+			DrawSprite(SPRITE_GROUP_MAINMENU, MENUS_SObjType_LeftArrow,
 						LEFT_ARROW_X, ARROW_Y, ARROW_SCALE, 0, 0, info);
 		}
 
@@ -407,7 +406,7 @@ static void DrawVehicleSelectCallback(OGLSetupOutputType *info)
 
 		if (gSelectedVehicleIndex < NUM_LAND_CAR_TYPES-1)
 		{
-			Atlas_DrawQuad(SPRITE_GROUP_MAINMENU, MENUS_SObjType_RightArrow,
+			DrawSprite(SPRITE_GROUP_MAINMENU, MENUS_SObjType_RightArrow,
 						RIGHT_ARROW_X, ARROW_Y, ARROW_SCALE, 0, 0, info);
 		}
 
@@ -415,7 +414,7 @@ static void DrawVehicleSelectCallback(OGLSetupOutputType *info)
 
 		if (gSelectedVehicleIndex >= gNumVehiclesToChooseFrom)
 		{
-			Atlas_DrawQuad(SPRITE_GROUP_MAINMENU, MENUS_SObjType_Padlock,
+			DrawSprite(SPRITE_GROUP_MAINMENU, MENUS_SObjType_Padlock,
 					0, ARROW_Y, ARROW_SCALE, 0, 0, info);
 		}
 	}

@@ -230,7 +230,7 @@ OGLSetupOutputType	*outputPtr;
 
 			/* LOAD FONT */
 
-	Atlas_LoadSlot(SPRITE_GROUP_FONT, setupDefPtr->view.fontName, outputPtr);
+	LoadSpriteGroup(SPRITE_GROUP_FONT, setupDefPtr->view.fontName, kAtlasLoadFont, outputPtr);
 	OGL_InitFont();
 
 

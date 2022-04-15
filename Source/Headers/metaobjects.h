@@ -171,16 +171,11 @@ typedef struct
 
 typedef struct
 {
-	float				width,height;			// pixel w/h of texture
-	float				aspectRatio;			// h/w
-	float				scaleBasis;
-
 	OGLPoint3D			coord;
 	float				scaleX,scaleY;
 	float				rot;
-
-	MOMaterialObject	*material;
-	float				u1, v1, u2, v2;
+	int					group;
+	int					type;
 }MOSpriteData;
 
 typedef struct
@@ -192,13 +187,9 @@ typedef struct
 
 typedef struct
 {
-	MOMaterialObject*	material;	// if non-NULL, pre-loaded material to use instead of gSpriteList
-	bool	isAtlasSlice;
-	int sliceX, sliceY, sliceW, sliceH;
-
-	short	group;				// if material is NULL, group and type of gSpriteList sprite to use
-	short	type;
-}MOSpriteSetupData;
+	int					group;
+	int					type;
+} MOSpriteSetupData;
 
 //-----------------------------
 

@@ -102,7 +102,6 @@ static Boolean	beenHere = false;
 		DisposeTerrain();								// dispose of any memory allocated by terrain manager
 		DisposeAllBG3DContainers();						// nuke all models
 		DisposeAllSpriteGroups();						// nuke all sprites
-		Atlas_DisposeAllSlots();						// nuke all sprites
 
 
 		if (gGameViewInfoPtr)							// see if need to dispose this

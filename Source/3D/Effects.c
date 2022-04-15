@@ -160,7 +160,7 @@ ObjNode	*obj;
 
 			/* LOAD SPRITES */
 
-	Atlas_LoadSlot(SPRITE_GROUP_PARTICLES, "particle", setupInfo);
+	LoadSpriteGroup(SPRITE_GROUP_PARTICLES, "particle", 0, setupInfo);
 
 
 		/*************************************************************************/
@@ -189,7 +189,7 @@ ObjNode	*obj;
 
 void DisposeParticleSystem(void)
 {
-	Atlas_DisposeSlot(SPRITE_GROUP_PARTICLES);
+	DisposeSpriteGroup(SPRITE_GROUP_PARTICLES);
 }
 
 

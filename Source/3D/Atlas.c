@@ -34,8 +34,6 @@ typedef struct
 /*    VARIABLES             */
 /****************************/
 
-Atlas* gAtlases[MAX_SPRITE_GROUPS];
-
 #pragma mark -
 
 /***************************************************************/
@@ -104,6 +102,26 @@ static uint32_t ReadNextCodepointFromUTF8(const char** utf8TextPtr)
 #undef TRY_ADVANCE
 }
 
+static void Atlas_SetGlyph(Atlas* atlas, uint32_t codepoint, AtlasGlyph* src)
+{
+	// Compute page for codepoint
+	uint32_t page = codepoint >> 8;
+	if (page >= MAX_CODEPOINT_PAGES)
+	{
+		printf("WARNING: codepoint 0x%x exceeds supported maximum (0x%x)\n", codepoint, MAX_CODEPOINT_PAGES * 256 - 1);
+		return;
+	}
+
+	// Allocate codepoint page
+	if (atlas->glyphPages[page] == NULL)
+	{
+		atlas->glyphPages[page] = AllocPtrClear(sizeof(AtlasGlyph) * 256);
+	}
+
+	// Store glyph
+	atlas->glyphPages[page][codepoint & 0xFF] = *src;
+}
+
 /***************************************************************/
 /*                       PARSE SFL                             */
 /***************************************************************/
@@ -150,12 +168,13 @@ static void ParseSFL(Atlas* atlas, const char* data, int imageWidth, int imageHe
 		AtlasGlyph newGlyph;
 		memset(&newGlyph, 0, sizeof(newGlyph));
 
-		uint32_t codePoint = 0;
+		uint32_t codepoint = 0;
 		float x, y;
+
 		nArgs = sscanf(
 				data,
 				"%d %f %f %f %f %f %f %f",
-				&codePoint,
+				&codepoint,
 				&x,
 				&y,
 				&newGlyph.w,
@@ -170,20 +189,7 @@ static void ParseSFL(Atlas* atlas, const char* data, int imageWidth, int imageHe
 		newGlyph.v1 =  y               / (float)imageHeight;
 		newGlyph.v2 = (y + newGlyph.h) / (float)imageHeight;
 
-		uint32_t codePointPage = codePoint >> 8;
-		if (codePointPage >= MAX_CODEPOINT_PAGES)
-		{
-			printf("WARNING: codepoint 0x%x exceeds supported maximum (0x%x)\n", codePoint, MAX_CODEPOINT_PAGES * 256 - 1);
-			continue;
-		}
-
-		// Allocate codepoint page
-		if (atlas->glyphPages[codePointPage] == NULL)
-		{
-			atlas->glyphPages[codePointPage] = AllocPtrClear(sizeof(AtlasGlyph) * 256);
-		}
-
-		atlas->glyphPages[codePointPage][codePoint & 0xFF] = newGlyph;
+		Atlas_SetGlyph(atlas, codepoint, &newGlyph);
 
 		ParseSFL_SkipLine(&data);  // Skip rest of line
 	}
@@ -258,36 +264,14 @@ static void ParseKerningFile(Atlas* atlas, const char* data)
 /*                       INIT/SHUTDOWN                         */
 /***************************************************************/
 
-void Atlas_LoadSlot(int slot, const char* atlasName, OGLSetupOutputType* setupInfo)
-{
-	GAME_ASSERT(!gAtlases[slot]);
-	gAtlases[slot] = Atlas_Load(atlasName, setupInfo);
-}
-
-void Atlas_DisposeSlot(int slot)
-{
-	if (gAtlases[slot])
-	{
-		Atlas_Dispose(gAtlases[slot]);
-		gAtlases[slot] = NULL;
-	}
-}
-
-void Atlas_DisposeAllSlots(void)
-{
-	for (int i = 0; i < MAX_SPRITE_GROUPS; i++)
-	{
-		Atlas_DisposeSlot(i);
-	}
-}
-
-Atlas* Atlas_Load(const char* fontName, OGLSetupOutputType* setupInfo)
+Atlas* Atlas_Load(const char* fontName, int flags, OGLSetupOutputType* setupInfo)
 {
 	Atlas* atlas = AllocPtrClear(sizeof(Atlas));
 
 	char pathBuf[256];
 
 	snprintf(pathBuf, sizeof(pathBuf), ":sprites:%s.png", fontName);
+	printf("Atlas_Load: %s\n", pathBuf);
 	{
 		// Create font material
 		const char* texturePath = pathBuf;
@@ -310,8 +294,9 @@ Atlas* Atlas_Load(const char* fontName, OGLSetupOutputType* setupInfo)
 		atlas->material = MO_CreateNewObjectOfType(MO_TYPE_MATERIAL, 0, &matData);
 	}
 
-	snprintf(pathBuf, sizeof(pathBuf), ":sprites:%s.sfl", fontName);
+	if (!(flags & kAtlasLoadAsSingleSprite))
 	{
+		snprintf(pathBuf, sizeof(pathBuf), ":sprites:%s.sfl", fontName);
 		// Parse metrics from SFL file
 		const char* sflPath = pathBuf;
 		char* data = LoadTextFile(sflPath, NULL);
@@ -319,7 +304,24 @@ Atlas* Atlas_Load(const char* fontName, OGLSetupOutputType* setupInfo)
 		ParseSFL(atlas, data, atlas->textureWidth, atlas->textureHeight);
 		SafeDisposePtr(data);
 	}
+	else
+	{
+		// Create single glyph #1
+		AtlasGlyph newGlyph =
+		{
+			.xadv = atlas->material->objectData.width,
+			.w = 2*atlas->material->objectData.width,
+			.h = 2*atlas->material->objectData.height,
+			.u2 = 1,
+			.v2 = 1,
+			.xoff = -128,
+			.yoff = -256,
+		};
+		printf("Single glyph: %f %f\n", newGlyph.w, newGlyph.h);
+		Atlas_SetGlyph(atlas, 1, &newGlyph);
+	}
 
+	if (flags & kAtlasLoadFont)
 	{
 		// Parse kerning table
 		char* data = LoadTextFile(":system:kerning.txt", NULL);
@@ -387,10 +389,10 @@ static void TextMesh_InitMesh(MOVertexArrayData* mesh, int numQuads)
 {
 	memset(mesh, 0, sizeof(*mesh));
 	
-	GAME_ASSERT(gAtlases[0]);
+	GAME_ASSERT(gAtlases[SPRITE_GROUP_FONT]);
 
 	mesh->numMaterials = 1;
-	mesh->materials[0] = gAtlases[0]->material;
+	mesh->materials[0] = gAtlases[SPRITE_GROUP_FONT]->material;
 
 	TextMesh_ReallocateMesh(mesh, numQuads);
 }
@@ -715,7 +717,7 @@ void Atlas_DrawString(
 	glDisable(GL_CULL_FACE);
 	glDisable(GL_DEPTH_TEST);
 
-	if (flags & SPRITE_FLAG_GLOW)
+	if (flags & kTextMeshGlow)
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE);
 
 	glTranslatef(x,y,0);
@@ -770,18 +772,3 @@ void Atlas_DrawString(
 	OGL_PopState();									// restore state
 }
 
-
-
-void Atlas_DrawQuad(
-	int slot,
-	int spriteNo,
-	float x,
-	float y,
-	float scale,
-	float rot,
-	uint32_t flags,
-	const OGLSetupOutputType *setupInfo)
-{
-	char text[2] = { spriteNo, 0 };
-	Atlas_DrawString(slot, text, x, y, scale, rot, flags, setupInfo);
-}

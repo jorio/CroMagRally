@@ -165,7 +165,6 @@ float				keyTextFadeIn = -2.0f;		// fade in after a small delay
 	DeleteAllObjects();
 	MO_DisposeObjectReference(gBackgoundPicture);
 	DisposeAllSpriteGroups();
-	Atlas_DisposeAllSlots();
 
 	OGL_DisposeWindowSetup(&gGameViewInfoPtr);
 }
@@ -383,7 +382,6 @@ static void FreeConqueredScreen(void)
 	DisposeParticleSystem();
 	MO_DisposeObjectReference(gBackgoundPicture);
 	DisposeAllSpriteGroups();
-	Atlas_DisposeAllSlots();
 	DisposeAllBG3DContainers();
 	OGL_DisposeWindowSetup(&gGameViewInfoPtr);
 }
@@ -603,7 +601,6 @@ static void FreeWinScreen(void)
 	DisposeParticleSystem();
 	MO_DisposeObjectReference(gBackgoundPicture);
 	DisposeAllSpriteGroups();
-	Atlas_DisposeAllSlots();
 	FreeAllSkeletonFiles(-1);
 	DisposeAllBG3DContainers();
 	OGL_DisposeWindowSetup(&gGameViewInfoPtr);
@@ -928,7 +925,6 @@ static void FreeCreditsScreen(void)
 	DeleteAllObjects();
 	MO_DisposeObjectReference(gBackgoundPicture);
 	DisposeAllSpriteGroups();
-	Atlas_DisposeAllSlots();
 	DisposeAllBG3DContainers();
 	OGL_DisposeWindowSetup(&gGameViewInfoPtr);
 }

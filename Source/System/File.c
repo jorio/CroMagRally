@@ -878,8 +878,8 @@ static const char*	levelModelFiles[NUM_TRACKS] =
 
 			/* LOAD SPRITES */
 
-	Atlas_LoadSlot(SPRITE_GROUP_INFOBAR, "infobar", setupInfo);
-	Atlas_LoadSlot(SPRITE_GROUP_SHADOWS, "shadows", setupInfo);
+	LoadSpriteGroup(SPRITE_GROUP_INFOBAR, "infobar", 0, setupInfo);
+	LoadSpriteGroup(SPRITE_GROUP_SHADOWS, "shadows", 0, setupInfo);
 	LoadCavemanSkins(setupInfo);
 
 

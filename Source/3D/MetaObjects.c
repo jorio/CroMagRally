@@ -81,6 +81,7 @@ MetaObjectPtr MO_GetNewReference(MetaObjectPtr mo)
 MetaObjectHeader *h = mo;
 
 	h->refCount++;
+	GAME_ASSERT(h->refCount < 1000000);
 
 		/********************************/
 		/* SEE IF NEED TO SUB INCREMENT */
@@ -448,64 +449,8 @@ static void SetMetaObjectToSprite(MOSpriteObject *spriteObj, OGLSetupOutputType 
 {
 MOSpriteData	*spriteData = &spriteObj->objectData;
 
-
-		/* CREATE MATERIAL OBJECT FROM FSSPEC */
-
-	if (inData->material)
-	{
-		spriteData->material = MO_GetNewReference(inData->material);
-
-		int textureWidth = spriteData->material->objectData.width;
-		int textureHeight = spriteData->material->objectData.height;
-
-		if (inData->isAtlasSlice)
-		{
-			spriteData->width = inData->sliceW;
-			spriteData->height = inData->sliceH;
-			spriteData->u1 = inData->sliceX / (float)textureWidth;
-			spriteData->v1 = inData->sliceY / (float)textureHeight;
-			spriteData->u2 = (inData->sliceX + inData->sliceW) / (float)textureWidth;
-			spriteData->v2 = (inData->sliceY + inData->sliceH) / (float)textureHeight;
-		}
-		else // use full texture
-		{
-			spriteData->width = textureWidth;
-			spriteData->height = textureHeight;
-			spriteData->u1 = spriteData->v1 = 0;
-			spriteData->u2 = spriteData->v2 = 1;
-		}
-
-		spriteData->aspectRatio = spriteData->height / spriteData->width;				// calc aspect ratio
-	}
-
-			/* GET MATERIAL FROM SPRITE LIST */
-	else
-	{
-		short group = inData->group;
-		short type = inData->type;
-
-		if (inData->type >= gNumSpritesInGroupList[group])								// make sure type is valid
-			DoFatalAlert("SetMetaObjectToSprite: illegal type");
-
-		spriteData->material = gSpriteGroupList[group][type].materialObject;
-		MO_GetNewReference(spriteData->material);										// this is a new reference, so inc ref count
-
-		spriteData->width 		= gSpriteGroupList[group][type].width;					// get width and height of texture
-		spriteData->height 		= gSpriteGroupList[group][type].height;
-		spriteData->aspectRatio = gSpriteGroupList[group][type].aspectRatio;			// get aspect ratio
-
-		spriteData->u1 = spriteData->v1 = 0;											// use entire texture
-		spriteData->u2 = spriteData->v2 = 1;
-	}
-
-
-			/*******************************/
-			/* SET SOME SPRITE OBJECT DATA */
-			/*******************************/
-
-	spriteData->scaleBasis = spriteData->width / SPRITE_SCALE_BASIS_DENOMINATOR;		// calculate a scale basis to keep things scaled relative to texture size
-
-
+	spriteData->group = inData->group;
+	spriteData->type = inData->type;
 	spriteData->coord.x		= -1.0;								// assume upper left corner
 	spriteData->coord.y		= 1.0;
 	spriteData->coord.z		= 0;								// assume in front
@@ -1046,52 +991,17 @@ float			screenScaleX,screenScaleY;
 void MO_DrawSprite(const MOSpriteObject *spriteObj, const OGLSetupOutputType *setupInfo)
 {
 const MOSpriteData	*spriteData = &spriteObj->objectData;
-float			spriteAspectRatio;
 
-	spriteAspectRatio = spriteData->aspectRatio;						// get sprite's aspect ratio
-
-			/* INIT MATRICES */
-
-	glTranslatef(spriteData->coord.x,spriteData->coord.y,spriteData->coord.z);
-	glScalef(spriteData->scaleX * spriteData->scaleBasis, spriteData->scaleY * gCurrentAspectRatio * spriteAspectRatio * spriteData->scaleBasis, 1);
-
-	if (spriteData->rot != 0.0f)
-		glRotatef(spriteData->rot, 0, 0, 1);							// remember:  rotation is in degrees, not radians!
-
-
-		/* ACTIVATE THE MATERIAL */
-
-//	GAME_ASSERT((gGlobalMaterialFlags | spriteData->material->objectData.flags) & BG3D_MATERIALFLAG_CLAMP_U);
-//	GAME_ASSERT((gGlobalMaterialFlags | spriteData->material->objectData.flags) & BG3D_MATERIALFLAG_CLAMP_V);
-
-	MO_DrawMaterial(spriteData->material, setupInfo);
-
-		/* PREP COORDS */
-
-	float u1 = spriteData->u1;
-	float v1 = spriteData->v1;
-	float u2 = spriteData->u2;
-	float v2 = spriteData->v2;
-
-	float x1 = -1;
-	float y1 = 1;
-	float x2 = 1;
-	float y2 = -1;
-
-
-			/* DRAW IT */
-
-	glBegin(GL_QUADS);
-	glTexCoord2f(u1,v1);	glVertex3f(x1, y2, 0);
-	glTexCoord2f(u2,v1);	glVertex3f(x2, y2, 0);
-	glTexCoord2f(u2,v2);	glVertex3f(x2, y1, 0);
-	glTexCoord2f(u1,v2);	glVertex3f(x1, y1, 0);
-	glEnd();
-
-
-		/* CLEAN UP */
-
-	gPolysThisFrame += 2;						// 2 more tris
+	DrawSprite(
+		spriteData->group,
+		spriteData->type,
+		spriteData->coord.x,
+		spriteData->coord.y,
+		spriteData->scaleX,
+		spriteData->rot,
+		0,
+		setupInfo
+	);
 }
 
 
@@ -1298,15 +1208,9 @@ MOPictureData *data = &obj->objectData;
 }
 
 /****************** DISPOSE OBJECT: SPRITE *******************/
-//
-// Decrement reference tothe material used in this sprite
-//
 
 static void MO_DisposeObject_Sprite(MOSpriteObject *obj)
 {
-MOSpriteData *data = &obj->objectData;
-
-	MO_DisposeObjectReference(data->material);
 }
 
 
@@ -1619,6 +1523,7 @@ Ptr				buffer;
 Ptr 			pictMapAddr;
 uint32_t		pictRowBytes;
 
+printf("MO_GetTextureFromFile: %s\n", path);
 		/*******************************/
 		/* CREATE TEXTURE PIXEL BUFFER */
 		/*******************************/

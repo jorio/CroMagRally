@@ -31,10 +31,7 @@ static void MakeTrackName(void);
 
 enum
 {
-	TRACKSELECT_SObjType_Padlock,
-
-	TRACKSELECT_SObjType_Arrow_LeftOn,
-	TRACKSELECT_SObjType_Arrow_RightOn,
+	TRACKSELECT_SObjType__NULL = 0,
 
 	TRACKSELECT_SObjType__Level0,			// stone age
 	TRACKSELECT_SObjType__Level1,
@@ -144,7 +141,6 @@ Boolean SelectSingleTrack(void)
 
 static void SetupTrackSelectScreen(void)
 {
-FSSpec				spec;
 OGLSetupInputType	viewDef;
 
 
@@ -182,17 +178,16 @@ OGLSetupInputType	viewDef;
 		case	GAME_MODE_MULTIPLAYERRACE:
 				gNumTracksInSelection = NUM_PRACTICE_TRACKS;
 				gBaseTrack = 0;
-				FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":sprites:trackselect.sprites", &spec);
+				LoadSpriteGroup(SPRITE_GROUP_TRACKSELECTSCREEN, "tracks1", 0, gGameViewInfoPtr);
 				break;
 
 		default:
 				gNumTracksInSelection = NUM_BATTLE_TRACKS;
 				gBaseTrack = 9;
-				FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":sprites:trackselectMP.sprites", &spec);
+				LoadSpriteGroup(SPRITE_GROUP_TRACKSELECTSCREEN, "tracks2", 0, gGameViewInfoPtr);
 	}
-	LoadSpriteFile(&spec, SPRITE_GROUP_TRACKSELECTSCREEN, gGameViewInfoPtr);
 
-	Atlas_LoadSlot(SPRITE_GROUP_MAINMENU, "menus", gGameViewInfoPtr);
+	LoadSpriteGroup(SPRITE_GROUP_MAINMENU, "menus", 0, gGameViewInfoPtr);
 
 
 
@@ -263,7 +258,6 @@ static void FreeTrackSelectArt(void)
 	DeleteAllObjects();
 	MO_DisposeObjectReference(gBackgoundPicture);
 	DisposeAllSpriteGroups();
-	Atlas_DisposeAllSlots();
 }
 
 
@@ -290,7 +284,7 @@ short				highestUnlocked;
 
 		if (gSelectedTrackIndex > 0)
 		{
-			Atlas_DrawQuad(SPRITE_GROUP_MAINMENU, MENUS_SObjType_LeftArrow,
+			DrawSprite(SPRITE_GROUP_MAINMENU, MENUS_SObjType_LeftArrow,
 						LEFT_ARROW_X, ARROW_Y, ARROW_SCALE, 0, 0, info);
 		}
 
@@ -298,7 +292,7 @@ short				highestUnlocked;
 
 		if (gSelectedTrackIndex < (gNumTracksInSelection-1))
 		{
-			Atlas_DrawQuad(SPRITE_GROUP_MAINMENU, MENUS_SObjType_RightArrow,
+			DrawSprite(SPRITE_GROUP_MAINMENU, MENUS_SObjType_RightArrow,
 						RIGHT_ARROW_X, ARROW_Y, ARROW_SCALE, 0, 0, info);
 		}
 	}
@@ -325,7 +319,7 @@ short				highestUnlocked;
 	if (gSelectedTrackIndex > highestUnlocked)
 	{
 		// Draw padlock
-		Atlas_DrawQuad(SPRITE_GROUP_MAINMENU, MENUS_SObjType_Padlock,
+		DrawSprite(SPRITE_GROUP_MAINMENU, MENUS_SObjType_Padlock,
 					0, 0, .5, 0, 0, info);
 	}
 }

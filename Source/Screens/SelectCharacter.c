@@ -157,7 +157,7 @@ ObjNode	*newObj;
 
 			/* LOAD SPRITES */
 
-	Atlas_LoadSlot(SPRITE_GROUP_MAINMENU, "menus", gGameViewInfoPtr);
+	LoadSpriteGroup(SPRITE_GROUP_MAINMENU, "menus", 0, gGameViewInfoPtr);
 
 
 			/* LOAD SKELETONS */
@@ -232,7 +232,6 @@ static void FreeCharacterSelectArt(void)
 	MO_DisposeObjectReference(gBackgoundPicture);
 	FreeAllSkeletonFiles(-1);
 	DisposeAllSpriteGroups();
-	Atlas_DisposeAllSlots();
 	DisposeAllBG3DContainers();
 }
 
@@ -251,12 +250,12 @@ static void DrawCharacterSelectCallback(OGLSetupOutputType *info)
 
 	if (gSelectedCharacterIndex == 0)
 	{
-		Atlas_DrawQuad(SPRITE_GROUP_MAINMENU, MENUS_SObjType_UpArrow,
+		DrawSprite(SPRITE_GROUP_MAINMENU, MENUS_SObjType_UpArrow,
 					-.43, -.85, ARROW_SCALE, 0, 0, info);
 	}
 	else if (gSelectedCharacterIndex == 1)
 	{
-		Atlas_DrawQuad(SPRITE_GROUP_MAINMENU, MENUS_SObjType_UpArrow,
+		DrawSprite(SPRITE_GROUP_MAINMENU, MENUS_SObjType_UpArrow,
 					.43, -.85, ARROW_SCALE, 0, 0, info);
 	}
 

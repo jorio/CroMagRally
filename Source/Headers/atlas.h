@@ -10,6 +10,13 @@ enum
 	kTextMeshAlignLeft = 1,
 	kTextMeshAlignRight = 2,
 	kTextMeshNoSpecialASCII = 4,
+	kTextMeshGlow = 8,
+};
+
+enum
+{
+	kAtlasLoadAsSingleSprite	= 1,
+	kAtlasLoadFont				= 2,
 };
 
 typedef struct
@@ -41,12 +48,12 @@ typedef struct Atlas
 	uint8_t kernTracking[MAX_KERNPAIRS];
 } Atlas;
 
-void Atlas_LoadSlot(int slot, const char* atlasName, OGLSetupOutputType* setupInfo);
-void Atlas_DisposeSlot(int slot);
-void Atlas_DisposeAllSlots(void);
+Atlas* Atlas_Load(const char* atlasName, int flags, OGLSetupOutputType* setupInfo);
+void Atlas_Dispose(Atlas* atlas);
 
-struct Atlas* Atlas_Load(const char* fontName, OGLSetupOutputType* setupInfo);
-void Atlas_Dispose(struct Atlas* atlas);
+void LoadSpriteGroup(int groupNum, const char* atlasName, int flags, OGLSetupOutputType* setupInfo);
+void DisposeSpriteGroup(int groupNum);
+void DisposeAllSpriteGroups(void);
 
 ObjNode* TextMesh_NewEmpty(int capacity, NewObjectDefinitionType *newObjDef);
 ObjNode* TextMesh_New(const char *text, int align, NewObjectDefinitionType *newObjDef);
@@ -65,7 +72,7 @@ void Atlas_DrawString(
 	uint32_t flags,
 	const OGLSetupOutputType *setupInfo);
 
-void Atlas_DrawQuad(
+void DrawSprite(
 	int slot,
 	int spriteNo,
 	float x,
