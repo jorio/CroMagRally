@@ -6,11 +6,15 @@
 
 enum
 {
-	kTextMeshAlignCenter = 0,
-	kTextMeshAlignLeft = 1,
-	kTextMeshAlignRight = 2,
-	kTextMeshNoSpecialASCII = 4,
-	kTextMeshGlow = 8,
+	kTextMeshAlignCenter				= 0,		// default if horizontal alignment not set
+	kTextMeshAlignLeft					= 1<<1,
+	kTextMeshAlignRight					= 1<<2,
+	kTextMeshAlignMiddle				= 0,		// default if vertical alignment not set
+	kTextMeshAlignTop					= 1<<3,
+	kTextMeshAlignBottom				= 1<<4,
+	kTextMeshNoSpecialASCII				= 1<<5,
+	kTextMeshGlow						= 1<<6,
+	kTextMeshProjectionOrthoFullRect	= 1<<7,
 };
 
 enum

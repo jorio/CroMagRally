@@ -781,7 +781,7 @@ void OGL_DrawScene(OGLSetupOutputType *setupInfo, void (*drawRoutine)(OGLSetupOu
 			gVRAMUsedThisFrame / 1024,
 			gNumPointers
 		);
-		TextMesh_Update(gDebugTextBuffer, 1, gDebugText);
+		TextMesh_Update(gDebugTextBuffer, kTextMeshAlignLeft, gDebugText);
 		gDebugText->StatusBits &= ~STATUS_BIT_HIDDEN;
 	}
 	else

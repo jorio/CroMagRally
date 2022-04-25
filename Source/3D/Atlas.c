@@ -16,7 +16,7 @@
 
 #define TAB_STOP 60.0f
 
-#define MAX_LINEBREAKS_PER_OBJNODE	16
+#define MAX_LINEBREAKS_PER_OBJNODE	8
 
 /****************************/
 /*    PROTOTYPES            */
@@ -27,6 +27,7 @@ typedef struct
 	int numQuads;
 	int numLines;
 	float lineWidths[MAX_LINEBREAKS_PER_OBJNODE];
+	float lineHeights[MAX_LINEBREAKS_PER_OBJNODE];
 	float longestLineWidth;
 } TextMetrics;
 
@@ -184,6 +185,7 @@ static void ParseAtlasMetrics(Atlas* atlas, const char* data, int imageWidth, in
 		Atlas_SetGlyph(atlas, codepoint, &newGlyph);
 	}
 
+#if 0
 	// Force monospaced numbers
 	AtlasGlyph* asciiPage = atlas->glyphPages[0];
 	AtlasGlyph referenceNumber = asciiPage['4'];
@@ -192,6 +194,7 @@ static void ParseAtlasMetrics(Atlas* atlas, const char* data, int imageWidth, in
 		asciiPage[c].xoff += (referenceNumber.w - asciiPage[c].w) / 2.0f;
 		asciiPage[c].xadv = referenceNumber.xadv;
 	}
+#endif
 }
 
 /***************************************************************/
@@ -411,6 +414,7 @@ static void ComputeMetrics(const Atlas* font, const char* text, TextMetrics* met
 	metrics->numLines = 1;
 	metrics->numQuads = 0;
 	metrics->lineWidths[0] = 0;
+	metrics->lineHeights[0] = 0;
 	metrics->longestLineWidth = 0;
 	for (const char* utftext = text; *utftext; )
 	{
@@ -428,6 +432,7 @@ static void ComputeMetrics(const Atlas* font, const char* text, TextMetrics* met
 				metrics->numLines++;
 
 				metrics->lineWidths[metrics->numLines - 1] = 0;  // init next line
+				metrics->lineHeights[metrics->numLines - 1] = 0;
 				continue;
 			}
 			else if (c == '\t')
@@ -438,8 +443,17 @@ static void ComputeMetrics(const Atlas* font, const char* text, TextMetrics* met
 		}
 
 		const AtlasGlyph* glyph = GetGlyphFromCodepoint(font, c);
-		float kernFactor = Kern(font, glyph, utftext);
+		float kernFactor = 1;
+
+		if (specialASCII)
+			kernFactor = Kern(font, glyph, utftext);
+
 		metrics->lineWidths[metrics->numLines-1] += (glyph->xadv * kernFactor + spacing);
+
+		float gh = glyph->h + glyph->yoff;
+		//float gh = glyph->h - glyph->yoff;//-glyph->yoff + glyph->yadv;
+		if (gh > metrics->lineHeights[metrics->numLines-1])
+			metrics->lineHeights[metrics->numLines-1] = gh;
 
 		if (glyph->w > 0)
 			metrics->numQuads++;
@@ -451,12 +465,32 @@ static void ComputeMetrics(const Atlas* font, const char* text, TextMetrics* met
 
 static float GetLineStartX(int align, float lineWidth)
 {
-	if (align == kTextMeshAlignCenter)
-		return -(lineWidth * .5f);
-	else if (align == kTextMeshAlignRight)
-		return -(lineWidth);
-	else
-		return 0;
+	switch (align & (kTextMeshAlignCenter | kTextMeshAlignLeft | kTextMeshAlignRight))
+	{
+		case kTextMeshAlignLeft:
+			return 0;
+
+		case kTextMeshAlignRight:
+			return -lineWidth;
+		
+		default:
+			return -lineWidth * .5f;
+	}
+}
+
+static float GetLineStartY(int align, float lineHeight)
+{
+	switch (align & (kTextMeshAlignMiddle | kTextMeshAlignTop | kTextMeshAlignBottom))
+	{
+		case kTextMeshAlignTop:
+			return 0;
+
+		case kTextMeshAlignBottom:
+			return -lineHeight;
+		
+		default:
+			return -lineHeight * .5f;
+	}
 }
 
 void TextMesh_Update(const char* text, int align, ObjNode* textNode)
@@ -701,7 +735,11 @@ void Atlas_DrawString(
 			/* SET STATE */
 
 	OGL_PushState();								// keep state
-	OGL_SetProjection(kProjectionType2DNDC);
+
+	if (flags & kTextMeshProjectionOrthoFullRect)
+		OGL_SetProjection(kProjectionType2DOrthoFullRect);
+	else
+		OGL_SetProjection(kProjectionType2DNDC);
 
 	OGL_DisableLighting();
 	glDisable(GL_CULL_FACE);
@@ -712,8 +750,15 @@ void Atlas_DrawString(
 
 	glTranslatef(x,y,0);
 
-	float scaleBasis = 2.0f / SPRITE_SCALE_BASIS_DENOMINATOR;
-	glScalef(scale * scaleBasis, scale * gCurrentAspectRatio * scaleBasis, 1);
+	if (flags & kTextMeshProjectionOrthoFullRect)
+	{
+		glScalef(scale, scale, 1);
+	}
+	else
+	{
+		float scaleBasis = 2.0f / SPRITE_SCALE_BASIS_DENOMINATOR;
+		glScalef(scale * scaleBasis, scale * gCurrentAspectRatio * scaleBasis, 1);
+	}
 
 	if (rot != 0.0f)
 		glRotatef(OGLMath_RadiansToDegrees(rot), 0, 0, 1);											// remember:  rotation is in degrees, not radians!
@@ -734,7 +779,9 @@ void Atlas_DrawString(
 
 	TextMetrics metrics;
 	ComputeMetrics(font, text, &metrics, false);
-	cx = -metrics.longestLineWidth / 2;
+
+	cx = GetLineStartX(flags, metrics.longestLineWidth);
+	cy = GetLineStartY(flags, metrics.lineHeights[0]);
 
 	for (const char* utftext = text; *utftext; )
 	{
@@ -746,10 +793,13 @@ void Atlas_DrawString(
 		float qx = cx + (g.xoff + halfw);
 		float qy = cy + (g.yoff + halfh);
 
-		glTexCoord2f(g.u1, g.v1);	glVertex3f(qx - halfw, qy + halfh, 0);
-		glTexCoord2f(g.u2, g.v1);	glVertex3f(qx + halfw, qy + halfh, 0);
-		glTexCoord2f(g.u2, g.v2);	glVertex3f(qx + halfw, qy - halfh, 0);
-		glTexCoord2f(g.u1, g.v2);	glVertex3f(qx - halfw, qy - halfh, 0);
+		float v1 = flags & kTextMeshProjectionOrthoFullRect ? g.v1 : g.v2;
+		float v2 = flags & kTextMeshProjectionOrthoFullRect ? g.v2 : g.v1;
+
+		glTexCoord2f(g.u1, v2);	glVertex3f(qx - halfw, qy + halfh, 0);
+		glTexCoord2f(g.u2, v2);	glVertex3f(qx + halfw, qy + halfh, 0);
+		glTexCoord2f(g.u2, v1);	glVertex3f(qx + halfw, qy - halfh, 0);
+		glTexCoord2f(g.u1, v1);	glVertex3f(qx - halfw, qy - halfh, 0);
 
 		cx += g.xadv * Kern(font, &g, utftext);
 
