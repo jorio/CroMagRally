@@ -26,6 +26,7 @@ typedef struct
 	float xoff;
 	float yoff;
 	float xadv;
+	float yadv;
 
 	float u1;
 	float v1;

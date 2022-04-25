@@ -126,7 +126,7 @@ static void Atlas_SetGlyph(Atlas* atlas, uint32_t codepoint, AtlasGlyph* src)
 /*                       PARSE SFL                             */
 /***************************************************************/
 
-static void ParseSFL_SkipLine(const char** dataPtr)
+static void ParseAtlasMetrics_SkipLine(const char** dataPtr)
 {
 	const char* data = *dataPtr;
 
@@ -140,28 +140,17 @@ static void ParseSFL_SkipLine(const char** dataPtr)
 			break;
 	}
 
-	GAME_ASSERT(*data);
 	*dataPtr = data;
 }
 
-// Parse an SFL file produced by fontbuilder
-static void ParseSFL(Atlas* atlas, const char* data, int imageWidth, int imageHeight)
+static void ParseAtlasMetrics(Atlas* atlas, const char* data, int imageWidth, int imageHeight)
 {
 	int nArgs = 0;
 	int nGlyphs = 0;
-	int junk = 0;
 
-	ParseSFL_SkipLine(&data);	// Skip font name
-
-	nArgs = sscanf(data, "%d %f", &junk, &atlas->lineHeight);
+	nArgs = sscanf(data, "%d %f", &nGlyphs, &atlas->lineHeight);
 	GAME_ASSERT(nArgs == 2);
-	ParseSFL_SkipLine(&data);  // Skip rest of line
-
-	ParseSFL_SkipLine(&data);	// Skip image filename
-
-	nArgs = sscanf(data, "%d", &nGlyphs);
-	GAME_ASSERT(nArgs == 1);
-	ParseSFL_SkipLine(&data);  // Skip rest of line
+	ParseAtlasMetrics_SkipLine(&data);  // Skip rest of line (name)
 
 	for (int i = 0; i < nGlyphs; i++)
 	{
@@ -173,7 +162,7 @@ static void ParseSFL(Atlas* atlas, const char* data, int imageWidth, int imageHe
 
 		nArgs = sscanf(
 				data,
-				"%d %f %f %f %f %f %f %f",
+				"%d %f %f %f %f %f %f %f %f",
 				&codepoint,
 				&x,
 				&y,
@@ -181,8 +170,11 @@ static void ParseSFL(Atlas* atlas, const char* data, int imageWidth, int imageHe
 				&newGlyph.h,
 				&newGlyph.xoff,
 				&newGlyph.yoff,
-				&newGlyph.xadv);
-		GAME_ASSERT(nArgs == 8);
+				&newGlyph.xadv,
+				&newGlyph.yadv);
+		GAME_ASSERT(nArgs == 9);
+
+		ParseAtlasMetrics_SkipLine(&data);  // Skip rest of line
 
 		newGlyph.u1 =  x               / (float)imageWidth;
 		newGlyph.u2 = (x + newGlyph.w) / (float)imageWidth;
@@ -190,8 +182,6 @@ static void ParseSFL(Atlas* atlas, const char* data, int imageWidth, int imageHe
 		newGlyph.v2 = (y + newGlyph.h) / (float)imageHeight;
 
 		Atlas_SetGlyph(atlas, codepoint, &newGlyph);
-
-		ParseSFL_SkipLine(&data);  // Skip rest of line
 	}
 
 	// Force monospaced numbers
@@ -296,12 +286,12 @@ Atlas* Atlas_Load(const char* fontName, int flags, OGLSetupOutputType* setupInfo
 
 	if (!(flags & kAtlasLoadAsSingleSprite))
 	{
-		snprintf(pathBuf, sizeof(pathBuf), ":sprites:%s.sfl", fontName);
+		snprintf(pathBuf, sizeof(pathBuf), ":sprites:%s.txt", fontName);
 		// Parse metrics from SFL file
 		const char* sflPath = pathBuf;
 		char* data = LoadTextFile(sflPath, NULL);
 		GAME_ASSERT(data);
-		ParseSFL(atlas, data, atlas->textureWidth, atlas->textureHeight);
+		ParseAtlasMetrics(atlas, data, atlas->textureWidth, atlas->textureHeight);
 		SafeDisposePtr(data);
 	}
 	else

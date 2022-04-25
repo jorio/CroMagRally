@@ -178,13 +178,13 @@ OGLSetupInputType	viewDef;
 		case	GAME_MODE_MULTIPLAYERRACE:
 				gNumTracksInSelection = NUM_PRACTICE_TRACKS;
 				gBaseTrack = 0;
-				LoadSpriteGroup(SPRITE_GROUP_TRACKSELECTSCREEN, "tracks1", 0, gGameViewInfoPtr);
+				LoadSpriteGroup(SPRITE_GROUP_TRACKSELECTSCREEN, "trackselectsp", 0, gGameViewInfoPtr);
 				break;
 
 		default:
 				gNumTracksInSelection = NUM_BATTLE_TRACKS;
 				gBaseTrack = 9;
-				LoadSpriteGroup(SPRITE_GROUP_TRACKSELECTSCREEN, "tracks2", 0, gGameViewInfoPtr);
+				LoadSpriteGroup(SPRITE_GROUP_TRACKSELECTSCREEN, "trackselectmp", 0, gGameViewInfoPtr);
 	}
 
 	LoadSpriteGroup(SPRITE_GROUP_MAINMENU, "menus", 0, gGameViewInfoPtr);

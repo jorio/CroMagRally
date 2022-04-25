@@ -1605,10 +1605,10 @@ Ptr LoadDataFile(const char* path, long* outLength)
 	long readBytes = 0;
 
 	err = FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, path, &spec);
-	GAME_ASSERT(!err);
+	GAME_ASSERT_MESSAGE(!err, path);
 
 	err = FSpOpenDF(&spec, fsRdPerm, &refNum);
-	GAME_ASSERT(!err);
+	GAME_ASSERT_MESSAGE(!err, path);
 
 	// Get number of bytes until EOF
 	GetEOF(refNum, &fileLength);
@@ -1620,10 +1620,10 @@ Ptr LoadDataFile(const char* path, long* outLength)
 	// Read file into data buffer
 	readBytes = fileLength;
 	err = FSRead(refNum, &readBytes, (Ptr) data);
-	GAME_ASSERT(err == noErr);
+	GAME_ASSERT_MESSAGE(err == noErr, path);
 	FSClose(refNum);
 
-	GAME_ASSERT(fileLength == readBytes);
+	GAME_ASSERT_MESSAGE(fileLength == readBytes, path);
 
 	if (outLength)
 	{
