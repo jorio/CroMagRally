@@ -150,9 +150,7 @@ ObjNode	*newObj;
 
 			/* MAKE BACKGROUND PICTURE OBJECT */
 
-	gBackgoundPicture = MO_CreateNewObjectOfType(MO_TYPE_PICTURE, (uintptr_t) gGameViewInfoPtr, ":images:CharSelectScreen.jpg");
-	if (!gBackgoundPicture)
-		DoFatalAlert("SetupCharacterSelectScreen: MO_CreateNewObjectOfType failed");
+	MakeBackgroundPictureObject(":images:CharSelectScreen.jpg");
 
 
 			/* LOAD SPRITES */
@@ -194,7 +192,8 @@ ObjNode	*newObj;
 	NewObjectDefinitionType newObjDef_NameString =
 	{
 		.coord = {-0.5f*ARROW_2D_SPREAD, -192, 0},
-		.scale = .6f
+		.scale = .6f,
+		.slot = SPRITE_SLOT
 	};
 	TextMesh_New(Localize(STR_BROG), kTextMeshAlignCenter, &newObjDef_NameString);
 
@@ -229,7 +228,6 @@ ObjNode	*newObj;
 static void FreeCharacterSelectArt(void)
 {
 	DeleteAllObjects();
-	MO_DisposeObjectReference(gBackgoundPicture);
 	FreeAllSkeletonFiles(-1);
 	DisposeAllSpriteGroups();
 	DisposeAllBG3DContainers();
@@ -240,10 +238,7 @@ static void FreeCharacterSelectArt(void)
 
 static void DrawCharacterSelectCallback(OGLSetupOutputType *info)
 {
-
-			/* DRAW BACKGROUND */
-
-	MO_DrawObject(gBackgoundPicture, info);
+	DrawObjects(info);
 
 
 			/* ARROW */
@@ -258,9 +253,6 @@ static void DrawCharacterSelectCallback(OGLSetupOutputType *info)
 		DrawSprite(SPRITE_GROUP_MAINMENU, MENUS_SObjType_UpArrow,
 					.43, -.85, ARROW_SCALE, 0, 0, info);
 	}
-
-
-	DrawObjects(info);
 }
 
 

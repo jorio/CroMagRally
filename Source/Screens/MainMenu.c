@@ -537,9 +537,7 @@ OGLVector3D			fillDirection2 = { -1, -.2, -.5 };
 
 			/* MAKE BACKGROUND PICTURE OBJECT */
 
-	gBackgoundPicture = MO_CreateNewObjectOfType(MO_TYPE_PICTURE, (uintptr_t) gGameViewInfoPtr, ":images:MainMenuBackground.jpg");
-	if (!gBackgoundPicture)
-		DoFatalAlert("SetupMainMenuScreen: MO_CreateNewObjectOfType failed");
+	MakeBackgroundPictureObject(":images:MainMenuBackground.jpg");
 
 
 			/* SETUP TITLE MENU */
@@ -552,7 +550,6 @@ OGLVector3D			fillDirection2 = { -1, -.2, -.5 };
 
 static void DrawMainMenuCallback(OGLSetupOutputType *info)
 {
-	MO_DrawObject(gBackgoundPicture, info);
 	DrawObjects(info);
 }
 
@@ -562,9 +559,7 @@ static void DrawMainMenuCallback(OGLSetupOutputType *info)
 static void FreeMainMenuArt(void)
 {
 	DeleteAllObjects();
-	MO_DisposeObjectReference(gBackgoundPicture);
 	DisposeAllSpriteGroups();
-	OGL_DisposeWindowSetup(&gGameViewInfoPtr);
 }
 
 

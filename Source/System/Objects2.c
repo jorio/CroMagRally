@@ -676,3 +676,22 @@ void StopObjectStreamEffect(ObjNode *theNode)
 	}
 }
 
+
+#pragma mark ----- BACKGROUND PICTURE OBJECT NODE ------
+
+ObjNode* MakeBackgroundPictureObject(const char* imagePath)
+{
+	MOPictureObject* backgroundPicture = MO_CreateNewObjectOfType(MO_TYPE_PICTURE, (uintptr_t)gGameViewInfoPtr, (void*) imagePath);
+
+	NewObjectDefinitionType def =
+	{
+		.genre = DISPLAY_GROUP_GENRE,
+		.slot = BGPIC_SLOT,
+		.scale = 1,
+	};
+	ObjNode* obj = MakeNewObject(&def);
+	obj->BaseGroup = MO_CreateNewObjectOfType(MO_TYPE_GROUP, 0, nil);
+	MO_AppendToGroup(obj->BaseGroup, backgroundPicture);
+
+	return obj;
+}

@@ -6,13 +6,18 @@
 
 #define INVALID_NODE_FLAG	0xdeadbeef			// put into CType when node is deleted
 
+enum
+{
+	BGPIC_SLOT		=	10,
+	PLAYER_SLOT		=	200,
+	ENEMY_SLOT		=	210,	// after player
+	SLOT_OF_DUMB	=	3000,	// ----- collision checks don't look beyond SLOT_OF_DUMB
+	FENCE_SLOT		=	3098,	// before sprites
+	PARTICLE_SLOT	=	3099,	// before sprites
+	SPRITE_SLOT		=	3100,
+	FADE_SLOT		=	4000,
+};
 
-#define	PLAYER_SLOT		200
-#define	ENEMY_SLOT		(PLAYER_SLOT+10)
-#define	SLOT_OF_DUMB	3000
-#define	SPRITE_SLOT		(SLOT_OF_DUMB+100)
-#define	FENCE_SLOT		(SPRITE_SLOT-2)
-#define	PARTICLE_SLOT	(SPRITE_SLOT-1)
 
 enum
 {
@@ -89,3 +94,4 @@ void CreateCollisionBoxFromBoundingBox_Maximized(ObjNode *theNode);
 void CreateCollisionBoxFromBoundingBox_Rotated(ObjNode *theNode, float tweakXZ, float tweakY);
 extern	void StopObjectStreamEffect(ObjNode *theNode);
 extern	void KeepOldCollisionBoxes(ObjNode *theNode);
+ObjNode* MakeBackgroundPictureObject(const char* imagePath);

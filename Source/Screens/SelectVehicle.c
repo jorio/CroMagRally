@@ -245,9 +245,7 @@ int					age;
 
 			/* MAKE BACKGROUND PICTURE OBJECT */
 
-	gBackgoundPicture = MO_CreateNewObjectOfType(MO_TYPE_PICTURE, (uintptr_t) gGameViewInfoPtr, ":images:VehicleSelectScreen.jpg");
-	if (!gBackgoundPicture)
-		DoFatalAlert("SetupVehicleSelectScreen: MO_CreateNewObjectOfType failed");
+	MakeBackgroundPictureObject(":images:VehicleSelectScreen.jpg");
 
 
 			/* LOAD SPRITES */
@@ -366,7 +364,6 @@ static void MakeVehicleName(void)
 static void FreeVehicleSelectArt(void)
 {
 	DeleteAllObjects();
-	MO_DisposeObjectReference(gBackgoundPicture);
 	DisposeAllSpriteGroups();
 	DisposeAllBG3DContainers();
 	OGL_DisposeWindowSetup(&gGameViewInfoPtr);
@@ -377,12 +374,6 @@ static void FreeVehicleSelectArt(void)
 
 static void DrawVehicleSelectCallback(OGLSetupOutputType *info)
 {
-
-			/* DRAW BACKGROUND */
-
-	MO_DrawObject(gBackgoundPicture, info);
-
-
 			/* DRAW OBJECTS */
 
 	DrawObjects(info);

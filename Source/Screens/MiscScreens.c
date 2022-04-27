@@ -45,8 +45,6 @@ static void MoveCredit(ObjNode *theNode);
 /*    VARIABLES      */
 /*********************/
 
-MOPictureObject 	*gBackgoundPicture = nil;
-
 OGLSetupOutputType	*gScreenViewInfoPtr = nil;
 
 
@@ -89,9 +87,7 @@ float				keyTextFadeIn = -2.0f;		// fade in after a small delay
 
 			/* CREATE BACKGROUND OBJECT */
 
-	gBackgoundPicture = MO_CreateNewObjectOfType(MO_TYPE_PICTURE, (uintptr_t) gGameViewInfoPtr, (void*) picturePath);
-	if (!gBackgoundPicture)
-		DoFatalAlert("DisplayPicture: MO_CreateNewObjectOfType failed");
+	MakeBackgroundPictureObject(picturePath);
 
 
 
@@ -163,7 +159,6 @@ float				keyTextFadeIn = -2.0f;		// fade in after a small delay
 			/* CLEANUP */
 
 	DeleteAllObjects();
-	MO_DisposeObjectReference(gBackgoundPicture);
 	DisposeAllSpriteGroups();
 
 	OGL_DisposeWindowSetup(&gGameViewInfoPtr);
@@ -174,7 +169,6 @@ float				keyTextFadeIn = -2.0f;		// fade in after a small delay
 
 static void DisplayPicture_Draw(OGLSetupOutputType *info)
 {
-	MO_DrawObject(gBackgoundPicture, info);
 	DrawObjects(info);
 }
 
@@ -271,12 +265,6 @@ void DoAgeConqueredScreen(void)
 
 static void DrawConqueredCallback(OGLSetupOutputType *info)
 {
-
-			/* DRAW BACKGROUND */
-
-	MO_DrawObject(gBackgoundPicture, info);
-
-
 	DrawObjects(info);
 }
 
@@ -323,9 +311,7 @@ static const char* names[] =
 			/* MAKE BACKGROUND PICTURE OBJECT */
 
 
-	gBackgoundPicture = MO_CreateNewObjectOfType(MO_TYPE_PICTURE, (uintptr_t) gGameViewInfoPtr, (void*) names[gTheAge]);
-	if (!gBackgoundPicture)
-		DoFatalAlert("SetupTrackSelectScreen: MO_CreateNewObjectOfType failed");
+	MakeBackgroundPictureObject(names[gTheAge]);
 
 
 			/* LOAD MODELS */
@@ -380,7 +366,6 @@ static void FreeConqueredScreen(void)
 {
 	DeleteAllObjects();
 	DisposeParticleSystem();
-	MO_DisposeObjectReference(gBackgoundPicture);
 	DisposeAllSpriteGroups();
 	DisposeAllBG3DContainers();
 	OGL_DisposeWindowSetup(&gGameViewInfoPtr);
@@ -461,10 +446,6 @@ float	timer = 0;
 
 static void DrawWinCallback(OGLSetupOutputType *info)
 {
-
-			/* DRAW BACKGROUND */
-
-	MO_DrawObject(gBackgoundPicture, info);
 	DrawObjects(info);
 }
 
@@ -503,9 +484,7 @@ OGLSetupInputType	viewDef;
 
 			/* MAKE BACKGROUND PICTURE OBJECT */
 
-	gBackgoundPicture = MO_CreateNewObjectOfType(MO_TYPE_PICTURE, (uintptr_t) gGameViewInfoPtr, ":images:Conquered:GameCompleted.png");
-	if (!gBackgoundPicture)
-		DoFatalAlert("SetupTrackSelectScreen: MO_CreateNewObjectOfType failed");
+	MakeBackgroundPictureObject(":images:Conquered:GameCompleted.png");
 
 
 	LoadASkeleton(SKELETON_TYPE_MALESTANDING, gGameViewInfoPtr);
@@ -599,7 +578,6 @@ static void FreeWinScreen(void)
 {
 	DeleteAllObjects();
 	DisposeParticleSystem();
-	MO_DisposeObjectReference(gBackgoundPicture);
 	DisposeAllSpriteGroups();
 	FreeAllSkeletonFiles(-1);
 	DisposeAllBG3DContainers();
@@ -740,10 +718,6 @@ float	timer = 63.0f;
 
 static void DrawCreditsCallback(OGLSetupOutputType *info)
 {
-
-			/* DRAW BACKGROUND */
-
-	MO_DrawObject(gBackgoundPicture, info);
 	DrawObjects(info);
 }
 
@@ -865,9 +839,7 @@ static const float sizes[] =
 			/* MAKE BACKGROUND PICTURE OBJECT */
 
 
-	gBackgoundPicture = MO_CreateNewObjectOfType(MO_TYPE_PICTURE, (uintptr_t) gGameViewInfoPtr, ":images:Credits.jpg");
-	if (!gBackgoundPicture)
-		DoFatalAlert("SetupCreditsScreen: MO_CreateNewObjectOfType failed");
+	MakeBackgroundPictureObject(":images:Credits.jpg");
 
 
 
@@ -923,7 +895,6 @@ MOSpriteObject		*spriteMO;
 static void FreeCreditsScreen(void)
 {
 	DeleteAllObjects();
-	MO_DisposeObjectReference(gBackgoundPicture);
 	DisposeAllSpriteGroups();
 	DisposeAllBG3DContainers();
 	OGL_DisposeWindowSetup(&gGameViewInfoPtr);

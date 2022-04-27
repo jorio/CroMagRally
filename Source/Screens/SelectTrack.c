@@ -165,10 +165,7 @@ OGLSetupInputType	viewDef;
 
 			/* MAKE BACKGROUND PICTURE OBJECT */
 
-	gBackgoundPicture = MO_CreateNewObjectOfType(MO_TYPE_PICTURE, (uintptr_t) gGameViewInfoPtr, ":images:TrackSelectScreen.jpg");
-	if (!gBackgoundPicture)
-		DoFatalAlert("SetupTrackSelectScreen: MO_CreateNewObjectOfType failed");
-
+	MakeBackgroundPictureObject(":images:TrackSelectScreen.jpg");
 
 			/* LOAD SPRITES */
 
@@ -256,7 +253,6 @@ static void MakeTrackName(void)
 static void FreeTrackSelectArt(void)
 {
 	DeleteAllObjects();
-	MO_DisposeObjectReference(gBackgoundPicture);
 	DisposeAllSpriteGroups();
 }
 
@@ -271,7 +267,7 @@ short				highestUnlocked;
 
 			/* DRAW BACKGROUND */
 
-	MO_DrawObject(gBackgoundPicture, info);
+	DrawObjects(info);
 
 
 			/**************************/
@@ -298,7 +294,6 @@ short				highestUnlocked;
 	}
 
 
-	DrawObjects(info);
 
 
 		/**********************/

@@ -97,6 +97,10 @@ unsigned long flags = newObjDef->flags;
 	if (newNodePtr == nil)
 		DoFatalAlert("MakeNewObject: Alloc Ptr failed!");
 
+	if (newObjDef->slot == 0)
+	{
+		printf("%s: Slot is 0, are you sure?\n", __func__);
+	}
 
 	if (newObjDef->scale == 0.0f)
 	{

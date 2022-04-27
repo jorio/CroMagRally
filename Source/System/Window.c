@@ -113,7 +113,7 @@ ObjNode		*thisNodePtr;
 	NewObjectDefinitionType newObjDef =
 	{
 		.genre = CUSTOM_GENRE,
-		.slot = SLOT_OF_DUMB + 1000,
+		.slot = FADE_SLOT,
 		.scale = 1,
 		.moveCall = MoveFadeEvent
 	};
@@ -170,7 +170,7 @@ void OGL_FadeOutScene(
 	NewObjectDefinitionType newObjDef =
 	{
 		.genre = CUSTOM_GENRE,
-		.slot = SLOT_OF_DUMB + 1000,
+		.slot = FADE_SLOT,
 		.scale = 1,
 	};
 	ObjNode* newObj = MakeNewObject(&newObjDef);

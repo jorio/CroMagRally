@@ -161,9 +161,7 @@ OGLVector3D			fillDirection1 = { .9, -.3, -1 };
 
 			/* MAKE BACKGROUND PICTURE OBJECT */
 
-	gBackgoundPicture = MO_CreateNewObjectOfType(MO_TYPE_PICTURE, (uintptr_t) gGameViewInfoPtr, ":images:CharSelectScreen.jpg");
-	if (!gBackgoundPicture)
-		DoFatalAlert("SetupCharacterSelectScreen: MO_CreateNewObjectOfType failed");
+	MakeBackgroundPictureObject(":images:CharSelectScreen.jpg");
 
 
 			/*****************/
@@ -188,7 +186,6 @@ OGLVector3D			fillDirection1 = { .9, -.3, -1 };
 static void FreeLocalGatherArt(void)
 {
 	DeleteAllObjects();
-	MO_DisposeObjectReference(gBackgoundPicture);
 	FreeAllSkeletonFiles(-1);
 	DisposeAllSpriteGroups();
 	DisposeAllBG3DContainers();
@@ -199,12 +196,6 @@ static void FreeLocalGatherArt(void)
 
 static void DrawLocalGatherCallback(OGLSetupOutputType *info)
 {
-
-			/* DRAW BACKGROUND */
-
-	//MO_DrawObject(gBackgoundPicture, info);
-
-
 	DrawObjects(info);
 }
 

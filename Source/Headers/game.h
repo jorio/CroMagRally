@@ -108,7 +108,6 @@ extern long						gTerrainUnitWidth;
 extern MetaObjectPtr			gBG3DGroupList[MAX_BG3D_GROUPS][MAX_OBJECTS_IN_GROUP];
 extern MOMaterialObject			*gMostRecentMaterial;
 extern MOMaterialObject         *gCavemanSkins[2][6];
-extern MOPictureObject			*gBackgoundPicture;
 extern MOVertexArrayData		**gLocalTriMeshesOfSkelType;
 extern NewParticleGroupDefType	gNewParticleGroupDef;
 extern ObjNode					*gCurrentPlayer;
