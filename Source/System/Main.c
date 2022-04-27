@@ -127,7 +127,8 @@ OSErr		iErr;
 
 	SetDefaultDirectory();							// be sure to get the default directory
 
-	iErr = FSMakeFSSpec(0, 0, ":Data:Images", &gDataSpec);
+	FSSpec bogus;
+	iErr = FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":Skeletons", &bogus);
 	if (iErr)
 	{
 		DoFatalAlert("Cannot find Data folder.");
