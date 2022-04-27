@@ -3,6 +3,17 @@
 
 extern SDL_Window* gSDLWindow;
 
+// Provide GameController stubs for CI runners that have old SDL packages.
+// This lets us run quick compile checks on the CI without recompiling SDL.
+#if !(SDL_VERSION_ATLEAST(2,0,12))
+	#warning "Multiplayer controller support requires SDL 2.0.12 or later. The game will compile but controllers won't work!"
+	static void SDL_GameControllerSetPlayerIndex(SDL_GameController *c, int i) {}
+	static SDL_GameController *SDL_GameControllerFromPlayerIndex(int i) { return NULL; }
+	#if !(SDL_VERSION_ATLEAST(2,0,9))
+		static int SDL_GameControllerGetPlayerIndex(SDL_GameController *c) { return 0; }
+	#endif
+#endif
+
 /***************/
 /* CONSTANTS   */
 /***************/

@@ -165,7 +165,6 @@ void TurnOffISp(void);
 
 Boolean GetKeyState_Real(unsigned short key);
 void DoKeyConfigDialog(void);
-Boolean GetNewKeyState_Real(unsigned short key);
 
 Boolean AreAnyNewKeysPressed(void);
 void InitControlBits(void);
