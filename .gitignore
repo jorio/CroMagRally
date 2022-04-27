@@ -2,5 +2,9 @@ build*/
 cmake-build-*/
 cache/
 extern/SDL2-*
+extern/SDL2.framework
 dist/
+
+# IDEs and OS-specific stuff
 .vs/
+.DS_Store
