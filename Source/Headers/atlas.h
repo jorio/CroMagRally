@@ -56,9 +56,12 @@ typedef struct Atlas
 Atlas* Atlas_Load(const char* atlasName, int flags, OGLSetupOutputType* setupInfo);
 void Atlas_Dispose(Atlas* atlas);
 
+const AtlasGlyph* Atlas_GetGlyph(const Atlas* atlas, uint32_t codepoint);
+
 void LoadSpriteGroup(int groupNum, const char* atlasName, int flags, OGLSetupOutputType* setupInfo);
 void DisposeSpriteGroup(int groupNum);
 void DisposeAllSpriteGroups(void);
+const AtlasGlyph* GetSpriteInfo(int groupNum, int spriteNum);
 
 ObjNode* TextMesh_NewEmpty(int capacity, NewObjectDefinitionType *newObjDef);
 ObjNode* TextMesh_New(const char *text, int align, NewObjectDefinitionType *newObjDef);
@@ -68,7 +71,7 @@ OGLRect TextMesh_GetExtents(ObjNode* textNode);
 void TextMesh_DrawExtents(ObjNode* textNode);
 
 void Atlas_DrawString(
-	int slot,
+	int groupNum,
 	const char* text,
 	float x,
 	float y,
@@ -78,8 +81,8 @@ void Atlas_DrawString(
 	const OGLSetupOutputType *setupInfo);
 
 void DrawSprite(
-	int slot,
-	int spriteNo,
+	int groupNum,
+	int spriteNum,
 	float x,
 	float y,
 	float scale,

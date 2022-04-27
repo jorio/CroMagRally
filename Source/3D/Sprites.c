@@ -61,6 +61,16 @@ void DisposeSpriteGroup(int groupNum)
 	}
 }
 
+
+/******************* GET SPRITE INFO ****************/
+
+const AtlasGlyph* GetSpriteInfo(int groupNum, int spriteNum)
+{
+	GAME_ASSERT(gAtlases[groupNum]);
+	return Atlas_GetGlyph(gAtlases[groupNum], spriteNum);
+}
+
+
 /********************** LOAD SPRITE FILE **************************/
 //
 // NOTE:  	All sprite files must be imported AFTER the draw context has been created,
@@ -69,7 +79,7 @@ void DisposeSpriteGroup(int groupNum)
 
 void LoadSpriteGroup(int groupNum, const char* atlasName, int flags, OGLSetupOutputType* setupInfo)
 {
-	GAME_ASSERT(!gAtlases[groupNum]);
+	GAME_ASSERT_MESSAGE(!gAtlases[groupNum], "Sprite group already loaded!");
 	gAtlases[groupNum] = Atlas_Load(atlasName, flags, setupInfo);
 }
 

@@ -41,25 +41,6 @@ typedef struct
 /*                         UTF-8                               */
 /***************************************************************/
 
-static AtlasGlyph* GetGlyphFromCodepoint(const Atlas* atlas, uint32_t c)
-{
-	uint32_t page = c >> 8;
-
-	if (page >= MAX_CODEPOINT_PAGES)
-	{
-		page = 0; // ascii
-		c = '?';
-	}
-
-	if (!atlas->glyphPages[page])
-	{
-		page = 0; // ascii
-		c = '#';
-	}
-
-	return &atlas->glyphPages[page][c & 0xFF];
-}
-
 static uint32_t ReadNextCodepointFromUTF8(const char** utf8TextPtr)
 {
 #define TRY_ADVANCE(t) do { if (!*t) return 0; else t++; } while(0)
@@ -103,6 +84,28 @@ static uint32_t ReadNextCodepointFromUTF8(const char** utf8TextPtr)
 #undef TRY_ADVANCE
 }
 
+/***************************************************************/
+/*                    GET/SET GLYPHS                           */
+/***************************************************************/
+
+static AtlasGlyph* Atlas_GetGlyphPtr(const Atlas* atlas, uint32_t codepoint)
+{
+	uint32_t page = codepoint >> 8;
+
+	if (page >= MAX_CODEPOINT_PAGES
+		|| NULL == atlas->glyphPages[page])
+	{
+		return NULL;
+	}
+
+	return &atlas->glyphPages[page][codepoint & 0xFF];
+}
+
+const AtlasGlyph* Atlas_GetGlyph(const Atlas* atlas, uint32_t codepoint)
+{
+	return Atlas_GetGlyphPtr(atlas, codepoint);
+}
+
 static void Atlas_SetGlyph(Atlas* atlas, uint32_t codepoint, AtlasGlyph* src)
 {
 	// Compute page for codepoint
@@ -124,7 +127,7 @@ static void Atlas_SetGlyph(Atlas* atlas, uint32_t codepoint, AtlasGlyph* src)
 }
 
 /***************************************************************/
-/*                       PARSE SFL                             */
+/*                   PARSE METRICS FILE                        */
 /***************************************************************/
 
 static void ParseAtlasMetrics_SkipLine(const char** dataPtr)
@@ -230,7 +233,7 @@ static void ParseKerningFile(Atlas* atlas, const char* data)
 		GAME_ASSERT(scannedTokens == 1);
 		data += scannedChars;
 
-		AtlasGlyph* g = GetGlyphFromCodepoint(atlas, codepoint1);
+		AtlasGlyph* g = (AtlasGlyph*) Atlas_GetGlyph(atlas, codepoint1);
 
 		if (g)
 		{
@@ -408,7 +411,7 @@ static float Kern(const Atlas* font, const AtlasGlyph* glyph, const char* utftex
 	return 1;
 }
 
-static void ComputeMetrics(const Atlas* font, const char* text, TextMetrics* metrics, bool specialASCII)
+static void ComputeMetrics(const Atlas* atlas, const char* text, TextMetrics* metrics, bool specialASCII)
 {
 	float spacing = 0;
 
@@ -420,11 +423,11 @@ static void ComputeMetrics(const Atlas* font, const char* text, TextMetrics* met
 	metrics->longestLineWidth = 0;
 	for (const char* utftext = text; *utftext; )
 	{
-		uint32_t c = ReadNextCodepointFromUTF8(&utftext);
+		uint32_t codepoint = ReadNextCodepointFromUTF8(&utftext);
 
 		if (specialASCII)
 		{
-			if (c == '\n')
+			if (codepoint == '\n')
 			{
 				GAME_ASSERT(metrics->numLines < MAX_LINEBREAKS_PER_OBJNODE);
 
@@ -437,18 +440,21 @@ static void ComputeMetrics(const Atlas* font, const char* text, TextMetrics* met
 				metrics->lineHeights[metrics->numLines - 1] = 0;
 				continue;
 			}
-			else if (c == '\t')
+			else if (codepoint == '\t')
 			{
 				metrics->lineWidths[metrics->numLines - 1] = TAB_STOP * ceilf((metrics->lineWidths[metrics->numLines - 1] + 1.0f) / TAB_STOP);
 				continue;
 			}
 		}
 
-		const AtlasGlyph* glyph = GetGlyphFromCodepoint(font, c);
+		const AtlasGlyph* glyph = Atlas_GetGlyph(atlas, codepoint);
+		if (!glyph)
+			continue;
+
 		float kernFactor = 1;
 
 		if (specialASCII)
-			kernFactor = Kern(font, glyph, utftext);
+			kernFactor = Kern(atlas, glyph, utftext);
 
 		metrics->lineWidths[metrics->numLines-1] += (glyph->xadv * kernFactor + spacing);
 
@@ -586,7 +592,10 @@ void TextMesh_Update(const char* text, int align, ObjNode* textNode)
 			}
 		}
 
-		const AtlasGlyph g = *GetGlyphFromCodepoint(font, codepoint);
+		const AtlasGlyph* gptr = Atlas_GetGlyph(font, codepoint);
+		if (!gptr)
+			continue;
+		const AtlasGlyph g = *gptr;
 
 		if (g.w <= 0.0f)	// e.g. space codepoint
 		{
@@ -719,7 +728,7 @@ void TextMesh_DrawExtents(ObjNode* textNode)
 }
 
 void Atlas_DrawString(
-	int slot,
+	int groupNum,
 	const char* text,
 	float x,
 	float y,
@@ -728,9 +737,9 @@ void Atlas_DrawString(
 	uint32_t flags,
 	const OGLSetupOutputType *setupInfo)
 {
-	GAME_ASSERT((size_t)slot < (size_t)MAX_SPRITE_GROUPS);
+	GAME_ASSERT((size_t)groupNum < (size_t)MAX_SPRITE_GROUPS);
 
-	const Atlas* font = gAtlases[slot];
+	const Atlas* font = gAtlases[groupNum];
 	GAME_ASSERT(font);
 
 			/* SET STATE */
@@ -783,7 +792,10 @@ void Atlas_DrawString(
 	for (const char* utftext = text; *utftext; )
 	{
 		uint32_t codepoint = ReadNextCodepointFromUTF8(&utftext);
-		const AtlasGlyph g = *GetGlyphFromCodepoint(font, codepoint);
+		const AtlasGlyph* gptr = Atlas_GetGlyph(font, codepoint);
+		if (!gptr)
+			continue;
+		const AtlasGlyph g = *gptr;
 
 		float halfw = .5f * g.w;
 		float halfh = .5f * g.h;

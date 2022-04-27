@@ -153,6 +153,8 @@ static const float	gIconInfo[NUM_INFOBAR_ICONTYPES][NUM_SPLITSCREEN_MODES][5] =	
 /*    VARIABLES      */
 /*********************/
 
+static float	gMapImageScaleAdjust = 1;
+
 float			gStartingLightTimer;
 
 ObjNode			*gFinalPlaceObj = nil;
@@ -202,6 +204,10 @@ static const char*	maps[] =
 			/* LOAD MAP SPRITE */
 
 	LoadSpriteGroup(SPRITE_GROUP_OVERHEADMAP, maps[gTrackNum], kAtlasLoadAsSingleSprite, setupInfo);
+
+	float mapImageHeight = GetSpriteInfo(SPRITE_GROUP_OVERHEADMAP, 1)->yadv;
+	gMapImageScaleAdjust = 2.5f * (256.0f / mapImageHeight);
+
 
 			/* PUT SELF-RUNNING DEMO MESSAGE UP */
 
@@ -350,7 +356,7 @@ static const OGLColorRGBA	blipColors[] =
 			/* DRAW THE MAP UNDERLAY */
 
 	DrawSprite(SPRITE_GROUP_OVERHEADMAP, 1, mapX, mapY,
-			scale * 2.5f,
+			scale * gMapImageScaleAdjust,
 			0,
 			kTextMeshAlignCenter | kTextMeshAlignMiddle,
 			setupInfo);
