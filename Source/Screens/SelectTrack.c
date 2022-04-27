@@ -61,9 +61,9 @@ enum
 #define	ARROW_Y			0
 #define	ARROW_SCALE		.5
 
-#define	LEVEL_IMAGE_X		-.01225
-#define	LEVEL_IMAGE_Y		.1675
-#define	LEVEL_IMAGE_SCALE	.5725
+#define	LEVEL_IMAGE_X		0
+#define	LEVEL_IMAGE_Y		.17
+#define	LEVEL_IMAGE_SCALE	.58
 
 
 #define	NUM_PRACTICE_TRACKS		9
@@ -165,7 +165,7 @@ OGLSetupInputType	viewDef;
 
 			/* MAKE BACKGROUND PICTURE OBJECT */
 
-	MakeBackgroundPictureObject(":images:TrackSelectScreen.jpg");
+	MakeBackgroundPictureObject(":images:TrackSelectScreen.png");
 
 			/* LOAD SPRITES */
 
@@ -200,7 +200,7 @@ OGLSetupInputType	viewDef;
 			.group = SPRITE_GROUP_TRACKSELECTSCREEN,
 			.type = TRACKSELECT_SObjType__Level0 + gBaseTrack + gSelectedTrackIndex,
 			.coord = { LEVEL_IMAGE_X, LEVEL_IMAGE_Y, 0 },
-			.slot = SPRITE_SLOT,
+			.slot = BGPIC_SLOT-1,
 			.moveCall = nil,
 			.scale = LEVEL_IMAGE_SCALE,
 		};

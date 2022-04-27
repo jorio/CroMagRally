@@ -182,7 +182,7 @@ MetaObjectPtr	mo;
 				break;
 
 		case	MO_TYPE_PICTURE:
-				SetMetaObjectToPicture(mo, (OGLSetupOutputType*)subType, data, GL_RGB);
+				SetMetaObjectToPicture(mo, (OGLSetupOutputType*)subType, data, GL_RGBA);
 				break;
 
 		case	MO_TYPE_SPRITE:
