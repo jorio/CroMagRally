@@ -62,7 +62,7 @@ enum
 #define	ARROW_SCALE		.5
 
 #define	LEVEL_IMAGE_X		-.01
-#define	LEVEL_IMAGE_Y		-.15
+#define	LEVEL_IMAGE_Y		.17
 #define	LEVEL_IMAGE_SCALE	.58
 
 
@@ -201,7 +201,7 @@ OGLSetupInputType	viewDef;
 		NewObjectDefinitionType def =
 		{
 			.group = SPRITE_GROUP_TRACKSELECTSCREEN,
-			.type = TRACKSELECT_SObjType__Level0 + gSelectedTrackIndex,
+			.type = TRACKSELECT_SObjType__Level0 + gBaseTrack + gSelectedTrackIndex,
 			.coord = { LEVEL_IMAGE_X, LEVEL_IMAGE_Y, 0 },
 			.slot = SPRITE_SLOT,
 			.moveCall = nil,
@@ -320,7 +320,7 @@ short				highestUnlocked;
 	{
 		// Draw padlock
 		DrawSprite(SPRITE_GROUP_MAINMENU, MENUS_SObjType_Padlock,
-					0, 0, .5, 0, 0, info);
+					0, ARROW_Y, ARROW_SCALE, 0, 0, info);
 	}
 }
 
@@ -370,7 +370,7 @@ short				highestUnlocked;
 	{
 		PlayEffect(EFFECT_SELECTCLICK);
 		gSelectedTrackIndex--;
-		ModifySpriteObjectFrame(gTrackImageIcon, TRACKSELECT_SObjType__Level0 + gSelectedTrackIndex, gGameViewInfoPtr);
+		ModifySpriteObjectFrame(gTrackImageIcon, TRACKSELECT_SObjType__Level0 + gBaseTrack + gSelectedTrackIndex, gGameViewInfoPtr);
 		MakeTrackName();
 	}
 	else
@@ -378,7 +378,7 @@ short				highestUnlocked;
 	{
 		PlayEffect(EFFECT_SELECTCLICK);
 		gSelectedTrackIndex++;
-		ModifySpriteObjectFrame(gTrackImageIcon, TRACKSELECT_SObjType__Level0 + gSelectedTrackIndex, gGameViewInfoPtr);
+		ModifySpriteObjectFrame(gTrackImageIcon, TRACKSELECT_SObjType__Level0 + gBaseTrack + gSelectedTrackIndex, gGameViewInfoPtr);
 		MakeTrackName();
 	}
 

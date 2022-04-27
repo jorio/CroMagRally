@@ -153,8 +153,6 @@ static const float	gIconInfo[NUM_INFOBAR_ICONTYPES][NUM_SPLITSCREEN_MODES][5] =	
 /*    VARIABLES      */
 /*********************/
 
-MOSpriteObject 	*gMapSprite = nil;
-
 float			gStartingLightTimer;
 
 ObjNode			*gFinalPlaceObj = nil;
@@ -203,29 +201,7 @@ static const char*	maps[] =
 
 			/* LOAD MAP SPRITE */
 
-#if 1
 	LoadSpriteGroup(SPRITE_GROUP_OVERHEADMAP, maps[gTrackNum], kAtlasLoadAsSingleSprite, setupInfo);
-//	MOMaterialObject* material = MO_GetTextureFromFile(maps[gTrackNum], setupInfo, GL_RGBA);
-//	GAME_ASSERT_MESSAGE(material, "Can't find overhead map image");
-
-//	material->objectData.flags |= BG3D_MATERIALFLAG_CLAMP_U | BG3D_MATERIALFLAG_CLAMP_V;
-
-	MOSpriteSetupData spriteData = { .group=SPRITE_GROUP_OVERHEADMAP, .type=1 };
-
-	gMapSprite = MO_CreateNewObjectOfType(MO_TYPE_SPRITE, (uintptr_t) setupInfo, &spriteData);
-	GAME_ASSERT(gMapSprite);
-
-//	MO_DisposeObjectReference(material);
-//	material = NULL;
-
-//	gMapSprite->objectData.scaleBasis = 1.0;							// don't use the scale basis since we're putting the dots on the map and we need this to be easy
-//	gMapSprite->objectData.coord.z = 0;
-#endif
-
-		/* SET GLOWING */
-
-//	BlendASprite(SPRITE_GROUP_INFOBAR, INFOBAR_SObjType_Invisibility);
-
 
 			/* PUT SELF-RUNNING DEMO MESSAGE UP */
 
@@ -247,12 +223,6 @@ static const char*	maps[] =
 
 void DisposeInfobar(void)
 {
-
-	if (gMapSprite)													// see if nuke map sprite object
-	{
-		MO_DisposeObjectReference(gMapSprite);
-		gMapSprite = nil;
-	}
 }
 
 
@@ -372,31 +342,27 @@ static const OGLColorRGBA	blipColors[] =
 	}
 
 
-			/* DRAW THE MAP UNDERLAY */
-
-	gMapSprite->objectData.scaleX = gIconInfo[ICON_MAP][gActiveSplitScreenMode][iS];
-	gMapSprite->objectData.scaleY = gIconInfo[ICON_MAP][gActiveSplitScreenMode][iS];
-	gMapSprite->objectData.coord.x = gIconInfo[ICON_MAP][gActiveSplitScreenMode][iX];
-	gMapSprite->objectData.coord.y = gIconInfo[ICON_MAP][gActiveSplitScreenMode][iY];
-
-	MO_DrawObject(gMapSprite, setupInfo);
-
-
-			/* PREP FOR MAP MARKERS */
-
 	scale = gIconInfo[ICON_MAP][gActiveSplitScreenMode][iS];
 	mapX = gIconInfo[ICON_MAP][gActiveSplitScreenMode][iX];
 	mapY = gIconInfo[ICON_MAP][gActiveSplitScreenMode][iY];
 
-	glDisable(GL_TEXTURE_2D);									// not textured, so disable textures
 
+			/* DRAW THE MAP UNDERLAY */
 
+	DrawSprite(SPRITE_GROUP_OVERHEADMAP, 1, mapX, mapY,
+			scale * 2.5f,
+			0,
+			kTextMeshAlignCenter | kTextMeshAlignMiddle,
+			setupInfo);
 
 
 			/***********************/
 			/* DRAW PLAYER MARKERS */
 			/***********************/
 
+	OGL_PushState();
+	OGL_SetProjection(kProjectionType2DNDC);
+	glDisable(GL_TEXTURE_2D);								// not textured, so disable textures
 
 	for (i = gNumTotalPlayers-1; i >= 0; i--)				// draw from last to first so that player 1 is always on "top"
 	{
@@ -419,12 +385,12 @@ static const OGLColorRGBA	blipColors[] =
 
 			/* ORIENT IT */
 
-		glLoadIdentity();									// init MODELVIEW matrix
-
 		if ((gNumRealPlayers > 1) && (i == p))				// draw my marker bigger
 			scaleBasis = scale * 40.0f  *  (1.0f/SPRITE_SCALE_BASIS_DENOMINATOR);		// calculate a scale basis to keep things scaled relative to texture size
 		else
 			scaleBasis = scale * 32.0f  *  (1.0f/SPRITE_SCALE_BASIS_DENOMINATOR);		// calculate a scale basis to keep things scaled relative to texture size
+
+		glPushMatrix();										// back up MODELVIEW matrix
 
 		glTranslatef(x,z,0);
 		glScalef(scaleBasis, gCurrentAspectRatio * scaleBasis, 1);
@@ -473,6 +439,7 @@ static const OGLColorRGBA	blipColors[] =
 		glVertex3f(1,  -1, 0);
 		glEnd();
 
+		glPopMatrix();									// restore MODELVIEW matrix
 	}
 
 			/**********************/
@@ -498,7 +465,7 @@ static const OGLColorRGBA	blipColors[] =
 
 			/* ORIENT IT */
 
-		glLoadIdentity();									// init MODELVIEW matrix
+		glPushMatrix();										// back up MODELVIEW matrix
 
 		scaleBasis = scale * 16.0f  *  (1.0f/SPRITE_SCALE_BASIS_DENOMINATOR);		// calculate a scale basis to keep things scaled relative to texture size
 		glTranslatef(x,z,0);
@@ -520,10 +487,11 @@ static const OGLColorRGBA	blipColors[] =
 		glVertex3f(0,   1.5, 0);
 		glVertex3f(1,  -1, 0);
 		glEnd();
+
+		glPopMatrix();									// restore MODELVIEW matrix
 	}
 
-
-	glColor4f(1,1,1,1);
+	OGL_PopState();
 }
 
 
@@ -712,6 +680,15 @@ int	lap,playerNum;
 				gIconInfo[ICON_LAP][gActiveSplitScreenMode][iY],
 				gIconInfo[ICON_LAP][gActiveSplitScreenMode][iS],
 				0, 0, setupInfo);
+				/*
+	DrawSprite(SPRITE_GROUP_INFOBAR, INFOBAR_SObjType_Lap1of3+lap,
+				0,//g2DLogicalWidth/2,//gIconInfo[ICON_LAP][gActiveSplitScreenMode][iX],
+				g2DLogicalHeight,//gIconInfo[ICON_LAP][gActiveSplitScreenMode][iY],
+				1,//gIconInfo[ICON_LAP][gActiveSplitScreenMode][iS],
+				0,
+				kTextMeshProjectionOrthoFullRect | kTextMeshAlignLeft | kTextMeshAlignBottom,
+				setupInfo);
+				*/
 
 
 }

@@ -300,17 +300,19 @@ Atlas* Atlas_Load(const char* fontName, int flags, OGLSetupOutputType* setupInfo
 	else
 	{
 		// Create single glyph #1
+		float w = atlas->material->objectData.width;
+		float h = atlas->material->objectData.height;
 		AtlasGlyph newGlyph =
 		{
-			.xadv = atlas->material->objectData.width,
-			.w = 2*atlas->material->objectData.width,
-			.h = 2*atlas->material->objectData.height,
+			.xadv = w,
+			.yadv = h,
+			.w = w,
+			.h = h,
 			.u2 = 1,
 			.v2 = 1,
-			.xoff = -128,
-			.yoff = -256,
+			.xoff = 0,
+			.yoff = 0,
 		};
-		printf("Single glyph: %f %f\n", newGlyph.w, newGlyph.h);
 		Atlas_SetGlyph(atlas, 1, &newGlyph);
 	}
 
@@ -450,8 +452,7 @@ static void ComputeMetrics(const Atlas* font, const char* text, TextMetrics* met
 
 		metrics->lineWidths[metrics->numLines-1] += (glyph->xadv * kernFactor + spacing);
 
-		float gh = glyph->h + glyph->yoff;
-		//float gh = glyph->h - glyph->yoff;//-glyph->yoff + glyph->yadv;
+		float gh = glyph->yadv;
 		if (gh > metrics->lineHeights[metrics->numLines-1])
 			metrics->lineHeights[metrics->numLines-1] = gh;
 
@@ -772,16 +773,12 @@ void Atlas_DrawString(
 			/* DRAW IT */
 
 	glBegin(GL_QUADS);
-//	float cx = -32;  // hack to make text origin fit where CMR infobar expects it
-//	float cy = -32;
-	float cx = 0;
-	float cy = 0;
 
 	TextMetrics metrics;
 	ComputeMetrics(font, text, &metrics, false);
 
-	cx = GetLineStartX(flags, metrics.longestLineWidth);
-	cy = GetLineStartY(flags, metrics.lineHeights[0]);
+	float cx = GetLineStartX(flags, metrics.longestLineWidth);
+	float cy = GetLineStartY(flags, metrics.lineHeights[0]);	// single-quad hack...
 
 	for (const char* utftext = text; *utftext; )
 	{

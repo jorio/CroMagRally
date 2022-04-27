@@ -165,5 +165,6 @@ MOSpriteObject		*spriteMO;
 void DrawSprite(int group, int spriteNo, float x, float y, float scale, float rot, uint32_t flags, const OGLSetupOutputType *setupInfo)
 {
 	char text[2] = { spriteNo, 0 };
+	flags |= kTextMeshNoSpecialASCII;
 	Atlas_DrawString(group, text, x, y, scale, rot, flags, setupInfo);
 }
