@@ -61,9 +61,9 @@ enum
 #define	ARROW_Y			0
 #define	ARROW_SCALE		.5
 
-#define	LEVEL_IMAGE_X		-.01
-#define	LEVEL_IMAGE_Y		.17
-#define	LEVEL_IMAGE_SCALE	.58
+#define	LEVEL_IMAGE_X		-.01225
+#define	LEVEL_IMAGE_Y		.1675
+#define	LEVEL_IMAGE_SCALE	.5725
 
 
 #define	NUM_PRACTICE_TRACKS		9
