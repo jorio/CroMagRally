@@ -149,6 +149,22 @@ static const float	gIconInfo[NUM_INFOBAR_ICONTYPES][NUM_SPLITSCREEN_MODES][5] =	
 };
 
 
+
+static const struct
+{
+	const float* timerPtr0;
+	int sprite;
+} gInfobarTimers[] =
+{
+	{ &gPlayerInfo[0].stickyTiresTimer,			INFOBAR_SObjType_StickyTires },
+	{ &gPlayerInfo[0].nitroTimer,				INFOBAR_SObjType_Weapon_Nitro },
+	{ &gPlayerInfo[0].superSuspensionTimer,		INFOBAR_SObjType_Suspension },
+	{ &gPlayerInfo[0].invisibilityTimer,		INFOBAR_SObjType_Invisibility },
+	{ &gPlayerInfo[0].frozenTimer,				INFOBAR_SObjType_Weapon_Freeze },
+	{ &gPlayerInfo[0].flamingTimer,				INFOBAR_SObjType_RedTorch },
+};
+
+
 /*********************/
 /*    VARIABLES      */
 /*********************/
@@ -748,18 +764,22 @@ static const OGLColorRGB noTint = {1,1,1};
 	spacing = gIconInfo[ICON_POWTIMER][gActiveSplitScreenMode][iP];
 	lineSpacing = gIconInfo[ICON_POWTIMER][gActiveSplitScreenMode][iP2];
 
+	static const size_t numTimers = sizeof(gInfobarTimers) / sizeof(gInfobarTimers[0]);
+	size_t offset = p * sizeof(gPlayerInfo[0]);
 
-			/*******************/
-			/* DO STICKY TIRES */
-			/*******************/
-
-	timer = gPlayerInfo[p].stickyTiresTimer;							// get timer value
-	if (timer > 0.0f)
+	for (size_t i = 0; i < numTimers; i++)
 	{
+		timer = *(float*) ( ((uint8_t*) gInfobarTimers[i].timerPtr0) + offset );
+
+		if (timer <= 0.0f)
+		{
+			continue;
+		}
+
+
 			/* DRAW ICON */
 
-		DrawSprite(SPRITE_GROUP_INFOBAR, INFOBAR_SObjType_StickyTires,	x, y, scale, 0, 0, setupInfo);
-
+		DrawSprite(SPRITE_GROUP_INFOBAR, gInfobarTimers[i].sprite, x, y, scale, 0, 0, setupInfo);
 
 			/* DRAW TIME */
 
@@ -774,139 +794,6 @@ static const OGLColorRGB noTint = {1,1,1};
 
 		gGlobalColorFilter = noTint;
 	}
-
-
-			/************/
-			/* DO NITRO */
-			/************/
-
-	timer = gPlayerInfo[p].nitroTimer;							// get timer value
-	if (timer > 0.0f)
-	{
-			/* DRAW ICON */
-
-		DrawSprite(SPRITE_GROUP_INFOBAR, INFOBAR_SObjType_Weapon_Nitro,	x, y, scale, 0, 0, setupInfo);
-
-
-			/* DRAW TIME */
-
-		gGlobalColorFilter = tint;
-
-		snprintf(s, sizeof(s), "%d", (int) (timer+.5f));
-
-		x2 = x + spacing;
-		Atlas_DrawString(SPRITE_GROUP_FONT, s, x2, y, fontScale, 0, 0, setupInfo);
-		gGlobalColorFilter = noTint;
-
-		y -= lineSpacing;												// move down to prep for next item
-	}
-
-
-			/*****************/
-			/* DO SUSPENSION */
-			/*****************/
-
-	timer = gPlayerInfo[p].superSuspensionTimer;							// get timer value
-	if (timer > 0.0f)
-	{
-			/* DRAW ICON */
-
-		DrawSprite(SPRITE_GROUP_INFOBAR, INFOBAR_SObjType_Suspension,	x, y, scale, 0, 0, setupInfo);
-
-
-			/* DRAW TIME */
-
-		gGlobalColorFilter = tint;
-
-		snprintf(s, sizeof(s), "%d", (int) (timer+.5f));
-
-		x2 = x + spacing;
-		Atlas_DrawString(SPRITE_GROUP_FONT, s, x2, y, fontScale, 0, 0, setupInfo);
-		gGlobalColorFilter = noTint;
-
-		y -= lineSpacing;												// move down to prep for next item
-	}
-
-
-			/*******************/
-			/* DO INVISIBILITY */
-			/*******************/
-
-	timer = gPlayerInfo[p].invisibilityTimer;							// get timer value
-	if (timer > 0.0f)
-	{
-			/* DRAW ICON */
-
-		DrawSprite(SPRITE_GROUP_INFOBAR, INFOBAR_SObjType_Invisibility,	x, y, scale, 0, 0, setupInfo);
-
-
-			/* DRAW TIME */
-
-		gGlobalColorFilter = tint;
-
-		snprintf(s, sizeof(s), "%d", (int) (timer+.5f));
-
-		x2 = x + spacing;
-		Atlas_DrawString(SPRITE_GROUP_FONT, s, x2, y, fontScale, 0, 0, setupInfo);
-		gGlobalColorFilter = noTint;
-
-		y -= lineSpacing;												// move down to prep for next item
-	}
-
-
-			/************/
-			/* DO FROZEN */
-			/************/
-
-	timer = gPlayerInfo[p].frozenTimer;							// get timer value
-	if (timer > 0.0f)
-	{
-			/* DRAW ICON */
-
-		DrawSprite(SPRITE_GROUP_INFOBAR, INFOBAR_SObjType_Weapon_Freeze, x, y, scale, 0, 0, setupInfo);
-
-
-			/* DRAW TIME */
-
-		gGlobalColorFilter = tint;
-
-		snprintf(s, sizeof(s), "%d", (int) (timer+.5f));
-
-		x2 = x + spacing;
-		Atlas_DrawString(SPRITE_GROUP_FONT, s, x2, y, fontScale, 0, 0, setupInfo);
-		gGlobalColorFilter = noTint;
-
-		y -= lineSpacing;												// move down to prep for next item
-	}
-
-
-			/**************/
-			/* DO FLAMING */
-			/**************/
-
-	timer = gPlayerInfo[p].flamingTimer;							// get timer value
-	if (timer > 0.0f)
-	{
-			/* DRAW ICON */
-
-		DrawSprite(SPRITE_GROUP_INFOBAR, INFOBAR_SObjType_RedTorch, x, y, scale, 0, 0, setupInfo);
-
-
-			/* DRAW TIME */
-
-		gGlobalColorFilter = tint;
-
-		snprintf(s, sizeof(s), "%d", (int) (timer+.5f));
-
-		x2 = x + spacing;
-		Atlas_DrawString(SPRITE_GROUP_FONT, s, x2, y, fontScale, 0, 0, setupInfo);
-		gGlobalColorFilter = noTint;
-
-		y -= lineSpacing;												// move down to prep for next item
-	}
-
-
-
 }
 
 
