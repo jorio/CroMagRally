@@ -29,8 +29,8 @@ static void Infobar_DrawHealth(const OGLSetupOutputType *setupInfo);
 
 static void MoveFinalPlace(ObjNode *theNode);
 static void MoveTrackName(ObjNode *theNode);
-
 static void MoveLapMessage(ObjNode *theNode);
+static void MovePressAnyKey(ObjNode *theNode);
 
 
 /****************************/
@@ -215,9 +215,10 @@ static const char*	maps[] =
 	{
 		NewObjectDefinitionType def =
 		{
-			.coord		= {0, -.85, 0},
+			.coord		= {0, 225, 0},
 			.scale		= .3,
 			.slot		= SPRITE_SLOT,
+			.moveCall	= MovePressAnyKey,
 		};
 
 		TextMesh_New(Localize(STR_PRESS_ANY_KEY), 0, &def);
@@ -1332,5 +1333,14 @@ static void MoveTrackName(ObjNode *theNode)
 	}
 
 	theNode->StatusBits &= ~STATUS_BIT_HIDDEN;
+}
+
+
+/******************** MOVE PRESS ANY KEY TEXT *************************/
+
+static void MovePressAnyKey(ObjNode* theNode)
+{
+	theNode->SpecialF[0] += gFramesPerSecondFrac * 4.0f;
+	theNode->ColorFilter.a = 0.66f + sinf(theNode->SpecialF[0]) * 0.33f;
 }
 
