@@ -37,8 +37,8 @@ enum
 
 
 #define	ARROW_SCALE		.5
-
 #define ARROW_2D_SPREAD		276.0f
+#define ARROW_Y				204.0f
 
 
 
@@ -176,7 +176,7 @@ ObjNode	*newObj;
 	{
 		NewObjectDefinitionType newObjDef =
 		{
-			.coord = {0, -.85, 0},
+			.coord = {0, ARROW_Y, 0},
 			.scale = .4,
 			.slot = SPRITE_SLOT
 		};
@@ -193,7 +193,7 @@ ObjNode	*newObj;
 	{
 		.coord = {-0.5f*ARROW_2D_SPREAD, -192, 0},
 		.scale = .6f,
-		.slot = SPRITE_SLOT
+		.slot = 99
 	};
 	TextMesh_New(Localize(STR_BROG), kTextMeshAlignCenter, &newObjDef_NameString);
 
@@ -243,15 +243,12 @@ static void DrawCharacterSelectCallback(OGLSetupOutputType *info)
 
 			/* ARROW */
 
-	if (gSelectedCharacterIndex == 0)
+	if (gSelectedCharacterIndex >= 0)
 	{
+		float x = ARROW_2D_SPREAD * (gSelectedCharacterIndex - 0.5f);
+
 		DrawSprite(SPRITE_GROUP_MAINMENU, MENUS_SObjType_UpArrow,
-					-.43, -.85, ARROW_SCALE, 0, 0, info);
-	}
-	else if (gSelectedCharacterIndex == 1)
-	{
-		DrawSprite(SPRITE_GROUP_MAINMENU, MENUS_SObjType_UpArrow,
-					.43, -.85, ARROW_SCALE, 0, 0, info);
+					x, ARROW_Y, ARROW_SCALE, 0, 0, info);
 	}
 }
 

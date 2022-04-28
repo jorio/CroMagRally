@@ -12,8 +12,9 @@ enum
 	kTextMeshAlignMiddle				= 0,		// default if vertical alignment not set
 	kTextMeshAlignTop					= 1<<3,
 	kTextMeshAlignBottom				= 1<<4,
-	kTextMeshGlow						= 1<<6,
-	kTextMeshProjectionOrthoFullRect	= 1<<7,
+	kTextMeshGlow						= 1<<5,
+	kTextMeshKeepCurrentProjection		= 1<<6,
+	kTextMeshProjectionNDC				= 1<<7,
 };
 
 enum

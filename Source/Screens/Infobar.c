@@ -58,93 +58,93 @@ enum
 
 
 
-enum
+typedef struct
 {
-	iX = 0,
-	iY,
-	iS,
-	iP,
-	iP2
-};
+	float x;
+	float y;
+	float scale;
+	float xSpacing;
+	float ySpacing;
+} IconPositioning;
 
 
-static const float	gIconInfo[NUM_INFOBAR_ICONTYPES][NUM_SPLITSCREEN_MODES][5] =	// x,y,scale,spacing, spacing2
+static const IconPositioning	gIconInfo[NUM_INFOBAR_ICONTYPES][NUM_SPLITSCREEN_MODES] =
 {
 	[ICON_PLACE] =
 	{
-		[SPLITSCREEN_MODE_NONE]  = { -.8, .8, .9, 0, 0 },
-		[SPLITSCREEN_MODE_HORIZ] = { -.8, .66, .9, 0, 0 },
-		[SPLITSCREEN_MODE_VERT]  = { -.75, .85, 1.2, 0, 0 },
+		[SPLITSCREEN_MODE_NONE]  = { -.80*320, -.80*240, 0.9, 0, 0 },
+		[SPLITSCREEN_MODE_HORIZ] = { -.80*320, -.66*240, 0.9, 0, 0 },
+		[SPLITSCREEN_MODE_VERT]  = { -.75*320, -.85*240, 1.2, 0, 0 },
 	},
 
 	[ICON_MAP] =
 	{
-		[SPLITSCREEN_MODE_NONE]  = { .75, -.65, .2, 0, 0 },
-		[SPLITSCREEN_MODE_HORIZ] = { .75, -.5, .15, 0, 0 },
-		[SPLITSCREEN_MODE_VERT]  = { .6, -.75, .3, 0, 0 },
+		[SPLITSCREEN_MODE_NONE]  = { .75*320, .65*240, .20, 0, 0 },
+		[SPLITSCREEN_MODE_HORIZ] = { .75*320, .50*240, .15, 0, 0 },
+		[SPLITSCREEN_MODE_VERT]  = { .60*320, .75*240, .30, 0, 0 },
 	},
 
 	[ICON_STARTLIGHT] =
 	{
-		[SPLITSCREEN_MODE_NONE]  = { 0, .3, 1.0, 0, 0 },
-		[SPLITSCREEN_MODE_HORIZ] = { 0, .3, 1.0, 0, 0 },
-		[SPLITSCREEN_MODE_VERT]  = { 0, .1, 1.4, 0, 0 },
+		[SPLITSCREEN_MODE_NONE]  = { 0, -.3*240, 1.0, 0, 0 },
+		[SPLITSCREEN_MODE_HORIZ] = { 0, -.3*240, 1.0, 0, 0 },
+		[SPLITSCREEN_MODE_VERT]  = { 0, -.1*240, 1.4, 0, 0 },
 	},
 
 	[ICON_LAP] =
 	{
-		[SPLITSCREEN_MODE_NONE]  = { -.84, -.8, 1.0, 0, 0 },
-		[SPLITSCREEN_MODE_HORIZ] = { -.9, -.8, .7, 0, 0 },
-		[SPLITSCREEN_MODE_VERT]  = { -.85, -.8, 1.7, 0, 0 },
+		[SPLITSCREEN_MODE_NONE]  = { -.84*320, .8*240, 1.0, 0, 0 },
+		[SPLITSCREEN_MODE_HORIZ] = { -.90*320, .8*240, 0.7, 0, 0 },
+		[SPLITSCREEN_MODE_VERT]  = { -.85*320, .8*240, 1.7, 0, 0 },
 	},
 
 	[ICON_WRONGWAY] =
 	{
-		[SPLITSCREEN_MODE_NONE]  = { 0, .5, 1.0, 0, 0 },
-		[SPLITSCREEN_MODE_HORIZ] = { 0, .4, 1.0, 0, 0 },
-		[SPLITSCREEN_MODE_VERT]  = { 0, .5, 1.5, 0, 0 },
+		[SPLITSCREEN_MODE_NONE]  = { 0, -.5*240, 1.0, 0, 0 },
+		[SPLITSCREEN_MODE_HORIZ] = { 0, -.4*240, 1.0, 0, 0 },
+		[SPLITSCREEN_MODE_VERT]  = { 0, -.5*240, 1.5, 0, 0 },
 	},
 
 	[ICON_TOKEN] =
 	{
-		[SPLITSCREEN_MODE_NONE]  = { .4, .9, .4, .08, 0 },
-		[SPLITSCREEN_MODE_HORIZ] = { .4, .8, .4, .08, 0 },
-		[SPLITSCREEN_MODE_VERT]  = { .4, .9, .4, .08, 0 },
+		[SPLITSCREEN_MODE_NONE]  = { .4*320, -.9*240, .4, .08*320, 0 },
+		[SPLITSCREEN_MODE_HORIZ] = { .4*320, -.8*240, .4, .08*320, 0 },
+		[SPLITSCREEN_MODE_VERT]  = { .4*320, -.9*240, .4, .08*320, 0 },
 	},
 
 	[ICON_WEAPON] =
 	{
-		[SPLITSCREEN_MODE_NONE]  = { -.2, .85, .9, .13, 0 },
-		[SPLITSCREEN_MODE_HORIZ] = { -.2, .78, .9, .13, 0 },
-		[SPLITSCREEN_MODE_VERT]  = { -.22, .9, 1.3, .17, 0 },
+		[SPLITSCREEN_MODE_NONE]  = { -.20*320, -.85*240, 0.9, .13*320, 0 },
+		[SPLITSCREEN_MODE_HORIZ] = { -.20*320, -.78*240, 0.9, .13*320, 0 },
+		[SPLITSCREEN_MODE_VERT]  = { -.22*320, -.90*240, 1.3, .17*320, 0 },
 	},
 
 	[ICON_TIMER] =
 	{
-		[SPLITSCREEN_MODE_NONE]  = { .63, .85, 1.0, .39, 0 },
-		[SPLITSCREEN_MODE_HORIZ] = { .7, .7, .8, .35, 0 },
-		[SPLITSCREEN_MODE_VERT]  = { .6, .85, 1.2, .5, 0 },
+		[SPLITSCREEN_MODE_NONE]  = { .63*320, -.85*240, 1.0, .39*320, 0 },
+		[SPLITSCREEN_MODE_HORIZ] = { .70*320, -.70*240, 0.8, .35*320, 0 },
+		[SPLITSCREEN_MODE_VERT]  = { .60*320, -.85*240, 1.2, .50*320, 0 },
 	},
 
 	[ICON_TIMERINDEX] =
 	{
-		[SPLITSCREEN_MODE_NONE]  = { .48, .85, .6, .33, 0 },
-		[SPLITSCREEN_MODE_HORIZ] = { .60, .7, .6, .25, 0 },
-		[SPLITSCREEN_MODE_VERT]  = { .42, .85, .9, .4, 0 },
+		[SPLITSCREEN_MODE_NONE]  = { .48*320, -.85*240, .6, .33*320, 0 },
+		[SPLITSCREEN_MODE_HORIZ] = { .60*320, -.70*240, .6, .25*320, 0 },
+		[SPLITSCREEN_MODE_VERT]  = { .42*320, -.85*240, .9, .40*320, 0 },
 	},
 
 	[ICON_POWTIMER] =
 	{
-		[SPLITSCREEN_MODE_NONE]  = { -.91, .4, .8, .14, .19 },
-		[SPLITSCREEN_MODE_HORIZ] = { -.9,  .2, .5, .09, .25 },
-		[SPLITSCREEN_MODE_VERT]  = { -.91, .4, 1.0, .18, .12 },
+		[SPLITSCREEN_MODE_NONE]  = { -.91*320, -.40*240,  .8, .14*320, .19*240 },
+		[SPLITSCREEN_MODE_HORIZ] = { -.90*320, -.20*240,  .5, .09*320, .25*240 },
+		[SPLITSCREEN_MODE_VERT]  = { -.91*320, -.40*240, 1.0, .18*320, .12*240 },
 	},
 
 	[ICON_FIRE] =
 	{
-		[SPLITSCREEN_MODE_NONE]  = { -.94, .85, .5, .1, 0 },
-		[SPLITSCREEN_MODE_HORIZ] = { -.94, .78, .5, .1, 0 },
-		[SPLITSCREEN_MODE_VERT]  = { -.94, .9, .5, .1, 0 },
+		[SPLITSCREEN_MODE_NONE]  = { -.94*320, -.85*240, .5, .1*320, 0 },
+		[SPLITSCREEN_MODE_HORIZ] = { -.94*320, -.78*240, .5, .1*320, 0 },
+		[SPLITSCREEN_MODE_VERT]  = { -.94*320, -.90*240, .5, .1*320, 0 },
 	},
 };
 
@@ -365,9 +365,9 @@ static const OGLColorRGBA	blipColors[] =
 	}
 
 
-	scale = gIconInfo[ICON_MAP][gActiveSplitScreenMode][iS];
-	mapX = gIconInfo[ICON_MAP][gActiveSplitScreenMode][iX];
-	mapY = gIconInfo[ICON_MAP][gActiveSplitScreenMode][iY];
+	scale = gIconInfo[ICON_MAP][gActiveSplitScreenMode].scale;
+	mapX = gIconInfo[ICON_MAP][gActiveSplitScreenMode].x;
+	mapY = gIconInfo[ICON_MAP][gActiveSplitScreenMode].y;
 
 
 			/* DRAW THE MAP UNDERLAY */
@@ -528,9 +528,9 @@ int	place,playerNum;
 	place = gPlayerInfo[playerNum].place;
 
 	DrawSprite(SPRITE_GROUP_INFOBAR, INFOBAR_SObjType_Place1+place,
-				gIconInfo[ICON_PLACE][gActiveSplitScreenMode][iX],
-				gIconInfo[ICON_PLACE][gActiveSplitScreenMode][iY],
-				gIconInfo[ICON_PLACE][gActiveSplitScreenMode][iS],
+				gIconInfo[ICON_PLACE][gActiveSplitScreenMode].x,
+				gIconInfo[ICON_PLACE][gActiveSplitScreenMode].y,
+				gIconInfo[ICON_PLACE][gActiveSplitScreenMode].scale,
 				0, 0, setupInfo);
 }
 
@@ -550,10 +550,10 @@ float		x,y,scale, spacing, fontScale;
 	if (powType == POW_TYPE_NONE)
 		return;
 
-	x = gIconInfo[ICON_WEAPON][gActiveSplitScreenMode][iX];
-	y = gIconInfo[ICON_WEAPON][gActiveSplitScreenMode][iY];
-	scale = gIconInfo[ICON_WEAPON][gActiveSplitScreenMode][iS];
-	spacing = gIconInfo[ICON_WEAPON][gActiveSplitScreenMode][iP];
+	x = gIconInfo[ICON_WEAPON][gActiveSplitScreenMode].x;
+	y = gIconInfo[ICON_WEAPON][gActiveSplitScreenMode].y;
+	scale = gIconInfo[ICON_WEAPON][gActiveSplitScreenMode].scale;
+	spacing = gIconInfo[ICON_WEAPON][gActiveSplitScreenMode].xSpacing;
 
 	fontScale = scale * .7f;
 
@@ -603,9 +603,9 @@ short	p;
 	if (wrongWay)
 	{
 		DrawSprite(SPRITE_GROUP_INFOBAR, INFOBAR_SObjType_WrongWay,
-					gIconInfo[ICON_WRONGWAY][gActiveSplitScreenMode][iX],
-					gIconInfo[ICON_WRONGWAY][gActiveSplitScreenMode][iY],
-					gIconInfo[ICON_WRONGWAY][gActiveSplitScreenMode][iS],
+					gIconInfo[ICON_WRONGWAY][gActiveSplitScreenMode].x,
+					gIconInfo[ICON_WRONGWAY][gActiveSplitScreenMode].y,
+					gIconInfo[ICON_WRONGWAY][gActiveSplitScreenMode].scale,
 					0, 0, setupInfo);
 	}
 }
@@ -639,26 +639,26 @@ int		oldTimer;
 	{
 		gNoCarControls = false;										// once green we have control
 		DrawSprite(SPRITE_GROUP_INFOBAR, INFOBAR_SObjType_Go,
-					gIconInfo[ICON_STARTLIGHT][gActiveSplitScreenMode][iX],
-					gIconInfo[ICON_STARTLIGHT][gActiveSplitScreenMode][iY],
-					gIconInfo[ICON_STARTLIGHT][gActiveSplitScreenMode][iS],
+					gIconInfo[ICON_STARTLIGHT][gActiveSplitScreenMode].x,
+					gIconInfo[ICON_STARTLIGHT][gActiveSplitScreenMode].y,
+					gIconInfo[ICON_STARTLIGHT][gActiveSplitScreenMode].scale,
 					0, 0, setupInfo);
 	}
 	else
 	if (gStartingLightTimer <= 2.0f)								// yellow
 	{
 		DrawSprite(SPRITE_GROUP_INFOBAR, INFOBAR_SObjType_Set,
-					gIconInfo[ICON_STARTLIGHT][gActiveSplitScreenMode][iX],
-					gIconInfo[ICON_STARTLIGHT][gActiveSplitScreenMode][iY],
-					gIconInfo[ICON_STARTLIGHT][gActiveSplitScreenMode][iS],
+					gIconInfo[ICON_STARTLIGHT][gActiveSplitScreenMode].x,
+					gIconInfo[ICON_STARTLIGHT][gActiveSplitScreenMode].y,
+					gIconInfo[ICON_STARTLIGHT][gActiveSplitScreenMode].scale,
 					0, 0, setupInfo);
 	}
 	else															// red
 	{
 		DrawSprite(SPRITE_GROUP_INFOBAR, INFOBAR_SObjType_Ready,
-					gIconInfo[ICON_STARTLIGHT][gActiveSplitScreenMode][iX],
-					gIconInfo[ICON_STARTLIGHT][gActiveSplitScreenMode][iY],
-					gIconInfo[ICON_STARTLIGHT][gActiveSplitScreenMode][iS],
+					gIconInfo[ICON_STARTLIGHT][gActiveSplitScreenMode].x,
+					gIconInfo[ICON_STARTLIGHT][gActiveSplitScreenMode].y,
+					gIconInfo[ICON_STARTLIGHT][gActiveSplitScreenMode].scale,
 					0, 0, setupInfo);
 	}
 
@@ -699,21 +699,10 @@ int	lap,playerNum;
 
 
 	DrawSprite(SPRITE_GROUP_INFOBAR, INFOBAR_SObjType_Lap1of3+lap,
-				gIconInfo[ICON_LAP][gActiveSplitScreenMode][iX],
-				gIconInfo[ICON_LAP][gActiveSplitScreenMode][iY],
-				gIconInfo[ICON_LAP][gActiveSplitScreenMode][iS],
+				gIconInfo[ICON_LAP][gActiveSplitScreenMode].x,
+				gIconInfo[ICON_LAP][gActiveSplitScreenMode].y,
+				gIconInfo[ICON_LAP][gActiveSplitScreenMode].scale,
 				0, 0, setupInfo);
-				/*
-	DrawSprite(SPRITE_GROUP_INFOBAR, INFOBAR_SObjType_Lap1of3+lap,
-				0,//g2DLogicalWidth/2,//gIconInfo[ICON_LAP][gActiveSplitScreenMode][iX],
-				g2DLogicalHeight,//gIconInfo[ICON_LAP][gActiveSplitScreenMode][iY],
-				1,//gIconInfo[ICON_LAP][gActiveSplitScreenMode][iS],
-				0,
-				kTextMeshProjectionOrthoFullRect | kTextMeshAlignLeft | kTextMeshAlignBottom,
-				setupInfo);
-				*/
-
-
 }
 
 /********************** DRAW TOKENS *************************/
@@ -728,10 +717,10 @@ float	x,y,scale,spacing;
 
 	numTokens = gPlayerInfo[playerNum].numTokens;
 
-	x = gIconInfo[ICON_TOKEN][gActiveSplitScreenMode][iX];
-	y = gIconInfo[ICON_TOKEN][gActiveSplitScreenMode][iY];
-	scale = gIconInfo[ICON_TOKEN][gActiveSplitScreenMode][iS];
-	spacing = gIconInfo[ICON_TOKEN][gActiveSplitScreenMode][iP];
+	x = gIconInfo[ICON_TOKEN][gActiveSplitScreenMode].x;
+	y = gIconInfo[ICON_TOKEN][gActiveSplitScreenMode].y;
+	scale = gIconInfo[ICON_TOKEN][gActiveSplitScreenMode].scale;
+	spacing = gIconInfo[ICON_TOKEN][gActiveSplitScreenMode].xSpacing;
 
 	for (i = 1; i <= MAX_TOKENS; i++)
 	{
@@ -757,12 +746,12 @@ static const OGLColorRGB noTint = {1,1,1};
 
 	p = GetPlayerNum(gCurrentSplitScreenPane);
 
-	x = gIconInfo[ICON_POWTIMER][gActiveSplitScreenMode][iX];
-	y = gIconInfo[ICON_POWTIMER][gActiveSplitScreenMode][iY];
-	scale = gIconInfo[ICON_POWTIMER][gActiveSplitScreenMode][iS];
+	x = gIconInfo[ICON_POWTIMER][gActiveSplitScreenMode].x;
+	y = gIconInfo[ICON_POWTIMER][gActiveSplitScreenMode].y;
+	scale = gIconInfo[ICON_POWTIMER][gActiveSplitScreenMode].scale;
 	fontScale = scale * .6f;
-	spacing = gIconInfo[ICON_POWTIMER][gActiveSplitScreenMode][iP];
-	lineSpacing = gIconInfo[ICON_POWTIMER][gActiveSplitScreenMode][iP2];
+	spacing = gIconInfo[ICON_POWTIMER][gActiveSplitScreenMode].xSpacing;
+	lineSpacing = gIconInfo[ICON_POWTIMER][gActiveSplitScreenMode].ySpacing;
 
 	static const size_t numTimers = sizeof(gInfobarTimers) / sizeof(gInfobarTimers[0]);
 	size_t offset = p * sizeof(gPlayerInfo[0]);
@@ -790,7 +779,7 @@ static const OGLColorRGB noTint = {1,1,1};
 		x2 = x + spacing;
 		Atlas_DrawString(SPRITE_GROUP_FONT, s, x2, y, fontScale, 0, 0, setupInfo);
 
-		y -= lineSpacing;												// move down to prep for next item
+		y += lineSpacing;												// move down to prep for next item
 
 		gGlobalColorFilter = noTint;
 	}
@@ -804,10 +793,10 @@ static void Infobar_DrawTagTimer(const OGLSetupOutputType *setupInfo)
 short	p,p2;
 float	timer,x,y, scale, spacing;
 
-	x = gIconInfo[ICON_TIMER][gActiveSplitScreenMode][iX];
-	y = gIconInfo[ICON_TIMER][gActiveSplitScreenMode][iY];
-	scale = gIconInfo[ICON_TIMER][gActiveSplitScreenMode][iS];
-	spacing = gIconInfo[ICON_TIMER][gActiveSplitScreenMode][iP];
+	x = gIconInfo[ICON_TIMER][gActiveSplitScreenMode].x;
+	y = gIconInfo[ICON_TIMER][gActiveSplitScreenMode].y;
+	scale = gIconInfo[ICON_TIMER][gActiveSplitScreenMode].scale;
+	spacing = gIconInfo[ICON_TIMER][gActiveSplitScreenMode].xSpacing;
 
 
 			/********************/
@@ -822,10 +811,10 @@ float	timer,x,y, scale, spacing;
 
 		/* DRAW THE TIME MARKER */
 
-	x = gIconInfo[ICON_TIMERINDEX][gActiveSplitScreenMode][iX];
-	y = gIconInfo[ICON_TIMERINDEX][gActiveSplitScreenMode][iY];
-	scale = gIconInfo[ICON_TIMERINDEX][gActiveSplitScreenMode][iS];
-	spacing = gIconInfo[ICON_TIMERINDEX][gActiveSplitScreenMode][iP];
+	x = gIconInfo[ICON_TIMERINDEX][gActiveSplitScreenMode].x;
+	y = gIconInfo[ICON_TIMERINDEX][gActiveSplitScreenMode].y;
+	scale = gIconInfo[ICON_TIMERINDEX][gActiveSplitScreenMode].scale;
+	spacing = gIconInfo[ICON_TIMERINDEX][gActiveSplitScreenMode].xSpacing;
 
 
 	p = GetPlayerNum(gCurrentSplitScreenPane);
@@ -843,7 +832,7 @@ float	timer,x,y, scale, spacing;
 	{
 		p2 = gWhoIsIt;							// in tag, show timer of tagged player
 
-		x = gIconInfo[ICON_TIMERINDEX][gActiveSplitScreenMode][iX];
+		x = gIconInfo[ICON_TIMERINDEX][gActiveSplitScreenMode].x;
 		timer = (gPlayerInfo[p2].tagTimer / TAG_TIME_LIMIT);							// get timer value 0..1
 		x += timer * spacing;
 
@@ -869,10 +858,10 @@ static void Infobar_DrawHealth(const OGLSetupOutputType *setupInfo)
 short	p,p2;
 float	timer,x,y, scale, spacing, dist;
 
-	x = gIconInfo[ICON_TIMER][gActiveSplitScreenMode][iX];
-	y = gIconInfo[ICON_TIMER][gActiveSplitScreenMode][iY];
-	scale = gIconInfo[ICON_TIMER][gActiveSplitScreenMode][iS];
-	spacing = gIconInfo[ICON_TIMER][gActiveSplitScreenMode][iP];
+	x = gIconInfo[ICON_TIMER][gActiveSplitScreenMode].x;
+	y = gIconInfo[ICON_TIMER][gActiveSplitScreenMode].y;
+	scale = gIconInfo[ICON_TIMER][gActiveSplitScreenMode].scale;
+	spacing = gIconInfo[ICON_TIMER][gActiveSplitScreenMode].xSpacing;
 
 
 			/********************/
@@ -887,10 +876,10 @@ float	timer,x,y, scale, spacing, dist;
 
 		/* DRAW THE TIME MARKER */
 
-	x = gIconInfo[ICON_TIMERINDEX][gActiveSplitScreenMode][iX];
-	y = gIconInfo[ICON_TIMERINDEX][gActiveSplitScreenMode][iY];
-	scale = gIconInfo[ICON_TIMERINDEX][gActiveSplitScreenMode][iS];
-	spacing = gIconInfo[ICON_TIMERINDEX][gActiveSplitScreenMode][iP];
+	x = gIconInfo[ICON_TIMERINDEX][gActiveSplitScreenMode].x;
+	y = gIconInfo[ICON_TIMERINDEX][gActiveSplitScreenMode].y;
+	scale = gIconInfo[ICON_TIMERINDEX][gActiveSplitScreenMode].scale;
+	spacing = gIconInfo[ICON_TIMERINDEX][gActiveSplitScreenMode].xSpacing;
 
 
 	p = GetPlayerNum(gCurrentSplitScreenPane);
@@ -910,7 +899,7 @@ float	timer,x,y, scale, spacing, dist;
 
 	if (p2 != -1)
 	{
-		x = gIconInfo[ICON_TIMERINDEX][gActiveSplitScreenMode][iX];
+		x = gIconInfo[ICON_TIMERINDEX][gActiveSplitScreenMode].x;
 		timer = gPlayerInfo[p2].health;
 		x += timer * spacing;
 
@@ -942,10 +931,10 @@ float	x,y, scale, spacing;
 	p = GetPlayerNum(gCurrentSplitScreenPane);
 	t = gPlayerInfo[p].team;							// get team #
 
-	x 		= gIconInfo[ICON_FIRE][gActiveSplitScreenMode][iX];
-	y 		= gIconInfo[ICON_FIRE][gActiveSplitScreenMode][iY];
-	scale 	= gIconInfo[ICON_FIRE][gActiveSplitScreenMode][iS];
-	spacing	= gIconInfo[ICON_FIRE][gActiveSplitScreenMode][iP];
+	x 		= gIconInfo[ICON_FIRE][gActiveSplitScreenMode].x;
+	y 		= gIconInfo[ICON_FIRE][gActiveSplitScreenMode].y;
+	scale 	= gIconInfo[ICON_FIRE][gActiveSplitScreenMode].scale;
+	spacing	= gIconInfo[ICON_FIRE][gActiveSplitScreenMode].xSpacing;
 
 	for (i = 0; i < gCapturedFlagCount[t]; i++)
 	{

@@ -107,7 +107,7 @@ MOSpriteSetupData	spriteData;
 	if (newObj == nil)
 		return(nil);
 
-	newObj->Projection = kProjectionType2DNDC;
+	newObj->Projection = kProjectionType2DOrthoCentered;
 
 			/* MAKE SPRITE META-OBJECT */
 

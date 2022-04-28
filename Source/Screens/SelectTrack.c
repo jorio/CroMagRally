@@ -56,13 +56,13 @@ enum
 };
 
 
-#define	LEFT_ARROW_X	-.65
-#define RIGHT_ARROW_X	.65
+#define	LEFT_ARROW_X	-208
+#define RIGHT_ARROW_X	208
 #define	ARROW_Y			0
 #define	ARROW_SCALE		.5
 
 #define	LEVEL_IMAGE_X		0
-#define	LEVEL_IMAGE_Y		.17
+#define	LEVEL_IMAGE_Y		40
 #define	LEVEL_IMAGE_SCALE	.58
 
 

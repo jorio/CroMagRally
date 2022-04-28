@@ -49,9 +49,9 @@ enum
 };
 
 
-#define	LEFT_ARROW_X	-.6
-#define RIGHT_ARROW_X	.6
-#define	ARROW_Y			.2
+#define	LEFT_ARROW_X	-192
+#define RIGHT_ARROW_X	192
+#define	ARROW_Y			-48
 #define	ARROW_SCALE		.5
 
 #define	CAR_Y			70

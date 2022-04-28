@@ -746,10 +746,14 @@ void Atlas_DrawString(
 
 	OGL_PushState();								// keep state
 
-	if (flags & kTextMeshProjectionOrthoFullRect)
-		OGL_SetProjection(kProjectionType2DOrthoFullRect);
-	else
+	bool isNDC = !!(flags & kProjectionType2DNDC);
+
+	if (flags & kTextMeshKeepCurrentProjection)
+		;
+	else if (isNDC)
 		OGL_SetProjection(kProjectionType2DNDC);
+	else
+		OGL_SetProjection(kProjectionType2DOrthoCentered);
 
 	OGL_DisableLighting();
 	glDisable(GL_CULL_FACE);
@@ -760,7 +764,7 @@ void Atlas_DrawString(
 
 	glTranslatef(x,y,0);
 
-	if (flags & kTextMeshProjectionOrthoFullRect)
+	if (!isNDC)
 	{
 		glScalef(scale, scale, 1);
 	}
@@ -802,8 +806,8 @@ void Atlas_DrawString(
 		float qx = cx + (g.xoff + halfw);
 		float qy = cy + (g.yoff + halfh);
 
-		float v1 = flags & kTextMeshProjectionOrthoFullRect ? g.v1 : g.v2;
-		float v2 = flags & kTextMeshProjectionOrthoFullRect ? g.v2 : g.v1;
+		float v1 = !isNDC ? g.v1 : g.v2;
+		float v2 = !isNDC ? g.v2 : g.v1;
 
 		glTexCoord2f(g.u1, v2);	glVertex3f(qx - halfw, qy + halfh, 0);
 		glTexCoord2f(g.u2, v2);	glVertex3f(qx + halfw, qy + halfh, 0);

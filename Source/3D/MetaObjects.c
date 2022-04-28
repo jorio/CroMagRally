@@ -999,7 +999,7 @@ const MOSpriteData	*spriteData = &spriteObj->objectData;
 		spriteData->coord.y,
 		spriteData->scaleX,
 		spriteData->rot,
-		kTextMeshAlignCenter | kTextMeshAlignMiddle,
+		kTextMeshAlignCenter | kTextMeshAlignMiddle | kTextMeshKeepCurrentProjection,
 		setupInfo
 	);
 }
