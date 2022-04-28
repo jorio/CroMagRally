@@ -12,7 +12,6 @@ enum
 	kTextMeshAlignMiddle				= 0,		// default if vertical alignment not set
 	kTextMeshAlignTop					= 1<<3,
 	kTextMeshAlignBottom				= 1<<4,
-	kTextMeshNoSpecialASCII				= 1<<5,
 	kTextMeshGlow						= 1<<6,
 	kTextMeshProjectionOrthoFullRect	= 1<<7,
 };
@@ -51,6 +50,8 @@ typedef struct Atlas
 
 	uint16_t kernPairs[MAX_KERNPAIRS];
 	uint8_t kernTracking[MAX_KERNPAIRS];
+
+	bool isASCIIFont;
 } Atlas;
 
 Atlas* Atlas_Load(const char* atlasName, int flags, OGLSetupOutputType* setupInfo);

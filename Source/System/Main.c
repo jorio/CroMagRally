@@ -717,16 +717,16 @@ Boolean	done = false;
 				{
 						stageTimer = 1.5;										// reset stage timer
 
-GAME_ASSERT_MESSAGE(false, "reimplement me");
 						NewObjectDefinitionType def =
 						{
 							.group		= SPRITE_GROUP_INFOBAR,
 							.type		= INFOBAR_SObjType_Token_Arrowhead,
-							.coord		= {-.2, 0, 0},
+							.coord		= {-64, 0, 0},
 							.slot 		= SPRITE_SLOT,
 							.scale		= 1.5,
 						};
 						newObj = MakeSpriteObject(&def, gGameViewInfoPtr);
+//						newObj->Projection = kProjectionType2DOrthoCentered;
 						break;
 				}
 
@@ -739,7 +739,6 @@ GAME_ASSERT_MESSAGE(false, "reimplement me");
 
 								/* MAKE X */
 
-GAME_ASSERT_MESSAGE(false, "reimplement me");
 						NewObjectDefinitionType def =
 						{
 							.group		= SPRITE_GROUP_INFOBAR,
@@ -749,6 +748,7 @@ GAME_ASSERT_MESSAGE(false, "reimplement me");
 							.scale		= 1.5,
 						};
 						newObj = MakeSpriteObject(&def, gGameViewInfoPtr);
+//						newObj->Projection = kProjectionType2DOrthoCentered;
 						break;
 				}
 
@@ -762,7 +762,7 @@ GAME_ASSERT_MESSAGE(false, "reimplement me");
 
 						NewObjectDefinitionType def =
 						{
-							.coord 		= {.2, 0, 0},
+							.coord 		= {64, 0, 0},
 							.scale		= 1.5,
 							.slot 		= SPRITE_SLOT,
 						};
@@ -940,7 +940,7 @@ static void PlayArea(void)
 
 		if (GetKeyState(SDL_SCANCODE_B))
 		{
-			if (GetKeyState(SDL_SCANCODE_R) && GetKeyState(SDL_SCANCODE_I))		// win race cheat
+			if (GetKeyState(SDL_SCANCODE_R) && GetKeyState(SDL_SCANCODE_Z))		// win race cheat
 			{
 				if (!gPlayerInfo[0].raceComplete)
 				{

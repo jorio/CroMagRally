@@ -326,6 +326,8 @@ Atlas* Atlas_Load(const char* fontName, int flags, OGLSetupOutputType* setupInfo
 		GAME_ASSERT(data);
 		ParseKerningFile(atlas, data);
 		SafeDisposePtr(data);
+
+		atlas->isASCIIFont = true;
 	}
 
 	return atlas;
@@ -411,7 +413,7 @@ static float Kern(const Atlas* font, const AtlasGlyph* glyph, const char* utftex
 	return 1;
 }
 
-static void ComputeMetrics(const Atlas* atlas, const char* text, TextMetrics* metrics, bool specialASCII)
+static void ComputeMetrics(const Atlas* atlas, const char* text, TextMetrics* metrics)
 {
 	float spacing = 0;
 
@@ -425,7 +427,7 @@ static void ComputeMetrics(const Atlas* atlas, const char* text, TextMetrics* me
 	{
 		uint32_t codepoint = ReadNextCodepointFromUTF8(&utftext);
 
-		if (specialASCII)
+		if (atlas->isASCIIFont)
 		{
 			if (codepoint == '\n')
 			{
@@ -453,7 +455,7 @@ static void ComputeMetrics(const Atlas* atlas, const char* text, TextMetrics* me
 
 		float kernFactor = 1;
 
-		if (specialASCII)
+		if (atlas->isASCIIFont) //specialASCII)
 			kernFactor = Kern(atlas, glyph, utftext);
 
 		metrics->lineWidths[metrics->numLines-1] += (glyph->xadv * kernFactor + spacing);
@@ -505,8 +507,6 @@ void TextMesh_Update(const char* text, int align, ObjNode* textNode)
 	const Atlas* font = gAtlases[0];
 	GAME_ASSERT(font);
 
-	bool specialASCII = !(align & kTextMeshNoSpecialASCII);
-
 	//-----------------------------------
 	// Get mesh from ObjNode
 
@@ -531,7 +531,7 @@ void TextMesh_Update(const char* text, int align, ObjNode* textNode)
 
 	// Compute number of quads and line width
 	TextMetrics metrics;
-	ComputeMetrics(font, text, &metrics, specialASCII);
+	ComputeMetrics(font, text, &metrics);
 
 	// Adjust y for ascender
 	y += 0.5f * font->lineHeight;
@@ -576,7 +576,7 @@ void TextMesh_Update(const char* text, int align, ObjNode* textNode)
 	{
 		uint32_t codepoint = ReadNextCodepointFromUTF8(&utftext);
 
-		if (!(align & kTextMeshNoSpecialASCII))
+		if (font->isASCIIFont)
 		{
 			if (codepoint == '\n')
 			{
@@ -784,7 +784,7 @@ void Atlas_DrawString(
 	glBegin(GL_QUADS);
 
 	TextMetrics metrics;
-	ComputeMetrics(font, text, &metrics, false);
+	ComputeMetrics(font, text, &metrics);
 
 	float cx = GetLineStartX(flags, metrics.longestLineWidth);
 	float cy = GetLineStartY(flags, metrics.lineHeights[0]);	// single-quad hack...
