@@ -163,10 +163,10 @@ float GetAnalogSteering(int playerID);
 void TurnOnISp(void);
 void TurnOffISp(void);
 
-Boolean GetKeyState_Real(unsigned short key);
 void DoKeyConfigDialog(void);
 
 Boolean AreAnyNewKeysPressed(void);
+Boolean IsCheatKeyComboDown(void);
 void InitControlBits(void);
 void GetLocalKeyState(void);
 

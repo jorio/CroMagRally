@@ -501,6 +501,12 @@ short	p;
 			PlayEffect(EFFECT_BADSELECT);
 		}
 	}
+	else
+	if (IsCheatKeyComboDown())
+	{
+		PlayEffect(EFFECT_ROMANCANDLE_LAUNCH);
+		return true;
+	}
 
 
 		/* SEE IF CHANGE SELECTION */

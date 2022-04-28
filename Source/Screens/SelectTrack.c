@@ -357,6 +357,12 @@ short				highestUnlocked;
 			return(true);
 		}
 	}
+	else
+	if (IsCheatKeyComboDown())
+	{
+		PlayEffect(EFFECT_ROMANCANDLE_LAUNCH);
+		return true;
+	}
 
 
 		/* SEE IF CHANGE SELECTION */

@@ -938,24 +938,22 @@ static void PlayArea(void)
 
 			/* CHECK CHEATS */
 
-		if (GetKeyState(SDL_SCANCODE_B))
+		if (IsCheatKeyComboDown())						// win race cheat
 		{
-			if (GetKeyState(SDL_SCANCODE_R) && GetKeyState(SDL_SCANCODE_Z))		// win race cheat
+			if (!gPlayerInfo[0].raceComplete)
 			{
-				if (!gPlayerInfo[0].raceComplete)
-				{
-					PlayerCompletedRace(0);
-					gPlayerInfo[0].place = 0;
-					gPlayerInfo[0].raceComplete = true;
-					gPlayerInfo[0].numTokens = gTotalTokens = MAX_TOKENS;
-				}
+				PlayerCompletedRace(0);
+				gPlayerInfo[0].place = 0;
+				gPlayerInfo[0].raceComplete = true;
+				gPlayerInfo[0].numTokens = gTotalTokens = MAX_TOKENS;
 			}
-
-			if (GetKeyState(SDL_SCANCODE_F13))		// hide/show infobar
-				gHideInfobar = !gHideInfobar;
-
-
 		}
+
+		if (GetNewKeyState(SDL_SCANCODE_SCROLLLOCK))		// hide/show infobar
+		{
+			gHideInfobar = !gHideInfobar;
+		}
+
 
 			/* SEE IF PAUSED */
 

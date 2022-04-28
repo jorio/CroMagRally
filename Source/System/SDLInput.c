@@ -332,6 +332,11 @@ Boolean AreAnyNewKeysPressed(void)
 	return GetNewNeedStateAnyP(kNeed_UIConfirm) || GetNewNeedStateAnyP(kNeed_UIBack) || GetNewNeedStateAnyP(kNeed_UIPause);
 }
 
+Boolean IsCheatKeyComboDown(void)
+{
+	return GetKeyState(SDL_SCANCODE_B) && GetKeyState(SDL_SCANCODE_R) && GetKeyState(SDL_SCANCODE_I);
+}
+
 #pragma mark -
 
 float GetAnalogSteering(int playerID)
