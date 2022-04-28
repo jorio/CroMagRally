@@ -10,8 +10,6 @@
 #define	MAX_MATERIAL_LAYERS		4				// max multitexture layers
 #define	MO_MAX_MIPMAPS			6				// max mipmaps per material
 
-#define	SPRITE_SCALE_BASIS_DENOMINATOR	640.0f
-
 		/* OBJECT TYPES */
 enum
 {

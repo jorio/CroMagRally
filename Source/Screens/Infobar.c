@@ -39,6 +39,8 @@ static void MovePressAnyKey(ObjNode *theNode);
 
 #define PLAYER_NAME_SAFE_CHARSET " .0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
+#define OVERHEAD_MAP_REFERENCE_SIZE 256.0f
+
 enum
 {
 	ICON_PLACE	 = 0,
@@ -79,9 +81,9 @@ static const IconPositioning	gIconInfo[NUM_INFOBAR_ICONTYPES][NUM_SPLITSCREEN_MO
 
 	[ICON_MAP] =
 	{
-		[SPLITSCREEN_MODE_NONE]  = { .75*320, .65*240, .20, 0, 0 },
-		[SPLITSCREEN_MODE_HORIZ] = { .75*320, .50*240, .15, 0, 0 },
-		[SPLITSCREEN_MODE_VERT]  = { .60*320, .75*240, .30, 0, 0 },
+		[SPLITSCREEN_MODE_NONE]  = { .75*320, .65*240, .20*2.5, 0, 0 },
+		[SPLITSCREEN_MODE_HORIZ] = { .75*320, .50*240, .15*2.5, 0, 0 },
+		[SPLITSCREEN_MODE_VERT]  = { .60*320, .75*240, .30*2.5, 0, 0 },
 	},
 
 	[ICON_STARTLIGHT] =
@@ -169,7 +171,7 @@ static const struct
 /*    VARIABLES      */
 /*********************/
 
-static float	gMapImageScaleAdjust = 1;
+static float	gMapFit = 1;
 
 float			gStartingLightTimer;
 
@@ -222,7 +224,7 @@ static const char*	maps[] =
 	LoadSpriteGroup(SPRITE_GROUP_OVERHEADMAP, maps[gTrackNum], kAtlasLoadAsSingleSprite, setupInfo);
 
 	float mapImageHeight = GetSpriteInfo(SPRITE_GROUP_OVERHEADMAP, 1)->yadv;
-	gMapImageScaleAdjust = 2.5f * (256.0f / mapImageHeight);
+	gMapFit = OVERHEAD_MAP_REFERENCE_SIZE / mapImageHeight;
 
 
 			/* PUT SELF-RUNNING DEMO MESSAGE UP */
@@ -332,11 +334,33 @@ void DrawInfobar(OGLSetupOutputType *setupInfo)
 
 /********************** DRAW MAP *******************************/
 
+static void GetPointOnOverheadMap(float* px, float* pz)
+{
+	float x = *px;
+	float z = *pz;
+
+	float scale = gIconInfo[ICON_MAP][gActiveSplitScreenMode].scale;
+	float mapX = gIconInfo[ICON_MAP][gActiveSplitScreenMode].x;
+	float mapY = gIconInfo[ICON_MAP][gActiveSplitScreenMode].y;
+
+	x /= gTerrainUnitWidth;		// get 0..1 coordinate values
+	z /= gTerrainUnitDepth;
+
+	x = x * 2.0f - 1.0f;								// convert to -1..1
+	z = z * 2.0f - 1.0f;
+
+	x *= scale * OVERHEAD_MAP_REFERENCE_SIZE * .5f;		// shrink to size of underlay map
+	z *= scale * OVERHEAD_MAP_REFERENCE_SIZE * .5f;
+
+	x += mapX;											// position it
+	z += mapY;
+
+	*px = x;
+	*pz = z;
+}
+
 static void Infobar_DrawMap(const OGLSetupOutputType *setupInfo)
 {
-int		i;
-float	x,z;
-float	scaleBasis,rot;
 float	scale,mapX,mapY;
 
 static const OGLColorRGBA	blipColors[] =
@@ -369,11 +393,13 @@ static const OGLColorRGBA	blipColors[] =
 	mapX = gIconInfo[ICON_MAP][gActiveSplitScreenMode].x;
 	mapY = gIconInfo[ICON_MAP][gActiveSplitScreenMode].y;
 
+	float mapSize = scale * OVERHEAD_MAP_REFERENCE_SIZE;
+
 
 			/* DRAW THE MAP UNDERLAY */
 
 	DrawSprite(SPRITE_GROUP_OVERHEADMAP, 1, mapX, mapY,
-			scale * gMapImageScaleAdjust,
+			scale * gMapFit,
 			0,
 			kTextMeshAlignCenter | kTextMeshAlignMiddle,
 			setupInfo);
@@ -384,43 +410,33 @@ static const OGLColorRGBA	blipColors[] =
 			/***********************/
 
 	OGL_PushState();
-	OGL_SetProjection(kProjectionType2DNDC);
+	OGL_SetProjection(kProjectionType2DOrthoCentered);
 	glDisable(GL_TEXTURE_2D);								// not textured, so disable textures
 
-	for (i = gNumTotalPlayers-1; i >= 0; i--)				// draw from last to first so that player 1 is always on "top"
+	for (int i = gNumTotalPlayers-1; i >= 0; i--)			// draw from last to first so that player 1 is always on "top"
 	{
-		if (p != i)											// if this isnt me then see if hidden
-			if (gPlayerInfo[i].invisibilityTimer > 0.0f)
-				continue;
-
-
-		x = gPlayerInfo[i].coord.x / gTerrainUnitWidth;		// get 0..1 coordinate values
-		z = 1.0f - (gPlayerInfo[i].coord.z / gTerrainUnitDepth);
-
-		x = x * 2.0f - 1.0f;								// convert to -1..1
-		z = z * 2.0f - 1.0f;
-
-		x *= scale;											// shrink to size of underlay map
-		z *= scale * gCurrentAspectRatio;
-
-		x += mapX;											// position it
-		z += mapY;
+		if (p != i											// if this isnt me then see if hidden
+			&& gPlayerInfo[i].invisibilityTimer > 0.0f)
+		{
+			continue;
+		}
 
 			/* ORIENT IT */
 
-		if ((gNumRealPlayers > 1) && (i == p))				// draw my marker bigger
-			scaleBasis = scale * 40.0f  *  (1.0f/SPRITE_SCALE_BASIS_DENOMINATOR);		// calculate a scale basis to keep things scaled relative to texture size
-		else
-			scaleBasis = scale * 32.0f  *  (1.0f/SPRITE_SCALE_BASIS_DENOMINATOR);		// calculate a scale basis to keep things scaled relative to texture size
+		float x = gPlayerInfo[i].coord.x;
+		float z = gPlayerInfo[i].coord.z;
+		GetPointOnOverheadMap(&x, &z);
+
+		float scaleBasis = ((i == p) ? 10 : 7);				// draw my marker bigger
+		scaleBasis *= scale;
 
 		glPushMatrix();										// back up MODELVIEW matrix
 
-		glTranslatef(x,z,0);
-		glScalef(scaleBasis, gCurrentAspectRatio * scaleBasis, 1);
+		glTranslatef(x, z, 0);
+		glScalef(scaleBasis, scaleBasis, 1);
 
-		rot = gPlayerInfo[i].objNode->Rot.y;
-		if (rot != 0.0f)
-			glRotatef(OGLMath_RadiansToDegrees(rot), 0, 0, 1);											// remember:  rotation is in degrees, not radians!
+		float rot = gPlayerInfo[i].objNode->Rot.y;
+		glRotatef(180 - OGLMath_RadiansToDegrees(rot), 0, 0, 1);	// doing 180-angle because Y points down for us
 
 
 			/* SET COLOR */
@@ -469,30 +485,23 @@ static const OGLColorRGBA	blipColors[] =
 			/* DRAW TORCH MARKERS */
 			/**********************/
 
-	for (i = 0; i < gNumTorches; i++)
+	for (int i = 0; i < gNumTorches; i++)
 	{
 		if (gTorchObjs[i]->Mode == 2) 		// dont draw if this torch is at base
 			continue;
 
-		x = gTorchObjs[i]->Coord.x / gTerrainUnitWidth;		// get 0..1 coordinate values
-		z = 1.0f - (gTorchObjs[i]->Coord.z / gTerrainUnitDepth);
-
-		x = x * 2.0f - 1.0f;								// convert to -1..1
-		z = z * 2.0f - 1.0f;
-
-		x *= scale;											// shrink to size of underlay map
-		z *= scale * gCurrentAspectRatio;
-
-		x += mapX;											// position it
-		z += mapY;
+		float x = gTorchObjs[i]->Coord.x;
+		float z = gTorchObjs[i]->Coord.z;
+		GetPointOnOverheadMap(&x, &z);
 
 			/* ORIENT IT */
 
 		glPushMatrix();										// back up MODELVIEW matrix
 
-		scaleBasis = scale * 16.0f  *  (1.0f/SPRITE_SCALE_BASIS_DENOMINATOR);		// calculate a scale basis to keep things scaled relative to texture size
+		float scaleBasis = scale * 7.0f;					// calculate a scale basis to keep things scaled relative to texture size
 		glTranslatef(x,z,0);
-		glScalef(scaleBasis, gCurrentAspectRatio * scaleBasis, 1);
+		glScalef(scaleBasis, scaleBasis, 1);
+		glRotatef(180, 0, 0, 1);
 
 
 			/* SET COLOR */
