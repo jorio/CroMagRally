@@ -681,7 +681,7 @@ const char* GetPlayerNameWithInputDeviceHint(int whichPlayer)
 
 	if (whichPlayer == 0 && !gControllers[0].open)
 	{
-		snprintf(playerName, sizeof(playerName), "%s %d [%s]", Localize(STR_PLAYER), whichPlayer+1, Localize(STR_KEYBOARD));
+		snprintf(playerName, sizeof(playerName), "%s %d\n[%s]", Localize(STR_PLAYER), whichPlayer+1, Localize(STR_KEYBOARD));
 	}
 	else
 	{

@@ -315,7 +315,7 @@ int					age;
 
 		NewObjectDefinitionType def =
 		{
-			.coord		= {0, .8, 0},
+			.coord		= {0, -.8*240, 0},
 			.scale		= .5,
 			.slot 		= SPRITE_SLOT,
 		};

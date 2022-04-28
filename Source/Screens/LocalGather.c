@@ -161,7 +161,7 @@ OGLVector3D			fillDirection1 = { .9, -.3, -1 };
 
 			/* MAKE BACKGROUND PICTURE OBJECT */
 
-	MakeBackgroundPictureObject(":images:CharSelectScreen.jpg");
+//	MakeBackgroundPictureObject(":images:CharSelectScreen.jpg");
 
 
 			/*****************/
@@ -173,6 +173,7 @@ OGLVector3D			fillDirection1 = { .9, -.3, -1 };
 		.genre = TEXTMESH_GENRE,
 		.scale = 0.4f,
 		.coord = {0, 0, 0},
+		.slot = SPRITE_SLOT
 	};
 
 	gGatherPrompt = TextMesh_NewEmpty(256, &def2);
