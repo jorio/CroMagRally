@@ -14,7 +14,6 @@ enum
 	kTextMeshAlignBottom				= 1<<4,
 	kTextMeshGlow						= 1<<5,
 	kTextMeshKeepCurrentProjection		= 1<<6,
-	kTextMeshProjectionNDC				= 1<<7,
 };
 
 enum

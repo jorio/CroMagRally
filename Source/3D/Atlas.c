@@ -746,13 +746,7 @@ void Atlas_DrawString(
 
 	OGL_PushState();								// keep state
 
-	bool isNDC = !!(flags & kProjectionType2DNDC);
-
-	if (flags & kTextMeshKeepCurrentProjection)
-		;
-	else if (isNDC)
-		OGL_SetProjection(kProjectionType2DNDC);
-	else
+	if (!(flags & kTextMeshKeepCurrentProjection))
 		OGL_SetProjection(kProjectionType2DOrthoCentered);
 
 	OGL_DisableLighting();
@@ -763,16 +757,7 @@ void Atlas_DrawString(
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE);
 
 	glTranslatef(x,y,0);
-
-	if (!isNDC)
-	{
-		glScalef(scale, scale, 1);
-	}
-	else
-	{
-		float scaleBasis = 2.0f / SPRITE_SCALE_BASIS_DENOMINATOR;
-		glScalef(scale * scaleBasis, scale * gCurrentAspectRatio * scaleBasis, 1);
-	}
+	glScalef(scale, scale, 1);						// Assume ortho projection
 
 	if (rot != 0.0f)
 		glRotatef(OGLMath_RadiansToDegrees(rot), 0, 0, 1);											// remember:  rotation is in degrees, not radians!
@@ -806,13 +791,10 @@ void Atlas_DrawString(
 		float qx = cx + (g.xoff + halfw);
 		float qy = cy + (g.yoff + halfh);
 
-		float v1 = !isNDC ? g.v1 : g.v2;
-		float v2 = !isNDC ? g.v2 : g.v1;
-
-		glTexCoord2f(g.u1, v2);	glVertex3f(qx - halfw, qy + halfh, 0);
-		glTexCoord2f(g.u2, v2);	glVertex3f(qx + halfw, qy + halfh, 0);
-		glTexCoord2f(g.u2, v1);	glVertex3f(qx + halfw, qy - halfh, 0);
-		glTexCoord2f(g.u1, v1);	glVertex3f(qx - halfw, qy - halfh, 0);
+		glTexCoord2f(g.u1, g.v2);	glVertex3f(qx - halfw, qy + halfh, 0);
+		glTexCoord2f(g.u2, g.v2);	glVertex3f(qx + halfw, qy + halfh, 0);
+		glTexCoord2f(g.u2, g.v1);	glVertex3f(qx + halfw, qy - halfh, 0);
+		glTexCoord2f(g.u1, g.v1);	glVertex3f(qx - halfw, qy - halfh, 0);
 
 		cx += g.xadv * Kern(font, &g, utftext);
 
