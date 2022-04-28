@@ -771,6 +771,7 @@ void OGL_DrawScene(OGLSetupOutputType *setupInfo, void (*drawRoutine)(OGLSetupOu
 			//"\nFENCES: %d"
 			"\nVRAM: %dK"
 			"\nPTRS: %d"
+			"\n%dX%d"
 			,
 			(int)(gFramesPerSecond + .5f),
 			gPolysThisFrame,
@@ -779,7 +780,9 @@ void OGL_DrawScene(OGLSetupOutputType *setupInfo, void (*drawRoutine)(OGLSetupOu
 			gNumObjectNodes,
 			//gNumFencesDrawn,
 			gVRAMUsedThisFrame / 1024,
-			gNumPointers
+			gNumPointers,
+			gGameWindowWidth,
+			gGameWindowHeight
 		);
 		TextMesh_Update(gDebugTextBuffer, kTextMeshAlignLeft, gDebugText);
 		gDebugText->StatusBits &= ~STATUS_BIT_HIDDEN;
