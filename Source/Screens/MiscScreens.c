@@ -30,8 +30,6 @@ static void DrawWinCallback(OGLSetupOutputType *info);
 static void MoveWinGuy(ObjNode *theNode);
 
 static void SetupCreditsScreen(void);
-static void FreeCreditsScreen(void);
-static void DrawCreditsCallback(OGLSetupOutputType *info);
 static void MoveCredit(ObjNode *theNode);
 
 
@@ -674,7 +672,7 @@ OGLMatrix4x4			m,m3,m2;
 
 void DoCreditsScreen(void)
 {
-float	timer = 63.0f;
+float	timer = 59.0f;
 
 			/* SETUP */
 
@@ -696,9 +694,9 @@ float	timer = 63.0f;
 		ReadKeyboard();
 		MoveObjects();
 		MoveParticleGroups();
-		OGL_DrawScene(gGameViewInfoPtr, DrawCreditsCallback);
+		OGL_DrawScene(gGameViewInfoPtr, DrawObjects);
 
-		if (AreAnyNewKeysPressed())
+		if (AreAnyNewKeysPressed() || GetNewNeedStateAnyP(kNeed_UIBack))
 			break;
 
 		timer -= gFramesPerSecondFrac;
@@ -707,18 +705,10 @@ float	timer = 63.0f;
 
 			/* CLEANUP */
 
-	FreeCreditsScreen();
-
-
-}
-
-
-
-/***************** DRAW CREDITS CALLBACK *******************/
-
-static void DrawCreditsCallback(OGLSetupOutputType *info)
-{
-	DrawObjects(info);
+	DeleteAllObjects();
+	DisposeAllSpriteGroups();
+	DisposeAllBG3DContainers();
+	OGL_DisposeWindowSetup(&gGameViewInfoPtr);
 }
 
 
@@ -730,6 +720,7 @@ typedef struct
 {
 	signed char	color;
 	signed char	size;
+	int			loca;
 	const char*	text;
 }CreditLine;
 
@@ -738,61 +729,58 @@ static void SetupCreditsScreen(void)
 ObjNode				*newObj;
 OGLSetupInputType	viewDef;
 
-static CreditLine lines[] =
+static const CreditLine lines[] =
 {
-	{0,2,"PROGRAMMING AND CONCEPT"},
-	{1,0,"BRIAN GREENSTONE"},
-	{2,1,"BRIAN@BRIANGREENSTONE.COM"},
-	{2,1,"WWW.BRIANGREENSTONE.COM"},
-	{1,0," "},
-	{1,0," "},
-	{0,2,"ART"},
-	{1,0,"JOSH MARUSKA"},
-	{2,1,"MARUSKAJ@MAC.COM"},
-	{1,0," "},
-	{1,0,"MARCUS CONGE"},
-	{2,1,"MCONGE@DIGITALMANIPULATION.COM"},
-	{2,1,"WWW.DIGITALMANIPULATION.COM"},
-	{1,0," "},
-	{1,0,"DANIEL MARCOUX"},
-	{2,1,"DAN@BEENOX.COM"},
-	{1,0," "},
-	{1,0,"CARL LOISELLE"},
-	{2,1,"CLOISELLE@BEENOX.COM"},
-	{1,0," "},
-	{1,0,"BRIAN GREENSTONE"},
-	{2,1,"BRIAN@BRIANGREENSTONE.COM"},
-	{1,0," "},
-	{1,0," "},
-	{0,2,"MUSIC"},
-	{1,0,"MIKE BECKETT"},
-	{2,1,"INFO@NUCLEARKANGAROOMUSIC.COM"},
-	{2,1,"WWW.NUCLEARKANGAROOMUSIC.COM"},
-	{1,0," "},
-	{1,0," "},
-	{0,2,"ADDITIONAL WORK"},
-	{1,0,"DEE BROWN"},
-	{2,1,"DEEBROWN@BEENOX.COM"},
-	{2,1,"WWW.BEENOX.COM"},
-	{1,0," "},
-	{1,0,"PASCAL BRULOTTE"},
-	{1,0," "},
-	{1,0," "},
-	{0,2,"SPECIAL THANKS"},
-	{1,0,"TUNCER DENIZ"},
-	{1,0,"ZOE BENTLEY"},
-	{1,0,"CHRIS BENTLEY"},
-	{1,0,"GEOFF STAHL"},
-	{1,0,"JOHN STAUFFER"},
-	{1,0,"MIGUEL CORNEJO"},
-	{1,0,"FELIX SEGEBRECHT"},
-	{1,0," "},
-	{1,0," "},
-	{1,1,"COPYRIGHT 2000"},
-	{1,1,"PANGEA SOFTWARE INC."},
-	{1,1,"ALL RIGHTS RESERVED"},
-	{1,1,"WWW.PANGEASOFT.NET"},
-	{-1,0," "},
+	{0, 2, .loca=STR_CREDITS_PROGRAMMING_AND_CONCEPT},
+	{1, 4, .text=""},
+	{1, 0, .text="BRIAN GREENSTONE"},
+	{2, 1, .text="WWW.BRIANGREENSTONE.COM"},
+	{1, 3, .text=""},
+	{0, 2, .loca=STR_CREDITS_ART},
+	{1, 4, .text=""},
+	{1, 0, .text="JOSH MARUSKA"},
+	{1, 4, .text=""},
+	{1, 0, .text="MARCUS CONGE"},
+	{2, 1, .text="WWW.DIGITALMANIPULATION.COM"},
+	{1, 4, .text=""},
+	{1, 0, .text="DANIEL MARCOUX"},
+	{1, 4, .text=""},
+	{1, 0, .text="CARL LOISELLE"},
+	{1, 4, .text=""},
+	{1, 0, .text="BRIAN GREENSTONE"},
+	{1, 3, .text=""},
+	{0, 2, .loca=STR_CREDITS_MUSIC},
+	{1, 4, .text=""},
+	{1, 0, .text="MIKE BECKETT"},
+	{2, 1, .text="WWW.NUCLEARKANGAROOMUSIC.COM"},
+	{0, 3, .text=""},
+	{0, 2, .loca=STR_CREDITS_ADDITIONAL_WORK},
+	{1, 4, .text=""},
+	{1, 0, .text="DEE BROWN"},
+	{2, 1, .text="WWW.BEENOX.COM"},
+	{1, 0, .text=""},
+	{1, 0, .text="PASCAL BRULOTTE"},
+	{1, 3, .text=""},
+	{0, 2, .loca=STR_CREDITS_PORT},
+	{1, 4, .text=""},
+	{1, 0, .text="ILIYAS JORIO"},
+	{2, 1, .text="GITHUB.COM/JORIO/CROMAGRALLY"},
+	{0, 3, .text=""},
+	{0, 2, .loca=STR_CREDITS_SPECIAL_THANKS},
+	{1, 4, .text=""},
+	{1, 0, .text="TUNCER DENIZ"},
+	{1, 0, .text="ZOE BENTLEY"},
+	{1, 0, .text="CHRIS BENTLEY"},
+	{1, 0, .text="GEOFF STAHL"},
+	{1, 0, .text="JOHN STAUFFER"},
+	{1, 0, .text="MIGUEL CORNEJO"},
+	{1, 0, .text="FELIX SEGEBRECHT"},
+	{1, 3, .text=""},
+	{1, 4, .text=""},
+	{1, 1, .text="COPYRIGHT 2000 PANGEA SOFTWARE, INC."},
+	{1, 1, .loca=STR_CREDITS_ALL_RIGHTS_RESERVED},
+	{2, 1, .text="WWW.PANGEASOFT.NET"},
+	{-1,0, .text=""},
 };
 
 
@@ -808,6 +796,8 @@ static const float sizes[] =
 	.4,
 	.3,
 	.5,
+	.8,	// large spacing
+	.2,	// small spacing
 };
 
 
@@ -847,7 +837,7 @@ static const float sizes[] =
 			/* BUILD CREDITS */
 			/*****************/
 
-	float y = -1.1;
+	float y = 1.1 * 240.0f;
 	for (int i = 0; lines[i].color != -1; i++)
 	{
 		NewObjectDefinitionType def =
@@ -857,12 +847,24 @@ static const float sizes[] =
 			.scale		= sizes[lines[i].size],
 			.slot 		= PARTICLE_SLOT-1,		// in this rare case we want to draw text before particles
 		};
-		newObj = TextMesh_New(lines[i].text, kTextMeshAlignCenter, &def);
 
+		const char* text;
+		if (lines[i].loca != STR_NULL)
+		{
+			text = Localize(lines[i].loca);
+		}
+		else
+		{
+			text = lines[i].text;
+		}
 
-		newObj->ColorFilter = colors[lines[i].color];
+		if (text && text[0] != '\0')
+		{
+			newObj = TextMesh_New(text, kTextMeshAlignCenter, &def);
+			newObj->ColorFilter = colors[lines[i].color];
+		}
 
-		y -= def.scale * .27f;
+		y += def.scale * .275f * 240.0f;
 	}
 }
 
@@ -871,34 +873,10 @@ static const float sizes[] =
 
 static void MoveCredit(ObjNode *theNode)
 {
-#if 0
-short	i;
-MOSpriteObject		*spriteMO;
-
-	for (i = 0; i < theNode->NumStringSprites; i++)
-	{
-		spriteMO = theNode->StringCharacters[i];
-		spriteMO->objectData.coord.y += .12f * gFramesPerSecondFrac;
-	}
-#endif
-	theNode->Coord.y += .12f * gFramesPerSecondFrac;
+	theNode->Coord.y -= .13f * gFramesPerSecondFrac * 240.0f;
+	UpdateObjectTransforms(theNode);
 }
 
-
-
-
-
-
-
-/********************** FREE CREDITS ART **********************/
-
-static void FreeCreditsScreen(void)
-{
-	DeleteAllObjects();
-	DisposeAllSpriteGroups();
-	DisposeAllBG3DContainers();
-	OGL_DisposeWindowSetup(&gGameViewInfoPtr);
-}
 
 
 #pragma mark -

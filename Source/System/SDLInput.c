@@ -329,7 +329,7 @@ Boolean GetNewNeedStateAnyP(int needID)
 
 Boolean AreAnyNewKeysPressed(void)
 {
-	return GetNewNeedStateAnyP(kNeed_UIConfirm);
+	return GetNewNeedStateAnyP(kNeed_UIConfirm) || GetNewNeedStateAnyP(kNeed_UIBack) || GetNewNeedStateAnyP(kNeed_UIPause);
 }
 
 #pragma mark -
