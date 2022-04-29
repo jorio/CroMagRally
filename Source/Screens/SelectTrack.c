@@ -64,6 +64,9 @@ enum
 #define	LEVEL_IMAGE_Y		-5
 #define	LEVEL_IMAGE_SCALE	.58
 
+#define	PADLOCK_WIGGLE_DURATION		0.55f
+#define	PADLOCK_WIGGLE_AMPLITUDE	8.0f
+#define	PADLOCK_WIGGLE_SPEED		25.0f
 
 #define	NUM_PRACTICE_TRACKS		9
 #define	NUM_BATTLE_TRACKS		8
@@ -110,6 +113,38 @@ static void MoveArrow(ObjNode* theNode)
 	theNode->Coord.x -= 12.0f * gFramesPerSecondFrac * dx;
 	theNode->Coord.y -= 12.0f * gFramesPerSecondFrac * dy;
 	UpdateObjectTransforms(theNode);
+}
+
+/********************** MOVE PADLOCK **************************/
+
+static void MovePadlock(ObjNode* theNode)
+{
+	if (theNode->SpecialF[0] <= 0)
+	{
+		theNode->Coord.x = 0;
+		theNode->Coord.y = ARROW_Y;
+		UpdateObjectTransforms(theNode);
+		return;
+	}
+
+	theNode->SpecialF[0] -= gFramesPerSecondFrac;
+
+	float t = theNode->SpecialF[0];
+
+	float dampening = t * (1.0f / PADLOCK_WIGGLE_DURATION);
+
+	float x = sinf( (t - PADLOCK_WIGGLE_DURATION) * PADLOCK_WIGGLE_SPEED );
+	x *= dampening;
+	x *= PADLOCK_WIGGLE_AMPLITUDE;
+
+	theNode->Coord.x = x;
+
+	UpdateObjectTransforms(theNode);
+}
+
+static void WigglePadlock(ObjNode* theNode)
+{
+	theNode->SpecialF[0] = PADLOCK_WIGGLE_DURATION;
 }
 
 
@@ -266,7 +301,7 @@ OGLSetupInputType	viewDef;
 			.type = MENUS_SObjType_Padlock,
 			.coord = { 0, ARROW_Y, 0 },
 			.slot = SPRITE_SLOT,
-			.moveCall = MoveArrow,
+			.moveCall = MovePadlock,
 			.scale = ARROW_SCALE,
 		};
 		gTrackPadlock = MakeSpriteObject(&def, gGameViewInfoPtr);
@@ -375,6 +410,7 @@ short				highestUnlocked;
 		if (gSelectedTrackIndex > highestUnlocked)
 		{
 			PlayEffect(EFFECT_BADSELECT);
+			WigglePadlock(gTrackPadlock);
 		}
 		else
 		{
