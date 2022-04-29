@@ -142,15 +142,25 @@ static void Boot()
 		SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, gCommandLine.msaa);
 	}
 
+	int display = 0;
+
+	SDL_Rect displayBounds = { .x = 0, .y = 0, .w = 640, .h = 480 };
+	SDL_GetDisplayUsableBounds(display, &displayBounds);
+	int initialWidth	= displayBounds.w * 2 / 3;
+	int initialHeight	= displayBounds.h * 2 / 3;
+
 	gSDLWindow = SDL_CreateWindow(
 			"Cro-Mag Rally " PROJECT_VERSION,
-			SDL_WINDOWPOS_UNDEFINED,
-			SDL_WINDOWPOS_UNDEFINED,
-			640,
-			480,
+			SDL_WINDOWPOS_UNDEFINED_DISPLAY(display),
+			SDL_WINDOWPOS_UNDEFINED_DISPLAY(display),
+			initialWidth,
+			initialHeight,
 			SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_SHOWN);
+
 	if (!gSDLWindow)
+	{
 		throw std::runtime_error("Couldn't create SDL window.");
+	}
 
 	// Find path to game data folder
 	fs::path dataPath = FindGameData();
