@@ -11,6 +11,7 @@
 /****************************/
 
 #include "game.h"
+#include "uielements.h"
 
 
 /****************************/
@@ -64,10 +65,6 @@ enum
 #define	LEVEL_IMAGE_Y		-5
 #define	LEVEL_IMAGE_SCALE	.58
 
-#define	PADLOCK_WIGGLE_DURATION		0.55f
-#define	PADLOCK_WIGGLE_AMPLITUDE	8.0f
-#define	PADLOCK_WIGGLE_SPEED		25.0f
-
 #define	NUM_PRACTICE_TRACKS		9
 #define	NUM_BATTLE_TRACKS		8
 
@@ -89,64 +86,20 @@ const short gNumTracksUnlocked[] = {3,6,9,9};
 
 
 
-/********************** MOVE LEFT/RIGHT ARROWS **************************/
+/******************** IS SELECTED TRACK LOCKED ***********************/
 
-static void MoveArrow(ObjNode* theNode)
+static Boolean IsSelectedTrackLocked(void)
 {
-	if (!theNode->Flag[0])
+	if (gGameMode == GAME_MODE_PRACTICE)
 	{
-		// Not initialized: save home position
-		theNode->SpecialF[0] = theNode->Coord.x;
-		theNode->SpecialF[1] = theNode->Coord.y;
-		theNode->Flag[0] = true;
+		short highestUnlocked = gNumTracksUnlocked[GetNumAgesCompleted()] - 1;
+		return gSelectedTrackIndex > highestUnlocked;
 	}
-
-	float homeX = theNode->SpecialF[0];
-	float homeY = theNode->SpecialF[1];
-
-	float dx = theNode->Coord.x - homeX;
-	float dy = theNode->Coord.y - homeY;
-
-	if (fabsf(dx) < 0.2f) dx = 0;
-	if (fabsf(dy) < 0.2f) dy = 0;
-
-	theNode->Coord.x -= 12.0f * gFramesPerSecondFrac * dx;
-	theNode->Coord.y -= 12.0f * gFramesPerSecondFrac * dy;
-	UpdateObjectTransforms(theNode);
-}
-
-/********************** MOVE PADLOCK **************************/
-
-static void MovePadlock(ObjNode* theNode)
-{
-	if (theNode->SpecialF[0] <= 0)
+	else
 	{
-		theNode->Coord.x = 0;
-		theNode->Coord.y = ARROW_Y;
-		UpdateObjectTransforms(theNode);
-		return;
+		return false;
 	}
-
-	theNode->SpecialF[0] -= gFramesPerSecondFrac;
-
-	float t = theNode->SpecialF[0];
-
-	float dampening = t * (1.0f / PADLOCK_WIGGLE_DURATION);
-
-	float x = sinf( (t - PADLOCK_WIGGLE_DURATION) * PADLOCK_WIGGLE_SPEED );
-	x *= dampening;
-	x *= PADLOCK_WIGGLE_AMPLITUDE;
-
-	theNode->Coord.x = x;
-
-	UpdateObjectTransforms(theNode);
 }
-
-static void WigglePadlock(ObjNode* theNode)
-{
-	theNode->SpecialF[0] = PADLOCK_WIGGLE_DURATION;
-}
-
 
 
 /********************** SELECT PRACTICE TRACK **************************/
@@ -284,7 +237,7 @@ OGLSetupInputType	viewDef;
 			.type = MENUS_SObjType_LeftArrow,
 			.coord = { LEFT_ARROW_X, ARROW_Y, 0 },
 			.slot = SPRITE_SLOT,
-			.moveCall = MoveArrow,
+			.moveCall = MoveUIArrow,
 			.scale = ARROW_SCALE,
 		};
 		gTrackLeftArrow = MakeSpriteObject(&def, gGameViewInfoPtr);
@@ -301,7 +254,7 @@ OGLSetupInputType	viewDef;
 			.type = MENUS_SObjType_Padlock,
 			.coord = { 0, ARROW_Y, 0 },
 			.slot = SPRITE_SLOT,
-			.moveCall = MovePadlock,
+			.moveCall = MoveUIPadlock,
 			.scale = ARROW_SCALE,
 		};
 		gTrackPadlock = MakeSpriteObject(&def, gGameViewInfoPtr);
@@ -355,28 +308,11 @@ static void UpdateSelectedTrack(void)
 
 	MakeTrackName();
 
-		/* SHOW/HIDE ARROWS */
+		/* SHOW/HIDE ARROWS, PADLOCK */
 
-	SetObjectVisible(gTrackLeftArrow, gSelectedTrackIndex > 0);
-	SetObjectVisible(gTrackRightArrow, gSelectedTrackIndex < (gNumTracksInSelection - 1));
-
-		/**********************/
-		/* SEE IF DRAW LOCKED */
-		/**********************/
-
-	short highestUnlocked;
-
-	switch (gGameMode)
-	{
-	case	GAME_MODE_PRACTICE:
-		highestUnlocked = gNumTracksUnlocked[GetNumAgesCompleted()] - 1;
-		break;
-
-	default:
-		highestUnlocked = 1000;
-	}
-
-	SetObjectVisible(gTrackPadlock, gSelectedTrackIndex > highestUnlocked);
+	SetObjectVisible(gTrackLeftArrow,	gSelectedTrackIndex > 0);
+	SetObjectVisible(gTrackRightArrow,	gSelectedTrackIndex < (gNumTracksInSelection - 1));
+	SetObjectVisible(gTrackPadlock,		IsSelectedTrackLocked());
 }
 
 
@@ -386,15 +322,6 @@ static void UpdateSelectedTrack(void)
 
 static Boolean DoTrackSelectControls(void)
 {
-short				highestUnlocked;
-
-	if (gGameMode ==	GAME_MODE_PRACTICE)
-		highestUnlocked = gNumTracksUnlocked[GetNumAgesCompleted()] - 1;
-	else
-		highestUnlocked = 1000;
-
-
-
 		/* SEE IF ABORT */
 
 	if (GetNewNeedStateAnyP(kNeed_UIBack))
@@ -407,10 +334,10 @@ short				highestUnlocked;
 
 	if (GetNewNeedStateAnyP(kNeed_UIConfirm))
 	{
-		if (gSelectedTrackIndex > highestUnlocked)
+		if (IsSelectedTrackLocked())
 		{
 			PlayEffect(EFFECT_BADSELECT);
-			WigglePadlock(gTrackPadlock);
+			WiggleUIPadlock(gTrackPadlock);
 		}
 		else
 		{
@@ -433,7 +360,7 @@ short				highestUnlocked;
 		gSelectedTrackIndex--;
 		PlayEffect(EFFECT_SELECTCLICK);
 		UpdateSelectedTrack();
-		gTrackLeftArrow->Coord.x = LEFT_ARROW_X - 16;
+		TwitchUIArrow(gTrackLeftArrow, -1, 0);
 	}
 	else
 	if (GetNewNeedStateAnyP(kNeed_UIRight) && (gSelectedTrackIndex < (gNumTracksInSelection-1)))
@@ -441,7 +368,7 @@ short				highestUnlocked;
 		gSelectedTrackIndex++;
 		PlayEffect(EFFECT_SELECTCLICK);
 		UpdateSelectedTrack();
-		gTrackRightArrow->Coord.x = RIGHT_ARROW_X + 16;
+		TwitchUIArrow(gTrackRightArrow, 1, 0);
 	}
 
 	return(false);

@@ -1,7 +1,8 @@
 /****************************/
 /*   	SELECT VEHICLE.C 	*/
-/* (c)2000 Pangea Software  */
 /* By Brian Greenstone      */
+/* (c)2000 Pangea Software  */
+/* (c)2022 Iliyas Jorio     */
 /****************************/
 
 
@@ -12,6 +13,7 @@
 #include "game.h"
 #include "miscscreens.h"
 #include "network.h"
+#include "uielements.h"
 
 
 /****************************/
@@ -20,11 +22,10 @@
 
 static void SetupVehicleSelectScreen(short whichPlayer);
 static Boolean DoVehicleSelectControls(short whichPlayer, Boolean allowAborting);
-static void DrawVehicleSelectCallback(OGLSetupOutputType *info);
 static void FreeVehicleSelectArt(void);
 static void MoveCarModel(ObjNode *theNode);
 static void MakeVehicleName(void);
-static void RefreshSelectedCarGraphics(void);
+static void UpdateSelectedVehicle(void);
 static const char* GetBoneString(int n);
 
 
@@ -75,6 +76,9 @@ static int		gSelectedVehicleIndex;
 static ObjNode	*gVehicleObj;
 static ObjNode	*gVehicleName;
 static ObjNode	*gBoneMeters[NUM_VEHICLE_PARAMETERS];
+static ObjNode	*gVehicleLeftArrow = nil;
+static ObjNode	*gVehicleRightArrow = nil;
+static ObjNode	*gVehiclePadlock = nil;
 
 static int		gNumVehiclesToChooseFrom;
 
@@ -158,7 +162,7 @@ Boolean DoVehicleSelectScreen(short whichPlayer, Boolean allowAborting)
 		CalcFramesPerSecond();
 		ReadKeyboard();
 		MoveObjects();
-		OGL_DrawScene(gGameViewInfoPtr, DrawVehicleSelectCallback);
+		OGL_DrawScene(gGameViewInfoPtr, DrawObjects);
 	}
 
 			/***********/
@@ -169,7 +173,7 @@ Boolean DoVehicleSelectScreen(short whichPlayer, Boolean allowAborting)
 
 	gGameViewInfoPtr->fadePillarbox = !bailed;
 
-	OGL_FadeOutScene(gGameViewInfoPtr, DrawVehicleSelectCallback, MoveObjects);
+	OGL_FadeOutScene(gGameViewInfoPtr, DrawObjects, MoveObjects);
 	FreeVehicleSelectArt();
 
 	if (bailed)
@@ -307,6 +311,41 @@ int					age;
 	}
 
 
+			/* ARROWS, PADLOCK */
+
+
+	{
+		NewObjectDefinitionType def =
+		{
+			.group = SPRITE_GROUP_MAINMENU,
+			.type = MENUS_SObjType_LeftArrow,
+			.coord = { LEFT_ARROW_X, ARROW_Y, 0 },
+			.slot = SPRITE_SLOT,
+			.moveCall = MoveUIArrow,
+			.scale = ARROW_SCALE,
+		};
+		gVehicleLeftArrow = MakeSpriteObject(&def, gGameViewInfoPtr);
+
+		def.type = MENUS_SObjType_RightArrow;
+		def.coord.x = RIGHT_ARROW_X;
+		gVehicleRightArrow = MakeSpriteObject(&def, gGameViewInfoPtr);
+	}
+
+	{
+		NewObjectDefinitionType def =
+		{
+			.group = SPRITE_GROUP_MAINMENU,
+			.type = MENUS_SObjType_Padlock,
+			.coord = { 0, ARROW_Y, 0 },
+			.slot = SPRITE_SLOT,
+			.moveCall = MoveUIPadlock,
+			.scale = ARROW_SCALE,
+		};
+		gVehiclePadlock = MakeSpriteObject(&def, gGameViewInfoPtr);
+	}
+
+
+
 			/* SEE IF DOING 2-PLAYER LOCALLY */
 
 	if (gNumLocalPlayers > 1)
@@ -326,6 +365,10 @@ int					age;
 		newObj->ColorFilter.g = .3;
 		newObj->ColorFilter.b = .2;
 	}
+
+
+
+	UpdateSelectedVehicle();
 }
 
 
@@ -370,54 +413,12 @@ static void FreeVehicleSelectArt(void)
 }
 
 
-/***************** DRAW VEHICLESELECT CALLBACK *******************/
-
-static void DrawVehicleSelectCallback(OGLSetupOutputType *info)
-{
-			/* DRAW OBJECTS */
-
-	DrawObjects(info);
-
-
-			/**************************/
-			/* DRAW THE SCROLL ARROWS */
-			/**************************/
-
-	if (gSelectedVehicleIndex >= 0)		// only draw arrows if selection is valid (it's -1 when fading out after canceling)
-	{
-			/* LEFT ARROW */
-
-		if (gSelectedVehicleIndex > 0)
-		{
-			DrawSprite(SPRITE_GROUP_MAINMENU, MENUS_SObjType_LeftArrow,
-						LEFT_ARROW_X, ARROW_Y, ARROW_SCALE, 0, 0, info);
-		}
-
-			/* RIGHT ARROW */
-
-		if (gSelectedVehicleIndex < NUM_LAND_CAR_TYPES-1)
-		{
-			DrawSprite(SPRITE_GROUP_MAINMENU, MENUS_SObjType_RightArrow,
-						RIGHT_ARROW_X, ARROW_Y, ARROW_SCALE, 0, 0, info);
-		}
-
-			/* DRAW PADLOCK */
-
-		if (gSelectedVehicleIndex >= gNumVehiclesToChooseFrom)
-		{
-			DrawSprite(SPRITE_GROUP_MAINMENU, MENUS_SObjType_Padlock,
-					0, ARROW_Y, ARROW_SCALE, 0, 0, info);
-		}
-	}
-}
-
-
-
 /*************** REFERSH GRAPHICS FOR SELECTED CAR ********************/
 
 
-static void RefreshSelectedCarGraphics(void)
+static void UpdateSelectedVehicle(void)
 {
+
 	gVehicleObj->Type = gSelectedVehicleIndex;
 	ResetDisplayGroupObject(gVehicleObj);
 	MakeVehicleName();
@@ -430,6 +431,8 @@ static void RefreshSelectedCarGraphics(void)
 		TextMesh_Update(GetBoneString(n), kTextMeshAlignLeft, gBoneMeters[i]);
 	}
 
+			/* FOR LOCKED CARS SHOW OUTLINE ONLY */
+
 	if (gSelectedVehicleIndex >= gNumVehiclesToChooseFrom)
 	{
 		gVehicleObj->ColorFilter = (OGLColorRGBA) {0,0,0,1};
@@ -438,6 +441,12 @@ static void RefreshSelectedCarGraphics(void)
 	{
 		gVehicleObj->ColorFilter = (OGLColorRGBA) {1,1,1,1};
 	}
+
+			/* SHOW/HIDE ARROWS, PADLOCK */
+
+	SetObjectVisible(gVehicleLeftArrow,		gSelectedVehicleIndex > 0);
+	SetObjectVisible(gVehicleRightArrow,	gSelectedVehicleIndex < NUM_LAND_CAR_TYPES-1);
+	SetObjectVisible(gVehiclePadlock,		gSelectedVehicleIndex >= gNumVehiclesToChooseFrom);
 }
 
 
@@ -499,6 +508,7 @@ short	p;
 		else
 		{
 			PlayEffect(EFFECT_BADSELECT);
+			WiggleUIPadlock(gVehiclePadlock);
 		}
 	}
 	else
@@ -515,14 +525,16 @@ short	p;
 	{
 		PlayEffect(EFFECT_SELECTCLICK);
 		gSelectedVehicleIndex--;
-		RefreshSelectedCarGraphics();
+		UpdateSelectedVehicle();
+		TwitchUIArrow(gVehicleLeftArrow, -1, 0);
 	}
 	else
 	if (GetNewNeedState(kNeed_UIRight, p) && (gSelectedVehicleIndex < NUM_LAND_CAR_TYPES-1))
 	{
 		PlayEffect(EFFECT_SELECTCLICK);
 		gSelectedVehicleIndex++;
-		RefreshSelectedCarGraphics();
+		UpdateSelectedVehicle();
+		TwitchUIArrow(gVehicleRightArrow, 1, 0);
 	}
 
 	return(false);
