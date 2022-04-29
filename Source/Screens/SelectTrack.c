@@ -1,7 +1,8 @@
 /****************************/
 /*   	SELECT TRACK.C 	    */
-/* (c)2000 Pangea Software  */
 /* By Brian Greenstone      */
+/* (c)2000 Pangea Software  */
+/* (c)2022 Iliyas Jorio     */
 /****************************/
 
 
@@ -62,7 +63,7 @@ enum
 #define	ARROW_SCALE		.5
 
 #define	LEVEL_IMAGE_X		0
-#define	LEVEL_IMAGE_Y		40
+#define	LEVEL_IMAGE_Y		-5
 #define	LEVEL_IMAGE_SCALE	.58
 
 
