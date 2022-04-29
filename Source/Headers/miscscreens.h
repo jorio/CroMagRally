@@ -26,3 +26,4 @@ Boolean DoVehicleSelectScreen(short whichPlayer, Boolean allowAborting);
 
 Boolean DoLocalGatherScreen(void);
 
+void DoPhysicsEditor(void);

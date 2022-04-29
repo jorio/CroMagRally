@@ -2,7 +2,7 @@
 
 #include "localization.h"
 
-#define MAX_MENU_CYCLER_CHOICES		8
+#define MAX_MENU_CYCLER_CHOICES		12
 
 typedef enum
 {

@@ -21,8 +21,6 @@
 
 static void SetupMainMenuScreen(void);
 static void FreeMainMenuArt(void);
-static void DrawMainMenuCallback(OGLSetupOutputType *info);
-static void DoPhysicsEditor(void);
 
 
 /****************************/
@@ -217,9 +215,7 @@ static const MenuItem
 	{
 		{ kMenuItem_Pick, STR_HELP, .id=MENU_EXITCODE_HELP },
 		{ kMenuItem_Pick, STR_CREDITS, .id=MENU_EXITCODE_CREDITS },
-#if 0	// TODO!
-		{ kMenuItem_Pick, STR_PHYSICS_EDITOR, .id=MENU_EXITCODE_PHYSICS, .gotoMenu=0 },
-#endif
+		{ kMenuItem_Pick, STR_PHYSICS_EDITOR, .id=MENU_EXITCODE_PHYSICS },
 		{ .type=kMenuItem_END_SENTINEL },
 	},
 
@@ -400,13 +396,10 @@ do_again:
 				/* MAIN LOOP */
 				/*************/
 
-	CalcFramesPerSecond();
-	ReadKeyboard();
-
 	PrefsType oldPrefs;
 	memcpy(&oldPrefs, &gGamePrefs, sizeof(oldPrefs));
 
-	int outcome = StartMenuTree(gMainMenuTree, NULL, UpdateMainMenuScreen, DrawMainMenuCallback);
+	int outcome = StartMenuTree(gMainMenuTree, NULL, UpdateMainMenuScreen, DrawObjects);
 
 			/* SAVE PREFS IF THEY CHANGED */
 	
@@ -740,7 +733,7 @@ Boolean			dialogDone;
 
 
 
-
+#if 0
 #pragma mark -
 
 /********************** DO PHYSICS EDITOR ***********************/
@@ -748,7 +741,7 @@ Boolean			dialogDone;
 static void DoPhysicsEditor(void)
 {
 	IMPLEMENT_ME();
-#if 0
+
 DialogRef 		myDialog;
 DialogItemType	itemType,itemHit;
 ControlHandle	itemHandle;
@@ -915,5 +908,6 @@ reset:
 	DisposeDialog(myDialog);
 
 	Exit2D();
-#endif
 }
+
+#endif

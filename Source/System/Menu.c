@@ -1438,6 +1438,9 @@ int StartMenuTree(
 
 		/* SHOW IN ANIMATED LOOP */
 
+	CalcFramesPerSecond();
+	ReadKeyboard();
+
 	while (gNav->menuState != kMenuStateOff)
 	{
 		UpdateInput();
