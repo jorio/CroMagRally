@@ -1,7 +1,8 @@
 /****************************/
 /*   	SELECT CHARACTER.C 	*/
-/* (c)2000 Pangea Software  */
 /* By Brian Greenstone      */
+/* (c)2000 Pangea Software  */
+/* (c)2022 Iliyas Jorio     */
 /****************************/
 
 
@@ -10,6 +11,7 @@
 /****************************/
 
 #include "game.h"
+#include "uielements.h"
 
 /****************************/
 /*    PROTOTYPES            */
@@ -17,11 +19,7 @@
 
 static void SetupCharacterSelectScreen(short whichPlayer);
 static Boolean DoCharacterSelectControls(short whichPlayer, Boolean allowAborting);
-static void DrawCharacterSelectCallback(OGLSetupOutputType *info);
 static void FreeCharacterSelectArt(void);
-static void GetCharacterSelectionFromNetPlayers(void);
-static void MoveCarModel(ObjNode *theNode);
-static void MakeCharacterName(void);
 
 
 
@@ -29,17 +27,11 @@ static void MakeCharacterName(void);
 /*    CONSTANTS             */
 /****************************/
 
-enum
-{
-	CHARACTERSELECT_SObjType_Arrow
-
-};
-
-
 #define	ARROW_SCALE		.5
 #define ARROW_2D_SPREAD		276.0f
 #define ARROW_Y				204.0f
 
+#define GetCharacterArrowHomeX() (ARROW_2D_SPREAD * (gSelectedCharacterIndex - 0.5f))
 
 
 /*********************/
@@ -49,6 +41,7 @@ enum
 static int		gSelectedCharacterIndex;
 
 static ObjNode	*gSex[2];
+static ObjNode	*gCharacterArrow;
 
 
 /********************** DO CHARACTER SELECT SCREEN **************************/
@@ -84,14 +77,14 @@ Boolean DoCharacterSelectScreen(short whichPlayer, Boolean allowAborting)
 		CalcFramesPerSecond();
 		ReadKeyboard();
 		MoveObjects();
-		OGL_DrawScene(gGameViewInfoPtr, DrawCharacterSelectCallback);
+		OGL_DrawScene(gGameViewInfoPtr, DrawObjects);
 	}
 
 			/***********/
 			/* CLEANUP */
 			/***********/
 
-	OGL_FadeOutScene(gGameViewInfoPtr, DrawCharacterSelectCallback, MoveObjects);
+	OGL_FadeOutScene(gGameViewInfoPtr, DrawObjects, MoveObjects);
 	FreeCharacterSelectArt();
 	OGL_DisposeWindowSetup(&gGameViewInfoPtr);
 
@@ -219,6 +212,21 @@ ObjNode	*newObj;
 	newObjDef_Character.coord.x 	= -newObjDef_Character.coord.x;
 	newObjDef_Character.animNum	= 0;
 	gSex[1] = MakeNewSkeletonObject(&newObjDef_Character);
+
+			/* CREATE ARROW */
+
+	{
+		NewObjectDefinitionType def =
+		{
+			.group = SPRITE_GROUP_MAINMENU,
+			.type = MENUS_SObjType_UpArrow,
+			.coord = { GetCharacterArrowHomeX(), ARROW_Y, 0},
+			.slot = SPRITE_SLOT,
+			.moveCall = MoveUIArrow,
+			.scale = ARROW_SCALE,
+		};
+		gCharacterArrow = MakeSpriteObject(&def, gGameViewInfoPtr);
+	}
 }
 
 
@@ -231,25 +239,6 @@ static void FreeCharacterSelectArt(void)
 	FreeAllSkeletonFiles(-1);
 	DisposeAllSpriteGroups();
 	DisposeAllBG3DContainers();
-}
-
-
-/***************** DRAW CHARACTERSELECT CALLBACK *******************/
-
-static void DrawCharacterSelectCallback(OGLSetupOutputType *info)
-{
-	DrawObjects(info);
-
-
-			/* ARROW */
-
-	if (gSelectedCharacterIndex >= 0)
-	{
-		float x = ARROW_2D_SPREAD * (gSelectedCharacterIndex - 0.5f);
-
-		DrawSprite(SPRITE_GROUP_MAINMENU, MENUS_SObjType_UpArrow,
-					x, ARROW_Y, ARROW_SCALE, 0, 0, info);
-	}
 }
 
 
@@ -296,7 +285,7 @@ short	p;
 		gSelectedCharacterIndex--;
 		MorphToSkeletonAnim(gSex[0]->Skeleton, 1, 5.0);
 		MorphToSkeletonAnim(gSex[1]->Skeleton, 0, 5.0);
-
+		gCharacterArrow->SpecialF[0] = GetCharacterArrowHomeX();
 	}
 	else
 	if (GetNewNeedState(kNeed_UIRight, p) && (gSelectedCharacterIndex < 1))
@@ -305,6 +294,7 @@ short	p;
 		gSelectedCharacterIndex++;
 		MorphToSkeletonAnim(gSex[0]->Skeleton, 0, 5.0);
 		MorphToSkeletonAnim(gSex[1]->Skeleton, 1, 5.0);
+		gCharacterArrow->SpecialF[0] = GetCharacterArrowHomeX();
 	}
 
 
