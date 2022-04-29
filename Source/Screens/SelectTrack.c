@@ -19,10 +19,8 @@
 
 static void SetupTrackSelectScreen(void);
 static Boolean DoTrackSelectControls(void);
-static void DrawTrackSelectCallback(OGLSetupOutputType *info);
-static void FreeTrackSelectArt(void);
 static void MakeTrackName(void);
-
+static void UpdateSelectedTrack(void);
 
 
 /****************************/
@@ -75,12 +73,45 @@ enum
 /*********************/
 
 static int		gSelectedTrackIndex;
-static ObjNode	*gTrackImageIcon, *gTrackName = nil;
+static ObjNode	*gTrackImageIcon = nil;
+static ObjNode	*gTrackName = nil;
+static ObjNode	*gTrackLeftArrow = nil;
+static ObjNode	*gTrackRightArrow = nil;
+static ObjNode	*gTrackPadlock = nil;
 
 static	short	gNumTracksInSelection;
 static 	short	gBaseTrack;
 
 const short gNumTracksUnlocked[] = {3,6,9,9};
+
+
+
+/********************** MOVE LEFT/RIGHT ARROWS **************************/
+
+static void MoveArrow(ObjNode* theNode)
+{
+	if (!theNode->Flag[0])
+	{
+		// Not initialized: save home position
+		theNode->SpecialF[0] = theNode->Coord.x;
+		theNode->SpecialF[1] = theNode->Coord.y;
+		theNode->Flag[0] = true;
+	}
+
+	float homeX = theNode->SpecialF[0];
+	float homeY = theNode->SpecialF[1];
+
+	float dx = theNode->Coord.x - homeX;
+	float dy = theNode->Coord.y - homeY;
+
+	if (fabsf(dx) < 0.2f) dx = 0;
+	if (fabsf(dy) < 0.2f) dy = 0;
+
+	theNode->Coord.x -= 12.0f * gFramesPerSecondFrac * dx;
+	theNode->Coord.y -= 12.0f * gFramesPerSecondFrac * dy;
+	UpdateObjectTransforms(theNode);
+}
+
 
 
 /********************** SELECT PRACTICE TRACK **************************/
@@ -116,7 +147,7 @@ Boolean SelectSingleTrack(void)
 		CalcFramesPerSecond();
 		ReadKeyboard();
 		MoveObjects();
-		OGL_DrawScene(gGameViewInfoPtr, DrawTrackSelectCallback);
+		OGL_DrawScene(gGameViewInfoPtr, DrawObjects);
 	}
 
 
@@ -124,8 +155,10 @@ Boolean SelectSingleTrack(void)
 			/* CLEANUP */
 			/***********/
 
-	OGL_FadeOutScene(gGameViewInfoPtr, DrawTrackSelectCallback, NULL);
-	FreeTrackSelectArt();
+	OGL_FadeOutScene(gGameViewInfoPtr, DrawObjects, NULL);
+
+	DeleteAllObjects();
+	DisposeAllSpriteGroups();
 	OGL_DisposeWindowSetup(&gGameViewInfoPtr);
 
 	if (gSelectedTrackIndex == -1)								// see if bail
@@ -209,12 +242,41 @@ OGLSetupInputType	viewDef;
 		gTrackImageIcon = MakeSpriteObject(&def, gGameViewInfoPtr);
 	}
 
+	{
+		NewObjectDefinitionType def =
+		{
+			.group = SPRITE_GROUP_MAINMENU,
+			.type = MENUS_SObjType_LeftArrow,
+			.coord = { LEFT_ARROW_X, ARROW_Y, 0 },
+			.slot = SPRITE_SLOT,
+			.moveCall = MoveArrow,
+			.scale = ARROW_SCALE,
+		};
+		gTrackLeftArrow = MakeSpriteObject(&def, gGameViewInfoPtr);
+
+		def.type = MENUS_SObjType_RightArrow;
+		def.coord.x = RIGHT_ARROW_X;
+		gTrackRightArrow = MakeSpriteObject(&def, gGameViewInfoPtr);
+	}
+
+	{
+		NewObjectDefinitionType def =
+		{
+			.group = SPRITE_GROUP_MAINMENU,
+			.type = MENUS_SObjType_Padlock,
+			.coord = { 0, ARROW_Y, 0 },
+			.slot = SPRITE_SLOT,
+			.moveCall = MoveArrow,
+			.scale = ARROW_SCALE,
+		};
+		gTrackPadlock = MakeSpriteObject(&def, gGameViewInfoPtr);
+	}
+
 
 
 			/* TRACK NAME */
 
-	MakeTrackName();
-
+	UpdateSelectedTrack();
 }
 
 /******************** MAKE TRACK NAME ************************/
@@ -248,76 +310,38 @@ static void MakeTrackName(void)
 
 
 
-
-/********************** FREE TRACKSELECT ART **********************/
-
-static void FreeTrackSelectArt(void)
+static void UpdateSelectedTrack(void)
 {
-	DeleteAllObjects();
-	DisposeAllSpriteGroups();
-}
+		/* SET TRACK SCREENSHOT */
 
+	ModifySpriteObjectFrame(gTrackImageIcon, TRACKSELECT_SObjType__Level0 + gBaseTrack + gSelectedTrackIndex, gGameViewInfoPtr);
 
+		/* MAKE TRACK NAME */
 
-/***************** DRAW TRACKSELECT CALLBACK *******************/
+	MakeTrackName();
 
-static void DrawTrackSelectCallback(OGLSetupOutputType *info)
-{
-short				highestUnlocked;
+		/* SHOW/HIDE ARROWS */
 
-
-			/* DRAW BACKGROUND */
-
-	DrawObjects(info);
-
-
-			/**************************/
-			/* DRAW THE SCROLL ARROWS */
-			/**************************/
-
-	if (gSelectedTrackIndex >= 0)		// only draw arrows if selection is valid (it's -1 when fading out after canceling)
-	{
-				/* LEFT ARROW */
-
-		if (gSelectedTrackIndex > 0)
-		{
-			DrawSprite(SPRITE_GROUP_MAINMENU, MENUS_SObjType_LeftArrow,
-						LEFT_ARROW_X, ARROW_Y, ARROW_SCALE, 0, 0, info);
-		}
-
-				/* RIGHT ARROW */
-
-		if (gSelectedTrackIndex < (gNumTracksInSelection-1))
-		{
-			DrawSprite(SPRITE_GROUP_MAINMENU, MENUS_SObjType_RightArrow,
-						RIGHT_ARROW_X, ARROW_Y, ARROW_SCALE, 0, 0, info);
-		}
-	}
-
-
-
+	SetObjectVisible(gTrackLeftArrow, gSelectedTrackIndex > 0);
+	SetObjectVisible(gTrackRightArrow, gSelectedTrackIndex < (gNumTracksInSelection - 1));
 
 		/**********************/
 		/* SEE IF DRAW LOCKED */
 		/**********************/
 
-	switch(gGameMode)
-	{
-		case	GAME_MODE_PRACTICE:
-				highestUnlocked = gNumTracksUnlocked[GetNumAgesCompleted()]-1;
-				break;
+	short highestUnlocked;
 
-		default:
-				highestUnlocked = 1000;
+	switch (gGameMode)
+	{
+	case	GAME_MODE_PRACTICE:
+		highestUnlocked = gNumTracksUnlocked[GetNumAgesCompleted()] - 1;
+		break;
+
+	default:
+		highestUnlocked = 1000;
 	}
 
-
-	if (gSelectedTrackIndex > highestUnlocked)
-	{
-		// Draw padlock
-		DrawSprite(SPRITE_GROUP_MAINMENU, MENUS_SObjType_Padlock,
-					0, ARROW_Y, ARROW_SCALE, 0, 0, info);
-	}
+	SetObjectVisible(gTrackPadlock, gSelectedTrackIndex > highestUnlocked);
 }
 
 
@@ -370,21 +394,19 @@ short				highestUnlocked;
 
 	if (GetNewNeedStateAnyP(kNeed_UILeft) && (gSelectedTrackIndex > 0))
 	{
-		PlayEffect(EFFECT_SELECTCLICK);
 		gSelectedTrackIndex--;
-		ModifySpriteObjectFrame(gTrackImageIcon, TRACKSELECT_SObjType__Level0 + gBaseTrack + gSelectedTrackIndex, gGameViewInfoPtr);
-		MakeTrackName();
+		PlayEffect(EFFECT_SELECTCLICK);
+		UpdateSelectedTrack();
+		gTrackLeftArrow->Coord.x = LEFT_ARROW_X - 16;
 	}
 	else
 	if (GetNewNeedStateAnyP(kNeed_UIRight) && (gSelectedTrackIndex < (gNumTracksInSelection-1)))
 	{
-		PlayEffect(EFFECT_SELECTCLICK);
 		gSelectedTrackIndex++;
-		ModifySpriteObjectFrame(gTrackImageIcon, TRACKSELECT_SObjType__Level0 + gBaseTrack + gSelectedTrackIndex, gGameViewInfoPtr);
-		MakeTrackName();
+		PlayEffect(EFFECT_SELECTCLICK);
+		UpdateSelectedTrack();
+		gTrackRightArrow->Coord.x = RIGHT_ARROW_X + 16;
 	}
-
-
 
 	return(false);
 }

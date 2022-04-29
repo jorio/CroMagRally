@@ -1408,3 +1408,17 @@ MOMatrixObject	*mo = theNode->BaseTransformObject;
 	}
 }
 
+
+/***************** TOGGLE OBJECT VISIBILITY *******************/
+
+void SetObjectVisible(ObjNode* theNode, bool visible)
+{
+	if (visible)
+	{
+		theNode->StatusBits &= ~STATUS_BIT_HIDDEN;
+	}
+	else
+	{
+		theNode->StatusBits |= STATUS_BIT_HIDDEN;
+	}
+}
