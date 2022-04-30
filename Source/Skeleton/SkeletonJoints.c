@@ -162,7 +162,7 @@ Byte			numEvents;
 
 				/* SET THINGS BACK TO NORMAL */
 
-	skeleton->CurrentAnimTime = time;
+	skeleton->CurrentAnimTime = oldTime;
 	GetModelCurrentPosition(skeleton);					// reset all of the matrices to original positions
 }
 
