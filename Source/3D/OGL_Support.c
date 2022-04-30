@@ -26,7 +26,9 @@ extern SDL_Window*		gSDLWindow;
 
 static void OGL_InitFont(void);
 
-static void OGL_CreateDrawContext(OGLViewDefType *viewDefPtr);
+static void OGL_CreateDrawContext(void);
+static void OGL_DisposeDrawContext(void);
+static void OGL_InitDrawContext(void);
 static void OGL_SetStyles(OGLSetupInputType *setupDefPtr);
 static void OGL_CreateLights(OGLLightDefType *lightDefPtr);
 
@@ -93,6 +95,33 @@ static char gDebugTextBuffer[256];
 
 void OGL_Boot(void)
 {
+	OGL_CreateDrawContext();
+	OGL_CheckError();
+	
+	OGL_InitDrawContext();
+	OGL_CheckError();
+	
+	
+	
+	
+		/***************************/
+		/* GET OPENGL CAPABILITIES */
+		/***************************/
+
+		/* SEE IF SUPPORT 1024x1024 TEXTURES */
+
+	GLint maxTexSize;
+	glGetIntegerv(GL_MAX_TEXTURE_SIZE, &maxTexSize);
+	if (maxTexSize < 1024)
+		DoFatalAlert("Your video card cannot do 1024x1024 textures, so it is below the game's minimum system requirements.");
+}
+
+
+/******************** OGL SHUTDOWN *****************/
+
+void OGL_Shutdown(void)
+{
+	OGL_DisposeDrawContext();
 }
 
 
@@ -191,9 +220,12 @@ OGLSetupOutputType	*outputPtr;
 
 				/* SETUP */
 
-	OGL_CreateDrawContext(&setupDefPtr->view);
+	OGL_InitDrawContext();
 	OGL_CheckError();
 
+	glClearColor(setupDefPtr->view.clearColor.r, setupDefPtr->view.clearColor.g, setupDefPtr->view.clearColor.b, 1.0);
+	OGL_CheckError();
+	
 	OGL_SetStyles(setupDefPtr);
 	OGL_CheckError();
 
@@ -268,6 +300,9 @@ OGLSetupOutputType	*outputPtr;
 //
 // Disposes of all data created by OGL_SetupWindow
 //
+// Source port note: The original used to kill the draw context here,
+// but we keep one DC throughout the lifetime of the program.
+//
 
 void OGL_DisposeWindowSetup(OGLSetupOutputType **dataHandle)
 {
@@ -284,29 +319,25 @@ OGLSetupOutputType	*data;
 		gPillarboxTexture = 0;
 	}
 
-			/* KILL GL CONTEXT */
-
-	SDL_GL_MakeCurrent(gSDLWindow, NULL);					// make context not current
-	SDL_GL_DeleteContext(gAGLContext);						// nuke the AGL context
-
-
 		/* FREE MEMORY & NIL POINTER */
 
 	data->isActive = false;									// now inactive
 	SafeDisposePtr((Ptr)data);
 	*dataHandle = nil;
-
-	gAGLContext = nil;
 }
 
 
 
 
 /**************** OGL: CREATE DRAW CONTEXT *********************/
+//
+// Source port note: The original used to create a new DC for each scene,
+// but we keep one DC throughout the lifetime of the program.
+//
 
-static void OGL_CreateDrawContext(OGLViewDefType *viewDefPtr)
+static void OGL_CreateDrawContext(void)
 {
-GLint			maxTexSize;
+	GAME_ASSERT_MESSAGE(gSDLWindow, "Window must be created before the DC!");
 
 			/* CREATE AGL CONTEXT & ATTACH TO WINDOW */
 
@@ -333,11 +364,29 @@ GLint			maxTexSize;
 
 	OGL_InitFunctions();
 #endif
+}
 
 
-				/* SET VARIOUS STATE INFO */
+/**************** OGL: DISPOSE DRAW CONTEXT *********************/
 
+static void OGL_DisposeDrawContext(void)
+{
+	if (!gAGLContext)
+		return;
 
+	SDL_GL_MakeCurrent(gSDLWindow, NULL);		// make context not current
+	SDL_GL_DeleteContext(gAGLContext);			// nuke context
+
+	gAGLContext = nil;
+}
+
+/**************** OGL: INIT DRAW CONTEXT *********************/
+//
+// Call this at the beginning of each scene.
+//
+
+static void OGL_InitDrawContext(void)
+{
 	glEnable(GL_DEPTH_TEST);								// use z-buffer
 
 	{
@@ -351,33 +400,7 @@ GLint			maxTexSize;
   	glEnable(GL_NORMALIZE);
 
 
-
- 		/***************************/
-		/* GET OPENGL CAPABILITIES */
- 		/***************************/
-
-//	char* s = (char *)glGetString(GL_EXTENSIONS);					// get extensions list
-
-
-
-			/* SEE IF SUPPORT 1024x1024 TEXTURES */
-
-	glGetIntegerv(GL_MAX_TEXTURE_SIZE, &maxTexSize);
-	if (maxTexSize < 1024)
-		DoFatalAlert("Your video card cannot do 1024x1024 textures, so it is below the game's minimum system requirements.");
-
-
-#if 0
-				/* CLEAR BACK BUFFER ENTIRELY */
-
-	glClearColor(0,0,0, 1.0);
-	glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
-	glClear(GL_COLOR_BUFFER_BIT);
-	SDL_GL_SwapWindow(gSDLWindow);
-	glClear(GL_COLOR_BUFFER_BIT);
-#endif
-	glClearColor(viewDefPtr->clearColor.r, viewDefPtr->clearColor.g, viewDefPtr->clearColor.b, 1.0);
-
+	glClearColor(0, .25f, .5f, 1.0f);
 }
 
 
@@ -704,7 +727,9 @@ void OGL_DrawScene(OGLSetupOutputType *setupInfo, void (*drawRoutine)(OGLSetupOu
 		glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 	}
 	else
+	{
 		glClear(GL_DEPTH_BUFFER_BIT);
+	}
 
 
 	glColor4f(1,1,1,1);

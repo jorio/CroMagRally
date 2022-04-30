@@ -107,6 +107,8 @@ static Boolean	beenHere = false;
 		if (gGameViewInfoPtr)							// see if need to dispose this
 			OGL_DisposeWindowSetup(&gGameViewInfoPtr);
 
+		OGL_Shutdown();									// nuke draw context
+
 		ShutdownSound();								// cleanup sound stuff
 	}
 

@@ -244,6 +244,7 @@ enum
 //=====================================================================
 
 void OGL_Boot(void);
+void OGL_Shutdown(void);
 void OGL_NewViewDef(OGLSetupInputType *viewDef);
 void OGL_SetupWindow(OGLSetupInputType *setupDefPtr, OGLSetupOutputType **outputHandle);
 void OGL_DisposeWindowSetup(OGLSetupOutputType **dataHandle);
