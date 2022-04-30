@@ -393,8 +393,6 @@ static const OGLColorRGBA	blipColors[] =
 	mapX = gIconInfo[ICON_MAP][gActiveSplitScreenMode].x;
 	mapY = gIconInfo[ICON_MAP][gActiveSplitScreenMode].y;
 
-	float mapSize = scale * OVERHEAD_MAP_REFERENCE_SIZE;
-
 
 			/* DRAW THE MAP UNDERLAY */
 

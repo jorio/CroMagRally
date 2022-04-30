@@ -150,7 +150,7 @@ ObjNode	*segObj = baseObj;
 int		i;
 float	dr;
 float	fps = gFramesPerSecondFrac;
-float	baseX,baseZ,x,z;
+float	baseX,x,z;
 float	bendIndex;
 static const float	segOffsets[] = {100,350,250,150,150};
 int				particleGroup,magicNum;
@@ -173,7 +173,7 @@ int				particleGroup,magicNum;
 	dr = 5.0f;
 
 	baseX = x = baseObj->Coord.x;							// get base/top coords
-	baseZ = z = baseObj->Coord.z;
+	z = baseObj->Coord.z;
 
 	bendIndex = baseObj->BendFactor += PI * fps;
 

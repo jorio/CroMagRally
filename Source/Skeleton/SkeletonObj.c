@@ -133,11 +133,6 @@ short	i;
 ObjNode	*MakeNewSkeletonObject(NewObjectDefinitionType *newObjDef)
 {
 ObjNode	*newNode;
-int		type;
-float	scale;
-
-	type = newObjDef->type;
-	scale = newObjDef->scale;
 
 			/* CREATE NEW OBJECT NODE */
 
@@ -148,7 +143,7 @@ float	scale;
 
 			/* LOAD SKELETON FILE INTO OBJECT */
 
-	newNode->Skeleton = MakeNewSkeletonBaseData(type); 			// alloc & set skeleton data
+	newNode->Skeleton = MakeNewSkeletonBaseData(newObjDef->type); 		// alloc & set skeleton data
 	if (newNode->Skeleton == nil)
 		DoFatalAlert("MakeNewSkeletonObject: MakeNewSkeletonBaseData == nil");
 
@@ -224,12 +219,11 @@ long	numAnims,numJoints;
 
 static void DisposeSkeletonDefinitionMemory(SkeletonDefType *skeleton)
 {
-short	j,numAnims,numJoints;
+short	j,numJoints;
 
 	if (skeleton == nil)
 		return;
 
-	numAnims = skeleton->NumAnims;										// get # anims in skeleton
 	numJoints = skeleton->NumBones;
 
 			/* NUKE THE SKELETON BONE POINT & NORMAL INDEX ARRAYS */

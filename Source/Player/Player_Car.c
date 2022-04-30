@@ -385,7 +385,6 @@ static void MovePlayer_Car(ObjNode *theNode)
 {
 int					numPasses;
 float				oldFPS,oldFPSFrac;
-OGLPoint3D			oldCoord;
 long	oldLeft,oldRight,oldFront,oldBack,oldTop,oldBottom;
 
 
@@ -422,7 +421,7 @@ long	oldLeft,oldRight,oldFront,oldBack,oldTop,oldBottom;
 
 			/* KEEP OLD INFO */
 
-	oldCoord = theNode->OldCoord;
+//	oldCoord = theNode->OldCoord;
 	oldTop = theNode->CollisionBoxes[0].oldTop;
 	oldBottom = theNode->CollisionBoxes[0].oldBottom;
 	oldLeft = theNode->CollisionBoxes[0].oldLeft;

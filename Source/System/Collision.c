@@ -56,7 +56,7 @@ ObjNode 	*thisNode;
 long		sideBits,cBits,cType;
 float		relDX,relDY,relDZ;						// relative deltas
 float		realDX,realDY,realDZ;					// real deltas
-float		x,y,z,oldX,oldZ,oldY;
+float		oldX,oldZ,oldY;
 short		numBaseBoxes,targetNumBoxes,target;
 CollisionBoxType *baseBoxList;
 CollisionBoxType *targetBoxList;
@@ -77,11 +77,6 @@ long		leftSide,rightSide,frontSide,backSide,bottomSide,topSide;
 	backSide 		= baseBoxList->back;
 	bottomSide 		= baseBoxList->bottom;
 	topSide 		= baseBoxList->top;
-
-	x = gCoord.x;									// copy coords into registers
-	y = gCoord.y;
-	z = gCoord.z;
-
 
 	oldY = baseNode->OldCoord.y;
 	oldX = baseNode->OldCoord.x;
@@ -308,7 +303,7 @@ long		offXSign,offZSign,offYSign;
 Byte		base,target;
 ObjNode		*targetObj;
 CollisionBoxType *baseBoxPtr,*targetBoxPtr;
-long		leftSide,rightSide,frontSide,backSide,bottomSide;
+long		bottomSide;
 CollisionBoxType *boxList;
 short		numSolidHits, numPasses = 0;
 Boolean		hitImpenetrable = false;
@@ -337,10 +332,10 @@ again:
 	if (theNode->NumCollisionBoxes == 0)					// it's gotta have a collision box
 		return(0);
 	boxList = theNode->CollisionBoxes;
-	leftSide = boxList->left;
-	rightSide = boxList->right;
-	frontSide = boxList->front;
-	backSide = boxList->back;
+//	leftSide = boxList->left;
+//	rightSide = boxList->right;
+//	frontSide = boxList->front;
+//	backSide = boxList->back;
 	bottomSide = boxList->bottom;
 
 
@@ -1444,9 +1439,6 @@ Boolean HandleFloorCollision(OGLPoint3D *newCoord, float footYOff)
 Boolean				hitFoot;
 float				floorY;
 float				distToFloor;
-float				fps;
-
-	fps = gFramesPerSecondFrac;
 
 			/*************************************/
 			/* CALC DISTANCES TO FLOOR & CEILING */

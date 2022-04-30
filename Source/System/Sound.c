@@ -364,26 +364,25 @@ void DisposeAllSoundBanks(void)
 void StopAChannel(short *channelNum)
 {
 SndCommand 	mySndCmd;
-OSErr 		myErr;
-SCStatus	theStatus;
+SCStatus	theStatus = {};
 short		c = *channelNum;
 
 	if ((c < 0) || (c >= gMaxChannels))		// make sure its a legal #
 		return;
 
-	myErr = SndChannelStatus(gSndChannel[c],sizeof(SCStatus),&theStatus);	// get channel info
+	SndChannelStatus(gSndChannel[c],sizeof(SCStatus),&theStatus);	// get channel info
 	if (theStatus.scChannelBusy)					// if channel busy, then stop it
 	{
 
 		mySndCmd.cmd = flushCmd;
 		mySndCmd.param1 = 0;
 		mySndCmd.param2 = 0;
-		myErr = SndDoImmediate(gSndChannel[c], &mySndCmd);
+		SndDoImmediate(gSndChannel[c], &mySndCmd);
 
 		mySndCmd.cmd = quietCmd;
 		mySndCmd.param1 = 0;
 		mySndCmd.param2 = 0;
-		myErr = SndDoImmediate(gSndChannel[c], &mySndCmd);
+		SndDoImmediate(gSndChannel[c], &mySndCmd);
 	}
 
 	*channelNum = -1;
@@ -398,8 +397,7 @@ short		c = *channelNum;
 void StopAChannelIfEffectNum(short *channelNum, short effectNum)
 {
 SndCommand 	mySndCmd;
-OSErr 		myErr;
-SCStatus	theStatus;
+SCStatus	theStatus = {};
 short		c = *channelNum;
 
 	if ((c < 0) || (c >= gMaxChannels))				// make sure its a legal #
@@ -409,19 +407,18 @@ short		c = *channelNum;
 		return;
 
 
-	myErr = SndChannelStatus(gSndChannel[c],sizeof(SCStatus),&theStatus);	// get channel info
+	SndChannelStatus(gSndChannel[c],sizeof(SCStatus),&theStatus);	// get channel info
 	if (theStatus.scChannelBusy)					// if channel busy, then stop it
 	{
-
 		mySndCmd.cmd = flushCmd;
 		mySndCmd.param1 = 0;
 		mySndCmd.param2 = 0;
-		myErr = SndDoImmediate(gSndChannel[c], &mySndCmd);
+		SndDoImmediate(gSndChannel[c], &mySndCmd);
 
 		mySndCmd.cmd = quietCmd;
 		mySndCmd.param1 = 0;
 		mySndCmd.param2 = 0;
-		myErr = SndDoImmediate(gSndChannel[c], &mySndCmd);
+		SndDoImmediate(gSndChannel[c], &mySndCmd);
 	}
 
 	*channelNum = -1;
@@ -479,7 +476,7 @@ OSErr 	iErr;
 static	SndCommand 		mySndCmd;
 FSSpec	spec;
 short	musicFileRefNum;
-float	volumeTweak;
+//float	volumeTweak;
 
 	if (songNum == gCurrentSong)					// see if this is already playing
 		return;
@@ -528,7 +525,7 @@ float	volumeTweak;
 	iErr = FSpOpenDF(&spec, fsRdPerm, &musicFileRefNum);
 	GAME_ASSERT(!iErr);
 
-	volumeTweak = songs[songNum].volumeTweak;
+//	volumeTweak = songs[songNum].volumeTweak;
 
 	gCurrentSong = songNum;
 

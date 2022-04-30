@@ -41,6 +41,7 @@ Boolean				gDrawLensFlare = false;
 
 float				gCameraStartupTimer;
 
+#if 0				// lens flare unused in CMR
 
 static OGLPoint3D	gSunCoord;
 
@@ -76,9 +77,6 @@ static const Byte	gFlareImageTable[]=
 };
 
 
-
-
-#if 0
 /*********************** DRAW LENS FLARE ***************************/
 
 void DrawLensFlare(OGLSetupOutputType *setupInfo)

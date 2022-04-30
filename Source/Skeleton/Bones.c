@@ -294,7 +294,6 @@ OGLMatrix4x4			oldM;
 OGLVector3D				*normalAttribs;
 BoneDefinitionType		*bonePtr;
 float					minX,maxX,maxY,minY,maxZ,minZ;
-long					numDecomposedPoints,numDecomposedNormals;
 float					m00,m01,m02,m10,m11,m12,m20,m21,m22,m30,m31,m32;
 float					newX,newY,newZ;
 SkeletonObjDataType		*currentSkelObjData = gCurrentSkelObjData;
@@ -306,9 +305,6 @@ MOVertexArrayData		*localTriMeshes = &gLocalTriMeshesOfSkelType[skelType][0];
 
 	minX = minY = minZ = 10000000;
 	maxX = maxY = maxZ = -minX;									// calc local bbox with registers for speed
-
-	numDecomposedPoints = currentSkeleton->numDecomposedPoints;
-	numDecomposedNormals = currentSkeleton->numDecomposedNormals;
 
 				/*********************************/
 				/* FACTOR IN THIS JOINT'S MATRIX */

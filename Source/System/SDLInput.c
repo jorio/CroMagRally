@@ -92,7 +92,7 @@ void DoSDLMaintenance(void)
 			/* DO SDL MAINTENANCE */
 			/**********************/
 
-	int mouseWheelDelta = 0;
+//	int mouseWheelDelta = 0;
 
 	SDL_PumpEvents();
 	SDL_Event event;
@@ -124,6 +124,7 @@ void DoSDLMaintenance(void)
 					_Static_assert(sizeof(gTextInput) == sizeof(event.text.text), "size mismatch: gTextInput/event.text.text");
 					break;
 
+				/*
 				case SDL_MOUSEWHEEL:
 					// if (!gEatMouse)
 					{
@@ -131,6 +132,7 @@ void DoSDLMaintenance(void)
 						mouseWheelDelta += event.wheel.x;
 					}
 					break;
+				*/
 
 				case SDL_JOYDEVICEADDED:	 // event.jdevice.which is the joy's INDEX (not an instance id!)
 					TryOpenControllerFromJoystick(event.cdevice.which);

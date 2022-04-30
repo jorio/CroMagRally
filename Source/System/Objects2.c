@@ -406,7 +406,7 @@ ObjNode	*shadowObj;
 void UpdateShadow(ObjNode *theNode)
 {
 ObjNode *shadowNode;
-long	x,y,z;
+long	y;
 float	dist;
 
 	if (theNode == nil)
@@ -417,9 +417,7 @@ float	dist;
 		return;
 
 
-	x = theNode->Coord.x;
 	y = theNode->Coord.y + theNode->BottomOff;
-	z = theNode->Coord.z;
 
 	shadowNode->Coord = theNode->Coord;
 	shadowNode->Rot.y = theNode->Rot.y;

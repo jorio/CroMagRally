@@ -687,7 +687,6 @@ static void TallyTokens(void)
 {
 Byte	stage = 0;
 float	stageTimer;
-ObjNode	*newObj;
 char	s[32];
 Boolean	done = false;
 
@@ -725,8 +724,7 @@ Boolean	done = false;
 							.slot 		= SPRITE_SLOT,
 							.scale		= 1.5,
 						};
-						newObj = MakeSpriteObject(&def, gGameViewInfoPtr);
-//						newObj->Projection = kProjectionType2DOrthoCentered;
+						MakeSpriteObject(&def, gGameViewInfoPtr);
 						break;
 				}
 
@@ -747,8 +745,7 @@ Boolean	done = false;
 							.slot		= SPRITE_SLOT,
 							.scale		= 1.5,
 						};
-						newObj = MakeSpriteObject(&def, gGameViewInfoPtr);
-//						newObj->Projection = kProjectionType2DOrthoCentered;
+						MakeSpriteObject(&def, gGameViewInfoPtr);
 						break;
 				}
 
@@ -1530,10 +1527,6 @@ short	i,t,winner;
 
 void GameMain(void)
 {
-unsigned long	someLong;
-Boolean			userAbortedBeforeGameStarted;
-
-
 				/**************/
 				/* BOOT STUFF */
 				/**************/
@@ -1558,8 +1551,12 @@ Boolean			userAbortedBeforeGameStarted;
 
 	InitObjectManager();
 
-	GetDateTime ((unsigned long *)(&someLong));		// init random seed
-	SetMyRandomSeed(someLong);
+	{
+		unsigned long someLong;
+		GetDateTime(&someLong);		// init random seed
+		SetMyRandomSeed(someLong);
+	}
+
 //	HideCursor();
 
 
@@ -1590,9 +1587,8 @@ Boolean			userAbortedBeforeGameStarted;
 		PlaySong(SONG_THEME, true);
 		DoMainMenuScreen();
 
-		userAbortedBeforeGameStarted = PlayGame();
+		PlayGame();
 	}
-
 }
 
 

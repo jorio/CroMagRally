@@ -222,13 +222,11 @@ static void DoSubmarineMotion(ObjNode *theNode)
 float		y;
 float		fps = gFramesPerSecondFrac;
 short		playerNum;
-PlayerInfoType	*pinfo;
 OGLMatrix4x4	mx,my,mxy;
 static const OGLVector3D	v = {0,0,-1};
 OGLVector3D		aimVec;
 
 	playerNum 	= theNode->PlayerNum;
-	pinfo 		= &gPlayerInfo[playerNum];
 
 
 			/*****************/
@@ -391,6 +389,7 @@ uint8_t		sides;
 			//
 
 	sides = HandleCollisions(vehicle, ctype, 0);
+	(void) sides;
 
 
 			/******************************/
