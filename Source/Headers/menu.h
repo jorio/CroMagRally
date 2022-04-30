@@ -11,44 +11,54 @@ typedef enum
 	kMenuItem_Title,
 	kMenuItem_Subtitle,
 	kMenuItem_Label,
-//	kMenuItem_Action,
-//	kMenuItem_Submenu,
 	kMenuItem_Spacer,
 	kMenuItem_Cycler,
 	kMenuItem_CMRCycler,
+	kMenuItem_FloatRange,
 	kMenuItem_KeyBinding,
 	kMenuItem_PadBinding,
 	kMenuItem_MouseBinding,
 	kMenuItem_NUM_ITEM_TYPES
 } MenuItemType;
 
+typedef struct
+{
+	Byte*			valuePtr;
+	bool			callbackSetsValue;
+	struct
+	{
+		LocStrID	text;
+		uint8_t		value;
+	} choices[MAX_MENU_CYCLER_CHOICES];
+} MenuCyclerData;
+
+typedef struct
+{
+	float*			valuePtr;
+	float			rangeMin;
+	float			rangeMax;
+} MenuFloatRangeData;
+
 typedef struct MenuItem
 {
 	MenuItemType			type;
 
 	LocStrID				text;
-	const char*				rawText;
+	const char*				rawText;	// takes precedence over localizable text if non-NULL
 	const char*				(*generateText)(void);
 
+	void					(*callback)(const struct MenuItem*);
 	bool					(*enableIf)(const struct MenuItem*);
 
-	int						gotoMenu;  // 0 exits menu tree
-	void					(*callback)(const struct MenuItem*);
+	int						id;			// value returned by StartMenu if exiting menu
+	int						gotoMenu;	// 0 exits menu tree
 
-	int						id;
-
-	struct
+	union
 	{
-		Byte*			valuePtr;
-		bool			callbackSetsValue;
-		struct
-		{
-			LocStrID	text;
-			uint8_t		value;
-		} choices[MAX_MENU_CYCLER_CHOICES];
-	} cycler;
-
-	int 				kb;  // keybinding
+		int 				inputNeed;
+		MenuCyclerData		cycler;
+		MenuFloatRangeData	floatRange;
+	};
 } MenuItem;
 
 typedef struct MenuStyle

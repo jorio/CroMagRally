@@ -25,10 +25,29 @@
 /*    PROTOTYPES            */
 /****************************/
 
-static ObjNode* MakeTextAtRowCol(const char* text, int row, int col);
+static ObjNode* MakeText(const char* text, int row, int col, int flags);
 static void LayOutMenu(const MenuItem* menu);
-static void LayOutCMRCycler(int row, float sweepFactor);
+
 static ObjNode* LayOutCyclerValueText(int row);
+static ObjNode* LayOutFloatRangeValueText(int row);
+
+static ObjNode* LayOutCMRCycler(int row, float sweepFactor);
+static ObjNode* LayOutCycler(int row, float sweepFactor);
+static ObjNode* LayOutPick(int row, float sweepFactor);
+static ObjNode* LayOutLabel(int row, float sweepFactor);
+static ObjNode* LayOutSubtitle(int row, float sweepFactor);
+static ObjNode* LayOutTitle(int row, float sweepFactor);
+static ObjNode* LayOutKeyBinding(int row, float sweepFactor);
+static ObjNode* LayOutPadBinding(int row, float sweepFactor);
+static ObjNode* LayOutMouseBinding(int row, float sweepFactor);
+static ObjNode* LayOutFloatRange(int row, float sweepFactor);
+
+static void NavigateCycler(const MenuItem* entry);
+static void NavigatePick(const MenuItem* entry);
+static void NavigateKeyBinding(const MenuItem* entry);
+static void NavigatePadBinding(const MenuItem* entry);
+static void NavigateMouseBinding(const MenuItem* entry);
+static void NavigateFloatRange(const MenuItem* entry);
 
 #define SpecialRow					Special[0]
 #define SpecialCol					Special[1]
@@ -90,21 +109,27 @@ const MenuStyle kDefaultMenuStyle =
 	.yOffset			= 32,
 };
 
-static const float kMenuItemHeightMultipliers[kMenuItem_NUM_ITEM_TYPES] =  // acts as text scale as well
+typedef struct
 {
-	[kMenuItem_END_SENTINEL] = 0.0f,
-	[kMenuItem_Title] = 1.4f,
-	[kMenuItem_Subtitle] = 0.8f,
-	[kMenuItem_Label] = 1.0f,
-	//	[kMenuItem_Action]       = 1,
-	//	[kMenuItem_Submenu]      = 1,
-	[kMenuItem_Spacer] = 0.5f,
-	[kMenuItem_Cycler] = 1,
-	[kMenuItem_CMRCycler] = 1,
-	[kMenuItem_Pick] = 1,
-	[kMenuItem_KeyBinding] = 1,
-	[kMenuItem_PadBinding] = 1,
-	[kMenuItem_MouseBinding] = 1,
+	float height;
+	ObjNode* (*layOutCallback)(int row, float sweepFactor);
+	void (*navigateCallback)(const MenuItem* menuItem);
+} MenuItemClass;
+
+static const MenuItemClass kMenuItemClasses[kMenuItem_NUM_ITEM_TYPES] =
+{
+	[kMenuItem_END_SENTINEL]	= { 0.0f, NULL, NULL },
+	[kMenuItem_Title]			= { 1.4f, LayOutTitle, NULL },
+	[kMenuItem_Subtitle]		= { 0.8f, LayOutSubtitle, NULL },
+	[kMenuItem_Label]			= { 1.0f, LayOutLabel, NULL },
+	[kMenuItem_Spacer]			= { 0.5f, NULL, NULL },
+	[kMenuItem_Cycler]			= { 1.0f, LayOutCycler, NavigateCycler },
+	[kMenuItem_CMRCycler]		= { 1.0f, LayOutCMRCycler, NavigateCycler },
+	[kMenuItem_FloatRange]		= { 1.0f, LayOutFloatRange, NavigateFloatRange },
+	[kMenuItem_Pick]			= { 1.0f, LayOutPick, NavigatePick },
+	[kMenuItem_KeyBinding]		= { 1.0f, LayOutKeyBinding, NavigateKeyBinding },
+	[kMenuItem_PadBinding]		= { 1.0f, LayOutPadBinding, NavigatePadBinding },
+	[kMenuItem_MouseBinding]	= { 1.0f, LayOutMouseBinding, NavigateMouseBinding },
 };
 
 /*********************/
@@ -207,7 +232,7 @@ static OGLColorRGBA PulsateColor(float* time)
 
 static KeyBinding* GetBindingAtRow(int row)
 {
-	return &gGamePrefs.keys[gNav->menu[row].kb];
+	return &gGamePrefs.keys[gNav->menu[row].inputNeed];
 }
 
 static const char* GetKeyBindingName(int row, int col)
@@ -327,7 +352,7 @@ static void ReplaceMenuText(LocStrID originalTextInMenuDefinition, LocStrID newT
 	{
 		if (gNav->menu[i].text == originalTextInMenuDefinition)
 		{
-			MakeTextAtRowCol(Localize(newText), i, 0);
+			MakeText(Localize(newText), i, 0, 0);
 		}
 	}
 }
@@ -686,6 +711,38 @@ static void NavigateCycler(const MenuItem* entry)
 	}
 }
 
+static void NavigateFloatRange(const MenuItem* entry)
+{
+	int delta = 0;
+
+	if (GetNewNeedStateAnyP(kNeed_UILeft)
+		|| GetNewNeedStateAnyP(kNeed_UIPrev)
+		|| (gNav->mouseHoverValidRow && FlushMouseButtonPress(SDL_BUTTON_RIGHT)))
+	{
+		delta = -1;
+	}
+	else if (GetNewNeedStateAnyP(kNeed_UIRight)
+		|| GetNewNeedStateAnyP(kNeed_UINext)
+		|| GetNewNeedStateAnyP(kNeed_UIConfirm)
+		|| (gNav->mouseHoverValidRow && FlushMouseButtonPress(SDL_BUTTON_LEFT)))
+	{
+		delta = 1;
+	}
+
+	if (delta != 0)
+	{
+		gNav->idleTime = 0;
+		PlayEffect_Parms(kSfxCycle, FULL_CHANNEL_VOLUME, FULL_CHANNEL_VOLUME, NORMAL_CHANNEL_RATE * 2 / 3 + (RandomFloat2() * 0x3000));
+
+		*entry->floatRange.valuePtr = *entry->floatRange.valuePtr + delta;
+
+		if (entry->callback)
+			entry->callback(entry);
+
+		LayOutFloatRangeValueText(gNav->menuRow);
+	}
+}
+
 static void NavigateKeyBinding(const MenuItem* entry)
 {
 	if (gNav->mouseHoverValidRow && (gNav->mouseHoverColumn == 1 || gNav->mouseHoverColumn == 2))
@@ -719,9 +776,9 @@ static void NavigateKeyBinding(const MenuItem* entry)
 		|| (gNav->mouseHoverValidRow && FlushMouseButtonPress(SDL_BUTTON_MIDDLE)))
 	{
 		gNav->idleTime = 0;
-		gGamePrefs.keys[entry->kb].key[gNav->keyColumn] = 0;
+		gGamePrefs.keys[entry->inputNeed].key[gNav->keyColumn] = 0;
 		PlayEffect(kSfxDelete);
-		MakeTextAtRowCol(Localize(STR_UNBOUND_PLACEHOLDER), gNav->menuRow, gNav->keyColumn+1);
+		MakeText(Localize(STR_UNBOUND_PLACEHOLDER), gNav->menuRow, gNav->keyColumn+1, 0);
 		return;
 	}
 
@@ -730,7 +787,7 @@ static void NavigateKeyBinding(const MenuItem* entry)
 	{
 		gNav->idleTime = 0;
 		gNav->menuState = kMenuStateAwaitingKeyPress;
-		MakeTextAtRowCol(Localize(STR_PRESS), gNav->menuRow, gNav->keyColumn+1);
+		MakeText(Localize(STR_PRESS), gNav->menuRow, gNav->keyColumn+1, 0);
 
 		// Change subtitle to help message
 		ReplaceMenuText(STR_CONFIGURE_KEYBOARD_HELP, STR_CONFIGURE_KEYBOARD_HELP_CANCEL);
@@ -766,9 +823,9 @@ static void NavigatePadBinding(const MenuItem* entry)
 		|| (gNav->mouseHoverValidRow && FlushMouseButtonPress(SDL_BUTTON_MIDDLE)))
 	{
 		gNav->idleTime = 0;
-		gGamePrefs.keys[entry->kb].gamepad[gNav->padColumn].type = kInputTypeUnbound;
+		gGamePrefs.keys[entry->inputNeed].gamepad[gNav->padColumn].type = kInputTypeUnbound;
 		PlayEffect(kSfxDelete);
-		MakeTextAtRowCol(Localize(STR_UNBOUND_PLACEHOLDER), gNav->menuRow, gNav->padColumn+1);
+		MakeText(Localize(STR_UNBOUND_PLACEHOLDER), gNav->menuRow, gNav->padColumn+1, 0);
 		return;
 	}
 
@@ -783,7 +840,7 @@ static void NavigatePadBinding(const MenuItem* entry)
 		}
 
 		gNav->menuState = kMenuStateAwaitingPadPress;
-		MakeTextAtRowCol(Localize(STR_PRESS), gNav->menuRow, gNav->padColumn+1);
+		MakeText(Localize(STR_PRESS), gNav->menuRow, gNav->padColumn+1, 0);
 
 		// Change subtitle to help message
 		ReplaceMenuText(STR_CONFIGURE_GAMEPAD_HELP, STR_CONFIGURE_GAMEPAD_HELP_CANCEL);
@@ -798,9 +855,9 @@ static void NavigateMouseBinding(const MenuItem* entry)
 		|| (gNav->mouseHoverValidRow && FlushMouseButtonPress(SDL_BUTTON_MIDDLE)))
 	{
 		gNav->idleTime = 0;
-		gGamePrefs.keys[entry->kb].mouseButton = 0;
+		gGamePrefs.keys[entry->inputNeed].mouseButton = 0;
 		PlayEffect(kSfxDelete);
-		MakeTextAtRowCol(Localize(STR_UNBOUND_PLACEHOLDER), gNav->menuRow, 1);
+		MakeText(Localize(STR_UNBOUND_PLACEHOLDER), gNav->menuRow, 1, 0);
 		return;
 	}
 
@@ -815,7 +872,7 @@ static void NavigateMouseBinding(const MenuItem* entry)
 		}
 
 		gNav->menuState = kMenuStateAwaitingMouseClick;
-		MakeTextAtRowCol(Localize(STR_CLICK), gNav->menuRow, 1);
+		MakeText(Localize(STR_CLICK), gNav->menuRow, 1, 0);
 		return;
 	}
 }
@@ -842,40 +899,11 @@ static void NavigateMenu(void)
 	NavigateSettingEntriesMouseHover();
 
 	const MenuItem* entry = &gNav->menu[gNav->menuRow];
+	const MenuItemClass* cls = &kMenuItemClasses[entry->type];
 
-	switch (entry->type)
+	if (cls->navigateCallback)
 	{
-//		case kMenuItem_Action:
-//			NavigateAction(entry);
-//			break;
-
-		case kMenuItem_Pick:
-			NavigatePick(entry);
-			break;
-
-//		case kMenuItem_Submenu:
-//			NavigateSubmenuButton(entry);
-//			break;
-
-		case kMenuItem_Cycler:
-		case kMenuItem_CMRCycler:
-			NavigateCycler(entry);
-			break;
-
-		case kMenuItem_KeyBinding:
-			NavigateKeyBinding(entry);
-			break;
-
-		case kMenuItem_PadBinding:
-			NavigatePadBinding(entry);
-			break;
-
-		case kMenuItem_MouseBinding:
-			NavigateMouseBinding(entry);
-
-		default:
-			//DoFatalAlert("Not supposed to be hovering on this menu item!");
-			break;
+		cls->navigateCallback(entry);
 	}
 }
 
@@ -898,7 +926,7 @@ static void UnbindScancodeFromAllRemappableInputNeeds(int16_t sdlScancode)
 			if (binding->key[j] == sdlScancode)
 			{
 				binding->key[j] = 0;
-				MakeTextAtRowCol(Localize(STR_UNBOUND_PLACEHOLDER), row, j+1);
+				MakeText(Localize(STR_UNBOUND_PLACEHOLDER), row, j+1, 0);
 			}
 		}
 	}
@@ -919,7 +947,7 @@ static void UnbindPadButtonFromAllRemappableInputNeeds(int8_t type, int8_t id)
 			{
 				binding->gamepad[j].type = kInputTypeUnbound;
 				binding->gamepad[j].id = 0;
-				MakeTextAtRowCol(Localize(STR_UNBOUND_PLACEHOLDER), row, j+1);
+				MakeText(Localize(STR_UNBOUND_PLACEHOLDER), row, j+1, 0);
 			}
 		}
 	}
@@ -937,7 +965,7 @@ static void UnbindMouseButtonFromAllRemappableInputNeeds(int8_t id)
 		if (binding->mouseButton == id)
 		{
 			binding->mouseButton = 0;
-			MakeTextAtRowCol(Localize(STR_UNBOUND_PLACEHOLDER), row, 1);
+			MakeText(Localize(STR_UNBOUND_PLACEHOLDER), row, 1, 0);
 		}
 	}
 }
@@ -946,7 +974,7 @@ static void AwaitKeyPress(void)
 {
 	if (GetNewKeyState(SDL_SCANCODE_ESCAPE))
 	{
-		MakeTextAtRowCol(GetKeyBindingName(gNav->menuRow, gNav->keyColumn), gNav->menuRow, 1 + gNav->keyColumn);
+		MakeText(GetKeyBindingName(gNav->menuRow, gNav->keyColumn), gNav->menuRow, 1 + gNav->keyColumn, 0);
 		gNav->menuState = kMenuStateReady;
 		PlayEffect(kSfxError);
 		ReplaceMenuText(STR_CONFIGURE_KEYBOARD_HELP, STR_CONFIGURE_KEYBOARD_HELP);
@@ -961,7 +989,7 @@ static void AwaitKeyPress(void)
 		{
 			UnbindScancodeFromAllRemappableInputNeeds(scancode);
 			kb->key[gNav->keyColumn] = scancode;
-			MakeTextAtRowCol(GetKeyBindingName(gNav->menuRow, gNav->keyColumn), gNav->menuRow, gNav->keyColumn+1);
+			MakeText(GetKeyBindingName(gNav->menuRow, gNav->keyColumn), gNav->menuRow, gNav->keyColumn+1, 0);
 			gNav->menuState = kMenuStateReady;
 			gNav->idleTime = 0;
 			PlayEffect(kSfxCycle);
@@ -1047,7 +1075,7 @@ static void AwaitMouseClick(void)
 {
 	if (GetNewKeyState(SDL_SCANCODE_ESCAPE))
 	{
-		MakeTextAtRowCol(GetMouseBindingName(gNav->menuRow), gNav->menuRow, 1);
+		MakeText(GetMouseBindingName(gNav->menuRow), gNav->menuRow, 1, 0);
 		gNav->menuState = kMenuStateReady;
 		gNav->idleTime = 0;
 		PlayEffect(kSfxError);
@@ -1062,7 +1090,7 @@ static void AwaitMouseClick(void)
 		{
 			UnbindMouseButtonFromAllRemappableInputNeeds(mouseButton);
 			kb->mouseButton = mouseButton;
-			MakeTextAtRowCol(GetMouseBindingName(gNav->menuRow), gNav->menuRow, 1);
+			MakeText(GetMouseBindingName(gNav->menuRow), gNav->menuRow, 1, 0);
 			gNav->menuState = kMenuStateReady;
 			gNav->idleTime = 0;
 			PlayEffect(kSfxCycle);
@@ -1115,16 +1143,18 @@ static void DeleteAllText(void)
 	}
 }
 
-static ObjNode* MakeTextAtRowCol(const char* text, int row, int col)
+static ObjNode* MakeText(const char* text, int row, int col, int textMeshFlags)
 {
 	ObjNode* node = gNav->menuObjects[row][col];
 
 	int miType = gNav->menu[row].type;
 
+	bool centered = textMeshFlags & kTextMeshAlignCenter;
+
 	if (node)
 	{
 		// Recycling existing text lets us keep the move call, color and specials
-		TextMesh_Update(text, 0, node);
+		TextMesh_Update(text, textMeshFlags, node);
 	}
 	else
 	{
@@ -1133,19 +1163,18 @@ static ObjNode* MakeTextAtRowCol(const char* text, int row, int col)
 		NewObjectDefinitionType def =
 		{
 			.coord = (OGLPoint3D) { startX + gNav->menuColXs[col], gNav->menuRowYs[row], 0 },
-			.scale = gNav->style.standardScale * kMenuItemHeightMultipliers[miType],
+			.scale = gNav->style.standardScale * kMenuItemClasses[miType].height,
 			.slot = SLOT_OF_DUMB + 100,
 			.flags = STATUS_BIT_MOVEINPAUSE,
 		};
 
-		int alignment = gNav->style.centeredText? kTextMeshAlignCenter: kTextMeshAlignLeft;
-		node = TextMesh_New(text, alignment, &def);
+		node = TextMesh_New(text, textMeshFlags, &def);
 		node->SpecialRow = row;
 		node->SpecialCol = col;
 		gNav->menuObjects[row][col] = node;
 	}
 
-	if (!gNav->style.centeredText)
+	if (centered)
 	{
 		int paddedRightOff = ((gNav->menuColXs[col+1]-170) - node->Coord.x) / node->Scale.x;
 		if (paddedRightOff > node->RightOff)
@@ -1182,14 +1211,62 @@ static const char* GetCyclerValueText(int row)
 	return "VALUE NOT FOUND???";
 }
 
+static ObjNode* LayOutTitle(int row, float sweepFactor)
+{
+	const MenuItem* entry = &gNav->menu[row];
+
+	ObjNode* label = MakeText(GetMenuItemLabel(entry), row, 0, 0);
+	label->ColorFilter = gNav->style.titleColor;
+	label->MoveCall = MoveLabel;
+	label->SpecialSweepTimer = .5f;		// Title appears sooner than the rest
+
+	return label;
+}
+
+static ObjNode* LayOutSubtitle(int row, float sweepFactor)
+{
+	const MenuItem* entry = &gNav->menu[row];
+	
+	ObjNode* label = MakeText(GetMenuItemLabel(entry), row, 0, 0);
+	label->ColorFilter = (OGLColorRGBA){ 0.7, .4, .2, 1 };
+	label->MoveCall = MoveLabel;
+	label->SpecialSweepTimer = .5f;		// Title appears sooner than the rest
+
+	return label;
+}
+
+static ObjNode* LayOutLabel(int row, float sweepFactor)
+{
+	const MenuItem* entry = &gNav->menu[row];
+
+	ObjNode* label = MakeText(GetMenuItemLabel(entry), row, 0, 0);
+	label->ColorFilter = (OGLColorRGBA){ 0.7, .4, .2, 1 };//gNav->style.inactiveColor;
+	label->MoveCall = MoveLabel;
+	label->SpecialSweepTimer = sweepFactor;
+
+	return label;
+}
+
+static ObjNode* LayOutPick(int row, float sweepFactor)
+{
+	const MenuItem* entry = &gNav->menu[row];
+
+	ObjNode* node = MakeText(GetMenuItemLabel(entry), row, 0, 0);
+	node->MoveCall = MoveAction;
+	node->SpecialSweepTimer = sweepFactor;
+	node->SpecialMuted = !IsMenuItemSelectable(entry);
+
+	return node;
+}
+
 static ObjNode* LayOutCyclerValueText(int row)
 {
-	ObjNode* node2 = MakeTextAtRowCol(GetCyclerValueText(row), row, 1);
+	ObjNode* node2 = MakeText(GetCyclerValueText(row), row, 1, 0);
 	node2->MoveCall = MoveAction;
 	return node2;
 }
 
-static void LayOutCycler(int row, float sweepFactor)
+static ObjNode* LayOutCycler(int row, float sweepFactor)
 {
 	DECLARE_WORKBUF(buf, bufSize);
 
@@ -1197,15 +1274,17 @@ static void LayOutCycler(int row, float sweepFactor)
 
 	snprintf(buf, bufSize, "%s:", GetMenuItemLabel(entry));
 
-	ObjNode* node1 = MakeTextAtRowCol(buf, row, 0);
+	ObjNode* node1 = MakeText(buf, row, 0, 0);
 	node1->MoveCall = MoveAction;
 	node1->SpecialSweepTimer = sweepFactor;
 
 	ObjNode* node2 = LayOutCyclerValueText(row);
 	node2->SpecialSweepTimer = sweepFactor;
+
+	return node1;	// TODO: chain node2?
 }
 
-static void LayOutCMRCycler(int row, float sweepFactor)
+static ObjNode* LayOutCMRCycler(int row, float sweepFactor)
 {
 	DECLARE_WORKBUF(buf, bufSize);
 
@@ -1213,22 +1292,111 @@ static void LayOutCMRCycler(int row, float sweepFactor)
 
 	snprintf(buf, bufSize, "%s: %s", GetMenuItemLabel(entry), GetCyclerValueText(row));
 
-	ObjNode* node = MakeTextAtRowCol(buf, row, 0);
+	ObjNode* node = MakeText(buf, row, 0, 0);
 	node->MoveCall = MoveAction;
 	node->SpecialSweepTimer = sweepFactor;
+
+	return node;
+}
+
+static ObjNode* LayOutFloatRangeValueText(int row)
+{
+	const MenuItem* entry = &gNav->menu[row];
+	DECLARE_WORKBUF(buf, bufSize);
+
+	snprintf(buf, bufSize, "%.4f", *entry->floatRange.valuePtr);
+	ObjNode* node2 = MakeText(buf, row, 3, kTextMeshAlignRight);
+	return node2;
+}
+
+static ObjNode* LayOutFloatRange(int row, float sweepFactor)
+{
+	DECLARE_WORKBUF(buf, bufSize);
+	const MenuItem* entry = &gNav->menu[row];
+
+	snprintf(buf, bufSize, "%s:", GetMenuItemLabel(entry));
+	ObjNode* node1 = MakeText(buf, row, 0, kTextMeshAlignLeft);
+	node1->MoveCall = MoveAction;
+	node1->SpecialSweepTimer = sweepFactor;
+
+	ObjNode* node2 = LayOutFloatRangeValueText(row);
+	node2->SpecialSweepTimer = sweepFactor;
+
+	return node1;	// TODO: chain node2?
+}
+
+static ObjNode* LayOutKeyBinding(int row, float sweepFactor)
+{
+	DECLARE_WORKBUF(buf, bufSize);
+	const MenuItem* entry = &gNav->menu[row];
+
+	snprintf(buf, bufSize, "%s:", Localize(STR_KEYBINDING_DESCRIPTION_0 + entry->inputNeed));
+
+	ObjNode* label = MakeText(buf, row, 0, 0);
+	label->ColorFilter = gNav->style.inactiveColor2;
+	label->MoveCall = MoveLabel;
+	label->SpecialSweepTimer = sweepFactor;
+
+	for (int j = 0; j < KEYBINDING_MAX_KEYS; j++)
+	{
+		ObjNode* keyNode = MakeText(GetKeyBindingName(row, j), row, j + 1, 0);
+		keyNode->MoveCall = MoveKeyBinding;
+		keyNode->SpecialSweepTimer = sweepFactor;
+	}
+
+	return label;	// TODO: chain other nodes?
+}
+
+static ObjNode* LayOutPadBinding(int row, float sweepFactor)
+{
+	DECLARE_WORKBUF(buf, bufSize);
+	const MenuItem* entry = &gNav->menu[row];
+
+	snprintf(buf, bufSize, "%s:", Localize(STR_KEYBINDING_DESCRIPTION_0 + entry->inputNeed));
+
+	ObjNode* label = MakeText(buf, row, 0, 0);
+	label->ColorFilter = gNav->style.inactiveColor2;
+	label->MoveCall = MoveLabel;
+	label->SpecialSweepTimer = sweepFactor;
+
+	for (int j = 0; j < KEYBINDING_MAX_KEYS; j++)
+	{
+		ObjNode* keyNode = MakeText(GetPadBindingName(row, j), row, j+1, 0);
+		keyNode->MoveCall = MovePadBinding;
+		keyNode->SpecialSweepTimer = sweepFactor;
+	}
+
+	return label;		// TODO: chain other nodes?
+}
+
+static ObjNode* LayOutMouseBinding(int row, float sweepFactor)
+{
+	DECLARE_WORKBUF(buf, bufSize);
+	const MenuItem* entry = &gNav->menu[row];
+
+	snprintf(buf, bufSize, "%s:", Localize(STR_KEYBINDING_DESCRIPTION_0 + entry->inputNeed));
+
+	ObjNode* label = MakeText(buf, row, 0, 0);
+	label->ColorFilter = gNav->style.inactiveColor2;
+	label->MoveCall = MoveAction;
+	label->SpecialSweepTimer = sweepFactor;
+
+	ObjNode* keyNode = MakeText(GetMouseBindingName(row), row, 1, 0);
+	keyNode->MoveCall = MoveMouseBinding;
+	keyNode->SpecialSweepTimer = sweepFactor;
+	
+	return label;		// TODO: chain other nodes?
 }
 
 static void LayOutMenu(const MenuItem* menu)
 {
-	DECLARE_WORKBUF(buf, bufSize);
-
 	// Remember we've been to this menu
 	gNav->history[gNav->historyPos].menu = menu;
 
-	gNav->menu			= menu;
+	gNav->menu				= menu;
 	gNav->numMenuEntries	= 0;
-	gNav->menuPick		= -1;
-	gNav->idleTime	= 0;
+	gNav->menuPick			= -1;
+	gNav->idleTime			= 0;
 
 	// Restore old row
 	gNav->menuRow = gNav->history[gNav->historyPos].row;
@@ -1238,7 +1406,9 @@ static void LayOutMenu(const MenuItem* menu)
 	float totalHeight = 0;
 	for (int row = 0; menu[row].type != kMenuItem_END_SENTINEL; row++)
 	{
-		totalHeight += kMenuItemHeightMultipliers[menu[row].type] * gNav->style.rowHeight;
+		const MenuItem* entry = &menu[row];
+		const MenuItemClass* cls = &kMenuItemClasses[entry->type];
+		totalHeight += cls->height * gNav->style.rowHeight;
 	}
 
 	float y = -totalHeight*.5f + gNav->style.yOffset;
@@ -1250,123 +1420,19 @@ static void LayOutMenu(const MenuItem* menu)
 		gNav->menuRowYs[row] = y;
 
 		const MenuItem* entry = &menu[row];
+		const MenuItemClass* cls = &kMenuItemClasses[entry->type];
 
-		switch (entry->type)
+		if (cls->layOutCallback)
 		{
-			case kMenuItem_Spacer:
-				break;
-
-			case kMenuItem_Title:
-			{
-				ObjNode* label = MakeTextAtRowCol(GetMenuItemLabel(entry), row, 0);
-				label->ColorFilter = gNav->style.titleColor;
-				label->MoveCall = MoveLabel;
-				label->SpecialSweepTimer = .5f;		// Title appears sooner than the rest
-				break;
-			}
-
-			case kMenuItem_Subtitle:
-			{
-				ObjNode* label = MakeTextAtRowCol(GetMenuItemLabel(entry), row, 0);
-				//label->ColorFilter = gNav->style.titleColor;
-				label->ColorFilter = (OGLColorRGBA){ 0.7, .4, .2, 1 };
-				label->MoveCall = MoveLabel;
-				label->SpecialSweepTimer = .5f;		// Title appears sooner than the rest
-				break;
-			}
-
-			case kMenuItem_Label:
-			{
-				ObjNode* label = MakeTextAtRowCol(GetMenuItemLabel(entry), row, 0);
-				label->ColorFilter = (OGLColorRGBA){ 0.7, .4, .2, 1 };//gNav->style.inactiveColor;
-				label->MoveCall = MoveLabel;
-				label->SpecialSweepTimer = sweepFactor;
-				break;
-			}
-
-//			case kMenuItem_Action:
-			case kMenuItem_Pick:
-//			case kMenuItem_Submenu:
-			{
-				ObjNode* node = MakeTextAtRowCol(GetMenuItemLabel(entry), row, 0);
-				node->MoveCall = MoveAction;
-				node->SpecialSweepTimer = sweepFactor;
-				node->SpecialMuted = !IsMenuItemSelectable(entry);
-				break;
-			}
-
-			case kMenuItem_Cycler:
-			{
-				LayOutCycler(row, sweepFactor);
-				break;
-			}
-
-			case kMenuItem_CMRCycler:
-			{
-				LayOutCMRCycler(row, sweepFactor);
-				break;
-			}
-
-			case kMenuItem_KeyBinding:
-			{
-				snprintf(buf, bufSize, "%s:", Localize(STR_KEYBINDING_DESCRIPTION_0 + entry->kb));
-
-				ObjNode* label = MakeTextAtRowCol(buf, row, 0);
-				label->ColorFilter = gNav->style.inactiveColor2;
-				label->MoveCall = MoveLabel;
-				label->SpecialSweepTimer = sweepFactor;
-
-				for (int j = 0; j < KEYBINDING_MAX_KEYS; j++)
-				{
-					ObjNode* keyNode = MakeTextAtRowCol(GetKeyBindingName(row, j), row, j + 1);
-					keyNode->MoveCall = MoveKeyBinding;
-					keyNode->SpecialSweepTimer = sweepFactor;
-				}
-				break;
-			}
-
-			case kMenuItem_PadBinding:
-			{
-				snprintf(buf, bufSize, "%s:", Localize(STR_KEYBINDING_DESCRIPTION_0 + entry->kb));
-
-				ObjNode* label = MakeTextAtRowCol(buf, row, 0);
-				label->ColorFilter = gNav->style.inactiveColor2;
-				label->MoveCall = MoveLabel;
-				label->SpecialSweepTimer = sweepFactor;
-
-				for (int j = 0; j < KEYBINDING_MAX_KEYS; j++)
-				{
-					ObjNode* keyNode = MakeTextAtRowCol(GetPadBindingName(row, j), row, j + 1);
-					keyNode->MoveCall = MovePadBinding;
-					keyNode->SpecialSweepTimer = sweepFactor;
-				}
-				break;
-			}
-
-			case kMenuItem_MouseBinding:
-			{
-				snprintf(buf, bufSize, "%s:", Localize(STR_KEYBINDING_DESCRIPTION_0 + entry->kb));
-
-				ObjNode* label = MakeTextAtRowCol(buf, row, 0);
-				label->ColorFilter = gNav->style.inactiveColor2;
-				label->MoveCall = MoveAction;
-				label->SpecialSweepTimer = sweepFactor;
-
-				ObjNode* keyNode = MakeTextAtRowCol(GetMouseBindingName(row), row, 1);
-				keyNode->MoveCall = MoveMouseBinding;
-				keyNode->SpecialSweepTimer = sweepFactor;
-				break;
-			}
-
-			default:
-				DoFatalAlert("Unsupported menu item type");
-				break;
+			cls->layOutCallback(row, sweepFactor);
 		}
 
-		y += kMenuItemHeightMultipliers[entry->type] * gNav->style.rowHeight;
+		y += cls->height * gNav->style.rowHeight;
 
 		if (entry->type != kMenuItem_Spacer)
+		{
 			sweepFactor -= .2f;
+		}
 
 		gNav->numMenuEntries++;
 		GAME_ASSERT(gNav->numMenuEntries < MAX_MENU_ROWS);

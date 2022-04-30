@@ -92,13 +92,13 @@ static const MenuItem
 
 	gMenuPhysicsConstants[] =
 	{
-		{ kMenuItem_Pick, STR_PHYSICS_CONSTANT_STEERING_RESPONSIVENESS,	},
-		{ kMenuItem_Pick, STR_PHYSICS_CONSTANT_MAX_TIGHT_TURN,	},
-		{ kMenuItem_Pick, STR_PHYSICS_CONSTANT_TURNING_RADIUS,	},
-		{ kMenuItem_Pick, STR_PHYSICS_CONSTANT_TIRE_TRACTION,	},
-		{ kMenuItem_Pick, STR_PHYSICS_CONSTANT_TIRE_FRICTION,	},
-		{ kMenuItem_Pick, STR_PHYSICS_CONSTANT_GRAVITY,	},
-		{ kMenuItem_Pick, STR_PHYSICS_CONSTANT_SLOPE_RATIO_ADJUSTER,	},
+		{ kMenuItem_FloatRange, STR_PHYSICS_CONSTANT_STEERING_RESPONSIVENESS,	.floatRange={.valuePtr=&gSteeringResponsiveness }	},
+		{ kMenuItem_FloatRange, STR_PHYSICS_CONSTANT_MAX_TIGHT_TURN,			.floatRange={.valuePtr=&gCarMaxTightTurn}	},
+		{ kMenuItem_FloatRange, STR_PHYSICS_CONSTANT_TURNING_RADIUS,			.floatRange={.valuePtr=&gCarTurningRadius} },
+		{ kMenuItem_FloatRange, STR_PHYSICS_CONSTANT_TIRE_TRACTION,				.floatRange={.valuePtr=&gTireTractionConstant}	},
+		{ kMenuItem_FloatRange, STR_PHYSICS_CONSTANT_TIRE_FRICTION,				.floatRange={.valuePtr=&gTireFrictionConstant}	},
+		{ kMenuItem_FloatRange, STR_PHYSICS_CONSTANT_GRAVITY,					.floatRange={.valuePtr=&gCarGravity}	},
+		{ kMenuItem_FloatRange, STR_PHYSICS_CONSTANT_SLOPE_RATIO_ADJUSTER,		.floatRange={.valuePtr=&gSlopeRatioAdjuster}	},
 		{.type = kMenuItem_END_SENTINEL },
 	}
 
@@ -131,6 +131,7 @@ void DoPhysicsEditor(void)
 	MenuStyle physicsEditorMenuStyle = kDefaultMenuStyle;
 	physicsEditorMenuStyle.canBackOutOfRootMenu = true;
 	physicsEditorMenuStyle.standardScale = .3f;
+	physicsEditorMenuStyle.centeredText = false;
 
 	int outcome = StartMenuTree(gPhysicsMenuTree, &physicsEditorMenuStyle, MoveObjects, DrawObjects);
 
@@ -165,6 +166,7 @@ OGLVector3D			fillDirection2 = { -1, -.2, -.5 };
 	viewDef.view.clearColor 		= (OGLColorRGBA) {0,0,0, 1.0f};
 	viewDef.styles.useFog			= false;
 	viewDef.view.pillarbox4x3		= true;
+	viewDef.view.fontName			= "rockfont";
 
 	OGLVector3D_Normalize(&fillDirection1, &fillDirection1);
 	OGLVector3D_Normalize(&fillDirection2, &fillDirection2);
