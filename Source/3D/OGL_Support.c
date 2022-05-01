@@ -1351,17 +1351,26 @@ static void OGL_InitFont(void)
 
 /***************** UPDATE 2D LOGICAL SIZE *******************/
 //
-// This requires gCurrentAspectRatio to be set!
+// Compute logical width & height for UI elements.
+//
+// This allows positioning UI elements as if we were working with a 640x480 screen,
+// regardless of the actual dimensions of the viewport.
+// If the window is too narrow, the UI will be squashed to fit horizontally.
+//
+// gCurrentAspectRatio must be set prior to calling this function!
 //
 
 void OGL_Update2DLogicalSize(void)
 {
-	// Compute logical width & height for 2D elements
-	g2DLogicalHeight = 480.0f;
-	if (gCurrentAspectRatio < 4.0f/3.0f)
-		g2DLogicalWidth = 640.0f;
+	static const float kReferenceHeight = 480.0f;
+	static const float kMinAspectRatio = 640.0f / 480.0f;
+
+	g2DLogicalHeight = kReferenceHeight;
+
+	if (gCurrentAspectRatio < kMinAspectRatio)
+		g2DLogicalWidth = kReferenceHeight * kMinAspectRatio;
 	else
-		g2DLogicalWidth = 480.0f * gCurrentAspectRatio;
+		g2DLogicalWidth = kReferenceHeight * gCurrentAspectRatio;
 }
 
 
