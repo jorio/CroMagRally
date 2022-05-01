@@ -1139,6 +1139,33 @@ static bool AwaitGamepadPress(SDL_GameController* controller)
 	return false;
 }
 
+static void AwaitMetaGamepadPress(void)
+{
+	bool anyGamepadFound = false;
+
+	for (int i = 0; i < MAX_LOCAL_PLAYERS; i++)
+	{
+		SDL_GameController* controller = GetController(i);
+		if (controller)
+		{
+			anyGamepadFound = true;
+			if (AwaitGamepadPress(controller))
+			{
+				return;
+			}
+		}
+	}
+
+	if (!anyGamepadFound)
+	{
+		MakeText(GetPadBindingName(gNav->menuRow, gNav->padColumn), gNav->menuRow, gNav->padColumn+1, kTextMeshAllCaps);
+		ReplaceMenuText(STR_CONFIGURE_GAMEPAD_HELP, STR_NO_GAMEPAD_DETECTED);
+		PlayEffect(kSfxError);
+		gNav->menuState = kMenuStateReady;
+		gNav->idleTime = 0;
+	}
+}
+
 static void AwaitMouseClick(void)
 {
 	if (GetNewKeyState(SDL_SCANCODE_ESCAPE))
@@ -1625,15 +1652,10 @@ int StartMenuTree(
 				break;
 
 			case kMenuStateAwaitingPadPress:
-				for (int i = 0; i < MAX_LOCAL_PLAYERS; i++)
-				{
-					SDL_GameController* controller = GetController(i);
-					if (controller && AwaitGamepadPress(controller))
-					{
-						break;
-					}
-				}
+			{
+				AwaitMetaGamepadPress();
 				break;
+			}
 
 			case kMenuStateAwaitingMouseClick:
 				AwaitMouseClick();

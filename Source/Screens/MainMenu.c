@@ -244,6 +244,9 @@ static const MenuItem
 
 	gMenuRemapKeyboard[] =
 	{
+		{ kMenuItem_Subtitle, .text=STR_CONFIGURE_KEYBOARD_HELP },
+		{ kMenuItem_Spacer, .text=STR_NULL },
+		{ kMenuItem_Spacer, .text=STR_NULL },
 		{ kMenuItem_KeyBinding, .inputNeed=kNeed_Forward },
 		{ kMenuItem_KeyBinding, .inputNeed=kNeed_Backward },
 		{ kMenuItem_KeyBinding, .inputNeed=kNeed_Left },
@@ -259,6 +262,9 @@ static const MenuItem
 
 	gMenuRemapGamepad[] =
 	{
+		{ kMenuItem_Subtitle, .text=STR_CONFIGURE_GAMEPAD_HELP },
+		{ kMenuItem_Spacer, .text=STR_NULL },
+		{ kMenuItem_Spacer, .text=STR_NULL },
 		{ kMenuItem_PadBinding, .inputNeed=kNeed_Forward },
 		{ kMenuItem_PadBinding, .inputNeed=kNeed_Backward },
 		{ kMenuItem_PadBinding, .inputNeed=kNeed_Left },
