@@ -8,9 +8,7 @@
 
 #define MAX_SPLITSCREENS	2
 
-
 #define	MAX_FILL_LIGHTS		4
-#define	MAX_TEXTURES		300
 
 		/* 4x4 MATRIX INDECIES */
 enum

@@ -387,6 +387,8 @@ static void OGL_DisposeDrawContext(void)
 
 static void OGL_InitDrawContext(void)
 {
+	GAME_ASSERT(gStateStackIndex == 0);
+
 	glEnable(GL_DEPTH_TEST);								// use z-buffer
 
 	{
@@ -399,6 +401,7 @@ static void OGL_InitDrawContext(void)
 
   	glEnable(GL_NORMALIZE);
 
+	OGL_DisableLighting();
 
 	glClearColor(0, .25f, .5f, 1.0f);
 }
@@ -460,7 +463,6 @@ OGLStyleDefType *styleDefPtr = &setupDefPtr->styles;
 
 static void OGL_CreateLights(OGLLightDefType *lightDefPtr)
 {
-int		i;
 GLfloat	ambient[4];
 
 	OGL_EnableLighting();
@@ -481,7 +483,9 @@ GLfloat	ambient[4];
 			/* CREATE FILL LIGHTS */
 			/**********************/
 
-	for (i=0; i < lightDefPtr->numFillLights; i++)
+	GAME_ASSERT(lightDefPtr->numFillLights <= MAX_FILL_LIGHTS);
+
+	for (int i = 0; i < lightDefPtr->numFillLights; i++)
 	{
 		static GLfloat lightamb[4] = { 0.0, 0.0, 0.0, 1.0 };
 		GLfloat lightVec[4];
@@ -510,6 +514,14 @@ GLfloat	ambient[4];
 
 
 		glEnable(GL_LIGHT0+i);								// enable the light
+	}
+
+
+			/* DISABLE OTHER LIGHTS THAT MIGHT STILL BE ACTIVE FROM PREVIOUS SCENE */
+
+	for (int i = lightDefPtr->numFillLights; i < MAX_FILL_LIGHTS; i++)
+	{
+		glDisable(GL_LIGHT0+i);
 	}
 
 }
