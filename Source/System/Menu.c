@@ -19,7 +19,8 @@
 
 #define UpdateInput() DoSDLMaintenance()
 #define UserWantsOut() AreAnyNewKeysPressed()
-#define FlushMouseButtonPress(whatever) true
+#define GetNewClickState(btn) GetNewClickState(btn)
+
 
 /****************************/
 /*    PROTOTYPES            */
@@ -161,7 +162,7 @@ typedef struct
 	} history[MAX_STACK_LENGTH];
 	int					historyPos;
 
-	bool				mouseHoverValidRow;
+	bool				mouseHoverValid;
 	int					mouseHoverColumn;
 	SDL_Cursor*			handCursor;
 	SDL_Cursor*			standardCursor;
@@ -171,24 +172,51 @@ typedef struct
 
 static MenuNavigation* gNav = NULL;
 
-void InitMenuNavigation(void)
+/***********************************/
+/*    MENU NAVIGATION STRUCT       */
+/***********************************/
+#pragma mark - Navigation struct
+
+static void InitMenuNavigation(void)
 {
+	MenuNavigation* nav = NULL;
+
 	GAME_ASSERT(gNav == NULL);
-	gNav = (MenuNavigation*) AllocPtrClear(sizeof(MenuNavigation));
-	memcpy(&gNav->style, &kDefaultMenuStyle, sizeof(MenuStyle));
-	gNav->menuColXs[0] = 0;
-	gNav->menuColXs[1] = 170;
-	gNav->menuColXs[2] = 300;
-	gNav->menuColXs[3] = 430;
-	gNav->menuColXs[4] = 560;
-	gNav->menuPick = -1;
-	gNav->menuState = kMenuStateOff;
-	gNav->mouseHoverColumn = -1;
+	nav = (MenuNavigation*) AllocPtrClear(sizeof(MenuNavigation));
+	gNav = nav;
+
+	memcpy(&nav->style, &kDefaultMenuStyle, sizeof(MenuStyle));
+	nav->menuColXs[0] = 0;
+	nav->menuColXs[1] = 170;
+	nav->menuColXs[2] = 300;
+	nav->menuColXs[3] = 430;
+	nav->menuColXs[4] = 560;
+	nav->menuPick = -1;
+	nav->menuState = kMenuStateOff;
+	nav->mouseHoverColumn = -1;
+
+	nav->standardCursor = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_ARROW);
+	nav->handCursor = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_HAND);
 }
 
-void DisposeMenuNavigation(void)
+static void DisposeMenuNavigation(void)
 {
-	SafeDisposePtr((Ptr) gNav);
+	MenuNavigation* nav = gNav;
+
+	if (nav->standardCursor != NULL)
+	{
+		SDL_FreeCursor(nav->standardCursor);
+		nav->standardCursor = NULL;
+	}
+
+	if (nav->handCursor != NULL)
+	{
+		SDL_FreeCursor(nav->handCursor);
+		nav->handCursor = NULL;
+	}
+
+	SafeDisposePtr((Ptr) nav);
+
 	gNav = nil;
 }
 
@@ -208,6 +236,24 @@ void KillMenu(int returnCode)
 	{
 		gNav->menuPick = returnCode;
 		gNav->menuState = kMenuStateFadeOut;
+	}
+}
+
+static void SetStandardMouseCursor(void)
+{
+	if (gNav->standardCursor != NULL &&
+		gNav->standardCursor != SDL_GetCursor())
+	{
+		SDL_SetCursor(gNav->standardCursor);
+	}
+}
+
+static void SetHandMouseCursor(void)
+{
+	if (gNav->handCursor != NULL &&
+		gNav->handCursor != SDL_GetCursor())
+	{
+		SDL_SetCursor(gNav->handCursor);
 	}
 }
 
@@ -524,20 +570,15 @@ static void NavigateSettingEntriesVertically(int delta)
 	gNav->idleTime = 0;
 	if (makeSound)
 		PlayEffect(kSfxNavigate);
-	gNav->mouseHoverValidRow = false;
+	gNav->mouseHoverValid = false;
 }
 
 static void NavigateSettingEntriesMouseHover(void)
 {
-	static bool todoShown = false;
-	if (!todoShown)
-	{
-		printf("TODO: %s\n", __func__);
-		todoShown = true;
-	}
-#if 0
 	if (!gMouseMotionNow)
+	{
 		return;
+	}
 
 	int mxRaw, myRaw;
 	SDL_GetMouseState(&mxRaw, &myRaw);
@@ -545,13 +586,15 @@ static void NavigateSettingEntriesMouseHover(void)
 	float mx = (mxRaw - gGameWindowWidth/2.0f) * g2DLogicalWidth / gGameWindowWidth;
 	float my = (myRaw - gGameWindowHeight/2.0f) * g2DLogicalHeight / gGameWindowHeight;
 
-	gNav->mouseHoverValidRow = false;
-	gNav->mouseHoverValidColumn = -1;
+	gNav->mouseHoverValid = false;
+	gNav->mouseHoverColumn = -1;
 
 	for (int row = 0; row < gNav->numMenuEntries; row++)
 	{
-		if (!IsMenuItemTypeSelectable(gNav->menu[row].type))
+		if (!IsMenuItemSelectable(&gNav->menu[row]))
+		{
 			continue;
+		}
 
 		OGLRect fullExtents;
 		fullExtents.top		= fullExtents.left	= 100000;
@@ -574,7 +617,7 @@ static void NavigateSettingEntriesMouseHover(void)
 				&& mx >= extents.left - 10
 				&& mx <= extents.right + 10)
 			{
-				gNav->mouseHoverValidColumn = col;
+				gNav->mouseHoverColumn = col;
 			}
 		}
 
@@ -583,33 +626,28 @@ static void NavigateSettingEntriesMouseHover(void)
 			mx >= fullExtents.left - 10 &&
 			mx <= fullExtents.right + 10)
 		{
-			gNav->mouseHoverValidRow = true;
+			gNav->mouseHoverValid = true;
 
-			if (SDL_GetCursor() != gHandCursor)
-			{
-				SDL_SetCursor(gHandCursor);
-			}
+			SetHandMouseCursor();				// set hand cursor
 
 			if (gNav->menuRow != row)
 			{
 				gNav->menuRow = row;
-//				PlayEffect(kSfxNavigate);
+				PlayEffect(kSfxNavigate);
 			}
 
 			return;
 		}
 	}
 
-	GAME_ASSERT(!gNav->mouseHoverValidRow);		// if we got here, we're not hovering over anything
+	GAME_ASSERT(!gNav->mouseHoverValid);		// if we got here, we're not hovering over anything
 
-	if (SDL_GetCursor() != gStandardCursor)
-		SDL_SetCursor(gStandardCursor);
-#endif
+	SetStandardMouseCursor();					// restore standard cursor
 }
 
 static void NavigatePick(const MenuItem* entry)
 {
-	if (GetNewNeedStateAnyP(kNeed_UIConfirm) || (gNav->mouseHoverValidRow && FlushMouseButtonPress(SDL_BUTTON_LEFT)))
+	if (GetNewNeedStateAnyP(kNeed_UIConfirm) || (gNav->mouseHoverValid && GetNewClickState(SDL_BUTTON_LEFT)))
 	{
 		gNav->idleTime = 0;
 
@@ -677,14 +715,18 @@ static void NavigateCycler(const MenuItem* entry)
 
 	if (GetNewNeedStateAnyP(kNeed_UILeft)
 		|| GetNewNeedStateAnyP(kNeed_UIPrev)
-		|| (gNav->mouseHoverValidRow && FlushMouseButtonPress(SDL_BUTTON_RIGHT)))
+		|| (gNav->mouseHoverValid && GetNewClickState(SDL_BUTTON_RIGHT))
+//		|| (gNav->mouseHoverValid && GetNewClickState(SDL_BUTTON_WHEELDOWN))
+		)
 	{
 		delta = -1;
 	}
 	else if (GetNewNeedStateAnyP(kNeed_UIRight)
 		|| GetNewNeedStateAnyP(kNeed_UINext)
 		|| GetNewNeedStateAnyP(kNeed_UIConfirm)
-		|| (gNav->mouseHoverValidRow && FlushMouseButtonPress(SDL_BUTTON_LEFT)))
+		|| (gNav->mouseHoverValid && GetNewClickState(SDL_BUTTON_LEFT))
+//		|| (gNav->mouseHoverValid && GetNewClickState(SDL_BUTTON_WHEELUP))
+		)
 	{
 		delta = 1;
 	}
@@ -720,14 +762,14 @@ static void NavigateFloatRange(const MenuItem* entry)
 
 	if (GetNewNeedStateAnyP(kNeed_UILeft)
 		|| GetNewNeedStateAnyP(kNeed_UIPrev)
-		|| (gNav->mouseHoverValidRow && FlushMouseButtonPress(SDL_BUTTON_RIGHT)))
+		|| (gNav->mouseHoverValid && GetNewClickState(SDL_BUTTON_RIGHT)))
 	{
 		delta = -1;
 	}
 	else if (GetNewNeedStateAnyP(kNeed_UIRight)
 		|| GetNewNeedStateAnyP(kNeed_UINext)
 		|| GetNewNeedStateAnyP(kNeed_UIConfirm)
-		|| (gNav->mouseHoverValidRow && FlushMouseButtonPress(SDL_BUTTON_LEFT)))
+		|| (gNav->mouseHoverValid && GetNewClickState(SDL_BUTTON_LEFT)))
 	{
 		delta = 1;
 	}
@@ -748,7 +790,7 @@ static void NavigateFloatRange(const MenuItem* entry)
 
 static void NavigateKeyBinding(const MenuItem* entry)
 {
-	if (gNav->mouseHoverValidRow && (gNav->mouseHoverColumn == 1 || gNav->mouseHoverColumn == 2))
+	if (gNav->mouseHoverValid && (gNav->mouseHoverColumn == 1 || gNav->mouseHoverColumn == 2))
 		gNav->keyColumn = gNav->mouseHoverColumn - 1;
 
 	if (GetNewNeedStateAnyP(kNeed_UILeft) || GetNewNeedStateAnyP(kNeed_UIPrev))
@@ -756,7 +798,7 @@ static void NavigateKeyBinding(const MenuItem* entry)
 		gNav->idleTime = 0;
 		gNav->keyColumn = PositiveModulo(gNav->keyColumn - 1, KEYBINDING_MAX_KEYS);
 		PlayEffect(kSfxNavigate);
-		gNav->mouseHoverValidRow = false;
+		gNav->mouseHoverValid = false;
 		return;
 	}
 
@@ -765,7 +807,7 @@ static void NavigateKeyBinding(const MenuItem* entry)
 		gNav->idleTime = 0;
 		gNav->keyColumn = PositiveModulo(gNav->keyColumn + 1, KEYBINDING_MAX_KEYS);
 		PlayEffect(kSfxNavigate);
-		gNav->mouseHoverValidRow = false;
+		gNav->mouseHoverValid = false;
 		return;
 	}
 
@@ -776,7 +818,7 @@ static void NavigateKeyBinding(const MenuItem* entry)
 	}
 
 	if (GetNewNeedStateAnyP(kNeed_UIDelete)
-		|| (gNav->mouseHoverValidRow && FlushMouseButtonPress(SDL_BUTTON_MIDDLE)))
+		|| (gNav->mouseHoverValid && GetNewClickState(SDL_BUTTON_MIDDLE)))
 	{
 		gNav->idleTime = 0;
 		gGamePrefs.keys[entry->inputNeed].key[gNav->keyColumn] = 0;
@@ -786,7 +828,7 @@ static void NavigateKeyBinding(const MenuItem* entry)
 	}
 
 	if (GetNewKeyState(SDL_SCANCODE_RETURN)
-		|| (gNav->mouseHoverValidRow && FlushMouseButtonPress(SDL_BUTTON_LEFT)))
+		|| (gNav->mouseHoverValid && GetNewClickState(SDL_BUTTON_LEFT)))
 	{
 		gNav->idleTime = 0;
 		gNav->menuState = kMenuStateAwaitingKeyPress;
@@ -801,7 +843,7 @@ static void NavigateKeyBinding(const MenuItem* entry)
 
 static void NavigatePadBinding(const MenuItem* entry)
 {
-	if (gNav->mouseHoverValidRow && (gNav->mouseHoverColumn == 1 || gNav->mouseHoverColumn == 2))
+	if (gNav->mouseHoverValid && (gNav->mouseHoverColumn == 1 || gNav->mouseHoverColumn == 2))
 		gNav->padColumn = gNav->mouseHoverColumn - 1;
 
 	if (GetNewNeedStateAnyP(kNeed_UILeft) || GetNewNeedStateAnyP(kNeed_UIPrev))
@@ -809,7 +851,7 @@ static void NavigatePadBinding(const MenuItem* entry)
 		gNav->idleTime = 0;
 		gNav->padColumn = PositiveModulo(gNav->padColumn - 1, KEYBINDING_MAX_GAMEPAD_BUTTONS);
 		PlayEffect(kSfxNavigate);
-		gNav->mouseHoverValidRow = false;
+		gNav->mouseHoverValid = false;
 		return;
 	}
 
@@ -818,12 +860,12 @@ static void NavigatePadBinding(const MenuItem* entry)
 		gNav->idleTime = 0;
 		gNav->padColumn = PositiveModulo(gNav->padColumn + 1, KEYBINDING_MAX_GAMEPAD_BUTTONS);
 		PlayEffect(kSfxNavigate);
-		gNav->mouseHoverValidRow = false;
+		gNav->mouseHoverValid = false;
 		return;
 	}
 
 	if (GetNewNeedStateAnyP(kNeed_UIDelete)
-		|| (gNav->mouseHoverValidRow && FlushMouseButtonPress(SDL_BUTTON_MIDDLE)))
+		|| (gNav->mouseHoverValid && GetNewClickState(SDL_BUTTON_MIDDLE)))
 	{
 		gNav->idleTime = 0;
 		gGamePrefs.keys[entry->inputNeed].gamepad[gNav->padColumn].type = kInputTypeUnbound;
@@ -833,7 +875,7 @@ static void NavigatePadBinding(const MenuItem* entry)
 	}
 
 	if (GetNewNeedStateAnyP(kNeed_UIConfirm)
-		|| (gNav->mouseHoverValidRow && FlushMouseButtonPress(SDL_BUTTON_LEFT)))
+		|| (gNav->mouseHoverValid && GetNewClickState(SDL_BUTTON_LEFT)))
 	{
 		gNav->idleTime = 0;
 		while (GetNeedStateAnyP(kNeed_UIConfirm))
@@ -855,7 +897,7 @@ static void NavigatePadBinding(const MenuItem* entry)
 static void NavigateMouseBinding(const MenuItem* entry)
 {
 	if (GetNewNeedStateAnyP(kNeed_UIDelete)
-		|| (gNav->mouseHoverValidRow && FlushMouseButtonPress(SDL_BUTTON_MIDDLE)))
+		|| (gNav->mouseHoverValid && GetNewClickState(SDL_BUTTON_MIDDLE)))
 	{
 		gNav->idleTime = 0;
 		gGamePrefs.keys[entry->inputNeed].mouseButton = 0;
@@ -865,7 +907,7 @@ static void NavigateMouseBinding(const MenuItem* entry)
 	}
 
 	if (GetNewNeedStateAnyP(kNeed_UIConfirm)
-		|| (gNav->mouseHoverValidRow && FlushMouseButtonPress(SDL_BUTTON_LEFT)))
+		|| (gNav->mouseHoverValid && GetNewClickState(SDL_BUTTON_LEFT)))
 	{
 		gNav->idleTime = 0;
 		while (GetNeedStateAnyP(kNeed_UIConfirm))
@@ -884,9 +926,11 @@ static void NavigateMenu(void)
 {
 	GAME_ASSERT(gNav->style.isInteractive);
 
-	if (GetNewNeedStateAnyP(kNeed_UIBack))
+	if (GetNewNeedStateAnyP(kNeed_UIBack)
+		|| GetNewClickState(SDL_BUTTON_X1))
 	{
 		GoBackInHistory();
+		return;
 	}
 
 	if (GetNewNeedStateAnyP(kNeed_UIUp))
@@ -894,14 +938,15 @@ static void NavigateMenu(void)
 		NavigateSettingEntriesVertically(-1);
 		SaveSelectedRowInHistory();
 	}
-
-	if (GetNewNeedStateAnyP(kNeed_UIDown))
+	else if (GetNewNeedStateAnyP(kNeed_UIDown))
 	{
 		NavigateSettingEntriesVertically(1);
 		SaveSelectedRowInHistory();
 	}
-
-	NavigateSettingEntriesMouseHover();
+	else
+	{
+//		NavigateSettingEntriesMouseHover();
+	}
 
 	const MenuItem* entry = &gNav->menu[gNav->menuRow];
 	const MenuItemClass* cls = &kMenuItemClasses[entry->type];
@@ -1091,7 +1136,7 @@ static void AwaitMouseClick(void)
 
 	for (int8_t mouseButton = 0; mouseButton < NUM_SUPPORTED_MOUSE_BUTTONS; mouseButton++)
 	{
-		if (FlushMouseButtonPress(mouseButton))
+		if (GetNewClickState(mouseButton))
 		{
 			UnbindMouseButtonFromAllRemappableInputNeeds(mouseButton);
 			kb->mouseButton = mouseButton;
@@ -1478,9 +1523,7 @@ int StartMenuTree(
 		void (*update)(void),
 		void (*draw)(OGLSetupOutputType *))
 {
-//	int cursorStateBeforeMenu = SDL_ShowCursor(-1);
-//	gStandardCursor = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_ARROW);
-//	gHandCursor = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_HAND);
+	int cursorStateBeforeMenu = SDL_ShowCursor(-1);
 	SDL_ShowCursor(1);
 
 		/* INITIALIZE MENU STATE */
@@ -1627,18 +1670,11 @@ int StartMenuTree(
 	UpdateInput();
 	MyFlushEvents();
 
+	SetStandardMouseCursor();
+	SDL_ShowCursor(cursorStateBeforeMenu);
+
 	int finalPick = gNav->menuPick;
 	DisposeMenuNavigation();
-
-#if 0
-	SDL_SetCursor(gStandardCursor);
-	SDL_FreeCursor(gStandardCursor);
-	SDL_FreeCursor(gHandCursor);
-	gStandardCursor = nil;
-	gHandCursor = nil;
-
-	SDL_ShowCursor(cursorStateBeforeMenu);
-#endif
 
 	return finalPick;
 }

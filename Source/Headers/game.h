@@ -46,6 +46,7 @@ extern Boolean					gHideInfobar;
 extern Boolean					gIsNetworkClient;
 extern Boolean					gIsNetworkHost;
 extern Boolean					gIsSelfRunningDemo;
+extern Boolean					gMouseMotionNow;
 extern Boolean					gMuteMusicFlag;
 extern Boolean					gNetGameInProgress;
 extern Boolean					gNoCarControls;

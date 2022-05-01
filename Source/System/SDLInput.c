@@ -54,10 +54,13 @@ Boolean				gControllerPlayerMappingLocked = false;
 int					gNumControllersOpen = 0;
 Controller			gControllers[MAX_LOCAL_PLAYERS];
 
+Byte				gMouseButtonState[NUM_SUPPORTED_MOUSE_BUTTONS];
 Byte				gRawKeyboardState[SDL_NUM_SCANCODES];
 char				gTextInput[SDL_TEXTINPUTEVENT_TEXT_SIZE];
 
 Byte				gNeedStates[NUM_CONTROL_NEEDS];
+
+Boolean				gMouseMotionNow = false;
 
 /**********************/
 /* STATIC FUNCTIONS   */
@@ -87,12 +90,12 @@ static inline void UpdateKeyState(Byte* state, bool downNow)
 void DoSDLMaintenance(void)
 {
 	gTextInput[0] = '\0';
+	gMouseMotionNow = false;
+	int mouseWheelDelta = 0;
 
 			/**********************/
 			/* DO SDL MAINTENANCE */
 			/**********************/
-
-//	int mouseWheelDelta = 0;
 
 	SDL_PumpEvents();
 	SDL_Event event;
@@ -124,15 +127,14 @@ void DoSDLMaintenance(void)
 					_Static_assert(sizeof(gTextInput) == sizeof(event.text.text), "size mismatch: gTextInput/event.text.text");
 					break;
 
-				/*
-				case SDL_MOUSEWHEEL:
-					// if (!gEatMouse)
-					{
-						mouseWheelDelta += event.wheel.y;
-						mouseWheelDelta += event.wheel.x;
-					}
+				case SDL_MOUSEMOTION:
+					gMouseMotionNow = true;
 					break;
-				*/
+
+				case SDL_MOUSEWHEEL:
+					mouseWheelDelta += event.wheel.y;
+					mouseWheelDelta += event.wheel.x;
+					break;
 
 				case SDL_JOYDEVICEADDED:	 // event.jdevice.which is the joy's INDEX (not an instance id!)
 					TryOpenControllerFromJoystick(event.cdevice.which);
@@ -172,6 +174,22 @@ void DoSDLMaintenance(void)
 	}
 
 	// --------------------------------------------
+	// Refresh the state of each mouse button
+
+	uint32_t mouseButtons = SDL_GetMouseState(NULL, NULL);
+
+	for (int i = 1; i < NUM_SUPPORTED_MOUSE_BUTTONS_PURESDL; i++)	// SDL buttons start at 1!
+	{
+		bool buttonBit = 0 != (mouseButtons & SDL_BUTTON(i));
+		UpdateKeyState(&gMouseButtonState[i], buttonBit);
+	}
+
+	// Fake buttons for mouse wheel up/down
+	UpdateKeyState(&gMouseButtonState[SDL_BUTTON_WHEELUP], mouseWheelDelta > 0);
+	UpdateKeyState(&gMouseButtonState[SDL_BUTTON_WHEELDOWN], mouseWheelDelta < 0);
+
+	// --------------------------------------------
+	// Refresh the state of each input need
 
 	for (int i = 0; i < NUM_CONTROL_NEEDS; i++)
 	{
@@ -255,6 +273,22 @@ Boolean GetNewKeyState(uint16_t sdlScancode)
 
 #pragma mark -
 
+Boolean GetClickState(int mouseButton)
+{
+	if (mouseButton >= NUM_SUPPORTED_MOUSE_BUTTONS)
+		return false;
+	return 0 != (gMouseButtonState[mouseButton] & KEYSTATE_ACTIVE_BIT);
+}
+
+Boolean GetNewClickState(int mouseButton)
+{
+	if (mouseButton >= NUM_SUPPORTED_MOUSE_BUTTONS)
+		return false;
+	return gMouseButtonState[mouseButton] == KEYSTATE_PRESSED;
+}
+
+#pragma mark -
+
 Boolean GetNeedState(int needID, int playerID)
 {
 	GAME_ASSERT(playerID >= 0);
@@ -331,7 +365,10 @@ Boolean GetNewNeedStateAnyP(int needID)
 
 Boolean AreAnyNewKeysPressed(void)
 {
-	return GetNewNeedStateAnyP(kNeed_UIConfirm) || GetNewNeedStateAnyP(kNeed_UIBack) || GetNewNeedStateAnyP(kNeed_UIPause);
+	return GetNewNeedStateAnyP(kNeed_UIConfirm)
+		|| GetNewNeedStateAnyP(kNeed_UIBack)
+		|| GetNewNeedStateAnyP(kNeed_UIPause)
+		|| GetNewClickState(SDL_BUTTON_LEFT);
 }
 
 Boolean IsCheatKeyComboDown(void)

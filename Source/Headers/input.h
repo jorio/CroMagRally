@@ -153,8 +153,12 @@ extern	void ReadKeyboard(void);
 Boolean GetKeyState(uint16_t sdlScancode);
 Boolean GetNewKeyState(uint16_t sdlScancode);
 
+Boolean GetClickState(int mouseButton);
+Boolean GetNewClickState(int mouseButton);
+
 Boolean GetNeedState(int needID, int playerID);
 Boolean GetNeedStateAnyP(int needID);
+
 Boolean GetNewNeedState(int needID, int playerID);
 Boolean GetNewNeedStateAnyP(int needID);
 
