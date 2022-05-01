@@ -128,9 +128,9 @@ static const MenuItemClass kMenuItemClasses[kMenuItem_NUM_ITEM_TYPES] =
 	[kMenuItem_CMRCycler]		= { 1.0f, LayOutCMRCycler, NavigateCycler },
 	[kMenuItem_FloatRange]		= { 1.0f, LayOutFloatRange, NavigateFloatRange },
 	[kMenuItem_Pick]			= { 1.0f, LayOutPick, NavigatePick },
-	[kMenuItem_KeyBinding]		= { 1.0f, LayOutKeyBinding, NavigateKeyBinding },
-	[kMenuItem_PadBinding]		= { 1.0f, LayOutPadBinding, NavigatePadBinding },
-	[kMenuItem_MouseBinding]	= { 1.0f, LayOutMouseBinding, NavigateMouseBinding },
+	[kMenuItem_KeyBinding]		= { 0.5f, LayOutKeyBinding, NavigateKeyBinding },
+	[kMenuItem_PadBinding]		= { 0.5f, LayOutPadBinding, NavigatePadBinding },
+	[kMenuItem_MouseBinding]	= { 0.5f, LayOutMouseBinding, NavigateMouseBinding },
 };
 
 /*********************/
@@ -283,11 +283,28 @@ static KeyBinding* GetBindingAtRow(int row)
 
 static const char* GetKeyBindingName(int row, int col)
 {
+	static const char* kCustomKeyNames[256] =
+	{
+		[SDL_SCANCODE_APOSTROPHE] = "Apostrophe",
+		[SDL_SCANCODE_BACKSLASH] = "Backslash",
+		[SDL_SCANCODE_GRAVE] = "Backtick",
+		[SDL_SCANCODE_SEMICOLON] = "Semicolon",
+	};
+
 	int16_t scancode = GetBindingAtRow(row)->key[col];
+
 	if (scancode == 0)
+	{
 		return Localize(STR_UNBOUND_PLACEHOLDER);
+	}
+	else if (scancode < 256 && kCustomKeyNames[scancode])
+	{
+		return kCustomKeyNames[scancode];
+	}
 	else
+	{
 		return SDL_GetScancodeName(scancode);
+	}
 }
 
 static const char* GetPadBindingName(int row, int col)
@@ -823,7 +840,7 @@ static void NavigateKeyBinding(const MenuItem* entry)
 		gNav->idleTime = 0;
 		gGamePrefs.keys[entry->inputNeed].key[gNav->keyColumn] = 0;
 		PlayEffect(kSfxDelete);
-		MakeText(Localize(STR_UNBOUND_PLACEHOLDER), gNav->menuRow, gNav->keyColumn+1, 0);
+		MakeText(Localize(STR_UNBOUND_PLACEHOLDER), gNav->menuRow, gNav->keyColumn+1, kTextMeshAllCaps);
 		return;
 	}
 
@@ -832,7 +849,7 @@ static void NavigateKeyBinding(const MenuItem* entry)
 	{
 		gNav->idleTime = 0;
 		gNav->menuState = kMenuStateAwaitingKeyPress;
-		MakeText(Localize(STR_PRESS), gNav->menuRow, gNav->keyColumn+1, 0);
+		MakeText(Localize(STR_PRESS), gNav->menuRow, gNav->keyColumn+1, kTextMeshAllCaps);
 
 		// Change subtitle to help message
 		ReplaceMenuText(STR_CONFIGURE_KEYBOARD_HELP, STR_CONFIGURE_KEYBOARD_HELP_CANCEL);
@@ -870,7 +887,7 @@ static void NavigatePadBinding(const MenuItem* entry)
 		gNav->idleTime = 0;
 		gGamePrefs.keys[entry->inputNeed].gamepad[gNav->padColumn].type = kInputTypeUnbound;
 		PlayEffect(kSfxDelete);
-		MakeText(Localize(STR_UNBOUND_PLACEHOLDER), gNav->menuRow, gNav->padColumn+1, 0);
+		MakeText(Localize(STR_UNBOUND_PLACEHOLDER), gNav->menuRow, gNav->padColumn+1, kTextMeshAllCaps);
 		return;
 	}
 
@@ -885,7 +902,7 @@ static void NavigatePadBinding(const MenuItem* entry)
 		}
 
 		gNav->menuState = kMenuStateAwaitingPadPress;
-		MakeText(Localize(STR_PRESS), gNav->menuRow, gNav->padColumn+1, 0);
+		MakeText(Localize(STR_PRESS), gNav->menuRow, gNav->padColumn+1, kTextMeshAllCaps);
 
 		// Change subtitle to help message
 		ReplaceMenuText(STR_CONFIGURE_GAMEPAD_HELP, STR_CONFIGURE_GAMEPAD_HELP_CANCEL);
@@ -976,7 +993,7 @@ static void UnbindScancodeFromAllRemappableInputNeeds(int16_t sdlScancode)
 			if (binding->key[j] == sdlScancode)
 			{
 				binding->key[j] = 0;
-				MakeText(Localize(STR_UNBOUND_PLACEHOLDER), row, j+1, 0);
+				MakeText(Localize(STR_UNBOUND_PLACEHOLDER), row, j+1, kTextMeshAllCaps);
 			}
 		}
 	}
@@ -997,7 +1014,7 @@ static void UnbindPadButtonFromAllRemappableInputNeeds(int8_t type, int8_t id)
 			{
 				binding->gamepad[j].type = kInputTypeUnbound;
 				binding->gamepad[j].id = 0;
-				MakeText(Localize(STR_UNBOUND_PLACEHOLDER), row, j+1, 0);
+				MakeText(Localize(STR_UNBOUND_PLACEHOLDER), row, j+1, kTextMeshAllCaps);
 			}
 		}
 	}
@@ -1015,7 +1032,7 @@ static void UnbindMouseButtonFromAllRemappableInputNeeds(int8_t id)
 		if (binding->mouseButton == id)
 		{
 			binding->mouseButton = 0;
-			MakeText(Localize(STR_UNBOUND_PLACEHOLDER), row, 1, 0);
+			MakeText(Localize(STR_UNBOUND_PLACEHOLDER), row, 1, kTextMeshAllCaps);
 		}
 	}
 }
@@ -1024,7 +1041,7 @@ static void AwaitKeyPress(void)
 {
 	if (GetNewKeyState(SDL_SCANCODE_ESCAPE))
 	{
-		MakeText(GetKeyBindingName(gNav->menuRow, gNav->keyColumn), gNav->menuRow, 1 + gNav->keyColumn, 0);
+		MakeText(GetKeyBindingName(gNav->menuRow, gNav->keyColumn), gNav->menuRow, 1 + gNav->keyColumn, kTextMeshAllCaps);
 		gNav->menuState = kMenuStateReady;
 		PlayEffect(kSfxError);
 		ReplaceMenuText(STR_CONFIGURE_KEYBOARD_HELP, STR_CONFIGURE_KEYBOARD_HELP);
@@ -1039,7 +1056,7 @@ static void AwaitKeyPress(void)
 		{
 			UnbindScancodeFromAllRemappableInputNeeds(scancode);
 			kb->key[gNav->keyColumn] = scancode;
-			MakeText(GetKeyBindingName(gNav->menuRow, gNav->keyColumn), gNav->menuRow, gNav->keyColumn+1, 0);
+			MakeText(GetKeyBindingName(gNav->menuRow, gNav->keyColumn), gNav->menuRow, gNav->keyColumn+1, kTextMeshAllCaps);
 			gNav->menuState = kMenuStateReady;
 			gNav->idleTime = 0;
 			PlayEffect(kSfxCycle);
@@ -1083,7 +1100,7 @@ static void AwaitPadPress(void)
 			UnbindPadButtonFromAllRemappableInputNeeds(kInputTypeButton, button);
 			kb->gamepad[gNav->padColumn].type = kInputTypeButton;
 			kb->gamepad[gNav->padColumn].id = button;
-			MakeTextAtRowCol(GetPadBindingName(gNav->menuRow, gNav->padColumn), gNav->menuRow, gNav->padColumn+1);
+			MakeTextAtRowCol(GetPadBindingName(gNav->menuRow, gNav->padColumn), gNav->menuRow, gNav->padColumn+1, kTextMeshAllCaps);
 			gNav->menuState = kMenuStateReady;
 			gNav->idleTime = 0;
 			PlayEffect(kSfxCycle);
@@ -1110,7 +1127,7 @@ static void AwaitPadPress(void)
 			UnbindPadButtonFromAllRemappableInputNeeds(axisType, axis);
 			kb->gamepad[gNav->padColumn].type = axisType;
 			kb->gamepad[gNav->padColumn].id = axis;
-			MakeTextAtRowCol(GetPadBindingName(gNav->menuRow, gNav->padColumn), gNav->menuRow, gNav->padColumn+1);
+			MakeTextAtRowCol(GetPadBindingName(gNav->menuRow, gNav->padColumn), gNav->menuRow, gNav->padColumn+1, kTextMeshAllCaps);
 			gNav->menuState = kMenuStateReady;
 			gNav->idleTime = 0;
 			PlayEffect(kSfxCycle);
@@ -1382,14 +1399,14 @@ static ObjNode* LayOutKeyBinding(int row, float sweepFactor)
 
 	snprintf(buf, bufSize, "%s:", Localize(STR_KEYBINDING_DESCRIPTION_0 + entry->inputNeed));
 
-	ObjNode* label = MakeText(buf, row, 0, 0);
+	ObjNode* label = MakeText(buf, row, 0, kTextMeshAlignLeft);
 	label->ColorFilter = gNav->style.inactiveColor2;
 	label->MoveCall = MoveLabel;
 	label->SpecialSweepTimer = sweepFactor;
 
 	for (int j = 0; j < KEYBINDING_MAX_KEYS; j++)
 	{
-		ObjNode* keyNode = MakeText(GetKeyBindingName(row, j), row, j + 1, 0);
+		ObjNode* keyNode = MakeText(GetKeyBindingName(row, j), row, j + 1, kTextMeshAllCaps);
 		keyNode->MoveCall = MoveKeyBinding;
 		keyNode->SpecialSweepTimer = sweepFactor;
 	}

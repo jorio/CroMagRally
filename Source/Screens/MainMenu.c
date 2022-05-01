@@ -42,6 +42,7 @@ enum
 	MENU_ID_NETGAME,
 	MENU_ID_SETTINGS,
 	MENU_ID_CONFIRM_CLEAR_SAVE,
+	MENU_ID_REMAP_KEYBOARD,
 	NUM_MENU_IDS
 };
 
@@ -202,8 +203,8 @@ static const MenuItem
 	gMenuOptions[] =
 	{
 		{ kMenuItem_Pick, STR_SETTINGS, .gotoMenu=MENU_ID_SETTINGS },
+		{ kMenuItem_Pick, STR_CONFIGURE_KEYBOARD, .gotoMenu=MENU_ID_REMAP_KEYBOARD },
 #if 0	// TODO!
-		{ kMenuItem_Pick, STR_CONFIGURE_KEYBOARD, .gotoMenu=MENU_ID_SETTINGS },
 		{ kMenuItem_Pick, STR_CONFIGURE_GAMEPAD, .gotoMenu=MENU_ID_SETTINGS },
 #endif
 		{ kMenuItem_Pick, STR_CLEAR_SAVED_GAME, .gotoMenu=MENU_ID_CONFIRM_CLEAR_SAVE, .enableIf=IsClearSavedGameAvailable },
@@ -342,6 +343,20 @@ static const MenuItem
 		},
 
 		{ .type=kMenuItem_END_SENTINEL },
+	},
+
+	gMenuRemapKeyboard[] =
+	{
+		{ kMenuItem_KeyBinding, .inputNeed=kNeed_Forward },
+		{ kMenuItem_KeyBinding, .inputNeed=kNeed_Backward },
+		{ kMenuItem_KeyBinding, .inputNeed=kNeed_Left },
+		{ kMenuItem_KeyBinding, .inputNeed=kNeed_Right },
+		{ kMenuItem_KeyBinding, .inputNeed=kNeed_Brakes },
+		{ kMenuItem_KeyBinding, .inputNeed=kNeed_ThrowForward },
+		{ kMenuItem_KeyBinding, .inputNeed=kNeed_ThrowBackward },
+		{ kMenuItem_KeyBinding, .inputNeed=kNeed_CameraMode },
+		{ kMenuItem_KeyBinding, .inputNeed=kNeed_RearView },
+		{ .type=kMenuItem_END_SENTINEL },
 	}
 	;
 
@@ -361,6 +376,7 @@ static const MenuItem* gMainMenuTree[NUM_MENU_IDS] =
 	[MENU_ID_NETGAME] = gMenuNetGame,
 	[MENU_ID_SETTINGS] = gMenuSettings,
 	[MENU_ID_CONFIRM_CLEAR_SAVE] = gMenuConfirmClearSave,
+	[MENU_ID_REMAP_KEYBOARD] = gMenuRemapKeyboard,
 };
 
 

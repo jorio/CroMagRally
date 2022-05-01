@@ -1,4 +1,4 @@
-// TEXT MESH.C
+// SPRITE ATLAS / TEXT MESHES
 // (C) 2022 Iliyas Jorio
 // This file is part of Cro-Mag Rally. https://github.com/jorio/cromagrally
 
@@ -7,6 +7,7 @@
 /****************************/
 
 #include "game.h"
+#include <ctype.h>
 #include <string.h>
 #include <stdio.h>
 
@@ -41,7 +42,7 @@ typedef struct
 /*                         UTF-8                               */
 /***************************************************************/
 
-static uint32_t ReadNextCodepointFromUTF8(const char** utf8TextPtr)
+static uint32_t ReadNextCodepointFromUTF8(const char** utf8TextPtr, int flags)
 {
 #define TRY_ADVANCE(t) do { if (!*t) return 0; else t++; } while(0)
 
@@ -77,6 +78,11 @@ static uint32_t ReadNextCodepointFromUTF8(const char** utf8TextPtr)
 		codepoint |= (*t & 0b00111111) << 6;	TRY_ADVANCE(t);
 		codepoint |= (*t & 0b00111111);			TRY_ADVANCE(t);
 		*utf8TextPtr += 4;
+	}
+
+	if (flags & kTextMeshAllCaps)
+	{
+		codepoint = toupper(codepoint);
 	}
 
 	return codepoint;
@@ -218,10 +224,10 @@ static void ParseKerningFile(Atlas* atlas, const char* data)
 
 	while (*data)
 	{
-		uint32_t codepoint1 = ReadNextCodepointFromUTF8(&data);
+		uint32_t codepoint1 = ReadNextCodepointFromUTF8(&data, 0);
 		GAME_ASSERT(codepoint1);
 		
-		uint32_t codepoint2 = ReadNextCodepointFromUTF8(&data);
+		uint32_t codepoint2 = ReadNextCodepointFromUTF8(&data, 0);
 		GAME_ASSERT(codepoint2);
 
 		SkipWhitespace(&data);
@@ -397,12 +403,12 @@ static void TextMesh_InitMesh(MOVertexArrayData* mesh, int numQuads)
 	TextMesh_ReallocateMesh(mesh, numQuads);
 }
 
-static float Kern(const Atlas* font, const AtlasGlyph* glyph, const char* utftext)
+static float Kern(const Atlas* font, const AtlasGlyph* glyph, const char* utftext, int flags)
 {
 	if (!glyph || !glyph->numKernPairs)
 		return 1;
 
-	uint32_t buddy = ReadNextCodepointFromUTF8(&utftext);
+	uint32_t buddy = ReadNextCodepointFromUTF8(&utftext, flags);
 
 	for (int i = glyph->kernTableOffset; i < glyph->kernTableOffset + glyph->numKernPairs; i++)
 	{
@@ -413,7 +419,7 @@ static float Kern(const Atlas* font, const AtlasGlyph* glyph, const char* utftex
 	return 1;
 }
 
-static void ComputeMetrics(const Atlas* atlas, const char* text, TextMetrics* metrics)
+static void ComputeMetrics(const Atlas* atlas, const char* text, int flags, TextMetrics* metrics)
 {
 	float spacing = 0;
 
@@ -425,7 +431,7 @@ static void ComputeMetrics(const Atlas* atlas, const char* text, TextMetrics* me
 	metrics->longestLineWidth = 0;
 	for (const char* utftext = text; *utftext; )
 	{
-		uint32_t codepoint = ReadNextCodepointFromUTF8(&utftext);
+		uint32_t codepoint = ReadNextCodepointFromUTF8(&utftext, flags);
 
 		if (atlas->isASCIIFont)
 		{
@@ -455,8 +461,10 @@ static void ComputeMetrics(const Atlas* atlas, const char* text, TextMetrics* me
 
 		float kernFactor = 1;
 
-		if (atlas->isASCIIFont) //specialASCII)
-			kernFactor = Kern(atlas, glyph, utftext);
+		if (atlas->isASCIIFont)
+		{
+			kernFactor = Kern(atlas, glyph, utftext, flags);
+		}
 
 		metrics->lineWidths[metrics->numLines-1] += (glyph->xadv * kernFactor + spacing);
 
@@ -502,7 +510,7 @@ static float GetLineStartY(int align, float lineHeight)
 	}
 }
 
-void TextMesh_Update(const char* text, int align, ObjNode* textNode)
+void TextMesh_Update(const char* text, int flags, ObjNode* textNode)
 {
 	const Atlas* font = gAtlases[0];
 	GAME_ASSERT(font);
@@ -531,7 +539,7 @@ void TextMesh_Update(const char* text, int align, ObjNode* textNode)
 
 	// Compute number of quads and line width
 	TextMetrics metrics;
-	ComputeMetrics(font, text, &metrics);
+	ComputeMetrics(font, text, flags, &metrics);
 
 	// Adjust y for ascender
 	y += 0.5f * font->lineHeight;
@@ -540,7 +548,7 @@ void TextMesh_Update(const char* text, int align, ObjNode* textNode)
 	y -= 0.5f * font->lineHeight * (metrics.numLines - 1);
 
 	// Save extents
-	textNode->LeftOff	= GetLineStartX(align, metrics.longestLineWidth);
+	textNode->LeftOff	= GetLineStartX(flags, metrics.longestLineWidth);
 	textNode->RightOff	= textNode->LeftOff + metrics.longestLineWidth;
 	textNode->TopOff	= y - font->lineHeight;
 	textNode->BottomOff	= textNode->TopOff + font->lineHeight * metrics.numLines;
@@ -571,17 +579,17 @@ void TextMesh_Update(const char* text, int align, ObjNode* textNode)
 	int t = 0;		// triangle counter
 	int p = 0;		// point counter
 	int currentLine = 0;
-	x = GetLineStartX(align, metrics.lineWidths[0]);
+	x = GetLineStartX(flags, metrics.lineWidths[0]);
 	for (const char* utftext = text; *utftext; )
 	{
-		uint32_t codepoint = ReadNextCodepointFromUTF8(&utftext);
+		uint32_t codepoint = ReadNextCodepointFromUTF8(&utftext, flags);
 
 		if (font->isASCIIFont)
 		{
 			if (codepoint == '\n')
 			{
 				currentLine++;
-				x = GetLineStartX(align, metrics.lineWidths[currentLine]);
+				x = GetLineStartX(flags, metrics.lineWidths[currentLine]);
 				y += font->lineHeight;
 				continue;
 			}
@@ -590,6 +598,11 @@ void TextMesh_Update(const char* text, int align, ObjNode* textNode)
 				x = TAB_STOP * ceilf((x + 1.0f) / TAB_STOP);
 				continue;
 			}
+		}
+
+		if (flags & kTextMeshAllCaps)
+		{
+			codepoint = toupper(codepoint);
 		}
 
 		const AtlasGlyph* gptr = Atlas_GetGlyph(font, codepoint);
@@ -623,7 +636,7 @@ void TextMesh_Update(const char* text, int align, ObjNode* textNode)
 		mesh->uvs[p + 2] = (OGLTextureCoord) { g.u2, g.v2 };
 		mesh->uvs[p + 3] = (OGLTextureCoord) { g.u1, g.v2 };
 
-		float kernFactor = Kern(font, &g, utftext);
+		float kernFactor = Kern(font, &g, utftext, flags);
 		x += (g.xadv*kernFactor + spacing);
 		t += 2;
 		p += 4;
@@ -669,27 +682,6 @@ ObjNode *TextMesh_New(const char *text, int align, NewObjectDefinitionType* newO
 	TextMesh_Update(text, align, textNode);
 	return textNode;
 }
-
-#if 0 // REWRITE ME for multi-line strings
-float TextMesh_GetCharX(const char* text, int n)
-{
-	float x = 0;
-	for (const char *utftext = text;
-		*utftext && n;
-		n--)
-	{
-		uint32_t c = ReadNextCodepointFromUTF8(&utftext);
-
-		if (c == '\n')		// TODO: line widths for strings containing line breaks aren't supported yet
-			continue;
-
-		const AtlasGlyph* glyph = GetGlyphFromCodepoint(c);
-		float kernFactor = Kern(glyph, utftext);
-		x += glyph->xadv * kernFactor;
-	}
-	return x;
-}
-#endif
 
 OGLRect TextMesh_GetExtents(ObjNode* textNode)
 {
@@ -773,14 +765,14 @@ void Atlas_DrawString(
 	glBegin(GL_QUADS);
 
 	TextMetrics metrics;
-	ComputeMetrics(font, text, &metrics);
+	ComputeMetrics(font, text, flags, &metrics);
 
 	float cx = GetLineStartX(flags, metrics.longestLineWidth);
 	float cy = GetLineStartY(flags, metrics.lineHeights[0]);	// single-quad hack...
 
 	for (const char* utftext = text; *utftext; )
 	{
-		uint32_t codepoint = ReadNextCodepointFromUTF8(&utftext);
+		uint32_t codepoint = ReadNextCodepointFromUTF8(&utftext, flags);
 		const AtlasGlyph* gptr = Atlas_GetGlyph(font, codepoint);
 		if (!gptr)
 			continue;
@@ -796,7 +788,7 @@ void Atlas_DrawString(
 		glTexCoord2f(g.u2, g.v1);	glVertex3f(qx + halfw, qy - halfh, 0);
 		glTexCoord2f(g.u1, g.v1);	glVertex3f(qx - halfw, qy - halfh, 0);
 
-		cx += g.xadv * Kern(font, &g, utftext);
+		cx += g.xadv * Kern(font, &g, utftext, flags);
 
 		gPolysThisFrame += 2;						// 2 tris drawn
 	}

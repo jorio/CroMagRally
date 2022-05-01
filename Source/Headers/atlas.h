@@ -14,6 +14,7 @@ enum
 	kTextMeshAlignBottom				= 1<<4,
 	kTextMeshGlow						= 1<<5,
 	kTextMeshKeepCurrentProjection		= 1<<6,
+	kTextMeshAllCaps					= 1<<7,
 };
 
 enum
@@ -65,9 +66,8 @@ void DisposeAllSpriteGroups(void);
 const AtlasGlyph* GetSpriteInfo(int groupNum, int spriteNum);
 
 ObjNode* TextMesh_NewEmpty(int capacity, NewObjectDefinitionType *newObjDef);
-ObjNode* TextMesh_New(const char *text, int align, NewObjectDefinitionType *newObjDef);
-void TextMesh_Update(const char* text, int align, ObjNode* textNode);
-float TextMesh_GetCharX(const char* text, int n);
+ObjNode* TextMesh_New(const char *text, int flags, NewObjectDefinitionType *newObjDef);
+void TextMesh_Update(const char* text, int flags, ObjNode* textNode);
 OGLRect TextMesh_GetExtents(ObjNode* textNode);
 void TextMesh_DrawExtents(ObjNode* textNode);
 
