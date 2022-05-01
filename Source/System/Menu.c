@@ -357,6 +357,11 @@ static void ReplaceMenuText(LocStrID originalTextInMenuDefinition, LocStrID newT
 	}
 }
 
+static void SaveSelectedRowInHistory(void)
+{
+	gNav->history[gNav->historyPos].row = gNav->menuRow;
+}
+
 /****************************/
 /*    MENU MOVE CALLS       */
 /****************************/
@@ -619,7 +624,7 @@ static void NavigatePick(const MenuItem* entry)
 		{
 			const MenuItem* newMenu = gNav->menuTree[entry->gotoMenu];
 
-			gNav->history[gNav->historyPos].row = gNav->menuRow;  // remember which row we were on
+			SaveSelectedRowInHistory();  // remember which row we were on
 
 			// advance history
 			gNav->historyPos++;
@@ -887,11 +892,13 @@ static void NavigateMenu(void)
 	if (GetNewNeedStateAnyP(kNeed_UIUp))
 	{
 		NavigateSettingEntriesVertically(-1);
+		SaveSelectedRowInHistory();
 	}
 
 	if (GetNewNeedStateAnyP(kNeed_UIDown))
 	{
 		NavigateSettingEntriesVertically(1);
+		SaveSelectedRowInHistory();
 	}
 
 	NavigateSettingEntriesMouseHover();
@@ -1448,7 +1455,6 @@ static void LayOutMenu(const MenuItem* menu)
 void LayoutCurrentMenuAgain(void)
 {
 	GAME_ASSERT(gNav->menu);
-	gNav->history[gNav->historyPos].row = gNav->menuRow;
 	LayOutMenu(gNav->menu);
 }
 

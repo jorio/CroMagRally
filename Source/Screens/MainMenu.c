@@ -293,22 +293,6 @@ static const MenuItem
 	gMenuSettings[] =
 	{
 		{ 
-			kMenuItem_CMRCycler, STR_LANGUAGE, .cycler=
-			{
-				.valuePtr=&gGamePrefs.language, .choices=
-				{
-					{STR_LANGUAGE_NAME, LANGUAGE_ENGLISH},
-					{STR_LANGUAGE_NAME, LANGUAGE_FRENCH},
-					{STR_LANGUAGE_NAME, LANGUAGE_GERMAN},
-					{STR_LANGUAGE_NAME, LANGUAGE_SPANISH},
-					{STR_LANGUAGE_NAME, LANGUAGE_ITALIAN},
-					{STR_LANGUAGE_NAME, LANGUAGE_SWEDISH},
-				}
-			},
-			.callback=OnPickLanguage,
-		},
-
-		{ 
 			kMenuItem_CMRCycler, STR_DIFFICULTY, .cycler=
 			{
 				.valuePtr=&gGamePrefs.difficulty, .choices=
@@ -339,6 +323,22 @@ static const MenuItem
 				.valuePtr=&gGamePrefs.fullscreen,
 				.choices={ {STR_OFF, 0}, {STR_ON, 1} },
 			}
+		},
+
+		{
+			kMenuItem_CMRCycler, STR_LANGUAGE, .cycler=
+			{
+				.valuePtr=&gGamePrefs.language, .choices=
+				{
+					{STR_LANGUAGE_NAME, LANGUAGE_ENGLISH},
+					{STR_LANGUAGE_NAME, LANGUAGE_FRENCH},
+					{STR_LANGUAGE_NAME, LANGUAGE_GERMAN},
+					{STR_LANGUAGE_NAME, LANGUAGE_SPANISH},
+					{STR_LANGUAGE_NAME, LANGUAGE_ITALIAN},
+					{STR_LANGUAGE_NAME, LANGUAGE_SWEDISH},
+				}
+			},
+			.callback=OnPickLanguage,
 		},
 
 		{ .type=kMenuItem_END_SENTINEL },
