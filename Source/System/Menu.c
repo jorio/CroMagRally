@@ -469,12 +469,13 @@ static void MoveAsyncFadeOutAndDelete(ObjNode *theNode)
 		DeleteObject(theNode);
 }
 
-/****************************/
-/*    MENU CALLBACKS        */
-/****************************/
-#pragma mark - Callbacks
 
-void MenuCallback_Back(const MenuItem* mi)
+/****************************/
+/*    MENU NAVIGATION       */
+/****************************/
+#pragma mark - Menu navigation
+
+static void GoBackInHistory(void)
 {
 	MyFlushEvents();
 
@@ -494,11 +495,6 @@ void MenuCallback_Back(const MenuItem* mi)
 		PlayEffect(kSfxError);
 	}
 }
-
-/****************************/
-/*    MENU NAVIGATION       */
-/****************************/
-#pragma mark - Menu navigation
 
 static void NavigateSettingEntriesVertically(int delta)
 {
@@ -612,10 +608,7 @@ static void NavigatePick(const MenuItem* entry)
 	{
 		gNav->idleTime = 0;
 
-		if (entry->callback != MenuCallback_Back)
-			PlayConfirmEffect();
-		else if (gNav->style.playMenuChangeSounds)
-			PlayEffect(kSfxMenuChange);
+		PlayConfirmEffect();
 
 		gNav->menuPick = entry->id;
 
@@ -635,10 +628,15 @@ static void NavigatePick(const MenuItem* entry)
 
 			LayOutMenu(newMenu);
 		}
-		else if (entry->gotoMenu <= 0)
+		else if (entry->gotoMenu == 0)
 		{
 			// Exit
 			gNav->menuState = kMenuStateFadeOut;
+		}
+		else if (entry->gotoMenu == -1)
+		{
+			// Go up
+			GoBackInHistory();
 		}
 	}
 }
@@ -883,7 +881,7 @@ static void NavigateMenu(void)
 
 	if (GetNewNeedStateAnyP(kNeed_UIBack))
 	{
-		MenuCallback_Back(NULL);
+		GoBackInHistory();
 	}
 
 	if (GetNewNeedStateAnyP(kNeed_UIUp))
@@ -1450,6 +1448,7 @@ static void LayOutMenu(const MenuItem* menu)
 void LayoutCurrentMenuAgain(void)
 {
 	GAME_ASSERT(gNav->menu);
+	gNav->history[gNav->historyPos].row = gNav->menuRow;
 	LayOutMenu(gNav->menu);
 }
 
@@ -1550,7 +1549,7 @@ int StartMenuTree(
 				}
 				else if (UserWantsOut())
 				{
-					MenuCallback_Back(NULL);
+					GoBackInHistory();
 				}
 				break;
 

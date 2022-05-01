@@ -166,7 +166,6 @@ static void OnPickClearSavedGame(const MenuItem* mi)
 {
 	SetPlayerProgression(0, 0);
 	SavePlayerFile();
-	MenuCallback_Back(mi);
 }
 
 static void OnPickTagDuration(const MenuItem* mi)
@@ -260,8 +259,8 @@ static const MenuItem
 		{ kMenuItem_Subtitle, .text=STR_CLEAR_SAVED_GAME_TEXT_2 },
 		{ kMenuItem_Spacer, .text=STR_NULL },
 		{ kMenuItem_Spacer, .text=STR_NULL },
-		{ kMenuItem_Pick, .text=STR_CLEAR_SAVED_GAME_CANCEL, .callback=MenuCallback_Back },
-		{ kMenuItem_Pick, .text=STR_CLEAR_SAVED_GAME, .callback=OnPickClearSavedGame },
+		{ kMenuItem_Pick, .text=STR_CLEAR_SAVED_GAME_CANCEL, .gotoMenu=-1 },
+		{ kMenuItem_Pick, .text=STR_CLEAR_SAVED_GAME, .callback=OnPickClearSavedGame, .gotoMenu=-1 },
 		{ .type=kMenuItem_END_SENTINEL },
 	},
 
