@@ -62,7 +62,7 @@ enum
 
 enum
 {
-	kAnchorCenter,
+	kAnchorCenter		= 0,
 	kAnchorTop			= 1 << 0,
 	kAnchorBottom		= 1 << 1,
 	kAnchorLeft			= 1 << 2,
@@ -83,117 +83,20 @@ typedef struct
 	float ySpacing;
 } IconPositioning;
 
-#if 1
-
 static const IconPositioning gIconInfo[NUM_INFOBAR_ICONTYPES] =
 {
-	[ICON_PLACE]		= { kAnchorTopLeft,   64,  48, 0.9,   0,  0 },
-	[ICON_MAP]			= { kAnchorTopLeft,  560, 396, 0.5,   0,  0 },
-	[ICON_STARTLIGHT]	= { kAnchorTopLeft,  320, 168, 1.0,   0,  0 },
-	[ICON_LAP]			= { kAnchorTopLeft,   51, 432, 1.0,   0,  0 },
-	[ICON_WRONGWAY]		= { kAnchorTopLeft,  320, 120, 1.0,   0,  0 },
-	[ICON_TOKEN]		= { kAnchorTopLeft,  448,  24, 0.4,  26,  0 },
-	[ICON_WEAPON]		= { kAnchorTopLeft,  256,  36, 0.9,  42,  0 },
-	[ICON_TIMER]		= { kAnchorTopLeft,  118,  36, 1.0, 125,  0 },
-	[ICON_TIMERINDEX]	= { kAnchorTopLeft,  166,  36, 0.6, 106,  0 },
-	[ICON_POWTIMER]		= { kAnchorTopLeft,   29, 144, 0.8,  45, 46 },
-	[ICON_FIRE]			= { kAnchorTopLeft,   19,  36, 0.5,  32,  0 },
+	[ICON_PLACE]		= { kAnchorTopLeft,		  64,  48, 0.9,   0,  0 },
+	[ICON_MAP]			= { kAnchorBottomRight,	 -80, -84, 0.5,   0,  0 },
+	[ICON_STARTLIGHT]	= { kAnchorCenter,		   0, -72, 1.0,   0,  0 },
+	[ICON_LAP]			= { kAnchorBottomLeft,	  51, -48, 1.0,   0,  0 },
+	[ICON_WRONGWAY]		= { kAnchorCenter,		   0,-120, 1.0,   0,  0 },
+	[ICON_TOKEN]		= { kAnchorTopRight,	-196,  24, 0.4,  26,  0 },
+	[ICON_WEAPON]		= { kAnchorTop,			 -16,  36, 0.9,  42,  0 },
+	[ICON_TIMER]		= { kAnchorTopLeft,		 118,  36, 1.0, 125,  0 },
+	[ICON_TIMERINDEX]	= { kAnchorTopLeft,		 166,  36, 0.6, 106,  0 },
+	[ICON_POWTIMER]		= { kAnchorTopLeft,		  29, 144, 0.8,  45, 46 },
+	[ICON_FIRE]			= { kAnchorTopLeft,		  19,  36, 0.5,  32,  0 },
 };
-
-// TEMP macros - we should compute actual X/Y from anchor!
-#define GetIconX(iconID) (gIconInfo[iconID].xFromAnchor - 320)
-#define GetIconY(iconID) (gIconInfo[iconID].yFromAnchor - 240)
-#define GetIconScale(iconID) (gIconInfo[iconID].scale)
-#define GetIconXSpacing(iconID) (gIconInfo[iconID].xSpacing)
-#define GetIconYSpacing(iconID) (gIconInfo[iconID].ySpacing)
-
-#else
-
-#define GetIconX(iconID) (gIconInfo[iconID][gActiveSplitScreenMode].x)
-#define GetIconY(iconID) (gIconInfo[iconID][gActiveSplitScreenMode].y)
-#define GetIconScale(iconID) (gIconInfo[iconID][gActiveSplitScreenMode].scale)
-
-static const IconPositioning	gIconInfo[NUM_INFOBAR_ICONTYPES][NUM_SPLITSCREEN_MODES] =
-{
-	[ICON_PLACE] =
-	{
-		[SPLITSCREEN_MODE_NONE]  = { -.80*320, -.80*240, 0.9, 0, 0 },
-		[SPLITSCREEN_MODE_HORIZ] = { -.80*320, -.66*240, 0.9, 0, 0 },
-		[SPLITSCREEN_MODE_VERT]  = { -.75*320, -.85*240, 1.2, 0, 0 },
-	},
-
-	[ICON_MAP] =
-	{
-		[SPLITSCREEN_MODE_NONE]  = { .75*320, .65*240, .20*2.5, 0, 0 },
-		[SPLITSCREEN_MODE_HORIZ] = { .75*320, .50*240, .15*2.5, 0, 0 },
-		[SPLITSCREEN_MODE_VERT]  = { .60*320, .75*240, .30*2.5, 0, 0 },
-	},
-
-	[ICON_STARTLIGHT] =
-	{
-		[SPLITSCREEN_MODE_NONE]  = { 0, -.3*240, 1.0, 0, 0 },
-		[SPLITSCREEN_MODE_HORIZ] = { 0, -.3*240, 1.0, 0, 0 },
-		[SPLITSCREEN_MODE_VERT]  = { 0, -.1*240, 1.4, 0, 0 },
-	},
-
-	[ICON_LAP] =
-	{
-		[SPLITSCREEN_MODE_NONE]  = { -.84*320, .8*240, 1.0, 0, 0 },
-		[SPLITSCREEN_MODE_HORIZ] = { -.90*320, .8*240, 0.7, 0, 0 },
-		[SPLITSCREEN_MODE_VERT]  = { -.85*320, .8*240, 1.7, 0, 0 },
-	},
-
-	[ICON_WRONGWAY] =
-	{
-		[SPLITSCREEN_MODE_NONE]  = { 0, -.5*240, 1.0, 0, 0 },
-		[SPLITSCREEN_MODE_HORIZ] = { 0, -.4*240, 1.0, 0, 0 },
-		[SPLITSCREEN_MODE_VERT]  = { 0, -.5*240, 1.5, 0, 0 },
-	},
-
-	[ICON_TOKEN] =
-	{
-		[SPLITSCREEN_MODE_NONE]  = { .4*320, -.9*240, .4, .08*320, 0 },
-		[SPLITSCREEN_MODE_HORIZ] = { .4*320, -.8*240, .4, .08*320, 0 },
-		[SPLITSCREEN_MODE_VERT]  = { .4*320, -.9*240, .4, .08*320, 0 },
-	},
-
-	[ICON_WEAPON] =
-	{
-		[SPLITSCREEN_MODE_NONE]  = { -.20*320, -.85*240, 0.9, .13*320, 0 },
-		[SPLITSCREEN_MODE_HORIZ] = { -.20*320, -.78*240, 0.9, .13*320, 0 },
-		[SPLITSCREEN_MODE_VERT]  = { -.22*320, -.90*240, 1.3, .17*320, 0 },
-	},
-
-	[ICON_TIMER] =
-	{
-		[SPLITSCREEN_MODE_NONE]  = { .63*320, -.85*240, 1.0, .39*320, 0 },
-		[SPLITSCREEN_MODE_HORIZ] = { .70*320, -.70*240, 0.8, .35*320, 0 },
-		[SPLITSCREEN_MODE_VERT]  = { .60*320, -.85*240, 1.2, .50*320, 0 },
-	},
-
-	[ICON_TIMERINDEX] =
-	{
-		[SPLITSCREEN_MODE_NONE]  = { .48*320, -.85*240, .6, .33*320, 0 },
-		[SPLITSCREEN_MODE_HORIZ] = { .60*320, -.70*240, .6, .25*320, 0 },
-		[SPLITSCREEN_MODE_VERT]  = { .42*320, -.85*240, .9, .40*320, 0 },
-	},
-
-	[ICON_POWTIMER] =
-	{
-		[SPLITSCREEN_MODE_NONE]  = { -.91*320, -.40*240,  .8, .14*320, .19*240 },
-		[SPLITSCREEN_MODE_HORIZ] = { -.90*320, -.20*240,  .5, .09*320, .25*240 },
-		[SPLITSCREEN_MODE_VERT]  = { -.91*320, -.40*240, 1.0, .18*320, .12*240 },
-	},
-
-	[ICON_FIRE] =
-	{
-		[SPLITSCREEN_MODE_NONE]  = { -.94*320, -.85*240, .5, .1*320, 0 },
-		[SPLITSCREEN_MODE_HORIZ] = { -.94*320, -.78*240, .5, .1*320, 0 },
-		[SPLITSCREEN_MODE_VERT]  = { -.94*320, -.90*240, .5, .1*320, 0 },
-	},
-};
-#endif
-
 
 static const struct
 {
@@ -224,6 +127,52 @@ Boolean			gHideInfobar = false;
 
 ObjNode			*gWinLoseString[MAX_PLAYERS];
 
+
+#pragma mark -
+
+/********************* INFOBAR ICON POSITIONING ****************************/
+
+#define GetIconScale(iconID) (gIconInfo[iconID].scale)
+#define GetIconXSpacing(iconID) (gIconInfo[iconID].xSpacing)
+#define GetIconYSpacing(iconID) (gIconInfo[iconID].ySpacing)
+
+static float GetIconX(int iconID)
+{
+	int anchor = gIconInfo[iconID].anchor;
+	float dx = gIconInfo[iconID].xFromAnchor;
+
+	switch (anchor & (kAnchorLeft | kAnchorRight))
+	{
+		case kAnchorLeft:
+			return dx;
+
+		case kAnchorRight:
+			return dx + g2DLogicalWidth;
+
+		default:
+			return dx + g2DLogicalWidth * 0.5f;
+	}
+}
+
+static float GetIconY(int iconID)
+{
+	int anchor = gIconInfo[iconID].anchor;
+	float dy = gIconInfo[iconID].yFromAnchor;
+
+	switch (anchor & (kAnchorTop | kAnchorBottom))
+	{
+		case kAnchorTop:
+			return dy;
+
+		case kAnchorBottom:
+			return dy + g2DLogicalHeight;
+
+		default:
+			return dy + g2DLogicalHeight * 0.5f;
+	}
+}
+
+#pragma mark -
 
 /********************* INIT INFOBAR ****************************/
 //
@@ -316,7 +265,7 @@ void DrawInfobar(OGLSetupOutputType *setupInfo)
 
 			/* INIT MATRICES */
 
-	OGL_SetProjection(kProjectionType2DOrthoCentered);
+	OGL_SetProjection(kProjectionType2DOrthoFullRect);
 
 
 		/***************/
