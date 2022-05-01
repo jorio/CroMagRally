@@ -66,6 +66,8 @@ typedef struct MenuItem
 		MenuCyclerData		cycler;
 		MenuFloatRangeData	floatRange;
 	};
+
+	float					customHeight;
 } MenuItem;
 
 typedef struct MenuStyle
@@ -74,7 +76,6 @@ typedef struct MenuStyle
 	float			fadeInSpeed;
 	bool			asyncFadeOut;
 	bool			fadeOutSceneOnExit;
-	bool			centeredText;
 	OGLColorRGBA	titleColor;
 	OGLColorRGBA	highlightColor;
 	OGLColorRGBA	inactiveColor;

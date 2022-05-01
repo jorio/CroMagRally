@@ -93,11 +93,10 @@ const MenuStyle kDefaultMenuStyle =
 	.fadeInSpeed		= 3.0f,
 	.asyncFadeOut		= true,
 	.fadeOutSceneOnExit	= true,
-	.centeredText		= true,
 	.titleColor			= {1.0f, 1.0f, 0.7f, 1.0f},
 	.highlightColor		= {0.3f, 0.5f, 0.2f, 1.0f},
 	.inactiveColor		= {1.0f, 1.0f, 1.0f, 1.0f},
-	.inactiveColor2		= {0.8f, 0.0f, 0.5f, 0.5f},
+	.inactiveColor2		= {0.5f, 0.5f, 0.5f, 0.5f},
 	.standardScale		= .5f,
 	.rowHeight			= 40,
 	.uniformXExtent		= 0,
@@ -120,7 +119,7 @@ static const MenuItemClass kMenuItemClasses[kMenuItem_NUM_ITEM_TYPES] =
 {
 	[kMenuItem_END_SENTINEL]	= { 0.0f, NULL, NULL },
 	[kMenuItem_Title]			= { 1.4f, LayOutTitle, NULL },
-	[kMenuItem_Subtitle]		= { 0.8f, LayOutSubtitle, NULL },
+	[kMenuItem_Subtitle]		= { 0.6f, LayOutSubtitle, NULL },
 	[kMenuItem_Label]			= { 1.0f, LayOutLabel, NULL },
 	[kMenuItem_Spacer]			= { 0.5f, NULL, NULL },
 	[kMenuItem_Cycler]			= { 1.0f, LayOutCycler, NavigateCycler },
@@ -147,7 +146,6 @@ typedef struct
 	int					menuRow;
 	int					keyColumn;
 	int					padColumn;
-	float				menuColXs[MAX_MENU_COLS];
 	float				menuRowYs[MAX_MENU_ROWS];
 	float				menuFadeAlpha;
 	int					menuState;
@@ -185,11 +183,6 @@ static void InitMenuNavigation(void)
 	gNav = nav;
 
 	memcpy(&nav->style, &kDefaultMenuStyle, sizeof(MenuStyle));
-	nav->menuColXs[0] = 0;
-	nav->menuColXs[1] = 170;
-	nav->menuColXs[2] = 300;
-	nav->menuColXs[3] = 430;
-	nav->menuColXs[4] = 560;
 	nav->menuPick = -1;
 	nav->menuState = kMenuStateOff;
 	nav->mouseHoverColumn = -1;
@@ -436,28 +429,31 @@ static void MoveDarkenPane(ObjNode* node)
 
 static void MoveGenericMenuItem(ObjNode* node)
 {
-	node->SpecialSweepTimer += gFramesPerSecondFrac * 5;
-
-	if (node->SpecialSweepTimer < 0)
+	if (node->SpecialSweepTimer < 1.0f)
 	{
-		node->ColorFilter.a = 0;
-	}
-	else if (node->SpecialSweepTimer < 1)
-	{
-		node->ColorFilter.a *= node->SpecialSweepTimer;
+		node->SpecialSweepTimer += gFramesPerSecondFrac * 5;
 
-		float xBackup = node->Coord.x;
+		if (node->SpecialSweepTimer < 0)
+		{
+			node->ColorFilter.a = 0;
+		}
+		else if (node->SpecialSweepTimer < 1)
+		{
+			node->ColorFilter.a *= node->SpecialSweepTimer;
 
-		float p = (1.0f - node->SpecialSweepTimer);
-		node->Coord.x -= p*p * 50.0f;
-		UpdateObjectTransforms(node);
+			float xBackup = node->Coord.x;
 
-		node->Coord.x = xBackup;
-	}
-	else
-	{
-		node->ColorFilter.a = 1;
-		UpdateObjectTransforms(node);
+			float p = (1.0f - node->SpecialSweepTimer);
+			node->Coord.x -= p*p * 50.0f;
+			UpdateObjectTransforms(node);
+
+			node->Coord.x = xBackup;
+		}
+		else
+		{
+			node->ColorFilter.a = 1;
+			UpdateObjectTransforms(node);
+		}
 	}
 
 	if (node->SpecialMuted)
@@ -486,7 +482,9 @@ static void MoveKeyBinding(ObjNode* node)
 	if (node->SpecialRow == gNav->menuRow && node->SpecialCol == (gNav->keyColumn+1))
 	{
 		if (gNav->menuState == kMenuStateAwaitingKeyPress)
+		{
 			node->ColorFilter = PulsateColor(&node->SpecialPulsateTimer);
+		}
 		else
 			node->ColorFilter = TwinkleColor();
 	}
@@ -844,7 +842,7 @@ static void NavigateKeyBinding(const MenuItem* entry)
 		gNav->idleTime = 0;
 		gGamePrefs.keys[entry->inputNeed].key[gNav->keyColumn] = 0;
 		PlayEffect(kSfxDelete);
-		MakeText(Localize(STR_UNBOUND_PLACEHOLDER), gNav->menuRow, gNav->keyColumn+1, kTextMeshAllCaps);
+		MakeText(Localize(STR_UNBOUND_PLACEHOLDER), gNav->menuRow, gNav->keyColumn+1, kTextMeshAllCaps | kTextMeshAlignLeft);
 		return;
 	}
 
@@ -854,7 +852,7 @@ static void NavigateKeyBinding(const MenuItem* entry)
 	{
 		gNav->idleTime = 0;
 		gNav->menuState = kMenuStateAwaitingKeyPress;
-		MakeText(Localize(STR_PRESS), gNav->menuRow, gNav->keyColumn+1, kTextMeshAllCaps);
+		MakeText(Localize(STR_PRESS), gNav->menuRow, gNav->keyColumn+1, kTextMeshAllCaps | kTextMeshAlignLeft);
 
 		// Change subtitle to help message
 		ReplaceMenuText(STR_CONFIGURE_KEYBOARD_HELP, STR_CONFIGURE_KEYBOARD_HELP_CANCEL);
@@ -1000,7 +998,7 @@ static void UnbindScancodeFromAllRemappableInputNeeds(int16_t sdlScancode)
 			if (binding->key[j] == sdlScancode)
 			{
 				binding->key[j] = 0;
-				MakeText(Localize(STR_UNBOUND_PLACEHOLDER), row, j+1, kTextMeshAllCaps);
+				MakeText(Localize(STR_UNBOUND_PLACEHOLDER), row, j+1, kTextMeshAllCaps | kTextMeshAlignLeft);
 			}
 		}
 	}
@@ -1021,7 +1019,7 @@ static void UnbindPadButtonFromAllRemappableInputNeeds(int8_t type, int8_t id)
 			{
 				binding->gamepad[j].type = kInputTypeUnbound;
 				binding->gamepad[j].id = 0;
-				MakeText(Localize(STR_UNBOUND_PLACEHOLDER), row, j+1, kTextMeshAllCaps);
+				MakeText(Localize(STR_UNBOUND_PLACEHOLDER), row, j+1, kTextMeshAllCaps | kTextMeshAlignLeft);
 			}
 		}
 	}
@@ -1039,7 +1037,7 @@ static void UnbindMouseButtonFromAllRemappableInputNeeds(int8_t id)
 		if (binding->mouseButton == id)
 		{
 			binding->mouseButton = 0;
-			MakeText(Localize(STR_UNBOUND_PLACEHOLDER), row, 1, kTextMeshAllCaps);
+			MakeText(Localize(STR_UNBOUND_PLACEHOLDER), row, 1, kTextMeshAllCaps | kTextMeshAlignLeft);
 		}
 	}
 }
@@ -1048,7 +1046,7 @@ static void AwaitKeyPress(void)
 {
 	if (GetNewKeyState(SDL_SCANCODE_ESCAPE))
 	{
-		MakeText(GetKeyBindingName(gNav->menuRow, gNav->keyColumn), gNav->menuRow, 1 + gNav->keyColumn, kTextMeshAllCaps);
+		MakeText(GetKeyBindingName(gNav->menuRow, gNav->keyColumn), gNav->menuRow, 1 + gNav->keyColumn, kTextMeshAllCaps | kTextMeshAlignLeft);
 		gNav->menuState = kMenuStateReady;
 		PlayEffect(kSfxError);
 		ReplaceMenuText(STR_CONFIGURE_KEYBOARD_HELP, STR_CONFIGURE_KEYBOARD_HELP);
@@ -1063,7 +1061,7 @@ static void AwaitKeyPress(void)
 		{
 			UnbindScancodeFromAllRemappableInputNeeds(scancode);
 			kb->key[gNav->keyColumn] = scancode;
-			MakeText(GetKeyBindingName(gNav->menuRow, gNav->keyColumn), gNav->menuRow, gNav->keyColumn+1, kTextMeshAllCaps);
+			MakeText(GetKeyBindingName(gNav->menuRow, gNav->keyColumn), gNav->menuRow, gNav->keyColumn+1, kTextMeshAllCaps | kTextMeshAlignLeft);
 			gNav->menuState = kMenuStateReady;
 			gNav->idleTime = 0;
 			PlayEffect(kSfxCycle);
@@ -1071,6 +1069,8 @@ static void AwaitKeyPress(void)
 			return;
 		}
 	}
+
+
 }
 
 static bool AwaitGamepadPress(SDL_GameController* controller)
@@ -1078,7 +1078,7 @@ static bool AwaitGamepadPress(SDL_GameController* controller)
 	if (GetNewKeyState(SDL_SCANCODE_ESCAPE)
 		|| SDL_GameControllerGetButton(controller, SDL_CONTROLLER_BUTTON_START))
 	{
-		MakeText(GetPadBindingName(gNav->menuRow, gNav->padColumn), gNav->menuRow, 1 + gNav->padColumn, kTextMeshAllCaps);
+		MakeText(GetPadBindingName(gNav->menuRow, gNav->padColumn), gNav->menuRow, 1 + gNav->padColumn, kTextMeshAllCaps | kTextMeshAlignLeft);
 		gNav->menuState = kMenuStateReady;
 		PlayEffect(kSfxError);
 		ReplaceMenuText(STR_CONFIGURE_GAMEPAD_HELP, STR_CONFIGURE_GAMEPAD_HELP);
@@ -1103,7 +1103,7 @@ static bool AwaitGamepadPress(SDL_GameController* controller)
 			UnbindPadButtonFromAllRemappableInputNeeds(kInputTypeButton, button);
 			kb->gamepad[gNav->padColumn].type = kInputTypeButton;
 			kb->gamepad[gNav->padColumn].id = button;
-			MakeText(GetPadBindingName(gNav->menuRow, gNav->padColumn), gNav->menuRow, gNav->padColumn+1, kTextMeshAllCaps);
+			MakeText(GetPadBindingName(gNav->menuRow, gNav->padColumn), gNav->menuRow, gNav->padColumn+1, kTextMeshAllCaps | kTextMeshAlignLeft);
 			gNav->menuState = kMenuStateReady;
 			gNav->idleTime = 0;
 			PlayEffect(kSfxCycle);
@@ -1130,7 +1130,7 @@ static bool AwaitGamepadPress(SDL_GameController* controller)
 			UnbindPadButtonFromAllRemappableInputNeeds(axisType, axis);
 			kb->gamepad[gNav->padColumn].type = axisType;
 			kb->gamepad[gNav->padColumn].id = axis;
-			MakeText(GetPadBindingName(gNav->menuRow, gNav->padColumn), gNav->menuRow, gNav->padColumn+1, kTextMeshAllCaps);
+			MakeText(GetPadBindingName(gNav->menuRow, gNav->padColumn), gNav->menuRow, gNav->padColumn+1, kTextMeshAllCaps | kTextMeshAlignLeft);
 			gNav->menuState = kMenuStateReady;
 			gNav->idleTime = 0;
 			PlayEffect(kSfxCycle);
@@ -1161,7 +1161,7 @@ static void AwaitMetaGamepadPress(void)
 
 	if (!anyGamepadFound)
 	{
-		MakeText(GetPadBindingName(gNav->menuRow, gNav->padColumn), gNav->menuRow, gNav->padColumn+1, kTextMeshAllCaps);
+		MakeText(GetPadBindingName(gNav->menuRow, gNav->padColumn), gNav->menuRow, gNav->padColumn+1, kTextMeshAllCaps | kTextMeshAlignLeft);
 		ReplaceMenuText(STR_CONFIGURE_GAMEPAD_HELP, STR_NO_GAMEPAD_DETECTED);
 		PlayEffect(kSfxError);
 		gNav->menuState = kMenuStateReady;
@@ -1241,13 +1241,21 @@ static void DeleteAllText(void)
 	}
 }
 
+static float GetMenuItemHeight(int row)
+{
+	const MenuItem* menuItem = &gNav->menu[row];
+	
+	if (menuItem->customHeight > 0)
+		return menuItem->customHeight;
+	else
+		return kMenuItemClasses[menuItem->type].height;
+}
+
 static ObjNode* MakeText(const char* text, int row, int col, int textMeshFlags)
 {
 	ObjNode* node = gNav->menuObjects[row][col];
 
-	int miType = gNav->menu[row].type;
-
-	bool centered = textMeshFlags & kTextMeshAlignCenter;
+	const MenuItem* menuItem = &gNav->menu[row];
 
 	if (node)
 	{
@@ -1256,12 +1264,10 @@ static ObjNode* MakeText(const char* text, int row, int col, int textMeshFlags)
 	}
 	else
 	{
-		float startX = gNav->style.centeredText ? 0 : -170;
-
 		NewObjectDefinitionType def =
 		{
-			.coord = (OGLPoint3D) { startX + gNav->menuColXs[col], gNav->menuRowYs[row], 0 },
-			.scale = gNav->style.standardScale * kMenuItemClasses[miType].height,
+			.coord = (OGLPoint3D) { 0, gNav->menuRowYs[row], 0 },
+			.scale = GetMenuItemHeight(row) * gNav->style.standardScale,
 			.slot = SLOT_OF_DUMB + 100,
 			.flags = STATUS_BIT_MOVEINPAUSE,
 		};
@@ -1272,12 +1278,14 @@ static ObjNode* MakeText(const char* text, int row, int col, int textMeshFlags)
 		gNav->menuObjects[row][col] = node;
 	}
 
+	/*
 	if (centered)
 	{
 		int paddedRightOff = ((gNav->menuColXs[col+1]-170) - node->Coord.x) / node->Scale.x;
 		if (paddedRightOff > node->RightOff)
 			node->RightOff = paddedRightOff;
 	}
+	*/
 
 	if (gNav->style.uniformXExtent)
 	{
@@ -1431,14 +1439,17 @@ static ObjNode* LayOutKeyBinding(int row, float sweepFactor)
 	snprintf(buf, bufSize, "%s:", Localize(STR_KEYBINDING_DESCRIPTION_0 + entry->inputNeed));
 
 	ObjNode* label = MakeText(buf, row, 0, kTextMeshAlignLeft);
+	label->Coord.x -= 256;
 	label->ColorFilter = gNav->style.inactiveColor2;
 	label->MoveCall = MoveLabel;
 	label->SpecialSweepTimer = sweepFactor;
 
 	for (int j = 0; j < KEYBINDING_MAX_KEYS; j++)
 	{
-		ObjNode* keyNode = MakeText(GetKeyBindingName(row, j), row, j + 1, kTextMeshAllCaps);
+		ObjNode* keyNode = MakeText(GetKeyBindingName(row, j), row, j + 1, kTextMeshAllCaps | kTextMeshAlignLeft);
+		keyNode->Coord.x = -50 + j * 170 ;
 		keyNode->MoveCall = MoveKeyBinding;
+//		keyNode->Scale.x *= 0.75f;
 		keyNode->SpecialSweepTimer = sweepFactor;
 	}
 
@@ -1453,13 +1464,15 @@ static ObjNode* LayOutPadBinding(int row, float sweepFactor)
 	snprintf(buf, bufSize, "%s:", Localize(STR_KEYBINDING_DESCRIPTION_0 + entry->inputNeed));
 
 	ObjNode* label = MakeText(buf, row, 0, kTextMeshAlignLeft);
+	label->Coord.x -= 256;
 	label->ColorFilter = gNav->style.inactiveColor2;
 	label->MoveCall = MoveLabel;
 	label->SpecialSweepTimer = sweepFactor;
 
 	for (int j = 0; j < KEYBINDING_MAX_KEYS; j++)
 	{
-		ObjNode* keyNode = MakeText(GetPadBindingName(row, j), row, j+1, kTextMeshAllCaps);
+		ObjNode* keyNode = MakeText(GetPadBindingName(row, j), row, j+1, kTextMeshAllCaps | kTextMeshAlignLeft);
+		keyNode->Coord.x = -50 + j * 170;
 		keyNode->MoveCall = MovePadBinding;
 		keyNode->SpecialSweepTimer = sweepFactor;
 	}
@@ -1504,9 +1517,7 @@ static void LayOutMenu(const MenuItem* menu)
 	float totalHeight = 0;
 	for (int row = 0; menu[row].type != kMenuItem_END_SENTINEL; row++)
 	{
-		const MenuItem* entry = &menu[row];
-		const MenuItemClass* cls = &kMenuItemClasses[entry->type];
-		totalHeight += cls->height * gNav->style.rowHeight;
+		totalHeight += GetMenuItemHeight(row) * gNav->style.rowHeight;
 	}
 
 	float y = -totalHeight*.5f + gNav->style.yOffset;
@@ -1525,7 +1536,7 @@ static void LayOutMenu(const MenuItem* menu)
 			cls->layOutCallback(row, sweepFactor);
 		}
 
-		y += cls->height * gNav->style.rowHeight;
+		y += GetMenuItemHeight(row) * gNav->style.rowHeight;
 
 		if (entry->type != kMenuItem_Spacer)
 		{

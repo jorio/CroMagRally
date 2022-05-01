@@ -244,9 +244,9 @@ static const MenuItem
 
 	gMenuRemapKeyboard[] =
 	{
-		{ kMenuItem_Subtitle, .text=STR_CONFIGURE_KEYBOARD_HELP },
-		{ kMenuItem_Spacer, .text=STR_NULL },
-		{ kMenuItem_Spacer, .text=STR_NULL },
+		{ kMenuItem_Spacer, .customHeight=.2f },
+		{ kMenuItem_Subtitle, STR_CONFIGURE_KEYBOARD_HELP, .customHeight=.5f },
+		{ kMenuItem_Spacer, .customHeight=.4f },
 		{ kMenuItem_KeyBinding, .inputNeed=kNeed_Forward },
 		{ kMenuItem_KeyBinding, .inputNeed=kNeed_Backward },
 		{ kMenuItem_KeyBinding, .inputNeed=kNeed_Left },
@@ -256,15 +256,16 @@ static const MenuItem
 		{ kMenuItem_KeyBinding, .inputNeed=kNeed_ThrowBackward },
 		{ kMenuItem_KeyBinding, .inputNeed=kNeed_CameraMode },
 		{ kMenuItem_KeyBinding, .inputNeed=kNeed_RearView },
-		{ kMenuItem_Pick, STR_RESET_KEYBINDINGS, .callback=OnPickResetKeyboardBindings, .gotoMenu=kGotoMenu_NoOp },
+		{ kMenuItem_Spacer, .customHeight=.25f },
+		{ kMenuItem_Pick, STR_RESET_KEYBINDINGS, .callback=OnPickResetKeyboardBindings, .gotoMenu=kGotoMenu_NoOp, .customHeight=.5f },
 		{ .type=kMenuItem_END_SENTINEL },
 	},
 
 	gMenuRemapGamepad[] =
 	{
-		{ kMenuItem_Subtitle, .text=STR_CONFIGURE_GAMEPAD_HELP },
-		{ kMenuItem_Spacer, .text=STR_NULL },
-		{ kMenuItem_Spacer, .text=STR_NULL },
+		{ kMenuItem_Spacer, .customHeight=.2f },
+		{ kMenuItem_Subtitle, STR_CONFIGURE_GAMEPAD_HELP, .customHeight=.5f },
+		{ kMenuItem_Spacer, .customHeight=.4f },
 		{ kMenuItem_PadBinding, .inputNeed=kNeed_Forward },
 		{ kMenuItem_PadBinding, .inputNeed=kNeed_Backward },
 		{ kMenuItem_PadBinding, .inputNeed=kNeed_Left },
@@ -274,7 +275,8 @@ static const MenuItem
 		{ kMenuItem_PadBinding, .inputNeed=kNeed_ThrowBackward },
 		{ kMenuItem_PadBinding, .inputNeed=kNeed_CameraMode },
 		{ kMenuItem_PadBinding, .inputNeed=kNeed_RearView },
-		{ kMenuItem_Pick, STR_RESET_KEYBINDINGS, .callback=OnPickResetGamepadBindings, .gotoMenu=kGotoMenu_NoOp },
+		{ kMenuItem_Spacer, .customHeight=.25f },
+		{ kMenuItem_Pick, STR_RESET_KEYBINDINGS, .callback=OnPickResetGamepadBindings, .gotoMenu=kGotoMenu_NoOp, .customHeight=.5f },
 		{ .type=kMenuItem_END_SENTINEL },
 	}
 

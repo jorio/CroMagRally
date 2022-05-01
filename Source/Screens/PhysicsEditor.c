@@ -131,7 +131,6 @@ void DoPhysicsEditor(void)
 	MenuStyle physicsEditorMenuStyle = kDefaultMenuStyle;
 	physicsEditorMenuStyle.canBackOutOfRootMenu = true;
 	physicsEditorMenuStyle.standardScale = .3f;
-	physicsEditorMenuStyle.centeredText = false;
 
 	int outcome = StartMenuTree(gPhysicsMenuTree, &physicsEditorMenuStyle, MoveObjects, DrawObjects);
 
