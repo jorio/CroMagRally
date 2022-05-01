@@ -9,6 +9,7 @@
 /****************************/
 
 #include "game.h"
+#include "uielements.h"
 #include <SDL.h>
 
 
@@ -173,7 +174,8 @@ OGLVector3D			fillDirection1 = { .9, -.3, -1 };
 		.genre = TEXTMESH_GENRE,
 		.scale = 0.4f,
 		.coord = {0, 0, 0},
-		.slot = SPRITE_SLOT
+		.slot = SPRITE_SLOT,
+		.moveCall = MoveUIPadlock
 	};
 
 	gGatherPrompt = TextMesh_NewEmpty(256, &def2);
@@ -238,6 +240,7 @@ static int DoLocalGatherControls(void)
 		else
 		{
 			PlayEffect(EFFECT_BADSELECT);
+			WiggleUIPadlock(gGatherPrompt);
 		}
 	}
 
