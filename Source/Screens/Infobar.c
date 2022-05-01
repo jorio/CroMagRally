@@ -41,6 +41,8 @@ static void MovePressAnyKey(ObjNode *theNode);
 
 #define OVERHEAD_MAP_REFERENCE_SIZE 256.0f
 
+#define INFOBAR_SPRITE_FLAGS (kTextMeshAlignCenter | kTextMeshAlignMiddle | kTextMeshKeepCurrentProjection)
+
 enum
 {
 	ICON_PLACE	 = 0,
@@ -58,17 +60,58 @@ enum
 	NUM_INFOBAR_ICONTYPES
 };
 
-
+enum
+{
+	kAnchorCenter,
+	kAnchorTop			= 1 << 0,
+	kAnchorBottom		= 1 << 1,
+	kAnchorLeft			= 1 << 2,
+	kAnchorRight		= 1 << 3,
+	kAnchorTopLeft		= kAnchorTop | kAnchorLeft,
+	kAnchorTopRight		= kAnchorTop | kAnchorRight,
+	kAnchorBottomLeft	= kAnchorBottom | kAnchorLeft,
+	kAnchorBottomRight	= kAnchorBottom | kAnchorRight
+};
 
 typedef struct
 {
-	float x;
-	float y;
+	int anchor;
+	float xFromAnchor;
+	float yFromAnchor;
 	float scale;
 	float xSpacing;
 	float ySpacing;
 } IconPositioning;
 
+#if 1
+
+static const IconPositioning gIconInfo[NUM_INFOBAR_ICONTYPES] =
+{
+	[ICON_PLACE]		= { kAnchorTopLeft,   64,  48, 0.9,   0,  0 },
+	[ICON_MAP]			= { kAnchorTopLeft,  560, 396, 0.5,   0,  0 },
+	[ICON_STARTLIGHT]	= { kAnchorTopLeft,  320, 168, 1.0,   0,  0 },
+	[ICON_LAP]			= { kAnchorTopLeft,   51, 432, 1.0,   0,  0 },
+	[ICON_WRONGWAY]		= { kAnchorTopLeft,  320, 120, 1.0,   0,  0 },
+	[ICON_TOKEN]		= { kAnchorTopLeft,  448,  24, 0.4,  26,  0 },
+	[ICON_WEAPON]		= { kAnchorTopLeft,  256,  36, 0.9,  42,  0 },
+	[ICON_TIMER]		= { kAnchorTopLeft,  118,  36, 1.0, 125,  0 },
+	[ICON_TIMERINDEX]	= { kAnchorTopLeft,  166,  36, 0.6, 106,  0 },
+	[ICON_POWTIMER]		= { kAnchorTopLeft,   29, 144, 0.8,  45, 46 },
+	[ICON_FIRE]			= { kAnchorTopLeft,   19,  36, 0.5,  32,  0 },
+};
+
+// TEMP macros - we should compute actual X/Y from anchor!
+#define GetIconX(iconID) (gIconInfo[iconID].xFromAnchor - 320)
+#define GetIconY(iconID) (gIconInfo[iconID].yFromAnchor - 240)
+#define GetIconScale(iconID) (gIconInfo[iconID].scale)
+#define GetIconXSpacing(iconID) (gIconInfo[iconID].xSpacing)
+#define GetIconYSpacing(iconID) (gIconInfo[iconID].ySpacing)
+
+#else
+
+#define GetIconX(iconID) (gIconInfo[iconID][gActiveSplitScreenMode].x)
+#define GetIconY(iconID) (gIconInfo[iconID][gActiveSplitScreenMode].y)
+#define GetIconScale(iconID) (gIconInfo[iconID][gActiveSplitScreenMode].scale)
 
 static const IconPositioning	gIconInfo[NUM_INFOBAR_ICONTYPES][NUM_SPLITSCREEN_MODES] =
 {
@@ -149,7 +192,7 @@ static const IconPositioning	gIconInfo[NUM_INFOBAR_ICONTYPES][NUM_SPLITSCREEN_MO
 		[SPLITSCREEN_MODE_VERT]  = { -.94*320, -.90*240, .5, .1*320, 0 },
 	},
 };
-
+#endif
 
 
 static const struct
@@ -273,7 +316,7 @@ void DrawInfobar(OGLSetupOutputType *setupInfo)
 
 			/* INIT MATRICES */
 
-	OGL_SetProjection(kProjectionType2DNDC);
+	OGL_SetProjection(kProjectionType2DOrthoCentered);
 
 
 		/***************/
@@ -339,9 +382,7 @@ static void GetPointOnOverheadMap(float* px, float* pz)
 	float x = *px;
 	float z = *pz;
 
-	float scale = gIconInfo[ICON_MAP][gActiveSplitScreenMode].scale;
-	float mapX = gIconInfo[ICON_MAP][gActiveSplitScreenMode].x;
-	float mapY = gIconInfo[ICON_MAP][gActiveSplitScreenMode].y;
+	float scale = GetIconScale(ICON_MAP);
 
 	x /= gTerrainUnitWidth;		// get 0..1 coordinate values
 	z /= gTerrainUnitDepth;
@@ -352,8 +393,8 @@ static void GetPointOnOverheadMap(float* px, float* pz)
 	x *= scale * OVERHEAD_MAP_REFERENCE_SIZE * .5f;		// shrink to size of underlay map
 	z *= scale * OVERHEAD_MAP_REFERENCE_SIZE * .5f;
 
-	x += mapX;											// position it
-	z += mapY;
+	x += GetIconX(ICON_MAP);							// position it
+	z += GetIconY(ICON_MAP);
 
 	*px = x;
 	*pz = z;
@@ -361,8 +402,6 @@ static void GetPointOnOverheadMap(float* px, float* pz)
 
 static void Infobar_DrawMap(const OGLSetupOutputType *setupInfo)
 {
-float	scale,mapX,mapY;
-
 static const OGLColorRGBA	blipColors[] =
 {
 	{.8,.5,.3,.9},		// brown
@@ -389,17 +428,17 @@ static const OGLColorRGBA	blipColors[] =
 	}
 
 
-	scale = gIconInfo[ICON_MAP][gActiveSplitScreenMode].scale;
-	mapX = gIconInfo[ICON_MAP][gActiveSplitScreenMode].x;
-	mapY = gIconInfo[ICON_MAP][gActiveSplitScreenMode].y;
+	float scale = GetIconScale(ICON_MAP);
 
 
 			/* DRAW THE MAP UNDERLAY */
 
-	DrawSprite(SPRITE_GROUP_OVERHEADMAP, 1, mapX, mapY,
+	DrawSprite(SPRITE_GROUP_OVERHEADMAP, 1,
+			GetIconX(ICON_MAP),
+			GetIconY(ICON_MAP),
 			scale * gMapFit,
 			0,
-			kTextMeshAlignCenter | kTextMeshAlignMiddle,
+			INFOBAR_SPRITE_FLAGS,
 			setupInfo);
 
 
@@ -408,7 +447,6 @@ static const OGLColorRGBA	blipColors[] =
 			/***********************/
 
 	OGL_PushState();
-	OGL_SetProjection(kProjectionType2DOrthoCentered);
 	glDisable(GL_TEXTURE_2D);								// not textured, so disable textures
 
 	for (int i = gNumTotalPlayers-1; i >= 0; i--)			// draw from last to first so that player 1 is always on "top"
@@ -535,10 +573,12 @@ int	place,playerNum;
 	place = gPlayerInfo[playerNum].place;
 
 	DrawSprite(SPRITE_GROUP_INFOBAR, INFOBAR_SObjType_Place1+place,
-				gIconInfo[ICON_PLACE][gActiveSplitScreenMode].x,
-				gIconInfo[ICON_PLACE][gActiveSplitScreenMode].y,
-				gIconInfo[ICON_PLACE][gActiveSplitScreenMode].scale,
-				0, 0, setupInfo);
+				GetIconX(ICON_PLACE),
+				GetIconY(ICON_PLACE),
+				GetIconScale(ICON_PLACE),
+				0,
+				INFOBAR_SPRITE_FLAGS,
+				setupInfo);
 }
 
 
@@ -557,23 +597,24 @@ float		x,y,scale, spacing, fontScale;
 	if (powType == POW_TYPE_NONE)
 		return;
 
-	x = gIconInfo[ICON_WEAPON][gActiveSplitScreenMode].x;
-	y = gIconInfo[ICON_WEAPON][gActiveSplitScreenMode].y;
-	scale = gIconInfo[ICON_WEAPON][gActiveSplitScreenMode].scale;
-	spacing = gIconInfo[ICON_WEAPON][gActiveSplitScreenMode].xSpacing;
+	x			= GetIconX(ICON_WEAPON);
+	y			= GetIconY(ICON_WEAPON);
+	scale		= GetIconScale(ICON_WEAPON);
+	spacing		= GetIconXSpacing(ICON_WEAPON);
 
 	fontScale = scale * .7f;
 
 		/* DRAW WEAPON ICON */
 
 	DrawSprite(SPRITE_GROUP_INFOBAR, INFOBAR_SObjType_Weapon_Bone + powType,
-				x, y, scale, 0, 0, setupInfo);
+				x, y, scale, 0, INFOBAR_SPRITE_FLAGS, setupInfo);
 
 
 		/* DRAW X-QUANTITY ICON */
 
 	x += spacing;
-	DrawSprite(SPRITE_GROUP_INFOBAR, INFOBAR_SObjType_WeaponX, x, y, scale * .8f, 0, 0, setupInfo);
+	DrawSprite(SPRITE_GROUP_INFOBAR, INFOBAR_SObjType_WeaponX,
+				x, y, scale * .8f, 0, INFOBAR_SPRITE_FLAGS, setupInfo);
 
 
 		/* DRAW QUANTITY NUMBER */
@@ -586,7 +627,7 @@ float		x,y,scale, spacing, fontScale;
 	snprintf(s, sizeof(s), "%d", q);
 
 	x += spacing;
-	Atlas_DrawString(SPRITE_GROUP_FONT, s, x, y, fontScale, 0, 0, setupInfo);
+	Atlas_DrawString(SPRITE_GROUP_FONT, s, x, y, fontScale, 0, INFOBAR_SPRITE_FLAGS, setupInfo);
 
 
 	gGlobalColorFilter.r = 1;
@@ -610,10 +651,10 @@ short	p;
 	if (wrongWay)
 	{
 		DrawSprite(SPRITE_GROUP_INFOBAR, INFOBAR_SObjType_WrongWay,
-					gIconInfo[ICON_WRONGWAY][gActiveSplitScreenMode].x,
-					gIconInfo[ICON_WRONGWAY][gActiveSplitScreenMode].y,
-					gIconInfo[ICON_WRONGWAY][gActiveSplitScreenMode].scale,
-					0, 0, setupInfo);
+					GetIconX(ICON_WRONGWAY),
+					GetIconY(ICON_WRONGWAY),
+					GetIconScale(ICON_WRONGWAY),
+					0, INFOBAR_SPRITE_FLAGS, setupInfo);
 	}
 }
 
@@ -646,27 +687,27 @@ int		oldTimer;
 	{
 		gNoCarControls = false;										// once green we have control
 		DrawSprite(SPRITE_GROUP_INFOBAR, INFOBAR_SObjType_Go,
-					gIconInfo[ICON_STARTLIGHT][gActiveSplitScreenMode].x,
-					gIconInfo[ICON_STARTLIGHT][gActiveSplitScreenMode].y,
-					gIconInfo[ICON_STARTLIGHT][gActiveSplitScreenMode].scale,
-					0, 0, setupInfo);
+					GetIconX(ICON_STARTLIGHT),
+					GetIconY(ICON_STARTLIGHT),
+					GetIconScale(ICON_STARTLIGHT),
+					0, INFOBAR_SPRITE_FLAGS, setupInfo);
 	}
 	else
 	if (gStartingLightTimer <= 2.0f)								// yellow
 	{
 		DrawSprite(SPRITE_GROUP_INFOBAR, INFOBAR_SObjType_Set,
-					gIconInfo[ICON_STARTLIGHT][gActiveSplitScreenMode].x,
-					gIconInfo[ICON_STARTLIGHT][gActiveSplitScreenMode].y,
-					gIconInfo[ICON_STARTLIGHT][gActiveSplitScreenMode].scale,
-					0, 0, setupInfo);
+					GetIconX(ICON_STARTLIGHT),
+					GetIconY(ICON_STARTLIGHT),
+					GetIconScale(ICON_STARTLIGHT),
+					0, INFOBAR_SPRITE_FLAGS, setupInfo);
 	}
 	else															// red
 	{
 		DrawSprite(SPRITE_GROUP_INFOBAR, INFOBAR_SObjType_Ready,
-					gIconInfo[ICON_STARTLIGHT][gActiveSplitScreenMode].x,
-					gIconInfo[ICON_STARTLIGHT][gActiveSplitScreenMode].y,
-					gIconInfo[ICON_STARTLIGHT][gActiveSplitScreenMode].scale,
-					0, 0, setupInfo);
+					GetIconX(ICON_STARTLIGHT),
+					GetIconY(ICON_STARTLIGHT),
+					GetIconScale(ICON_STARTLIGHT),
+					0, INFOBAR_SPRITE_FLAGS, setupInfo);
 	}
 
 
@@ -706,10 +747,10 @@ int	lap,playerNum;
 
 
 	DrawSprite(SPRITE_GROUP_INFOBAR, INFOBAR_SObjType_Lap1of3+lap,
-				gIconInfo[ICON_LAP][gActiveSplitScreenMode].x,
-				gIconInfo[ICON_LAP][gActiveSplitScreenMode].y,
-				gIconInfo[ICON_LAP][gActiveSplitScreenMode].scale,
-				0, 0, setupInfo);
+				GetIconX(ICON_LAP),
+				GetIconY(ICON_LAP),
+				GetIconScale(ICON_LAP),
+				0, INFOBAR_SPRITE_FLAGS, setupInfo);
 }
 
 /********************** DRAW TOKENS *************************/
@@ -720,21 +761,18 @@ short	playerNum, numTokens,i;
 float	x,y,scale,spacing;
 
 	playerNum = GetPlayerNum(gCurrentSplitScreenPane);
-
-
 	numTokens = gPlayerInfo[playerNum].numTokens;
 
-	x = gIconInfo[ICON_TOKEN][gActiveSplitScreenMode].x;
-	y = gIconInfo[ICON_TOKEN][gActiveSplitScreenMode].y;
-	scale = gIconInfo[ICON_TOKEN][gActiveSplitScreenMode].scale;
-	spacing = gIconInfo[ICON_TOKEN][gActiveSplitScreenMode].xSpacing;
+	x			= GetIconX(ICON_TOKEN);
+	y			= GetIconY(ICON_TOKEN);
+	scale		= GetIconScale(ICON_TOKEN);
+	spacing		= GetIconXSpacing(ICON_TOKEN);
 
 	for (i = 1; i <= MAX_TOKENS; i++)
 	{
-		if (i > numTokens)
-			DrawSprite(	SPRITE_GROUP_INFOBAR, INFOBAR_SObjType_Token_ArrowheadDim,	x, y, scale, 0, 0, setupInfo);
-		else
-			DrawSprite(	SPRITE_GROUP_INFOBAR, INFOBAR_SObjType_Token_Arrowhead,	x, y, scale, 0, 0, setupInfo);
+		DrawSprite(SPRITE_GROUP_INFOBAR,
+					i > numTokens ? INFOBAR_SObjType_Token_ArrowheadDim : INFOBAR_SObjType_Token_Arrowhead,
+					x, y, scale, 0, INFOBAR_SPRITE_FLAGS, setupInfo);
 
 		x += spacing;
 	}
@@ -753,12 +791,12 @@ static const OGLColorRGB noTint = {1,1,1};
 
 	p = GetPlayerNum(gCurrentSplitScreenPane);
 
-	x = gIconInfo[ICON_POWTIMER][gActiveSplitScreenMode].x;
-	y = gIconInfo[ICON_POWTIMER][gActiveSplitScreenMode].y;
-	scale = gIconInfo[ICON_POWTIMER][gActiveSplitScreenMode].scale;
-	fontScale = scale * .6f;
-	spacing = gIconInfo[ICON_POWTIMER][gActiveSplitScreenMode].xSpacing;
-	lineSpacing = gIconInfo[ICON_POWTIMER][gActiveSplitScreenMode].ySpacing;
+	x			= GetIconX(ICON_POWTIMER);
+	y			= GetIconY(ICON_POWTIMER);
+	scale		= GetIconScale(ICON_POWTIMER);
+	fontScale	= scale * .6f;
+	spacing		= GetIconXSpacing(ICON_POWTIMER);
+	lineSpacing	= GetIconYSpacing(ICON_POWTIMER);
 
 	static const size_t numTimers = sizeof(gInfobarTimers) / sizeof(gInfobarTimers[0]);
 	size_t offset = p * sizeof(gPlayerInfo[0]);
@@ -775,7 +813,7 @@ static const OGLColorRGB noTint = {1,1,1};
 
 			/* DRAW ICON */
 
-		DrawSprite(SPRITE_GROUP_INFOBAR, gInfobarTimers[i].sprite, x, y, scale, 0, 0, setupInfo);
+		DrawSprite(SPRITE_GROUP_INFOBAR, gInfobarTimers[i].sprite, x, y, scale, 0, INFOBAR_SPRITE_FLAGS, setupInfo);
 
 			/* DRAW TIME */
 
@@ -784,7 +822,7 @@ static const OGLColorRGB noTint = {1,1,1};
 		snprintf(s, sizeof(s), "%d", (int) (timer+.5f));
 
 		x2 = x + spacing;
-		Atlas_DrawString(SPRITE_GROUP_FONT, s, x2, y, fontScale, 0, 0, setupInfo);
+		Atlas_DrawString(SPRITE_GROUP_FONT, s, x2, y, fontScale, 0, INFOBAR_SPRITE_FLAGS, setupInfo);
 
 		y += lineSpacing;												// move down to prep for next item
 
@@ -800,10 +838,10 @@ static void Infobar_DrawTagTimer(const OGLSetupOutputType *setupInfo)
 short	p,p2;
 float	timer,x,y, scale, spacing;
 
-	x = gIconInfo[ICON_TIMER][gActiveSplitScreenMode].x;
-	y = gIconInfo[ICON_TIMER][gActiveSplitScreenMode].y;
-	scale = gIconInfo[ICON_TIMER][gActiveSplitScreenMode].scale;
-	spacing = gIconInfo[ICON_TIMER][gActiveSplitScreenMode].xSpacing;
+	x			= GetIconX(ICON_TIMER);
+	y			= GetIconY(ICON_TIMER);
+	scale		= GetIconScale(ICON_TIMER);
+	spacing		= GetIconXSpacing(ICON_TIMER);
 
 
 			/********************/
@@ -812,23 +850,23 @@ float	timer,x,y, scale, spacing;
 
 				/* DRAW BAR */
 
-	DrawSprite(SPRITE_GROUP_INFOBAR, INFOBAR_SObjType_TimeBar,	x, y, scale, 0, 0, setupInfo);
+	DrawSprite(SPRITE_GROUP_INFOBAR, INFOBAR_SObjType_TimeBar,	x, y, scale, 0, INFOBAR_SPRITE_FLAGS, setupInfo);
 
 
 
 		/* DRAW THE TIME MARKER */
 
-	x = gIconInfo[ICON_TIMERINDEX][gActiveSplitScreenMode].x;
-	y = gIconInfo[ICON_TIMERINDEX][gActiveSplitScreenMode].y;
-	scale = gIconInfo[ICON_TIMERINDEX][gActiveSplitScreenMode].scale;
-	spacing = gIconInfo[ICON_TIMERINDEX][gActiveSplitScreenMode].xSpacing;
+	x			= GetIconX(ICON_TIMERINDEX);
+	y			= GetIconY(ICON_TIMERINDEX);
+	scale		= GetIconScale(ICON_TIMERINDEX);
+	spacing		= GetIconXSpacing(ICON_TIMERINDEX);
 
 
 	p = GetPlayerNum(gCurrentSplitScreenPane);
 	timer = (gPlayerInfo[p].tagTimer / TAG_TIME_LIMIT);							// get timer value 0..1
 	x += timer * spacing;
 
-	DrawSprite(SPRITE_GROUP_INFOBAR, INFOBAR_SObjType_Marker, x, y, scale, 0, 0, setupInfo);
+	DrawSprite(SPRITE_GROUP_INFOBAR, INFOBAR_SObjType_Marker, x, y, scale, 0, INFOBAR_SPRITE_FLAGS, setupInfo);
 
 
 		/**********************************************/
@@ -839,14 +877,14 @@ float	timer,x,y, scale, spacing;
 	{
 		p2 = gWhoIsIt;							// in tag, show timer of tagged player
 
-		x = gIconInfo[ICON_TIMERINDEX][gActiveSplitScreenMode].x;
+		x = GetIconX(ICON_TIMERINDEX);
 		timer = (gPlayerInfo[p2].tagTimer / TAG_TIME_LIMIT);							// get timer value 0..1
 		x += timer * spacing;
 
 		gGlobalColorFilter = gTagColor;							// tint
 		gGlobalTransparency = .35;
 
-		DrawSprite(SPRITE_GROUP_INFOBAR, INFOBAR_SObjType_Marker, x, y, scale, 0, 0, setupInfo);
+		DrawSprite(SPRITE_GROUP_INFOBAR, INFOBAR_SObjType_Marker, x, y, scale, 0, INFOBAR_SPRITE_FLAGS, setupInfo);
 
 		gGlobalColorFilter.r =
 		gGlobalColorFilter.g =
@@ -865,10 +903,10 @@ static void Infobar_DrawHealth(const OGLSetupOutputType *setupInfo)
 short	p,p2;
 float	timer,x,y, scale, spacing, dist;
 
-	x = gIconInfo[ICON_TIMER][gActiveSplitScreenMode].x;
-	y = gIconInfo[ICON_TIMER][gActiveSplitScreenMode].y;
-	scale = gIconInfo[ICON_TIMER][gActiveSplitScreenMode].scale;
-	spacing = gIconInfo[ICON_TIMER][gActiveSplitScreenMode].xSpacing;
+	x			= GetIconX(ICON_TIMER);
+	y			= GetIconY(ICON_TIMER);
+	scale		= GetIconScale(ICON_TIMER);
+	spacing		= GetIconXSpacing(ICON_TIMER);
 
 
 			/********************/
@@ -877,23 +915,23 @@ float	timer,x,y, scale, spacing, dist;
 
 				/* DRAW BAR */
 
-	DrawSprite(SPRITE_GROUP_INFOBAR, INFOBAR_SObjType_TimeBar,	x, y, scale, 0, 0, setupInfo);
+	DrawSprite(SPRITE_GROUP_INFOBAR, INFOBAR_SObjType_TimeBar,	x, y, scale, 0, INFOBAR_SPRITE_FLAGS, setupInfo);
 
 
 
 		/* DRAW THE TIME MARKER */
 
-	x = gIconInfo[ICON_TIMERINDEX][gActiveSplitScreenMode].x;
-	y = gIconInfo[ICON_TIMERINDEX][gActiveSplitScreenMode].y;
-	scale = gIconInfo[ICON_TIMERINDEX][gActiveSplitScreenMode].scale;
-	spacing = gIconInfo[ICON_TIMERINDEX][gActiveSplitScreenMode].xSpacing;
+	x			= GetIconX(ICON_TIMERINDEX);
+	y			= GetIconY(ICON_TIMERINDEX);
+	scale		= GetIconScale(ICON_TIMERINDEX);
+	spacing		= GetIconXSpacing(ICON_TIMERINDEX);
 
 
 	p = GetPlayerNum(gCurrentSplitScreenPane);
 	timer = gPlayerInfo[p].health;							// get timer value 0..1
 	x += timer * spacing;
 
-	DrawSprite(SPRITE_GROUP_INFOBAR, INFOBAR_SObjType_Marker, x, y, scale, 0, 0, setupInfo);
+	DrawSprite(SPRITE_GROUP_INFOBAR, INFOBAR_SObjType_Marker, x, y, scale, 0, INFOBAR_SPRITE_FLAGS, setupInfo);
 
 
 		/**********************************************/
@@ -906,7 +944,7 @@ float	timer,x,y, scale, spacing, dist;
 
 	if (p2 != -1)
 	{
-		x = gIconInfo[ICON_TIMERINDEX][gActiveSplitScreenMode].x;
+		x = GetIconX(ICON_TIMERINDEX);
 		timer = gPlayerInfo[p2].health;
 		x += timer * spacing;
 
@@ -915,7 +953,7 @@ float	timer,x,y, scale, spacing, dist;
 		gGlobalColorFilter.b = 0;
 		gGlobalTransparency = .35;
 
-		DrawSprite(SPRITE_GROUP_INFOBAR, INFOBAR_SObjType_Marker, x, y, scale, 0, 0, setupInfo);
+		DrawSprite(SPRITE_GROUP_INFOBAR, INFOBAR_SObjType_Marker, x, y, scale, 0, INFOBAR_SPRITE_FLAGS, setupInfo);
 
 		gGlobalColorFilter.r =
 		gGlobalColorFilter.g =
@@ -938,14 +976,14 @@ float	x,y, scale, spacing;
 	p = GetPlayerNum(gCurrentSplitScreenPane);
 	t = gPlayerInfo[p].team;							// get team #
 
-	x 		= gIconInfo[ICON_FIRE][gActiveSplitScreenMode].x;
-	y 		= gIconInfo[ICON_FIRE][gActiveSplitScreenMode].y;
-	scale 	= gIconInfo[ICON_FIRE][gActiveSplitScreenMode].scale;
-	spacing	= gIconInfo[ICON_FIRE][gActiveSplitScreenMode].xSpacing;
+	x 		= GetIconX(ICON_FIRE);
+	y 		= GetIconY(ICON_FIRE);
+	scale 	= GetIconScale(ICON_FIRE);
+	spacing	= GetIconXSpacing(ICON_FIRE);
 
 	for (i = 0; i < gCapturedFlagCount[t]; i++)
 	{
-		DrawSprite(SPRITE_GROUP_INFOBAR, INFOBAR_SObjType_RedTorch + t,	x, y, scale, 0, 0, setupInfo);
+		DrawSprite(SPRITE_GROUP_INFOBAR, INFOBAR_SObjType_RedTorch + t,	x, y, scale, 0, INFOBAR_SPRITE_FLAGS, setupInfo);
 		x += spacing;
 	}
 
