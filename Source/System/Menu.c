@@ -19,7 +19,6 @@
 
 #define UpdateInput() DoSDLMaintenance()
 #define UserWantsOut() AreAnyNewKeysPressed()
-#define GetNewClickState(btn) GetNewClickState(btn)
 
 
 /****************************/
@@ -839,6 +838,7 @@ static void NavigateKeyBinding(const MenuItem* entry)
 	}
 
 	if (GetNewNeedStateAnyP(kNeed_UIDelete)
+		|| GetNewKeyState(SDL_SCANCODE_SPACE)
 		|| (gNav->mouseHoverValid && GetNewClickState(SDL_BUTTON_MIDDLE)))
 	{
 		gNav->idleTime = 0;
@@ -849,6 +849,7 @@ static void NavigateKeyBinding(const MenuItem* entry)
 	}
 
 	if (GetNewKeyState(SDL_SCANCODE_RETURN)
+		|| GetNewKeyState(SDL_SCANCODE_KP_ENTER)
 		|| (gNav->mouseHoverValid && GetNewClickState(SDL_BUTTON_LEFT)))
 	{
 		gNav->idleTime = 0;
@@ -886,6 +887,7 @@ static void NavigatePadBinding(const MenuItem* entry)
 	}
 
 	if (GetNewNeedStateAnyP(kNeed_UIDelete)
+		|| GetNewKeyState(SDL_SCANCODE_SPACE)
 		|| (gNav->mouseHoverValid && GetNewClickState(SDL_BUTTON_MIDDLE)))
 	{
 		gNav->idleTime = 0;
@@ -895,7 +897,8 @@ static void NavigatePadBinding(const MenuItem* entry)
 		return;
 	}
 
-	if (GetNewNeedStateAnyP(kNeed_UIConfirm)
+	if ( (GetNewNeedStateAnyP(kNeed_UIConfirm) && !GetNewKeyState(SDL_SCANCODE_SPACE))
+		|| GetNewKeyState(SDL_SCANCODE_KP_ENTER)
 		|| (gNav->mouseHoverValid && GetNewClickState(SDL_BUTTON_LEFT)))
 	{
 		gNav->idleTime = 0;
