@@ -1,3 +1,7 @@
+// SDL INPUT
+// (C) 2022 Iliyas Jorio
+// This file is part of Cro-Mag Rally. https://github.com/jorio/CroMagRally
+
 #include "game.h"
 #include <SDL.h>
 
@@ -461,6 +465,18 @@ int GetNumControllers(void)
 	return count;
 }
 
+SDL_GameController* GetController(int n)
+{
+	if (gControllers[n].open)
+	{
+		return gControllers[n].controllerInstance;
+	}
+	else
+	{
+		return NULL;
+	}
+}
+
 static int FindFreeControllerSlot()
 {
 	for (int i = 0; i < MAX_LOCAL_PLAYERS; i++)
@@ -728,4 +744,30 @@ const char* GetPlayerNameWithInputDeviceHint(int whichPlayer)
 	}
 
 	return playerName;
+}
+
+#pragma mark -
+
+void ResetDefaultKeyboardBindings(void)
+{
+	for (int i = 0; i < NUM_CONTROL_NEEDS; i++)
+	{
+		memcpy(gGamePrefs.keys[i].key, kDefaultKeyBindings[i].key, sizeof(gGamePrefs.keys[i].key));
+	}
+}
+
+void ResetDefaultGamepadBindings(void)
+{
+	for (int i = 0; i < NUM_CONTROL_NEEDS; i++)
+	{
+		memcpy(gGamePrefs.keys[i].gamepad, kDefaultKeyBindings[i].gamepad, sizeof(gGamePrefs.keys[i].gamepad));
+	}
+}
+
+void ResetDefaultMouseBindings(void)
+{
+	for (int i = 0; i < NUM_CONTROL_NEEDS; i++)
+	{
+		gGamePrefs.keys[i].mouseButton = kDefaultKeyBindings[i].mouseButton;
+	}
 }

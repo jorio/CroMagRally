@@ -688,15 +688,19 @@ static void NavigatePick(const MenuItem* entry)
 
 			LayOutMenu(newMenu);
 		}
-		else if (entry->gotoMenu == 0)
+		else if (entry->gotoMenu == kGotoMenu_ExitMenuTree)
 		{
 			// Exit
 			gNav->menuState = kMenuStateFadeOut;
 		}
-		else if (entry->gotoMenu == -1)
+		else if (entry->gotoMenu == kGotoMenu_GoBack)
 		{
 			// Go up
 			GoBackInHistory();
+		}
+		else if (entry->gotoMenu == kGotoMenu_NoOp)
+		{
+			// Stay on current menu
 		}
 	}
 }
@@ -1066,23 +1070,19 @@ static void AwaitKeyPress(void)
 	}
 }
 
-#if 0
-static void AwaitPadPress(void)
+static bool AwaitGamepadPress(SDL_GameController* controller)
 {
 	if (GetNewKeyState(SDL_SCANCODE_ESCAPE)
-		|| SDL_GameControllerGetButton(gSDLController, SDL_CONTROLLER_BUTTON_START))
+		|| SDL_GameControllerGetButton(controller, SDL_CONTROLLER_BUTTON_START))
 	{
-		MakeTextAtRowCol(GetPadBindingName(gNav->menuRow, gNav->padColumn), gNav->menuRow, 1 + gNav->padColumn);
+		MakeText(GetPadBindingName(gNav->menuRow, gNav->padColumn), gNav->menuRow, 1 + gNav->padColumn, kTextMeshAllCaps);
 		gNav->menuState = kMenuStateReady;
 		PlayEffect(kSfxError);
 		ReplaceMenuText(STR_CONFIGURE_GAMEPAD_HELP, STR_CONFIGURE_GAMEPAD_HELP);
-		return;
+		return true;
 	}
 
 	KeyBinding* kb = GetBindingAtRow(gNav->menuRow);
-
-	if (!gSDLController)
-		return;
 
 	for (int8_t button = 0; button < SDL_CONTROLLER_BUTTON_MAX; button++)
 	{
@@ -1095,17 +1095,17 @@ static void AwaitPadPress(void)
 				continue;
 		}
 
-		if (SDL_GameControllerGetButton(gSDLController, button))
+		if (SDL_GameControllerGetButton(controller, button))
 		{
 			UnbindPadButtonFromAllRemappableInputNeeds(kInputTypeButton, button);
 			kb->gamepad[gNav->padColumn].type = kInputTypeButton;
 			kb->gamepad[gNav->padColumn].id = button;
-			MakeTextAtRowCol(GetPadBindingName(gNav->menuRow, gNav->padColumn), gNav->menuRow, gNav->padColumn+1, kTextMeshAllCaps);
+			MakeText(GetPadBindingName(gNav->menuRow, gNav->padColumn), gNav->menuRow, gNav->padColumn+1, kTextMeshAllCaps);
 			gNav->menuState = kMenuStateReady;
 			gNav->idleTime = 0;
 			PlayEffect(kSfxCycle);
 			ReplaceMenuText(STR_CONFIGURE_GAMEPAD_HELP, STR_CONFIGURE_GAMEPAD_HELP);
-			return;
+			return true;
 		}
 	}
 
@@ -1120,23 +1120,24 @@ static void AwaitPadPress(void)
 				continue;
 		}
 
-		int16_t axisValue = SDL_GameControllerGetAxis(gSDLController, axis);
+		int16_t axisValue = SDL_GameControllerGetAxis(controller, axis);
 		if (abs(axisValue) > kJoystickDeadZone_BindingThreshold)
 		{
 			int axisType = axisValue < 0 ? kInputTypeAxisMinus : kInputTypeAxisPlus;
 			UnbindPadButtonFromAllRemappableInputNeeds(axisType, axis);
 			kb->gamepad[gNav->padColumn].type = axisType;
 			kb->gamepad[gNav->padColumn].id = axis;
-			MakeTextAtRowCol(GetPadBindingName(gNav->menuRow, gNav->padColumn), gNav->menuRow, gNav->padColumn+1, kTextMeshAllCaps);
+			MakeText(GetPadBindingName(gNav->menuRow, gNav->padColumn), gNav->menuRow, gNav->padColumn+1, kTextMeshAllCaps);
 			gNav->menuState = kMenuStateReady;
 			gNav->idleTime = 0;
 			PlayEffect(kSfxCycle);
 			ReplaceMenuText(STR_CONFIGURE_GAMEPAD_HELP_CANCEL, STR_CONFIGURE_GAMEPAD_HELP);
-			return;
+			return true;
 		}
 	}
+
+	return false;
 }
-#endif
 
 static void AwaitMouseClick(void)
 {
@@ -1421,14 +1422,14 @@ static ObjNode* LayOutPadBinding(int row, float sweepFactor)
 
 	snprintf(buf, bufSize, "%s:", Localize(STR_KEYBINDING_DESCRIPTION_0 + entry->inputNeed));
 
-	ObjNode* label = MakeText(buf, row, 0, 0);
+	ObjNode* label = MakeText(buf, row, 0, kTextMeshAlignLeft);
 	label->ColorFilter = gNav->style.inactiveColor2;
 	label->MoveCall = MoveLabel;
 	label->SpecialSweepTimer = sweepFactor;
 
 	for (int j = 0; j < KEYBINDING_MAX_KEYS; j++)
 	{
-		ObjNode* keyNode = MakeText(GetPadBindingName(row, j), row, j+1, 0);
+		ObjNode* keyNode = MakeText(GetPadBindingName(row, j), row, j+1, kTextMeshAllCaps);
 		keyNode->MoveCall = MovePadBinding;
 		keyNode->SpecialSweepTimer = sweepFactor;
 	}
@@ -1624,8 +1625,14 @@ int StartMenuTree(
 				break;
 
 			case kMenuStateAwaitingPadPress:
-				//AwaitPadPress();
-				IMPLEMENT_ME_SOFT();
+				for (int i = 0; i < MAX_LOCAL_PLAYERS; i++)
+				{
+					SDL_GameController* controller = GetController(i);
+					if (controller && AwaitGamepadPress(controller))
+					{
+						break;
+					}
+				}
 				break;
 
 			case kMenuStateAwaitingMouseClick:

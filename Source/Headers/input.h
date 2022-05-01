@@ -165,11 +165,6 @@ Boolean GetNewNeedStateAnyP(int needID);
 
 float GetAnalogSteering(int playerID);
 
-void TurnOnISp(void);
-void TurnOffISp(void);
-
-void DoKeyConfigDialog(void);
-
 Boolean AreAnyNewKeysPressed(void);
 Boolean IsCheatKeyComboDown(void);
 void InitControlBits(void);
@@ -184,8 +179,13 @@ void PopKeys(void);
 void DoSDLMaintenance(void);
 
 int GetNumControllers(void);
+struct _SDL_GameController* GetController(int n);
 void Rumble(float strength, uint32_t ms);
 
 void LockPlayerControllerMapping(void);
 void UnlockPlayerControllerMapping(void);
 const char* GetPlayerNameWithInputDeviceHint(int whichPlayer);
+
+void ResetDefaultKeyboardBindings(void);
+void ResetDefaultGamepadBindings(void);
+void ResetDefaultMouseBindings(void);

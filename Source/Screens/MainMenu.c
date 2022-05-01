@@ -22,6 +22,21 @@
 static void SetupMainMenuScreen(void);
 static void FreeMainMenuArt(void);
 
+static void OnConfirmPlayMenu(const MenuItem* mi);
+static void OnPickGameMode(const MenuItem* mi);
+static void OnPickTournamentAge(const MenuItem* mi);
+static void OnPickHostOrJoin(const MenuItem* mi);
+static void OnPickGameMode(const MenuItem* mi);
+static void OnPickLanguage(const MenuItem* mi);
+static void OnToggleFullscreen(const MenuItem* mi);
+static void OnToggleMusic(const MenuItem* mi);
+static void OnPickClearSavedGame(const MenuItem* mi);
+static void OnPickTagDuration(const MenuItem* mi);
+static void OnPickResetKeyboardBindings(const MenuItem* mi);
+static void OnPickResetGamepadBindings(const MenuItem* mi);
+
+static bool IsClearSavedGameAvailable(const MenuItem* mi);
+static bool IsTournamentAgeAvailable(const MenuItem* mi);
 
 /****************************/
 /*    CONSTANTS             */
@@ -29,7 +44,7 @@ static void FreeMainMenuArt(void);
 
 enum
 {
-	MENU_ID_NULL,		// keep ID=0 unused
+	MENU_ID_NULL			= 0,		// keep ID=0 unused
 	MENU_ID_TITLE,
 	MENU_ID_PLAY,
 	MENU_ID_OPTIONS,
@@ -43,9 +58,9 @@ enum
 	MENU_ID_SETTINGS,
 	MENU_ID_CONFIRM_CLEAR_SAVE,
 	MENU_ID_REMAP_KEYBOARD,
+	MENU_ID_REMAP_GAMEPAD,
 	NUM_MENU_IDS
 };
-
 
 enum
 {
@@ -56,128 +71,12 @@ enum
 	MENU_EXITCODE_QUITGAME,
 };
 
-
 #define	DEMO_DELAY	20.0f			// # seconds of idle until self-running demo kicks in
 
 
 /*********************/
 /*    VARIABLES      */
 /*********************/
-
-static void PrimeSelfRunningDemo(void)
-{
-	gIsSelfRunningDemo = true;
-	gIsNetworkHost = false;								// assume I'm not hosting
-	gIsNetworkClient = false;							// assume I'm not joining either
-	gNetGameInProgress = false;
-	gNumLocalPlayers = 1;								// assume just 1 local player on this machine
-	gNumRealPlayers = 1;
-	gGameMode = GAME_MODE_PRACTICE;
-}
-
-static void OnConfirmPlayMenu(const MenuItem* mi)
-{
-	switch (mi->id)
-	{
-		case 1:
-			gIsNetworkHost = false;								// assume I'm not hosting
-			gIsNetworkClient = false;							// assume I'm not joining either
-			gNetGameInProgress = false;
-			gNumLocalPlayers = 1;								// assume just 1 local player on this machine
-			gNumRealPlayers = 1;
-			gGameMode = -1;										// no game mode selected yet
-			break;
-		
-		case 2:
-			gIsNetworkHost = false;								// assume I'm not hosting
-			gIsNetworkClient = false;							// assume I'm not joining either
-			gNetGameInProgress = false;
-			gNumLocalPlayers = 2;								// assume just 1 local player on this machine
-			gNumRealPlayers = 2;
-			gGameMode = -1;										// no game mode selected yet
-			break;
-
-		case 3:
-			gIsNetworkHost = false;								// assume I'm not hosting
-			gIsNetworkClient = false;							// assume I'm not joining either
-			gNetGameInProgress = true;
-			gNumRealPlayers = 1;
-			gNumLocalPlayers = 1;
-			gGameMode = -1;										// no game mode selected yet
-			break;
-	}
-}
-
-static void OnPickGameMode(const MenuItem* mi)
-{
-	gGameMode = GAME_CLAMP(mi->id, 0, NUM_GAME_MODES);
-}
-
-static void OnPickTournamentAge(const MenuItem* mi)
-{
-	gTheAge = GAME_CLAMP(mi->id, 0, NUM_AGES-1);
-}
-
-static void OnPickHostOrJoin(const MenuItem* mi)
-{
-	switch (mi->text)
-	{
-		case STR_HOST_NET_GAME:
-			gIsNetworkHost = true;
-			gIsNetworkClient = false;
-			break;
-		
-		case STR_JOIN_NET_GAME:
-			gIsNetworkHost = false;
-			gIsNetworkClient = true;
-			break;
-
-		default:
-			DoAlert("Unsupported host/join mode: %d", mi->text);
-			break;
-	}
-}
-
-static void OnPickLanguage(const MenuItem* mi)
-{
-	LoadLocalizedStrings(gGamePrefs.language);
-	LayoutCurrentMenuAgain();
-}
-
-static void OnToggleFullscreen(const MenuItem* mi)
-{
-	SetFullscreenMode(true);
-}
-
-static void OnToggleMusic(const MenuItem* mi)
-{
-	if ((!gMuteMusicFlag) != gGamePrefs.music)
-	{
-		ToggleMusic();
-	}
-}
-
-static bool IsClearSavedGameAvailable(const MenuItem* mi)
-{
-	(void) mi;
-	return GetNumAgesCompleted() > 0 || GetNumStagesCompleted() > 0;
-}
-
-static void OnPickClearSavedGame(const MenuItem* mi)
-{
-	SetPlayerProgression(0, 0);
-	SavePlayerFile();
-}
-
-static void OnPickTagDuration(const MenuItem* mi)
-{
-	gGamePrefs.tagDuration = mi->id;
-}
-
-static bool IsTournamentAgeAvailable(const MenuItem* mi)
-{
-	return mi->id <= GetNumAgesCompleted();
-}
 
 static const MenuItem
 	gMenuTitle[] =
@@ -204,9 +103,7 @@ static const MenuItem
 	{
 		{ kMenuItem_Pick, STR_SETTINGS, .gotoMenu=MENU_ID_SETTINGS },
 		{ kMenuItem_Pick, STR_CONFIGURE_KEYBOARD, .gotoMenu=MENU_ID_REMAP_KEYBOARD },
-#if 0	// TODO!
-		{ kMenuItem_Pick, STR_CONFIGURE_GAMEPAD, .gotoMenu=MENU_ID_SETTINGS },
-#endif
+		{ kMenuItem_Pick, STR_CONFIGURE_GAMEPAD, .gotoMenu=MENU_ID_REMAP_GAMEPAD },
 		{ kMenuItem_Pick, STR_CLEAR_SAVED_GAME, .gotoMenu=MENU_ID_CONFIRM_CLEAR_SAVE, .enableIf=IsClearSavedGameAvailable },
 		{ .type=kMenuItem_END_SENTINEL },
 	},
@@ -260,8 +157,8 @@ static const MenuItem
 		{ kMenuItem_Subtitle, .text=STR_CLEAR_SAVED_GAME_TEXT_2 },
 		{ kMenuItem_Spacer, .text=STR_NULL },
 		{ kMenuItem_Spacer, .text=STR_NULL },
-		{ kMenuItem_Pick, .text=STR_CLEAR_SAVED_GAME_CANCEL, .gotoMenu=-1 },
-		{ kMenuItem_Pick, .text=STR_CLEAR_SAVED_GAME, .callback=OnPickClearSavedGame, .gotoMenu=-1 },
+		{ kMenuItem_Pick, .text=STR_CLEAR_SAVED_GAME_CANCEL, .gotoMenu=kGotoMenu_GoBack },
+		{ kMenuItem_Pick, .text=STR_CLEAR_SAVED_GAME, .callback=OnPickClearSavedGame, .gotoMenu=kGotoMenu_GoBack },
 		{ .type=kMenuItem_END_SENTINEL },
 	},
 
@@ -356,8 +253,25 @@ static const MenuItem
 		{ kMenuItem_KeyBinding, .inputNeed=kNeed_ThrowBackward },
 		{ kMenuItem_KeyBinding, .inputNeed=kNeed_CameraMode },
 		{ kMenuItem_KeyBinding, .inputNeed=kNeed_RearView },
+		{ kMenuItem_Pick, STR_RESET_KEYBINDINGS, .callback=OnPickResetKeyboardBindings, .gotoMenu=kGotoMenu_NoOp },
+		{ .type=kMenuItem_END_SENTINEL },
+	},
+
+	gMenuRemapGamepad[] =
+	{
+		{ kMenuItem_PadBinding, .inputNeed=kNeed_Forward },
+		{ kMenuItem_PadBinding, .inputNeed=kNeed_Backward },
+		{ kMenuItem_PadBinding, .inputNeed=kNeed_Left },
+		{ kMenuItem_PadBinding, .inputNeed=kNeed_Right },
+		{ kMenuItem_PadBinding, .inputNeed=kNeed_Brakes },
+		{ kMenuItem_PadBinding, .inputNeed=kNeed_ThrowForward },
+		{ kMenuItem_PadBinding, .inputNeed=kNeed_ThrowBackward },
+		{ kMenuItem_PadBinding, .inputNeed=kNeed_CameraMode },
+		{ kMenuItem_PadBinding, .inputNeed=kNeed_RearView },
+		{ kMenuItem_Pick, STR_RESET_KEYBINDINGS, .callback=OnPickResetGamepadBindings, .gotoMenu=kGotoMenu_NoOp },
 		{ .type=kMenuItem_END_SENTINEL },
 	}
+
 	;
 
 
@@ -377,10 +291,23 @@ static const MenuItem* gMainMenuTree[NUM_MENU_IDS] =
 	[MENU_ID_SETTINGS] = gMenuSettings,
 	[MENU_ID_CONFIRM_CLEAR_SAVE] = gMenuConfirmClearSave,
 	[MENU_ID_REMAP_KEYBOARD] = gMenuRemapKeyboard,
+	[MENU_ID_REMAP_GAMEPAD] = gMenuRemapGamepad,
 };
 
 
 
+/********************** PRIME SELF-RUNNING DEMO **************************/
+
+static void PrimeSelfRunningDemo(void)
+{
+	gIsSelfRunningDemo = true;
+	gIsNetworkHost = false;								// assume I'm not hosting
+	gIsNetworkClient = false;							// assume I'm not joining either
+	gNetGameInProgress = false;
+	gNumLocalPlayers = 1;								// assume just 1 local player on this machine
+	gNumRealPlayers = 1;
+	gGameMode = GAME_MODE_PRACTICE;
+}
 
 
 
@@ -551,14 +478,6 @@ OGLVector3D			fillDirection2 = { -1, -.2, -.5 };
 			/* SETUP TITLE MENU */
 
 	MakeFadeEvent(true);
-}
-
-
-/***************** DRAW MAINMENU CALLBACK *******************/
-
-static void DrawMainMenuCallback(OGLSetupOutputType *info)
-{
-	DrawObjects(info);
 }
 
 
@@ -926,3 +845,127 @@ reset:
 }
 
 #endif
+
+#pragma mark - Menu Callbacks
+
+static void OnConfirmPlayMenu(const MenuItem* mi)
+{
+	switch (mi->id)
+	{
+		case 1:
+			gIsNetworkHost = false;								// assume I'm not hosting
+			gIsNetworkClient = false;							// assume I'm not joining either
+			gNetGameInProgress = false;
+			gNumLocalPlayers = 1;								// assume just 1 local player on this machine
+			gNumRealPlayers = 1;
+			gGameMode = -1;										// no game mode selected yet
+			break;
+
+		case 2:
+			gIsNetworkHost = false;								// assume I'm not hosting
+			gIsNetworkClient = false;							// assume I'm not joining either
+			gNetGameInProgress = false;
+			gNumLocalPlayers = 2;								// assume just 1 local player on this machine
+			gNumRealPlayers = 2;
+			gGameMode = -1;										// no game mode selected yet
+			break;
+
+		case 3:
+			gIsNetworkHost = false;								// assume I'm not hosting
+			gIsNetworkClient = false;							// assume I'm not joining either
+			gNetGameInProgress = true;
+			gNumRealPlayers = 1;
+			gNumLocalPlayers = 1;
+			gGameMode = -1;										// no game mode selected yet
+			break;
+	}
+}
+
+static void OnPickGameMode(const MenuItem* mi)
+{
+	gGameMode = GAME_CLAMP(mi->id, 0, NUM_GAME_MODES);
+}
+
+static void OnPickTournamentAge(const MenuItem* mi)
+{
+	gTheAge = GAME_CLAMP(mi->id, 0, NUM_AGES-1);
+}
+
+static void OnPickHostOrJoin(const MenuItem* mi)
+{
+	switch (mi->text)
+	{
+		case STR_HOST_NET_GAME:
+			gIsNetworkHost = true;
+			gIsNetworkClient = false;
+			break;
+
+		case STR_JOIN_NET_GAME:
+			gIsNetworkHost = false;
+			gIsNetworkClient = true;
+			break;
+
+		default:
+			DoAlert("Unsupported host/join mode: %d", mi->text);
+			break;
+	}
+}
+
+static void OnPickLanguage(const MenuItem* mi)
+{
+	LoadLocalizedStrings(gGamePrefs.language);
+	LayoutCurrentMenuAgain();
+}
+
+static void OnToggleFullscreen(const MenuItem* mi)
+{
+	SetFullscreenMode(true);
+}
+
+static void OnToggleMusic(const MenuItem* mi)
+{
+	if ((!gMuteMusicFlag) != gGamePrefs.music)
+	{
+		ToggleMusic();
+	}
+}
+
+static void OnPickClearSavedGame(const MenuItem* mi)
+{
+	SetPlayerProgression(0, 0);
+	SavePlayerFile();
+}
+
+static void OnPickTagDuration(const MenuItem* mi)
+{
+	gGamePrefs.tagDuration = mi->id;
+}
+
+static void OnPickResetKeyboardBindings(const MenuItem* mi)
+{
+	MyFlushEvents();
+	ResetDefaultKeyboardBindings();
+	PlayEffect(EFFECT_BOOM);
+	LayoutCurrentMenuAgain();
+}
+
+static void OnPickResetGamepadBindings(const MenuItem* mi)
+{
+	MyFlushEvents();
+	ResetDefaultGamepadBindings();
+	PlayEffect(EFFECT_BOOM);
+	LayoutCurrentMenuAgain();
+}
+
+#pragma mark -
+
+static bool IsClearSavedGameAvailable(const MenuItem* mi)
+{
+	(void) mi;
+	return GetNumAgesCompleted() > 0 || GetNumStagesCompleted() > 0;
+}
+
+static bool IsTournamentAgeAvailable(const MenuItem* mi)
+{
+	return mi->id <= GetNumAgesCompleted();
+}

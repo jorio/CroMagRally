@@ -21,6 +21,13 @@ typedef enum
 	kMenuItem_NUM_ITEM_TYPES
 } MenuItemType;
 
+enum
+{
+	kGotoMenu_ExitMenuTree = 0,
+	kGotoMenu_GoBack = -1,
+	kGotoMenu_NoOp = -2,
+};
+
 typedef struct
 {
 	Byte*			valuePtr;
