@@ -16,6 +16,7 @@
 /*    PROTOTYPES            */
 /****************************/
 
+static void OnPickResetPhysics(const MenuItem* mi);
 static void SetupPhysicsEditorScreen(void);
 
 
@@ -57,7 +58,7 @@ static const MenuItem
 		{ kMenuItem_Spacer, .text = STR_NULL },
 		{ kMenuItem_Pick, STR_PHYSICS_EDIT_CAR_STATS, .gotoMenu=MENU_ID_PHYSICS_CAR_STATS, },
 		{ kMenuItem_Pick, STR_PHYSICS_EDIT_CONSTANTS, .gotoMenu=MENU_ID_PHYSICS_CONSTANTS, },
-		{ kMenuItem_Pick, STR_PHYSICS_RESET },
+		{ kMenuItem_Pick, STR_PHYSICS_RESET, .callback=OnPickResetPhysics },
 		{.type = kMenuItem_END_SENTINEL },
 	},
 
@@ -112,7 +113,6 @@ static const MenuItem* gPhysicsMenuTree[NUM_MENU_IDS] =
 	[MENU_ID_PHYSICS_CAR_STATS] = gMenuPhysicsCarStats,
 	[MENU_ID_PHYSICS_CONSTANTS] = gMenuPhysicsConstants,
 };
-
 
 
 
@@ -195,3 +195,11 @@ OGLVector3D			fillDirection2 = { -1, -.2, -.5 };
 
 	MakeFadeEvent(true);
 }
+
+#pragma mark -
+
+static void OnPickResetPhysics(const MenuItem* mi)
+{
+	SetDefaultPhysics();
+}
+
