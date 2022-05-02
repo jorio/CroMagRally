@@ -891,7 +891,7 @@ static void NavigatePadBinding(const MenuItem* entry)
 		gNav->idleTime = 0;
 		gGamePrefs.keys[entry->inputNeed].gamepad[gNav->padColumn].type = kInputTypeUnbound;
 		PlayEffect(kSfxDelete);
-		MakeText(Localize(STR_UNBOUND_PLACEHOLDER), gNav->menuRow, gNav->padColumn+1, kTextMeshAllCaps);
+		MakeText(Localize(STR_UNBOUND_PLACEHOLDER), gNav->menuRow, gNav->padColumn+1, kTextMeshAllCaps | kTextMeshAlignLeft);
 		return;
 	}
 
@@ -907,7 +907,7 @@ static void NavigatePadBinding(const MenuItem* entry)
 		}
 
 		gNav->menuState = kMenuStateAwaitingPadPress;
-		MakeText(Localize(STR_PRESS), gNav->menuRow, gNav->padColumn+1, kTextMeshAllCaps);
+		MakeText(Localize(STR_PRESS), gNav->menuRow, gNav->padColumn+1, kTextMeshAllCaps | kTextMeshAlignLeft);
 
 		// Change subtitle to help message
 		ReplaceMenuText(STR_CONFIGURE_GAMEPAD_HELP, STR_CONFIGURE_GAMEPAD_HELP_CANCEL);
@@ -1089,6 +1089,7 @@ static bool AwaitGamepadPress(SDL_GameController* controller)
 
 	for (int8_t button = 0; button < SDL_CONTROLLER_BUTTON_MAX; button++)
 	{
+#if 0
 		switch (button)
 		{
 			case SDL_CONTROLLER_BUTTON_DPAD_UP:			// prevent binding those
@@ -1097,6 +1098,7 @@ static bool AwaitGamepadPress(SDL_GameController* controller)
 			case SDL_CONTROLLER_BUTTON_DPAD_RIGHT:
 				continue;
 		}
+#endif
 
 		if (SDL_GameControllerGetButton(controller, button))
 		{
@@ -1118,8 +1120,10 @@ static bool AwaitGamepadPress(SDL_GameController* controller)
 		{
 			case SDL_CONTROLLER_AXIS_LEFTX:				// prevent binding those
 			case SDL_CONTROLLER_AXIS_LEFTY:
+#if 0
 			case SDL_CONTROLLER_AXIS_RIGHTX:
 			case SDL_CONTROLLER_AXIS_RIGHTY:
+#endif
 				continue;
 		}
 
