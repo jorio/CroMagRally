@@ -17,8 +17,7 @@
 /*     PROTOTYPES     */
 /**********************/
 
-static void MyGetKeys(KeyMap *keyMap);
-static void GetLocalKeyStateForPlayer(short playerNum, Boolean secondaryControls);
+static void GetLocalKeyStateForPlayer(short playerNum);
 
 static void DoMyKeyboardEdit(void);
 static void SetKeyControl(short item, unsigned short keyCode);
@@ -371,15 +370,17 @@ void GetLocalKeyState(void)
 
 	if (gActiveSplitScreenMode == SPLITSCREEN_MODE_NONE)
 	{
-		GetLocalKeyStateForPlayer(gMyNetworkPlayerNum, 0);
+		GetLocalKeyStateForPlayer(gMyNetworkPlayerNum);
 	}
 
 		/* GET KEY STATES FOR BOTH PLAYERS */
 
 	else
 	{
-		GetLocalKeyStateForPlayer(0, 0);
-		GetLocalKeyStateForPlayer(1, 1);
+		for (int i = 0; i < gNumRealPlayers; i++)
+		{
+			GetLocalKeyStateForPlayer(i);
+		}
 	}
 }
 
@@ -395,7 +396,7 @@ void GetLocalKeyState(void)
 //
 
 
-static void GetLocalKeyStateForPlayer(short playerNum, Boolean secondaryControls)
+static void GetLocalKeyStateForPlayer(short playerNum)
 {
 uint32_t	mask,old;
 short	i;
@@ -409,9 +410,6 @@ short	i;
 
 	for (i = 0; i < NUM_CONTROL_BITS; i++)
 	{
-//		if (secondaryControls)
-//			printf("TODO: Secondary Controls - %d\n", playerNum);
-		
 		if (GetNeedState(i, playerNum))								// see if key is down
 			gPlayerInfo[playerNum].controlBits |= mask;				// set bit in bitfield
 
