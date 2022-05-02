@@ -190,7 +190,7 @@ static Boolean PlayGame(void)
 	if (gNetGameInProgress)
 		SetDefaultPhysics();								// set all physics to defaults for net game
 
-	if (gNumLocalPlayers > 1)
+	if (!gIsSelfRunningDemo && gNumLocalPlayers > 1)
 	{
 		if (DoLocalGatherScreen())
 			return true;
