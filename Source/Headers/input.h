@@ -84,72 +84,12 @@ enum
 	kControlBit_Backward      = kNeed_Backward,
 };
 
-#if 0
-enum
-{
-	kKey_Pause				= KEY_ESC,
-
-	kKey_ToggleMusic 		= KEY_M,
-	kKey_RaiseVolume 		= KEY_PLUS,
-	kKey_LowerVolume 		= KEY_MINUS,
-
-	kKey_ThrowForward_P1	= KEY_APPLE,
-	kKey_ThrowForward_P2	= KEY_SHIFT,
-
-	kKey_ThrowBackward_P1	= KEY_OPTION,
-	kKey_ThrowBackward_P2	= KEY_3,
-
-	kKey_Brakes_P1			= KEY_SPACE,
-	kKey_Brakes_P2			= KEY_TAB,
-
-	kKey_CameraMode_P1		= KEY_TILDE,
-	kKey_CameraMode_P2		= KEY_2,
-
-	kKey_Forward_P1			= KEY_UP,
-	kKey_Backward_P1		= KEY_DOWN,
-
-	kKey_Left_P1			= KEY_LEFT,
-	kKey_Right_P1			= KEY_RIGHT,
-
-	kKey_Left_P2			= KEY_A,
-	kKey_Right_P2			= KEY_D,
-
-	kKey_Forward_P2			= KEY_W,
-	kKey_Backward_P2		= KEY_S,
-
-	kKey_Quit				= KEY_Q
-};
-
-#define	kKey_MakeSelection_P1	kKey_Brakes_P1
-#define	kKey_MakeSelection_P2	kKey_Brakes_P2
-
-
-
-
-
-enum				// must match gControlBitToKey list!!!
-{
-	kControlBit_ThrowForward = 0,
-	kControlBit_ThrowBackward,
-	kControlBit_Brakes,
-	kControlBit_CameraMode,
-	kControlBit_Forward,
-	kControlBit_Backward,
-
-	NUM_CONTROL_BITS
-};
-
-
-//#define	NUM_CONTROL_NEEDS		14
-
-#endif
-
 
 //============================================================================================
 
 
 void InitInput(void);
-extern	void ReadKeyboard(void);
+void ReadKeyboard(void);
 
 Boolean GetKeyState(uint16_t sdlScancode);
 Boolean GetNewKeyState(uint16_t sdlScancode);
