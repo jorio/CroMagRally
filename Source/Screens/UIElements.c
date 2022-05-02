@@ -17,7 +17,9 @@
 #define PadlockWiggleTimer	SpecialF[2]
 #define PadlockWiggleSign	SpecialF[3]
 
-void MoveUIArrow(ObjNode* theNode)
+#pragma mark -
+
+static void PrimeUIArrow(ObjNode* theNode)
 {
 	if (!theNode->ArrowInitialized)
 	{
@@ -26,6 +28,11 @@ void MoveUIArrow(ObjNode* theNode)
 		theNode->ArrowHomeY = theNode->Coord.y;
 		theNode->ArrowInitialized = true;
 	}
+}
+
+void MoveUIArrow(ObjNode* theNode)
+{
+	PrimeUIArrow(theNode);
 
 	float dx = theNode->Coord.x - theNode->ArrowHomeX;
 	float dy = theNode->Coord.y - theNode->ArrowHomeY;
@@ -49,11 +56,15 @@ void MoveUIArrow(ObjNode* theNode)
 
 void TwitchUIArrow(ObjNode* theNode, float x, float y)
 {
+	PrimeUIArrow(theNode);
+
 	theNode->Coord.x = theNode->ArrowHomeX + ARROW_TWITCH_DISTANCE * x;
 	theNode->Coord.y = theNode->ArrowHomeY + ARROW_TWITCH_DISTANCE * y;
 }
 
-void MoveUIPadlock(ObjNode* theNode)
+#pragma mark -
+
+static void PrimeUIPadlock(ObjNode* theNode)
 {
 	if (!theNode->PadlockInitialized)
 	{
@@ -61,8 +72,14 @@ void MoveUIPadlock(ObjNode* theNode)
 		theNode->PadlockHomeX = theNode->Coord.x;
 		theNode->PadlockHomeY = theNode->Coord.y;
 		theNode->PadlockWiggleSign = 1;
+		theNode->PadlockWiggleTimer = 0;
 		theNode->PadlockInitialized = true;
 	}
+}
+
+void MoveUIPadlock(ObjNode* theNode)
+{
+	PrimeUIPadlock(theNode);
 
 	if (theNode->PadlockWiggleTimer <= 0)
 	{
@@ -89,6 +106,7 @@ void MoveUIPadlock(ObjNode* theNode)
 
 void WiggleUIPadlock(ObjNode* theNode)
 {
+	PrimeUIPadlock(theNode);
 	theNode->PadlockWiggleTimer = PADLOCK_WIGGLE_DURATION;
 	theNode->PadlockWiggleSign = -theNode->PadlockWiggleSign;	// alternate sign everytime we wiggle anew
 }
