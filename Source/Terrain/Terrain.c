@@ -897,9 +897,8 @@ uint32_t			pictRowBytes;
 		/* PREPARE SUPERTILE GRID FOR THE NEXT FRAME */
 		/*********************************************/
 
-	if (gActiveSplitScreenMode != SPLITSCREEN_MODE_NONE)				// if splitscreen, then dont do this until done with player #2
-		if (gCurrentSplitScreenPane < 1)
-			goto dont_prep_grid;
+	if (gCurrentSplitScreenPane != gNumSplitScreenPanes-1)				// if splitscreen, then don't do this until done with last player
+		goto dont_prep_grid;
 
 	for (r = 0; r < gNumSuperTilesDeep; r++)
 	{
