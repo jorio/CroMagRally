@@ -329,7 +329,7 @@ static void UpdateMainMenuScreen(void)
 	MoveObjects();
 
 	if (GetCurrentMenu() == gMenuTitle &&
-		GetMenuIdleTime() > DEMO_DELAY && gNumLocalPlayers < 2)
+		(GetMenuIdleTime() > DEMO_DELAY || IsCheatKeyComboDown()))
 	{
 		gGameViewInfoPtr->fadePillarbox = true;
 		KillMenu(MENU_EXITCODE_SELFRUNDEMO);
