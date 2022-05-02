@@ -1331,12 +1331,12 @@ static void CleanupLevel(void)
 	EndNetworkGame();
 	StopAllEffectChannels();
  	EmptySplineObjectList();
+	DisposeInfobar();
 	DeleteAllObjects();
 	FreeAllSkeletonFiles(-1);
 	DisposeSuperTileMemoryList();
 	DisposeTerrain();
 	DeleteAllParticleGroups();
-	DisposeInfobar();
 	DisposeParticleSystem();
 	DisposeAllSpriteGroups();
 	DisposeCavemanSkins();

@@ -15,7 +15,8 @@ enum
 	FENCE_SLOT		=	3098,	// before sprites
 	PARTICLE_SLOT	=	3099,	// before sprites
 	SPRITE_SLOT		=	3100,
-	FADE_SLOT		=	4000,
+	INFOBAR_SLOT	=	8999,	// before fade, but after everything else
+	FADE_SLOT		=	9000,
 };
 
 

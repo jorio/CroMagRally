@@ -890,8 +890,6 @@ uint32_t			pictRowBytes;
 
 	DrawSkidMarks();
 	DrawObjects(setupInfo);												// draw objNodes & fences
-//	DrawParticleGroup(setupInfo);
-	DrawInfobar(setupInfo);												// draw infobar last
 
 		/*********************************************/
 		/* PREPARE SUPERTILE GRID FOR THE NEXT FRAME */

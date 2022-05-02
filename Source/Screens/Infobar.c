@@ -15,6 +15,8 @@
 /*    PROTOTYPES            */
 /****************************/
 
+static void DrawInfobar(ObjNode* theNode, OGLSetupOutputType* setupInfo);
+
 static void Infobar_DrawMap(const OGLSetupOutputType *setupInfo);
 static void Infobar_DrawPlace(const OGLSetupOutputType *setupInfo);
 static void Infobar_DrawInventoryPOW(const OGLSetupOutputType *setupInfo);
@@ -117,6 +119,8 @@ static const struct
 /*    VARIABLES      */
 /*********************/
 
+static ObjNode	*gInfobarMasterObj = nil;
+
 static float	gMapFit = 1;
 
 float			gStartingLightTimer;
@@ -203,6 +207,23 @@ static const char*	maps[] =
 };
 
 
+			/* SETUP MASTER OBJECT */
+
+	GAME_ASSERT(!gInfobarMasterObj);
+
+	{
+		NewObjectDefinitionType def =
+		{
+			.scale = 1,
+			.slot = INFOBAR_SLOT,
+			.genre = CUSTOM_GENRE,
+		};
+		gInfobarMasterObj = MakeNewObject(&def);
+		gInfobarMasterObj->CustomDrawFunction = DrawInfobar;
+	}
+
+	
+
 		/* SETUP STARTING LIGHT */
 
 	gStartingLightTimer = 3.0;											// init starting light
@@ -240,12 +261,17 @@ static const char*	maps[] =
 
 void DisposeInfobar(void)
 {
+	if (gInfobarMasterObj)
+	{
+		DeleteObject(gInfobarMasterObj);
+		gInfobarMasterObj = nil;
+	}
 }
 
 
 /********************** DRAW INFOBAR ****************************/
 
-void DrawInfobar(OGLSetupOutputType *setupInfo)
+static void DrawInfobar(ObjNode* theNode, OGLSetupOutputType *setupInfo)
 {
 	if (gHideInfobar)
 		return;
