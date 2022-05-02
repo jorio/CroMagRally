@@ -364,7 +364,7 @@ void DisposeAllSoundBanks(void)
 void StopAChannel(short *channelNum)
 {
 SndCommand 	mySndCmd;
-SCStatus	theStatus = {};
+SCStatus	theStatus = {0};
 short		c = *channelNum;
 
 	if ((c < 0) || (c >= gMaxChannels))		// make sure its a legal #
@@ -397,7 +397,7 @@ short		c = *channelNum;
 void StopAChannelIfEffectNum(short *channelNum, short effectNum)
 {
 SndCommand 	mySndCmd;
-SCStatus	theStatus = {};
+SCStatus	theStatus = {0};
 short		c = *channelNum;
 
 	if ((c < 0) || (c >= gMaxChannels))				// make sure its a legal #
