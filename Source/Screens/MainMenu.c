@@ -93,8 +93,10 @@ static const MenuItem
 	{
 		{ kMenuItem_Pick, STR_1PLAYER,	.id=1, .callback=OnConfirmPlayMenu, .gotoMenu=MENU_ID_1PLAYERGAMETYPE },
 		{ kMenuItem_Pick, STR_2PLAYER,	.id=2, .callback=OnConfirmPlayMenu, .gotoMenu=MENU_ID_MULTIPLAYERGAMETYPE },
+		{ kMenuItem_Pick, STR_3PLAYER,	.id=3, .callback=OnConfirmPlayMenu, .gotoMenu=MENU_ID_MULTIPLAYERGAMETYPE },
+		{ kMenuItem_Pick, STR_4PLAYER,	.id=4, .callback=OnConfirmPlayMenu, .gotoMenu=MENU_ID_MULTIPLAYERGAMETYPE },
 #if 0	// TODO!
-		{ kMenuItem_Pick, STR_NET_GAME,	.id=3, .callback=OnConfirmPlayMenu, .gotoMenu=MENU_ID_NETGAME },
+		{ kMenuItem_Pick, STR_NET_GAME,	.id=0, .callback=OnConfirmPlayMenu, .gotoMenu=MENU_ID_NETGAME },
 #endif
 		{ .type=kMenuItem_END_SENTINEL },
 	},
@@ -858,34 +860,33 @@ reset:
 
 static void OnConfirmPlayMenu(const MenuItem* mi)
 {
+	gIsNetworkHost = false;								// assume I'm not hosting
+	gIsNetworkClient = false;							// assume I'm not joining either
+	gGameMode = -1;										// no game mode selected yet
+
 	switch (mi->id)
 	{
 		case 1:
-			gIsNetworkHost = false;								// assume I'm not hosting
-			gIsNetworkClient = false;							// assume I'm not joining either
-			gNetGameInProgress = false;
-			gNumLocalPlayers = 1;								// assume just 1 local player on this machine
-			gNumRealPlayers = 1;
-			gGameMode = -1;										// no game mode selected yet
-			break;
-
 		case 2:
-			gIsNetworkHost = false;								// assume I'm not hosting
-			gIsNetworkClient = false;							// assume I'm not joining either
+		case 3:
+		case 4:
+		case 5:
+		case 6:
+		case 7:
+		case 8:
 			gNetGameInProgress = false;
-			gNumLocalPlayers = 2;								// assume just 1 local player on this machine
-			gNumRealPlayers = 2;
-			gGameMode = -1;										// no game mode selected yet
+			gNumLocalPlayers = mi->id;					// assume only local player(s) on this machine
+			gNumRealPlayers = mi->id;
 			break;
 
-		case 3:
-			gIsNetworkHost = false;								// assume I'm not hosting
-			gIsNetworkClient = false;							// assume I'm not joining either
+		case 0:
 			gNetGameInProgress = true;
 			gNumRealPlayers = 1;
 			gNumLocalPlayers = 1;
-			gGameMode = -1;										// no game mode selected yet
 			break;
+
+		default:
+			DoFatalAlert("Unsupported pick ID in play menu: %d", mi->id);
 	}
 }
 

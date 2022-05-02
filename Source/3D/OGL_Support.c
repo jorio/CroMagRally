@@ -213,6 +213,14 @@ OGLSetupOutputType	*outputPtr;
 				gActiveSplitScreenMode = gGamePrefs.desiredSplitScreenMode;
 				break;
 
+		case	3:
+				gActiveSplitScreenMode = SPLITSCREEN_MODE_2X2;
+				break;
+
+		case	4:
+				gActiveSplitScreenMode = SPLITSCREEN_MODE_2X2;
+				break;
+
 		default:
 			DoFatalAlert("OGL_SetupWindow: # panes not implemented");
 	}
@@ -858,6 +866,9 @@ int	t,b,l,r;
 	l = setupInfo->clip.left;
 	r = setupInfo->clip.right;
 
+	int clippedWidth = gGameWindowWidth - l - r;
+	int clippedHeight = gGameWindowHeight - t - b;
+
 	if (setupInfo->pillarbox4x3)
 	{
 		int widescreenAdjustedWidth = gGameWindowHeight * 640 / 480;
@@ -885,18 +896,18 @@ int	t,b,l,r;
 		case	SPLITSCREEN_MODE_NONE:
 				*x = l;
 				*y = t;
-				*w = gGameWindowWidth-l-r;
-				*h = gGameWindowHeight-t-b;
+				*w = clippedWidth;
+				*h = clippedHeight;
 				break;
 
-		case	SPLITSCREEN_MODE_HORIZ:
+		case	SPLITSCREEN_MODE_1X2:
 				*x = l;
-				*w = gGameWindowWidth-l-r;
-				*h = (gGameWindowHeight-l-r)/2;
+				*w = clippedWidth;
+				*h = clippedHeight/2;
 				switch(whichPane)
 				{
 					case	0:
-							*y = t + (gGameWindowHeight-l-r)/2;
+							*y = t + clippedHeight/2;
 							break;
 
 					case	1:
@@ -904,13 +915,13 @@ int	t,b,l,r;
 							break;
 					
 					default:
-							DoFatalAlert("Unsupported pane # (horiz split)");
+							DoFatalAlert("Unsupported pane # (1x2 split)");
 				}
 				break;
 
-		case	SPLITSCREEN_MODE_VERT:
-				*w = (gGameWindowWidth-l-r)/2;
-				*h = gGameWindowHeight-t-b;
+		case	SPLITSCREEN_MODE_2X1:
+				*w = clippedWidth/2;
+				*h = clippedHeight;
 				*y = t;
 				switch(whichPane)
 				{
@@ -919,14 +930,44 @@ int	t,b,l,r;
 							break;
 
 					case	1:
-							*x = l + (gGameWindowWidth-l-r)/2;
+							*x = l + clippedWidth/2;
 							break;
 						
 					default:
-							DoFatalAlert("Unsupported pane # (vert split)");
+							DoFatalAlert("Unsupported pane # (2x1 split)");
 				}
 				break;
-		
+
+		case	SPLITSCREEN_MODE_2X2:
+				*w = clippedWidth / 2;
+				*h = clippedHeight / 2;
+				switch (whichPane)
+				{
+					case	2:
+						*x = l;
+						*y = t;
+						break;
+
+					case	3:
+						*x = l + clippedWidth / 2;
+						*y = t;
+						break;
+
+					case	0:
+						*x = l;
+						*y = t + clippedHeight / 2;
+						break;
+
+					case	1:
+						*x = l + clippedWidth / 2;
+						*y = t + clippedHeight / 2;
+						break;
+
+					default:
+						DoFatalAlert("Unsupported pane # (2x2 split)");
+				}
+				break;
+
 		default:
 				DoFatalAlert("Unsupported split-screen mode %d", gActiveSplitScreenMode);
 	}

@@ -9,7 +9,7 @@
 #define NUM_AREAS_PER_WORLD	3
 
 #define	MAX_PLAYERS			6
-#define	MAX_LOCAL_PLAYERS	2
+#define	MAX_LOCAL_PLAYERS	4
 
 #define	GAME_FOV		1.1f
 

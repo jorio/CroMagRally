@@ -37,8 +37,8 @@ static const MenuItem
 				.valuePtr = &gGamePrefs.desiredSplitScreenMode,
 				.choices =
 				{
-					{ .text = STR_SPLITSCREEN_HORIZ, .value = SPLITSCREEN_MODE_HORIZ },
-					{ .text = STR_SPLITSCREEN_VERT, .value = SPLITSCREEN_MODE_VERT },
+					{ .text = STR_SPLITSCREEN_HORIZ, .value = SPLITSCREEN_MODE_2X1 },
+					{ .text = STR_SPLITSCREEN_VERT, .value = SPLITSCREEN_MODE_1X2 },
 				},
 			}
 		},

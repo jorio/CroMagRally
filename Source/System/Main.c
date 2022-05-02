@@ -162,7 +162,7 @@ void InitDefaultPrefs(void)
 
 	gGamePrefs.language				= GetBestLanguageIDFromSystemLocale();
 	gGamePrefs.difficulty			= DIFFICULTY_MEDIUM;
-	gGamePrefs.desiredSplitScreenMode	= SPLITSCREEN_MODE_VERT;
+	gGamePrefs.desiredSplitScreenMode	= SPLITSCREEN_MODE_1X2;
 	gGamePrefs.monitorNum			= 0;			// main monitor by default
 	gGamePrefs.tagDuration 			= 3;
 

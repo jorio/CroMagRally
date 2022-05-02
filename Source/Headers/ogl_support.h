@@ -6,7 +6,7 @@
 
 #include <SDL_opengl.h>
 
-#define MAX_SPLITSCREENS	2
+#define MAX_SPLITSCREENS	4
 
 #define	MAX_FILL_LIGHTS		4
 
@@ -222,8 +222,16 @@ typedef struct
 enum
 {
 	SPLITSCREEN_MODE_NONE = 0,
-	SPLITSCREEN_MODE_HORIZ,			// 2 horizontal panes
-	SPLITSCREEN_MODE_VERT,			// 2 vertical panes
+
+	SPLITSCREEN_MODE_2X1,			// 2 horizontal panes
+	SPLITSCREEN_MODE_1X2,			// 2 vertical panes
+
+	SPLITSCREEN_MODE_3X1,
+	SPLITSCREEN_MODE_1X3,
+
+	SPLITSCREEN_MODE_2X2,
+	SPLITSCREEN_MODE_4X1,
+	SPLITSCREEN_MODE_1X4,
 
 	NUM_SPLITSCREEN_MODES
 };
