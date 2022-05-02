@@ -1146,7 +1146,8 @@ void DeleteObject(ObjNode	*theNode)
 
 
 	gObjectDeleteQueue[gNumObjsInDeleteQueue++] = theNode;
-	if (gNumObjsInDeleteQueue >= OBJ_DEL_Q_SIZE)
+
+	if (gNumObjsInDeleteQueue >= OBJ_DEL_Q_SIZE)				// object delete queue full -- OK inbetween scenes but shouldn't happen in-game!
 		FlushObjectDeleteQueue();
 
 }

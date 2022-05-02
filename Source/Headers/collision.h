@@ -2,23 +2,13 @@
 // collision.h
 //
 
-enum
-{
-	COLLISION_TYPE_OBJ,						// box
-	COLLISION_TYPE_TILE
-};
-
-
-
 
 					/* COLLISION STRUCTURES */
 struct CollisionRec
 {
 	Byte			baseBox,targetBox;
 	unsigned short	sides;
-	Byte			type;
 	ObjNode			*objectPtr;			// object that collides with (if object type)
-	float			planeIntersectY;	// where intersected triangle
 };
 typedef struct CollisionRec CollisionRec;
 

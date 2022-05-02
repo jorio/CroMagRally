@@ -268,7 +268,7 @@ got_sides:
 				gCollisionList[gNumCollisions].baseBox = 0;
 				gCollisionList[gNumCollisions].targetBox = target;
 				gCollisionList[gNumCollisions].sides = sideBits;
-				gCollisionList[gNumCollisions].type = COLLISION_TYPE_OBJ;
+//				gCollisionList[gNumCollisions].type = COLLISION_TYPE_OBJ;
 				gCollisionList[gNumCollisions].objectPtr = thisNode;
 				gNumCollisions++;
 				gTotalSides |= sideBits;											// remember total of this
@@ -302,7 +302,7 @@ long		offset,maxOffsetX,maxOffsetZ,maxOffsetY;
 long		offXSign,offZSign,offYSign;
 Byte		base,target;
 ObjNode		*targetObj;
-CollisionBoxType *baseBoxPtr,*targetBoxPtr;
+CollisionBoxType* baseBoxPtr;
 long		bottomSide;
 CollisionBoxType *boxList;
 short		numSolidHits, numPasses = 0;
@@ -332,10 +332,6 @@ again:
 	if (theNode->NumCollisionBoxes == 0)					// it's gotta have a collision box
 		return(0);
 	boxList = theNode->CollisionBoxes;
-//	leftSide = boxList->left;
-//	rightSide = boxList->right;
-//	frontSide = boxList->front;
-//	backSide = boxList->back;
 	bottomSide = boxList->bottom;
 
 
@@ -349,118 +345,123 @@ again:
 		targetObj = gCollisionList[i].objectPtr;			// get ptr to target objnode
 
 		baseBoxPtr = boxList + base;						// calc ptrs to base & target collision boxes
-		if (targetObj)
-		{
-			targetBoxPtr = targetObj->CollisionBoxes;
-			targetBoxPtr += target;
-		}
+
+		GAME_ASSERT(targetObj);
 
 				/*********************************************/
 				/* HANDLE ANY SPECIAL OBJECT COLLISION TYPES */
 				/*********************************************/
 
-		if (gCollisionList[i].type == COLLISION_TYPE_OBJ)
-		{
 				/* SEE IF THIS OBJECT HAS SINCE BECOME INVALID */
 
-			if (targetObj->CType == INVALID_NODE_FLAG)
-				continue;
+		if (targetObj->CType == INVALID_NODE_FLAG)
+		{
+			continue;
+		}
+
+				/* SAVE COPY OF TARGET OBJ PROPERTIES WE NEED FOR COLLISIONS */
+				/* (ORIGINAL MAY BECOME INVALID IF TRIGGER DELETES TARGET OBJ) */
+
+		CollisionBoxType targetBox = targetObj->CollisionBoxes[target];
+
+		bool targetIsImpenetrable = targetObj->CType & CTYPE_IMPENETRABLE;
+
 
 				/* HANDLE TRIGGERS */
 
-			if ((targetObj->CType & CTYPE_TRIGGER) && (cType & CTYPE_TRIGGER))	// target must be trigger and we must have been looking for them as well
-			{
-				if (!HandleTrigger(targetObj,theNode,gCollisionList[i].sides))	// returns false if handle as non-solid trigger
-					gCollisionList[i].sides = 0;
+		if ((targetObj->CType & CTYPE_TRIGGER) && (cType & CTYPE_TRIGGER))	// target must be trigger and we must have been looking for them as well
+		{
+			if (!HandleTrigger(targetObj,theNode,gCollisionList[i].sides))	// returns false if handle as non-solid trigger
+				gCollisionList[i].sides = 0;
 
-				maxOffsetX = gCoord.x - originalX;								// see if trigger caused a move
-				maxOffsetZ = gCoord.z - originalZ;
-
-			}
+			maxOffsetX = gCoord.x - originalX;								// see if trigger caused a move
+			maxOffsetZ = gCoord.z - originalZ;
 		}
+
+				/* DON'T TOUCH TARGETOBJ PAST THIS POINT! */
+				/* TRIGGER CALLBACK MAY HAVE DELETED IT */
+
+		targetObj = nil;
 
 					/********************************/
 					/* HANDLE OBJECT COLLISIONS 	*/
 					/********************************/
 
-		if (gCollisionList[i].type == COLLISION_TYPE_OBJ)
+		if (gCollisionList[i].sides & ALL_SOLID_SIDES)						// see if object with any solidness
 		{
-			if (gCollisionList[i].sides & ALL_SOLID_SIDES)						// see if object with any solidness
+			numSolidHits++;
+
+			if (targetIsImpenetrable)										// if this object is impenetrable, then throw out any other collision offsets
 			{
-				numSolidHits++;
+				hitImpenetrable = true;
+				maxOffsetX = maxOffsetZ = maxOffsetY = -10000;
+				offXSign = offYSign = offZSign = 0;
+			}
 
-				if (targetObj->CType & CTYPE_IMPENETRABLE)							// if this object is impenetrable, then throw out any other collision offsets
+			if (gCollisionList[i].sides & SIDE_BITS_BACK)						// SEE IF BACK HIT
+			{
+				offset = (targetBox.front - baseBoxPtr->back)+1;				// see how far over it went
+				if (offset > maxOffsetZ)
 				{
-					hitImpenetrable = true;
-					maxOffsetX = maxOffsetZ = maxOffsetY = -10000;
-					offXSign = offYSign = offZSign = 0;
+					maxOffsetZ = offset;
+					offZSign = 1;
 				}
+				gDelta.z *= deltaBounce;
+			}
+			else
+			if (gCollisionList[i].sides & SIDE_BITS_FRONT)						// SEE IF FRONT HIT
+			{
+				offset = (baseBoxPtr->front - targetBox.back)+1;				// see how far over it went
+				if (offset > maxOffsetZ)
+				{
+					maxOffsetZ = offset;
+					offZSign = -1;
+				}
+				gDelta.z *= deltaBounce;
+			}
 
-				if (gCollisionList[i].sides & SIDE_BITS_BACK)						// SEE IF BACK HIT
+			if (gCollisionList[i].sides & SIDE_BITS_LEFT)						// SEE IF HIT LEFT
+			{
+				offset = (targetBox.right - baseBoxPtr->left)+1;				// see how far over it went
+				if (offset > maxOffsetX)
 				{
-					offset = (targetBoxPtr->front - baseBoxPtr->back)+1;			// see how far over it went
-					if (offset > maxOffsetZ)
-					{
-						maxOffsetZ = offset;
-						offZSign = 1;
-					}
-					gDelta.z *= deltaBounce;
+					maxOffsetX = offset;
+					offXSign = 1;
 				}
-				else
-				if (gCollisionList[i].sides & SIDE_BITS_FRONT)						// SEE IF FRONT HIT
+				gDelta.x *= deltaBounce;
+			}
+			else
+			if (gCollisionList[i].sides & SIDE_BITS_RIGHT)						// SEE IF HIT RIGHT
+			{
+				offset = (baseBoxPtr->right - targetBox.left)+1;				// see how far over it went
+				if (offset > maxOffsetX)
 				{
-					offset = (baseBoxPtr->front - targetBoxPtr->back)+1;			// see how far over it went
-					if (offset > maxOffsetZ)
-					{
-						maxOffsetZ = offset;
-						offZSign = -1;
-					}
-					gDelta.z *= deltaBounce;
+					maxOffsetX = offset;
+					offXSign = -1;
 				}
+				gDelta.x *= deltaBounce;
+			}
 
-				if (gCollisionList[i].sides & SIDE_BITS_LEFT)						// SEE IF HIT LEFT
+			if (gCollisionList[i].sides & SIDE_BITS_BOTTOM)						// SEE IF HIT BOTTOM
+			{
+				offset = (targetBox.top - baseBoxPtr->bottom)+1;				// see how far over it went
+				if (offset > maxOffsetY)
 				{
-					offset = (targetBoxPtr->right - baseBoxPtr->left)+1;			// see how far over it went
-					if (offset > maxOffsetX)
-					{
-						maxOffsetX = offset;
-						offXSign = 1;
-					}
-					gDelta.x *= deltaBounce;
+					maxOffsetY = offset;
+					offYSign = 1;
 				}
-				else
-				if (gCollisionList[i].sides & SIDE_BITS_RIGHT)						// SEE IF HIT RIGHT
+				gDelta.y = 0;
+			}
+			else
+			if (gCollisionList[i].sides & SIDE_BITS_TOP)						// SEE IF HIT TOP
+			{
+				offset = (baseBoxPtr->top - targetBox.bottom)+1;				// see how far over it went
+				if (offset > maxOffsetY)
 				{
-					offset = (baseBoxPtr->right - targetBoxPtr->left)+1;			// see how far over it went
-					if (offset > maxOffsetX)
-					{
-						maxOffsetX = offset;
-						offXSign = -1;
-					}
-					gDelta.x *= deltaBounce;
+					maxOffsetY = offset;
+					offYSign = -1;
 				}
-
-				if (gCollisionList[i].sides & SIDE_BITS_BOTTOM)						// SEE IF HIT BOTTOM
-				{
-					offset = (targetBoxPtr->top - baseBoxPtr->bottom)+1;			// see how far over it went
-					if (offset > maxOffsetY)
-					{
-						maxOffsetY = offset;
-						offYSign = 1;
-					}
-					gDelta.y = 0;
-				}
-				else
-				if (gCollisionList[i].sides & SIDE_BITS_TOP)						// SEE IF HIT TOP
-				{
-					offset = (baseBoxPtr->top - targetBoxPtr->bottom)+1;			// see how far over it went
-					if (offset > maxOffsetY)
-					{
-						maxOffsetY = offset;
-						offYSign = -1;
-					}
-					gDelta.y =0;
-				}
+				gDelta.y =0;
 			}
 		}
 
@@ -938,7 +939,7 @@ CollisionBoxType *targetBoxList;
 					/* THERE HAS BEEN A COLLISION */
 
 			gCollisionList[gNumCollisions].targetBox = target;
-			gCollisionList[gNumCollisions].type = COLLISION_TYPE_OBJ;
+//			gCollisionList[gNumCollisions].type = COLLISION_TYPE_OBJ;
 			gCollisionList[gNumCollisions].objectPtr = thisNode;
 			gNumCollisions++;
 		}
@@ -1020,7 +1021,7 @@ CollisionBoxType *targetBoxList;
 					/* THERE HAS BEEN A COLLISION */
 
 			gCollisionList[gNumCollisions].targetBox = target;
-			gCollisionList[gNumCollisions].type = COLLISION_TYPE_OBJ;
+//			gCollisionList[gNumCollisions].type = COLLISION_TYPE_OBJ;
 			gCollisionList[gNumCollisions].objectPtr = thisNode;
 			gNumCollisions++;
 		}

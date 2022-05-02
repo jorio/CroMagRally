@@ -400,8 +400,6 @@ uint8_t		sides;
 
 	for (i=0; i < gNumCollisions; i++)
 	{
-		if (gCollisionList[i].type == COLLISION_TYPE_OBJ)
-		{
 			hitObj = gCollisionList[i].objectPtr;				// get ObjNode of this collision
 
 			if (hitObj->CType == INVALID_NODE_FLAG)				// see if has since become invalid
@@ -441,8 +439,6 @@ uint8_t		sides;
 			{
 				ApplyFrictionToDeltas(120, &gDelta);
 			}
-		}
-
 	}
 
 	gCurrentPlayer = gPlayerInfo[playerNum].objNode;
