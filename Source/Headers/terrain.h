@@ -2,13 +2,9 @@
 // terrain.h
 //
 
-#ifndef TERRAIN_H
-#define TERRAIN_H
+#pragma once
 
 #include "main.h"
-
-
-#define REDUCE_SUPERTILE_MESH	0
 
 
 #define	MAP_ITEM_MYSTARTCOORD		0											// map item # for my start coords
@@ -50,14 +46,13 @@ enum
 #define	SUPERTILE_DIST_WIDE			(SUPERTILE_ACTIVE_RANGE*2)
 #define	SUPERTILE_DIST_DEEP			(SUPERTILE_ACTIVE_RANGE*2)
 
-								// # visible supertiles * 2 players * 2 buffers
+								// # visible supertiles * N players * 2 buffers
 								// We need the x2 buffer because we dont free unused supertiles
 								// until after we've allocated new supertiles, so we'll always
-								// need more supertiles than are actually ever used.
+								// need more supertiles than are actually ever used - worst case
+								// scenario is twice as many.
 
-#define	MAX_SUPERTILES			((SUPERTILE_ACTIVE_RANGE*2 * SUPERTILE_ACTIVE_RANGE*2)*MAX_SPLITSCREENS*2)	// the final *2 is because the old supertiles are not deleted until
-																											// after new ones are created, thus we need some extas - worst case
-																											// scenario is twice as many.
+#define	MAX_SUPERTILES			((SUPERTILE_DIST_WIDE * SUPERTILE_DIST_DEEP) * MAX_SPLITSCREENS * 2)
 
 
 
@@ -186,12 +181,3 @@ void CalculateSplitModeMatrix(void);
 
 uint16_t	GetTileAttribsAtRowCol(float x, float z);
 void DoItemShadowCasting(void);
-
-
-#endif
-
-
-
-
-
-

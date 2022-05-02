@@ -2,8 +2,7 @@
 // main.h
 //
 
-#ifndef __MAIN
-#define __MAIN
+#pragma once
 
 #define NUM_WORLDS			4
 #define NUM_AREAS_PER_WORLD	3
@@ -91,5 +90,3 @@ void ToolBoxInit(void);
 void FadeOutArea(void);
 void MoveEverything(void);
 void InitDefaultPrefs(void);
-
-#endif

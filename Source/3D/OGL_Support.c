@@ -807,6 +807,7 @@ void OGL_DrawScene(OGLSetupOutputType *setupInfo, void (*drawRoutine)(OGLSetupOu
 
 	if (gDebugMode > 0)
 	{
+		extern short gNumFreeSupertiles;
 		snprintf(gDebugTextBuffer, sizeof(gDebugTextBuffer),
 			"FPS: %d"
 			"\nTRIS: %d"
@@ -816,6 +817,7 @@ void OGL_DrawScene(OGLSetupOutputType *setupInfo, void (*drawRoutine)(OGLSetupOu
 			//"\nFENCES: %d"
 			"\nVRAM: %dK"
 			"\nPTRS: %d"
+			"\nTILES: %d/%d"
 			"\n%dX%d"
 			,
 			(int)(gFramesPerSecond + .5f),
@@ -826,6 +828,8 @@ void OGL_DrawScene(OGLSetupOutputType *setupInfo, void (*drawRoutine)(OGLSetupOu
 			//gNumFencesDrawn,
 			gVRAMUsedThisFrame / 1024,
 			gNumPointers,
+			MAX_SUPERTILES-gNumFreeSupertiles,
+			MAX_SUPERTILES,
 			gGameWindowWidth,
 			gGameWindowHeight
 		);

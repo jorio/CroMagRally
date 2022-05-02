@@ -66,7 +66,7 @@ long			gNumSuperTilesDeep,gNumSuperTilesWide;	  		// dimensions of terrain in te
 static long		gCurrentSuperTileRow[MAX_PLAYERS],gCurrentSuperTileCol[MAX_PLAYERS];
 static long		gPreviousSuperTileCol[MAX_PLAYERS],gPreviousSuperTileRow[MAX_PLAYERS];
 
-short			gNumFreeSupertiles = 0;
+short			gNumFreeSupertiles = MAX_SUPERTILES;
 static SuperTileMemoryType	gSuperTileMemoryList[MAX_SUPERTILES];
 
 

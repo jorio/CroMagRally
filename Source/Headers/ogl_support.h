@@ -4,9 +4,10 @@
 
 #pragma once
 
+#include "main.h"
 #include <SDL_opengl.h>
 
-#define MAX_SPLITSCREENS	4
+#define MAX_SPLITSCREENS	MAX_LOCAL_PLAYERS
 
 #define	MAX_FILL_LIGHTS		4
 
