@@ -275,6 +275,12 @@ short	p;
 		PlayEffect_Parms(EFFECT_SELECTCLICK, FULL_CHANNEL_VOLUME, FULL_CHANNEL_VOLUME, NORMAL_CHANNEL_RATE * 2/3);
 		return(true);
 	}
+	else
+	if (IsCheatKeyComboDown())		// useful to test local multiplayer without having all controllers plugged in
+	{
+		PlayEffect(EFFECT_ROMANCANDLE_LAUNCH);
+		return true;
+	}
 
 
 		/* SEE IF CHANGE SELECTION */

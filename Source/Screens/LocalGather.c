@@ -19,7 +19,6 @@
 
 static void SetupLocalGatherScreen(void);
 static int DoLocalGatherControls(void);
-static void DrawLocalGatherCallback(OGLSetupOutputType *info);
 static void FreeLocalGatherArt(void);
 
 
@@ -102,7 +101,7 @@ Boolean DoLocalGatherScreen(void)
 		CalcFramesPerSecond();
 		ReadKeyboard();
 		MoveObjects();
-		OGL_DrawScene(gGameViewInfoPtr, DrawLocalGatherCallback);
+		OGL_DrawScene(gGameViewInfoPtr, DrawObjects);
 	}
 
 
@@ -110,7 +109,7 @@ Boolean DoLocalGatherScreen(void)
 			/* CLEANUP */
 			/***********/
 
-	OGL_FadeOutScene(gGameViewInfoPtr, DrawLocalGatherCallback, MoveObjects);
+	OGL_FadeOutScene(gGameViewInfoPtr, DrawObjects, MoveObjects);
 	FreeLocalGatherArt();
 	OGL_DisposeWindowSetup(&gGameViewInfoPtr);
 
@@ -195,15 +194,6 @@ static void FreeLocalGatherArt(void)
 }
 
 
-/***************** DRAW CHARACTERSELECT CALLBACK *******************/
-
-static void DrawLocalGatherCallback(OGLSetupOutputType *info)
-{
-	DrawObjects(info);
-}
-
-
-
 
 /***************** DO CHARACTERSELECT CONTROLS *******************/
 
@@ -242,6 +232,11 @@ static int DoLocalGatherControls(void)
 			PlayEffect(EFFECT_BADSELECT);
 			WiggleUIPadlock(gGatherPrompt);
 		}
+	}
+	else if (IsCheatKeyComboDown())		// useful to test local multiplayer without having all controllers plugged in
+	{
+		PlayEffect(EFFECT_ROMANCANDLE_LAUNCH);
+		return 1;
 	}
 
 	return 0;

@@ -512,7 +512,7 @@ short	p;
 		}
 	}
 	else
-	if (IsCheatKeyComboDown())
+	if (IsCheatKeyComboDown())		// useful to test local multiplayer without having all controllers plugged in
 	{
 		PlayEffect(EFFECT_ROMANCANDLE_LAUNCH);
 		return true;

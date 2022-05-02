@@ -377,7 +377,10 @@ Boolean AreAnyNewKeysPressed(void)
 
 Boolean IsCheatKeyComboDown(void)
 {
-	return GetKeyState(SDL_SCANCODE_B) && GetKeyState(SDL_SCANCODE_R) && GetKeyState(SDL_SCANCODE_I);
+	// The original Mac version used B-R-I, but some cheap PC keyboards can't register
+	// this particular key combo, so C-M-R is available as an alternative.
+	return (GetKeyState(SDL_SCANCODE_B) && GetKeyState(SDL_SCANCODE_R) && GetKeyState(SDL_SCANCODE_I))
+		|| (GetKeyState(SDL_SCANCODE_C) && GetKeyState(SDL_SCANCODE_M) && GetKeyState(SDL_SCANCODE_R));
 }
 
 #pragma mark -
