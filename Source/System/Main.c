@@ -1253,7 +1253,7 @@ short				numPanes;
 		case		TRACK_NUM_COLISEUM:
 					viewDef.view.clearColor.r = 61.0/255.0;
 					viewDef.view.clearColor.g = 87.0/255.0;
-					
+					viewDef.view.clearColor.b = 198.0/255.0;
 					break;
 
 	}
