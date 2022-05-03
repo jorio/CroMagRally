@@ -1064,13 +1064,6 @@ void DecCurrentPOWQuantity(short playerNum)
 
 void ShowWinLose(short playerNum, Byte mode, short winner)
 {
-static const float scale[3] =
-{
-	.8,
-	.7,
-	.7
-};
-
 			/* ONLY DO THIS FOR HUMANS ON THIS MACHINE */
 
 	if ((!gPlayerInfo[playerNum].onThisMachine) || gPlayerInfo[playerNum].isComputer)
@@ -1108,7 +1101,7 @@ static const float scale[3] =
 		.coord		= { 0,0,0 },
 		.flags		= STATUS_BIT_ONLYSHOWTHISPLAYER,
 		.slot		= SPRITE_SLOT,
-		.scale		= scale[gActiveSplitScreenMode],
+		.scale		= .8f,
 	};
 
 	switch(mode)
@@ -1167,19 +1160,13 @@ static const float scale[3] =
 void MakeIntroTrackName(void)
 {
 ObjNode	*newObj;
-static const float scale[3] =
-{
-	.9,
-	.7,
-	.7
-};
 
 	NewObjectDefinitionType def =
 	{
 		.coord		= {0,0,0},
 		.slot 		= SPRITE_SLOT,
 		.moveCall 	= MoveTrackName,
-		.scale 	    = scale[gActiveSplitScreenMode],
+		.scale 	    = .8f,
 		.flags		= STATUS_BIT_MOVEINPAUSE,
 	};
 

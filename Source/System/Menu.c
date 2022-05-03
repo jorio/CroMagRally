@@ -389,7 +389,11 @@ static bool IsMenuItemSelectable(const MenuItem* mi)
 			return false;
 		
 		default:
-			if (mi->enableIf != NULL)
+			if (mi->displayIf != NULL && !(mi->displayIf(mi)))
+			{
+				return false;
+			}
+			else if (mi->enableIf != NULL)
 			{
 				return mi->enableIf(mi);
 			}
@@ -1249,7 +1253,9 @@ static float GetMenuItemHeight(int row)
 {
 	const MenuItem* menuItem = &gNav->menu[row];
 	
-	if (menuItem->customHeight > 0)
+	if (menuItem->displayIf && !(menuItem->displayIf(menuItem)))
+		return false;
+	else if (menuItem->customHeight > 0)
 		return menuItem->customHeight;
 	else
 		return kMenuItemClasses[menuItem->type].height;
@@ -1258,8 +1264,6 @@ static float GetMenuItemHeight(int row)
 static ObjNode* MakeText(const char* text, int row, int col, int textMeshFlags)
 {
 	ObjNode* node = gNav->menuObjects[row][col];
-
-	const MenuItem* menuItem = &gNav->menu[row];
 
 	if (node)
 	{
@@ -1534,6 +1538,11 @@ static void LayOutMenu(const MenuItem* menu)
 
 		const MenuItem* entry = &menu[row];
 		const MenuItemClass* cls = &kMenuItemClasses[entry->type];
+
+		if (entry->displayIf && !(entry->displayIf(entry)))
+		{
+			continue;
+		}
 
 		if (cls->layOutCallback)
 		{

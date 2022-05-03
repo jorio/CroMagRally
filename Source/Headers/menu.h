@@ -56,6 +56,7 @@ typedef struct MenuItem
 
 	void					(*callback)(const struct MenuItem*);
 	bool					(*enableIf)(const struct MenuItem*);
+	bool					(*displayIf)(const struct MenuItem*);
 
 	int						id;			// value returned by StartMenu if exiting menu
 	int						gotoMenu;	// 0 exits menu tree

@@ -18,6 +18,7 @@
 /*    PROTOTYPES            */
 /****************************/
 
+static bool ShouldDisplaySplitscreenModeCycler(const MenuItem* mi);
 static void OnToggleSplitscreenMode(const MenuItem* mi);
 
 
@@ -31,6 +32,7 @@ static const MenuItem
 		{ kMenuItem_Pick, STR_RESUME_GAME, .id=0 },
 		{ kMenuItem_Pick, STR_RETIRE_GAME, .id=1 },
 		{ kMenuItem_CMRCycler, STR_SPLITSCREEN_MODE,
+			.displayIf = ShouldDisplaySplitscreenModeCycler,
 			.callback = OnToggleSplitscreenMode,
 			.cycler =
 			{
@@ -55,6 +57,11 @@ Boolean gGamePaused = false;
 
 
 /****************** TOGGLE SPLIT-SCREEN MODE ********************/
+
+bool ShouldDisplaySplitscreenModeCycler(const MenuItem* mi)
+{
+	return gNumSplitScreenPanes == 2;
+}
 
 void OnToggleSplitscreenMode(const MenuItem* mi)
 {
