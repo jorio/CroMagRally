@@ -456,12 +456,12 @@ int	shadowType = theNode->Kind;
 
 			/* SUBMIT SHADOW TEXTURE */
 
-	MO_DrawMaterial(gAtlases[SPRITE_GROUP_SHADOWS]->material, setupInfo);
+	MO_DrawMaterial(gAtlases[SPRITE_GROUP_EFFECTS]->material, setupInfo);
 
 
 			/* DRAW THE SHADOW */
 
-	const AtlasGlyph* g = &gAtlases[SPRITE_GROUP_SHADOWS]->glyphPages[0][SHADOW_SObjType_Circular + shadowType];
+	const AtlasGlyph* g = Atlas_GetGlyph(gAtlases[SPRITE_GROUP_EFFECTS], SHADOW_SObjType_Circular + shadowType);
 
 	glEnable(GL_CULL_FACE);
 	glBegin(GL_QUADS);

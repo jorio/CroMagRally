@@ -7,8 +7,7 @@ enum
 	SPRITE_GROUP_FONT				=	0,
 	SPRITE_GROUP_MAINMENU,
 	SPRITE_GROUP_INFOBAR,
-	SPRITE_GROUP_SHADOWS,
-	SPRITE_GROUP_PARTICLES,
+	SPRITE_GROUP_EFFECTS,
 	SPRITE_GROUP_OVERHEADMAP,
 	SPRITE_GROUP_TRACKSELECTSCREEN,
 	MAX_SPRITE_GROUPS
@@ -21,23 +20,6 @@ enum
 	MENUS_SObjType_LeftArrow,
 	MENUS_SObjType_RightArrow,
 	MENUS_SObjType_UpArrow,
-};
-
-enum
-{
-	SHADOW_SObjType_NULL = 0,
-	SHADOW_SObjType_Circular,
-	SHADOW_SObjType_Car_Mammoth,
-	SHADOW_SObjType_Car_Bone,
-	SHADOW_SObjType_Car_Geode,
-	SHADOW_SObjType_Car_Log,
-	SHADOW_SObjType_Car_Turtle,
-	SHADOW_SObjType_Car_Rock,
-	SHADOW_SObjType_Car_TrojanHorse,
-	SHADOW_SObjType_Car_Obelisk,
-	SHADOW_SObjType_Car_Catapult,
-	SHADOW_SObjType_Car_Chariot,
-	SHADOW_SObjType_Car_Sub,
 };
 
 enum
@@ -64,7 +46,19 @@ enum
 	PARTICLE_SObjType_BlackSmoke,
 	PARTICLE_SObjType_Bubbles,
 	PARTICLE_SObjType_RedSpark,
-	PARTICLE_SObjType_BlueSpark
+	PARTICLE_SObjType_BlueSpark,
+	SHADOW_SObjType_Circular,
+	SHADOW_SObjType_Car_Mammoth,
+	SHADOW_SObjType_Car_Bone,
+	SHADOW_SObjType_Car_Geode,
+	SHADOW_SObjType_Car_Log,
+	SHADOW_SObjType_Car_Turtle,
+	SHADOW_SObjType_Car_Rock,
+	SHADOW_SObjType_Car_TrojanHorse,
+	SHADOW_SObjType_Car_Obelisk,
+	SHADOW_SObjType_Car_Catapult,
+	SHADOW_SObjType_Car_Chariot,
+	SHADOW_SObjType_Car_Sub,
 };
 
 enum

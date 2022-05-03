@@ -888,7 +888,7 @@ static const char*	levelModelFiles[NUM_TRACKS] =
 			/* LOAD SPRITES */
 
 	LoadSpriteGroup(SPRITE_GROUP_INFOBAR, "infobar", 0, setupInfo);
-	LoadSpriteGroup(SPRITE_GROUP_SHADOWS, "shadows", 0, setupInfo);
+	LoadSpriteGroup(SPRITE_GROUP_EFFECTS, "effects", 0, setupInfo);		// particles & shadows
 	LoadCavemanSkins(setupInfo);
 
 

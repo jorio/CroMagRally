@@ -160,7 +160,7 @@ ObjNode	*obj;
 
 			/* LOAD SPRITES */
 
-	LoadSpriteGroup(SPRITE_GROUP_PARTICLES, "particle", 0, setupInfo);
+	GAME_ASSERT_MESSAGE(gAtlases[SPRITE_GROUP_EFFECTS], "particle system requires effects atlas");
 
 
 		/*************************************************************************/
@@ -189,7 +189,6 @@ ObjNode	*obj;
 
 void DisposeParticleSystem(void)
 {
-	DisposeSpriteGroup(SPRITE_GROUP_PARTICLES);
 }
 
 
@@ -284,7 +283,7 @@ MOTriangleIndecies		*t;
 					/* SET THE DATA */
 
 			vertexArrayData.numMaterials 	= 1;
-			vertexArrayData.materials[0]	= gAtlases[SPRITE_GROUP_PARTICLES]->material;	// set illegal ref because it is made legit below
+			vertexArrayData.materials[0]	= gAtlases[SPRITE_GROUP_EFFECTS]->material;	// set illegal ref because it is made legit below
 
 			vertexArrayData.numPoints 		= 0;
 			vertexArrayData.numTriangles 	= 0;
@@ -298,7 +297,7 @@ MOTriangleIndecies		*t;
 
 					/* GET ATLAS SLICE */
 
-			const AtlasGlyph* glyph = &gAtlases[SPRITE_GROUP_PARTICLES]->glyphPages[0][def->particleTextureNum & 0xFF];
+			const AtlasGlyph* glyph = Atlas_GetGlyph(gAtlases[SPRITE_GROUP_EFFECTS], def->particleTextureNum);
 
 					/* INIT UV ARRAYS */
 
