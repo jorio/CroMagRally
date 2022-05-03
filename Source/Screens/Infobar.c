@@ -94,8 +94,8 @@ static const IconPositioning gIconInfo[NUM_INFOBAR_ICONTYPES] =
 	[ICON_WRONGWAY]		= { kAnchorCenter,		   0,-120, 1.0,   0,  0 },
 	[ICON_TOKEN]		= { kAnchorTopRight,	-196,  24, 0.4,  26,  0 },
 	[ICON_WEAPON]		= { kAnchorTop,			 -16,  36, 0.9,  42,  0 },
-	[ICON_TIMER]		= { kAnchorTopLeft,		 118,  36, 1.0, 125,  0 },
-	[ICON_TIMERINDEX]	= { kAnchorTopLeft,		 166,  36, 0.6, 106,  0 },
+	[ICON_TIMER]		= { kAnchorTopRight,	-118,  36, 1.0, 125,  0 },
+	[ICON_TIMERINDEX]	= { kAnchorTopRight,	-166,  36, 0.6, 106,  0 },
 	[ICON_POWTIMER]		= { kAnchorTopLeft,		  29, 144, 0.8,  45, 46 },
 	[ICON_FIRE]			= { kAnchorTopLeft,		  19,  36, 0.5,  32,  0 },
 };
