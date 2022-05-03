@@ -113,6 +113,7 @@ typedef struct
 	float				cameraRingRot;
 	float				cameraUserRot;
 	Byte				cameraMode;
+	bool				quickRearView;
 
 	short				snowParticleGroup;
 	float				snowTimer;

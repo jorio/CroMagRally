@@ -256,6 +256,8 @@ Boolean	changeMode;
 	{
 		for (i = 0; i < gNumRealPlayers; i++)
 		{
+			gPlayerInfo[i].quickRearView = GetControlState(i, kControlBit_RearView);
+
 			if (GetControlStateNew(i, kControlBit_CameraMode))
 			{
 				gPlayerInfo[i].cameraMode++;
@@ -282,6 +284,8 @@ Boolean	changeMode;
 	{
 		for (i = 0; i < gNumLocalPlayers; i++)
 		{
+			gPlayerInfo[i].quickRearView = GetNeedState(kControlBit_RearView, i);
+
 			changeMode = GetNewNeedState(kNeed_CameraMode, i);
 
 			if (changeMode)
@@ -334,14 +338,16 @@ ObjNode		*playerObj;
 PlayerInfoType	*playerInfo;
 Byte		cameraMode;
 float		cameraRadius;
-static const OGLVector3D forwardVec = {0,0,-1};
-OGLVector3D	v,up = {0,1,0};
+static const OGLVector3D forwardVec = { 0,0,-1 };
+OGLVector3D up = { 0,1,0 };		// NOT const, it's transformed in 1st-person view
 
 	playerObj = gPlayerInfo[playerNum].objNode;							// get player objNode
 	if (!playerObj)
 		return;
 
 	playerInfo = &gPlayerInfo[playerNum];								// point to player info
+
+	float rearViewMultiplier = playerInfo->quickRearView ? -1.0f : 1.0f;
 
 	cameraMode = playerInfo->cameraMode;								// get camera mode
 	switch(cameraMode)
@@ -360,18 +366,20 @@ OGLVector3D	v,up = {0,1,0};
 				break;
 
 		case	CAMERA_MODE_FIRSTPERSON:
+		{
 				OGLVector3D_Transform(&up, &playerObj->BaseTransformMatrix, &up);			// calc up vector
 
 				from.x = playerInfo->coord.x + up.x * 250.0f;			// calc from
 				from.y = playerInfo->coord.y + up.y * 250.0f;
 				from.z = playerInfo->coord.z + up.z * 250.0f;
 
+				OGLVector3D v;
 				OGLVector3D_Transform(&forwardVec, &playerObj->BaseTransformMatrix, &v);	// calc to
-				to.x = from.x + v.x;
-				to.y = from.y + v.y;
-				to.z = from.z + v.z;
+				to.x = from.x + v.x * rearViewMultiplier;
+				to.y = from.y + v.y * rearViewMultiplier;
+				to.z = from.z + v.z * rearViewMultiplier;
 				goto update;
-
+		}
 	}
 
 
@@ -428,8 +436,9 @@ still:
 
 	rotY = playerInfo->cameraRingRot = RotateCameraRingTowardTarget(rotY, &oppositeMotionVec, &oldRingPosVec,priming);	// rotate toward new rotation
 
-	from.x = myX - sin(rotY) * (cameraRadius + (gCameraStartupTimer * 3000.0f));												// calc new from coord
-	from.z = myZ - cos(rotY) * (cameraRadius + (gCameraStartupTimer * 3000.0f));
+
+	from.x = myX - rearViewMultiplier * sin(rotY) * (cameraRadius + (gCameraStartupTimer * 3000.0f));												// calc new from coord
+	from.z = myZ - rearViewMultiplier * cos(rotY) * (cameraRadius + (gCameraStartupTimer * 3000.0f));
 
 
 

@@ -49,14 +49,14 @@ enum
 	kNeed_ThrowForward,
 	kNeed_ThrowBackward,
 	kNeed_Brakes,
-	kNeed_CameraMode,
 	kNeed_Forward,
 	kNeed_Backward,
+	kNeed_CameraMode,
+	kNeed_RearView,
 	NUM_CONTROL_BITS,
 
 	kNeed_Left = NUM_CONTROL_BITS,
 	kNeed_Right,
-	kNeed_RearView,
 	kNeed_ToggleMusic,
 	NUM_REMAPPABLE_NEEDS,
 
@@ -79,9 +79,10 @@ enum
 	kControlBit_ThrowForward  = kNeed_ThrowForward,
 	kControlBit_ThrowBackward = kNeed_ThrowBackward,
 	kControlBit_Brakes        = kNeed_Brakes,
-	kControlBit_CameraMode    = kNeed_CameraMode,
 	kControlBit_Forward       = kNeed_Forward,
 	kControlBit_Backward      = kNeed_Backward,
+	kControlBit_CameraMode    = kNeed_CameraMode,
+	kControlBit_RearView      = kNeed_RearView,
 };
 
 
