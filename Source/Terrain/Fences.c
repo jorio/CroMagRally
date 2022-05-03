@@ -104,6 +104,7 @@ const char* kFenceNames[] =
 long			gNumFences = 0;
 short			gNumFencesDrawn;
 FenceDefType	*gFenceList = nil;
+Boolean			gDrawInvisiFences = true;
 
 MOMaterialObject	*gFenceMaterials[NUM_FENCE_TYPES];
 
@@ -176,6 +177,10 @@ void DisposeFences(void)
 		if (gFenceList[i].sectionVectors)
 			SafeDisposePtr((Ptr)gFenceList[i].sectionVectors);			// nuke section vectors
 		gFenceList[i].sectionVectors = nil;
+
+		if (gFenceList[i].sectionNormals)
+			SafeDisposePtr((Ptr)gFenceList[i].sectionNormals);			// nuke normal vectors
+		gFenceList[i].sectionNormals = nil;
 
 		if (gFenceList[i].nubList)
 			SafeDisposePtr((Ptr)gFenceList[i].nubList);
@@ -288,6 +293,23 @@ ObjNode					*obj;
 
 			FastNormalizeVector2D(dx, dz, &fence->sectionVectors[i], false);
 		}
+
+		/* CALCULATE NORMALS FOR EACH SECTION */
+
+		fence->sectionNormals = (OGLVector2D *)AllocPtr(sizeof(OGLVector2D) * (numNubs-1));		// alloc array to hold vectors
+
+		for (int i = 0; i < (numNubs-1); i++)
+		{
+			OGLVector3D	v;
+
+			v.x = fence->sectionVectors[i].x;					// get section vector (as calculated above)
+			v.z = fence->sectionVectors[i].y;
+
+			fence->sectionNormals[i].x = -v.z;					//  reduced cross product to get perpendicular normal
+			fence->sectionNormals[i].y = v.x;
+			OGLVector2D_Normalize(&fence->sectionNormals[i], &fence->sectionNormals[i]);
+		}
+
 	}
 
 			/*****************************/
@@ -501,8 +523,8 @@ float			cameraX, cameraZ;
 
 	for (f = 0; f < gNumFences; f++)
 	{
-		type = gFenceList[f].type;							// get type
-		if (type == FENCE_TYPE_INVISIBLE)					// see if skip invisible fence
+		type = gFenceList[f].type;									// get type
+		if (type == FENCE_TYPE_INVISIBLE && gDebugMode != 2)		// see if skip invisible fence
 			continue;
 
 					/* DO BBOX CULLING */
@@ -567,6 +589,8 @@ OGLPoint3D				*nubs;
 					alpha = 1.0f - dist;
 			}
 		}
+//		else
+//			dist = 1.0f;
 
 		gFenceColors[f][j].a =
 		gFenceColors[f][j+1].a = 255.0f * alpha;
@@ -599,13 +623,12 @@ float			fromX,fromZ,toX,toZ;
 long			f,numFenceSegments,i,numReScans;
 float			segFromX,segFromZ,segToX,segToZ;
 OGLPoint3D		*nubs;
-Boolean			intersected,letGoOver;
+Boolean			intersected;
 float			intersectX,intersectZ;
 OGLVector2D		lineNormal;
 float			radius;
 float			oldX,oldZ,newX,newZ;
 
-	letGoOver = false;
 
 			/* CALC MY MOTION LINE SEGMENT */
 
@@ -624,24 +647,6 @@ float			oldX,oldZ,newX,newZ;
 	for (f = 0; f < gNumFences; f++)
 	{
 		float	temp;
-		int		type;
-
-				/* SPECIAL STUFF */
-
-		type = gFenceList[f].type;
-
-#if 0
-		switch(type)
-		{
-			case	FENCE_TYPE_WHEAT:					// things can go over this
-			case	FENCE_TYPE_FOREST2:
-					letGoOver = true;
-					break;
-
-			case	FENCE_TYPE_MOSS:					// this isnt solid
-					goto next_fence;
-		}
-#endif
 
 		/* QUICK CHECK TO SEE IF OLD & NEW COORDS (PLUS RADIUS) ARE OUTSIDE OF FENCE'S BBOX */
 
@@ -677,15 +682,31 @@ float			oldX,oldZ,newX,newZ;
 			segToX = nubs[i+1].x;
 			segToZ = nubs[i+1].z;
 
+					/* DO BOUNDING BOX CHECK FOR QUICK ELIMINATION */
 
-					/* SEE IF ROUGHLY CAN GO OVER */
+			if (((oldX+radius) < segFromX) &&					// left of segX?
+				((oldX+radius) < segToX) &&
+				((newX+radius) < segFromX) &&
+				((newX+radius) < segToX))
+				continue;
 
-			if (letGoOver)
-			{
-				float y = nubs[i].y + gFenceHeight[type];
-				if ((gCoord.y + theNode->BottomOff) >= y)
-					continue;
-			}
+			if (((oldX-radius) > segFromX) &&					// right of segX?
+				((oldX-radius) > segToX) &&
+				((newX-radius) > segFromX) &&
+				((newX-radius) > segToX))
+				continue;
+
+			if (((oldZ+radius) < segFromZ) &&
+				((oldZ+radius) < segToZ) &&
+				((newZ+radius) < segFromZ) &&
+				((newZ+radius) < segToZ))
+				continue;
+
+			if (((oldZ-radius) > segFromZ) &&
+				((oldZ-radius) > segToZ) &&
+				((newZ-radius) > segFromZ) &&
+				((newZ-radius) > segToZ))
+				continue;
 
 
 					/* CALC NORMAL TO THE LINE */
@@ -693,15 +714,27 @@ float			oldX,oldZ,newX,newZ;
 					// We need to find the point on the bounding sphere which is closest to the line
 					// in order to do good collision checks
 					//
+			lineNormal.x = oldX - segFromX;								// calc normalized vector from ref pt. to section endpoint 0
+			lineNormal.y = oldZ - segFromZ;
+			OGLVector2D_Normalize(&lineNormal, &lineNormal);
+			float cross = OGLVector2D_Cross(&gFenceList[f].sectionVectors[i], &lineNormal);	// calc cross product to determine which side we're on
 
-			CalcRayNormal2D(&gFenceList[f].sectionVectors[i], segFromX, segFromZ,
-							 oldX, oldZ, &lineNormal);
+			if (cross < 0.0f)
+			{
+				lineNormal.x = -gFenceList[f].sectionNormals[i].x;		// on the other side, so flip vector
+				lineNormal.y = -gFenceList[f].sectionNormals[i].y;
+			}
+			else
+			{
+				lineNormal = gFenceList[f].sectionNormals[i];			// use pre-calculated vector
+			}
+
 
 
 					/* CALC FROM-TO POINTS OF MOTION */
 
-			fromX = oldX - (lineNormal.x * radius);
-			fromZ = oldZ - (lineNormal.y * radius);
+			fromX = oldX; // - (lineNormal.x * radius);
+			fromZ = oldZ; // - (lineNormal.y * radius);
 			toX = newX - (lineNormal.x * radius);
 			toZ = newZ - (lineNormal.y * radius);
 
@@ -743,7 +776,7 @@ float			oldX,oldZ,newX,newZ;
 				newX = gCoord.x;
 				newZ = gCoord.z;
 				if (++numReScans < 5)
-					i = 0;							// reset segment index to scan all again
+					i = -1;							// reset segment index to scan all again (reset to -1 because for loop will auto-inc to 0 for us)
 			}
 
 			/**********************************************/
@@ -782,4 +815,126 @@ float			oldX,oldZ,newX,newZ;
 		} // for i
 	}
 }
+
+
+
+/******************** DOES LINE SEGMENT HIT FENCE **************************/
+
+Boolean DoesLineSegmentHitFence(OGLPoint3D	*pt1, OGLPoint3D  *pt2, OGLPoint3D *outHitPt)
+{
+int			f,numFenceSegments,i;
+float			segFromX,segFromZ,segToX,segToZ;
+OGLPoint3D		*nubs;
+Boolean			intersected;
+float			intersectX,intersectZ;
+
+
+			/****************************************/
+			/* SCAN THRU ALL FENCES FOR A COLLISION */
+			/****************************************/
+
+	for (f = 0; f < gNumFences; f++)
+	{
+
+		/* QUICK CHECK TO SEE IF ENDPOINTS ARE OUTSIDE OF FENCE'S BBOX */
+
+		if ((pt1->x < gFenceList[f].bBox.min.x) && (pt2->x < gFenceList[f].bBox.min.x))
+			continue;
+		if ((pt1->x > gFenceList[f].bBox.max.x) && (pt2->x > gFenceList[f].bBox.min.x))
+			continue;
+
+		if ((pt1->z < gFenceList[f].bBox.min.z) && (pt2->z < gFenceList[f].bBox.min.z))
+			continue;
+		if ((pt1->z > gFenceList[f].bBox.max.z) && (pt2->z > gFenceList[f].bBox.min.z))
+			continue;
+
+
+		nubs = gFenceList[f].nubList;				// point to nub list
+		numFenceSegments = gFenceList[f].numNubs-1;	// get # line segments in fence
+
+
+				/**********************************/
+				/* SCAN EACH SECTION OF THE FENCE */
+				/**********************************/
+
+		for (i = 0; i < numFenceSegments; i++)
+		{
+					/* GET LINE SEG ENDPOINTS */
+
+			segFromX = nubs[i].x;
+			segFromZ = nubs[i].z;
+			segToX = nubs[i+1].x;
+			segToZ = nubs[i+1].z;
+
+					/* DO BOUNDING BOX CHECK FOR QUICK ELIMINATION */
+
+			if ((pt1->x < segFromX) &&					// left of segX?
+				(pt1->x < segToX) &&
+				(pt2->x < segFromX) &&
+				(pt2->x < segToX))
+				continue;
+
+			if ((pt1->x > segFromZ) &&					// right of segX?
+				(pt1->x > segToZ) &&
+				(pt2->x > segFromZ) &&
+				(pt2->x > segToZ))
+				continue;
+
+			if ((pt1->z < segFromZ) &&
+				(pt1->z < segToZ) &&
+				(pt2->z < segFromZ) &&
+				(pt2->z < segToZ))
+				continue;
+
+			if ((pt1->z > segFromZ) &&
+				(pt1->z > segToZ) &&
+				(pt2->z > segFromZ) &&
+				(pt2->z > segToZ))
+				continue;
+
+
+
+
+					/* SEE IF THE LINES INTERSECT */
+
+			intersected = IntersectLineSegments(pt1->x,  pt1->z, pt2->x, pt2->z,
+						                     segFromX, segFromZ, segToX, segToZ,
+				                             &intersectX, &intersectZ);
+
+			if (intersected)
+			{
+				OGLVector3D v;
+				float	intersectY, fenceTopY;
+
+					/* SEE IF PASSED OVER THE FENCE */
+
+				float lenOfLine			= CalcDistance(pt1->x, pt1->z, pt2->x, pt2->z);
+				float distToIntersect	= CalcDistance(pt1->x, pt1->z, intersectX, intersectZ);
+				float ratio				= distToIntersect / lenOfLine;
+
+				OGLPoint3D_Subtract(pt2, pt1, &v);			// calc line ray vector
+				OGLVector3D_Normalize(&v, &v);
+
+				intersectY = v.y * ratio * lenOfLine;		// calc y coord at intersection
+
+				fenceTopY = GetTerrainY(intersectX, intersectZ) + gFenceHeight[gFenceList[f].type];
+
+				if (intersectY <= fenceTopY)				// is it below the top?
+				{
+					if (outHitPt)							// return hit pt
+					{
+						outHitPt->x = intersectX;
+						outHitPt->y = fenceTopY;			// set Y coord to top of fence
+						outHitPt->z = intersectZ;
+					}
+					return(true);
+				}
+			}
+		} // for i
+	}
+
+	return(false);
+}
+
+
 

@@ -1696,6 +1696,14 @@ float dx,dy;
 	return(sqrt(dx*dx + dy*dy));
 }
 
+/****************** POINT 3D SUBTRACT ***********************/
+
+void OGLPoint3D_Subtract(const OGLPoint3D *p1, const OGLPoint3D* p2, OGLVector3D* result)
+{
+	result->x = p1->x - p2->x;
+	result->y = p1->y - p2->y;
+	result->z = p1->z - p2->z;
+}
 
 #pragma mark -
 

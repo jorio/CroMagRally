@@ -87,6 +87,7 @@ Boolean OGL_IsBBoxVisible(const OGLBoundingBox *bBox);
 void OGLVector2D_Normalize(const OGLVector2D *vector2D, OGLVector2D	*result);
 float OGLPoint3D_Distance(const OGLPoint3D *p1, const OGLPoint3D *p2);
 float OGLPoint2D_Distance(const OGLPoint2D *p1, const OGLPoint2D *p2);
+void OGLPoint3D_Subtract(const OGLPoint3D *p1, const OGLPoint3D* p2, OGLVector3D* result);
 
 
 void OGL_SetGluPerspectiveMatrix(OGLMatrix4x4* m, float fov, float aspect, float hither, float yon);
