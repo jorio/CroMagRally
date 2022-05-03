@@ -232,12 +232,14 @@ static const char*	maps[] =
 	for (int i = 0; i < MAX_PLAYERS; i++)
 		gWinLoseString[i] = nil;
 
+
 			/* LOAD MAP SPRITE */
 
 	LoadSpriteGroup(SPRITE_GROUP_OVERHEADMAP, maps[gTrackNum], kAtlasLoadAsSingleSprite, setupInfo);
 
 	float mapImageHeight = GetSpriteInfo(SPRITE_GROUP_OVERHEADMAP, 1)->yadv;
 	gMapFit = OVERHEAD_MAP_REFERENCE_SIZE / mapImageHeight;
+
 
 
 			/* PUT SELF-RUNNING DEMO MESSAGE UP */
@@ -377,14 +379,20 @@ static void GetPointOnOverheadMap(float* px, float* pz)
 
 static void Infobar_DrawMap(const OGLSetupOutputType *setupInfo)
 {
-static const OGLColorRGBA	blipColors[] =
+static const OGLColorRGB	blipColors[] =
 {
-	{.8,.5,.3,.9},		// brown
-	{0,1,0,.9},			// green
-	{0,0,1,.9},			// blue
-	{.5,.5,.5,.9},		// grey
-	{1,0,0,.9},			// red
-	{1,1,1,.9},			// white
+	{.8,.5,.3},			// brown
+	{ 0, 1, 0},			// green
+	{ 0, 0, 1},			// blue
+	{.5,.5,.5},			// grey
+	{ 1, 0, 0},			// red
+	{ 1, 1, 1},			// white
+};
+
+static const OGLColorRGB	teamColors[] =
+{
+	{1,0,0},			// red
+	{0,1,0},			// white
 };
 
 	short	p = GetPlayerNum(gCurrentSplitScreenPane);
@@ -421,8 +429,7 @@ static const OGLColorRGBA	blipColors[] =
 			/* DRAW PLAYER MARKERS */
 			/***********************/
 
-	OGL_PushState();
-	glDisable(GL_TEXTURE_2D);								// not textured, so disable textures
+	gGlobalTransparency = .9f;
 
 	for (int i = gNumTotalPlayers-1; i >= 0; i--)			// draw from last to first so that player 1 is always on "top"
 	{
@@ -440,15 +447,9 @@ static const OGLColorRGBA	blipColors[] =
 
 		float scaleBasis = ((i == p) ? 10 : 7);				// draw my marker bigger
 		scaleBasis *= scale;
+		scaleBasis *= .1f;
 
-		glPushMatrix();										// back up MODELVIEW matrix
-
-		glTranslatef(x, z, 0);
-		glScalef(scaleBasis, scaleBasis, 1);
-
-		float rot = gPlayerInfo[i].objNode->Rot.y;
-		glRotatef(180 - OGLMath_RadiansToDegrees(rot), 0, 0, 1);	// doing 180-angle because Y points down for us
-
+		float rot = PI - gPlayerInfo[i].objNode->Rot.y;		// "pi minus angle" because Y points down for us
 
 			/* SET COLOR */
 
@@ -457,40 +458,29 @@ static const OGLColorRGBA	blipColors[] =
 			case	GAME_MODE_TAG1:
 			case	GAME_MODE_TAG2:
 					if (gPlayerInfo[i].isIt)						// in tag mode, all players are white except for the tagged guy
-						glColor3fv((float *)&gTagColor);
+						gGlobalColorFilter = gTagColor;
 					else
-						glColor3f(1,1,1);
+						gGlobalColorFilter = (OGLColorRGB) {1,1,1};
 					break;
 
 			case	GAME_MODE_CAPTUREFLAG:							// in capture-flag mode players are team color coded red or green
-					if (gPlayerInfo[i].team == 0)
-						glColor3f(1,0,0);
-					else
-						glColor3f(0,1,0);
+					gGlobalColorFilter = teamColors[gPlayerInfo[i].team & 1];
 					break;
 
 
 			default:
-					glColor4fv((GLfloat *)&blipColors[i]);					// standard player colors
+					gGlobalColorFilter = blipColors[i];
 		}
 
-				/* DRAW IT */
-
-		glBegin(GL_TRIANGLES);
-		glVertex3f(-1,  -1, 0);
-		glVertex3f(0,   1.5, 0);
-		glVertex3f(1,  -1, 0);
-		glEnd();
-
-		glColor4f(0,0,0,.8);
-		glBegin(GL_LINE_LOOP);		// also outline it
-		glVertex3f(-1,  -1, 0);
-		glVertex3f(0,   1.5, 0);
-		glVertex3f(1,  -1, 0);
-		glEnd();
-
-		glPopMatrix();									// restore MODELVIEW matrix
+		
+		DrawSprite(SPRITE_GROUP_INFOBAR, INFOBAR_SObjType_PlayerBlip,
+			x, z, scaleBasis, rot,
+			INFOBAR_SPRITE_FLAGS,
+			setupInfo);
 	}
+
+	gGlobalColorFilter = (OGLColorRGB) {1,1,1};
+	gGlobalTransparency = 1.0f;
 
 			/**********************/
 			/* DRAW TORCH MARKERS */
@@ -501,40 +491,28 @@ static const OGLColorRGBA	blipColors[] =
 		if (gTorchObjs[i]->Mode == 2) 		// dont draw if this torch is at base
 			continue;
 
+			/* ORIENT IT */
+
 		float x = gTorchObjs[i]->Coord.x;
 		float z = gTorchObjs[i]->Coord.z;
 		GetPointOnOverheadMap(&x, &z);
 
-			/* ORIENT IT */
-
-		glPushMatrix();										// back up MODELVIEW matrix
-
 		float scaleBasis = scale * 7.0f;					// calculate a scale basis to keep things scaled relative to texture size
-		glTranslatef(x,z,0);
-		glScalef(scaleBasis, scaleBasis, 1);
-		glRotatef(180, 0, 0, 1);
-
+		scaleBasis *= .05f;
 
 			/* SET COLOR */
 
-		if (gTorchObjs[i]->TorchTeam)
-			glColor3f(0,1,0);
-		else
-			glColor3f(1,.3,0);
-
+		int sprite = (gTorchObjs[i]->TorchTeam & 1) == 0
+			? INFOBAR_SObjType_RedTorchBlip
+			: INFOBAR_SObjType_GreenTorchBlip;
 
 				/* DRAW IT */
 
-		glBegin(GL_TRIANGLES);
-		glVertex3f(-1,  -1, 0);
-		glVertex3f(0,   1.5, 0);
-		glVertex3f(1,  -1, 0);
-		glEnd();
-
-		glPopMatrix();									// restore MODELVIEW matrix
+		DrawSprite(SPRITE_GROUP_INFOBAR, sprite,
+			x, z, scaleBasis, 0,
+			INFOBAR_SPRITE_FLAGS,
+			setupInfo);
 	}
-
-	OGL_PopState();
 }
 
 

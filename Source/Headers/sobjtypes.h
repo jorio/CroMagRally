@@ -114,6 +114,11 @@ enum
 	INFOBAR_SObjType_Marker,
 
 	INFOBAR_SObjType_RedTorch,
-	INFOBAR_SObjType_GreenTorch
+	INFOBAR_SObjType_GreenTorch,
+
+	INFOBAR_SObjType_RedTorchBlip,
+	INFOBAR_SObjType_GreenTorchBlip,
+
+	INFOBAR_SObjType_PlayerBlip,
 };
 
