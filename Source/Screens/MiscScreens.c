@@ -334,6 +334,7 @@ static const char* names[] =
 			.slot		= PARTICLE_SLOT+1,			// draw cup last
 			.moveCall	= MoveCup,
 			.scale		= 1,
+			.flags		= STATUS_BIT_KEEPBACKFACES,	// normals are inside out on black part of cup handle
 		};
 		newObj = MakeNewDisplayGroupObject(&def);
 
@@ -346,13 +347,13 @@ static const char* names[] =
 	{
 		NewObjectDefinitionType def =
 		{
-			.coord		= {0, .8, 0},
+			.coord		= {0, -192, 0},
 			.scale		= .9,
 			.slot		= PARTICLE_SLOT-1,		// in this rare case we want to draw text before particles
 		};
 		TextMesh_New(Localize(STR_STONE_AGE + gTheAge), 0, &def);
 
-		def.coord.y = .6;
+		def.coord.y = -144;
 		TextMesh_New(Localize(STR_AGE_COMPLETE), 0, &def);
 	}
 }
@@ -511,7 +512,8 @@ OGLSetupInputType	viewDef;
 		.coord		= {-200,900,0},
 		.slot 		= 100,
 		.moveCall 	= MoveWinCups,
-		.scale		= .5
+		.scale		= .5,
+		.flags		= STATUS_BIT_KEEPBACKFACES,		// normals are inside out on black part of cup handle
 	};
 	newObj = MakeNewDisplayGroupObject(&cupDef);
 	newObj->SmokeParticleGroup = -1;
