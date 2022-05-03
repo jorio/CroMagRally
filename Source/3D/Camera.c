@@ -259,10 +259,10 @@ Boolean	changeMode;
 			if (GetControlStateNew(i, kControlBit_CameraMode))
 			{
 				gPlayerInfo[i].cameraMode++;
-				if (gPlayerInfo[i].cameraMode > 3)
+				if (gPlayerInfo[i].cameraMode >= NUM_CAMERA_MODES)
 					gPlayerInfo[i].cameraMode = 0;
 
-				if (gPlayerInfo[i].cameraMode == 3)		// hide car if in 1st person mode
+				if (gPlayerInfo[i].cameraMode == CAMERA_MODE_FIRSTPERSON)		// hide car if in 1st person mode
 				{
 					SetCarStatusBits(i,STATUS_BIT_NOSHOWTHISPLAYER);
 					if (i == gMyNetworkPlayerNum)
@@ -283,18 +283,14 @@ Boolean	changeMode;
 		for (i = 0; i < gNumLocalPlayers; i++)
 		{
 			changeMode = GetNewNeedState(kNeed_CameraMode, i);
-			// if (i == 0)
-			// 	changeMode = GetNewKeyState(kKey_CameraMode_P1);
-			// else
-			// 	changeMode = GetNewKeyState(kKey_CameraMode_P2);
 
 			if (changeMode)
 			{
 				gPlayerInfo[i].cameraMode++;
-				if (gPlayerInfo[i].cameraMode > 3)
+				if (gPlayerInfo[i].cameraMode >= NUM_CAMERA_MODES)
 					gPlayerInfo[i].cameraMode = 0;
 
-				if (gPlayerInfo[i].cameraMode == 3)		// hide car if in 1st person mode
+				if (gPlayerInfo[i].cameraMode == CAMERA_MODE_FIRSTPERSON)		// hide car if in 1st person mode
 				{
 					SetCarStatusBits(i,STATUS_BIT_NOSHOWTHISPLAYER);
 					gCycloramaObj->Scale.x = gCycloramaObj->Scale.y = gCycloramaObj->Scale.z = gGameViewInfoPtr->yon * .9f;	// hack to fix z-clip problem in this cam mode
@@ -350,20 +346,20 @@ OGLVector3D	v,up = {0,1,0};
 	cameraMode = playerInfo->cameraMode;								// get camera mode
 	switch(cameraMode)
 	{
-		case	0:
+		case	CAMERA_MODE_NORMAL1:
 		default:
 				cameraRadius = 1000.0;
 				break;
 
-		case	1:
+		case	CAMERA_MODE_NORMAL2:
 				cameraRadius = 1500.0;
 				break;
 
-		case	2:
+		case	CAMERA_MODE_NORMAL3:
 				cameraRadius = 2000.0;
 				break;
 
-		case	3:									// mode 3 is the 1st person view mode
+		case	CAMERA_MODE_FIRSTPERSON:
 				OGLVector3D_Transform(&up, &playerObj->BaseTransformMatrix, &up);			// calc up vector
 
 				from.x = playerInfo->coord.x + up.x * 250.0f;			// calc from

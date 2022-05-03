@@ -306,7 +306,7 @@ Boolean	taken[NUM_LAND_CAR_TYPES];
 		gPlayerInfo[i].camera.upVector.y = 1;
 		gPlayerInfo[i].camera.upVector.z = 0;
 
-		gPlayerInfo[i].cameraMode = 0;
+		gPlayerInfo[i].cameraMode = CAMERA_MODE_NORMAL1;
 
 
 			/* AI */
