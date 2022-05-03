@@ -384,21 +384,9 @@ short	placeToWin,startStage;
 	{
 		gNumRetriesRemaining = MAX_RETRIES;								// # retries for this age
 
-				/* SHOW THE AGE PICTURE WHILE LOADING LEVEL */
+					/* SHOW THE AGE PICTURE */
 
 		ShowAgePicture(gTheAge);
-
-
-				/* LET PLAYER SELECT CHARACTER AT START OF EACH AGE */
-
-		if (DoVehicleSelectScreen(0, canAbort))								// select vehicle for player #0
-			return(true);
-
-
-
-					/********************************/
-					/* PLAY EACH  LEVEL OF THIS AGE */
-					/********************************/
 
 		if (GetNumAgesCompleted() >= NUM_AGES					// if won game, then start stage @ 0
 			|| gGamePrefs.difficulty >= DIFFICULTY_HARD			// always start @ stage 0 in hard modes
@@ -411,9 +399,25 @@ short	placeToWin,startStage;
 			startStage = GetNumStagesCompletedInAge();
 		}
 
+				/* LET PLAYER SELECT CHARACTER AT START OF EACH AGE */
+
+		if (GetTrackNumFromAgeStage(gTheAge, startStage) == TRACK_NUM_ATLANTIS)
+		{
+			// No-op -- It's pointless to let the player pick a car if we're starting on
+			// Atlantis because it's the last level and it forces using the submarine.
+		}
+		else if (DoVehicleSelectScreen(0, canAbort))			// select vehicle for player #0
+		{
+			return true;										// user bailed from vehicle select
+		}
+
+					/*******************************/
+					/* PLAY EACH LEVEL OF THIS AGE */
+					/*******************************/
+
 		for (int tournamentStage = startStage; tournamentStage < TRACKS_PER_AGE; tournamentStage++)
 		{
-			gTrackNum = gTheAge * TRACKS_PER_AGE + tournamentStage;	// get global track # to play
+			gTrackNum = GetTrackNumFromAgeStage(gTheAge, tournamentStage);	// get global track # to play
 
 			ShowLoadingPicture();									// show track intro screen
 
@@ -448,7 +452,7 @@ short	placeToWin,startStage;
 				/* IF JUST COMPLETED SOMETHING NEW THEN INC THE STAGE COUNTER */
 
 			if (!gGameOver															// dont do anything if we failed or bailed
-				&& gTrackNum+1 > GetNumStagesCompletedTotal())						// only if it's better than current progress
+				&& gTrackNum+1 > GetNumTracksCompletedTotal())						// only if it's better than current progress
 			{
 				SetPlayerProgression(gTrackNum+1);
 				SavePlayerFile();

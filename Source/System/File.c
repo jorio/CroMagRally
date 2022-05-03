@@ -648,22 +648,27 @@ void SavePlayerFile(void)
 
 int GetNumAgesCompleted(void)
 {
-	return GAME_MIN(NUM_AGES, gGamePrefs.numStagesCompletedTotal / TRACKS_PER_AGE);
+	return GAME_MIN(NUM_AGES, gGamePrefs.numTracksCompleted / TRACKS_PER_AGE);
 }
 
 int GetNumStagesCompletedInAge(void)
 {
-	return gGamePrefs.numStagesCompletedTotal % TRACKS_PER_AGE;
+	return gGamePrefs.numTracksCompleted % TRACKS_PER_AGE;
 }
 
-int GetNumStagesCompletedTotal(void)
+int GetNumTracksCompletedTotal(void)
 {
-	return gGamePrefs.numStagesCompletedTotal;
+	return gGamePrefs.numTracksCompleted;
 }
 
-void SetPlayerProgression(int numStagesCompletedTotal)
+int GetTrackNumFromAgeStage(int age, int stage)
 {
-	gGamePrefs.numStagesCompletedTotal = numStagesCompletedTotal;
+	return age * TRACKS_PER_AGE + stage;
+}
+
+void SetPlayerProgression(int numTracksCompleted)
+{
+	gGamePrefs.numTracksCompleted = numTracksCompleted;
 }
 
 

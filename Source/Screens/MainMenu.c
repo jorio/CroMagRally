@@ -615,7 +615,7 @@ static void OnPickResetGamepadBindings(const MenuItem* mi)
 static bool IsClearSavedGameAvailable(const MenuItem* mi)
 {
 	(void) mi;
-	return GetNumStagesCompletedTotal() > 0;
+	return GetNumTracksCompletedTotal() > 0;
 }
 
 static bool IsTournamentAgeAvailable(const MenuItem* mi)
