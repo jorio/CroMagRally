@@ -12,7 +12,6 @@
 
 extern	Byte					**gMapSplitMode;
 extern	SuperTileItemIndexType	**gSuperTileItemIndexGrid;
-extern	Byte					**gTerrainShadowFlags;
 
 /****************************/
 /*  PROTOTYPES             */
@@ -202,13 +201,6 @@ int	i;
 	for (i = 0; i < gNumUniqueSuperTiles; i++)
 		glDeleteTextures(1, &gSuperTileTextureNames[i]);
 	gNumUniqueSuperTiles = 0;
-
-	if (gTerrainShadowFlags)
-	{
-		Free_2d_array(gTerrainShadowFlags);
-		gTerrainShadowFlags = nil;
-	}
-
 
 	if (gTileGrid)														// free old array
 	{

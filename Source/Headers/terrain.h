@@ -180,4 +180,3 @@ void CalcTileNormals(long row, long col, OGLVector3D *n1, OGLVector3D *n2);
 void CalculateSplitModeMatrix(void);
 
 uint16_t	GetTileAttribsAtRowCol(float x, float z);
-void DoItemShadowCasting(void);

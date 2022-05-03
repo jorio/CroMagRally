@@ -899,11 +899,6 @@ static const char*	levelModelFiles[NUM_TRACKS] =
 
 	FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, terrainFiles[gTrackNum], &spec);
 	LoadPlayfield(&spec);
-
-			/* CAST SHADOWS */
-
-	DoItemShadowCasting();
-
 }
 
 
