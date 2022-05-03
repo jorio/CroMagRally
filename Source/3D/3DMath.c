@@ -909,7 +909,7 @@ float	mag,oneOverM;
 /*********************** REFLECT VECTOR 3D *************************/
 //
 // compute reflection vector
-// which is N(2(N¥V)) - V
+// which is N(2(N.V)) - V
 // N - Surface Normal
 // vec = vector aiming at the normal.
 //
@@ -2081,7 +2081,7 @@ float			minX,minY,minZ,maxX,maxY,maxZ;
 //
 // A function for creating a rotation matrix that rotates a vector called
 // "from" into another vector called "to".
-// Author: Tomas Möller, 1999
+// Author: Tomas MÃ¶ller, 1999
 //
 
 void OGLCreateFromToRotationMatrix(const OGLVector3D *from, const OGLVector3D *to, OGLMatrix4x4 *m)
