@@ -69,14 +69,7 @@ Boolean				gGameOver = false;
 Boolean				gTrackCompleted = false;
 float				gTrackCompletedCoolDownTimer = 0;
 
-int					gGameMode,gTheAge,gTournamentStage,gTrackNum;
-
-static const int 	gTournamentTrackTable[NUM_AGES][TRACKS_PER_AGE] =
-{
-	[STONE_AGE]  = {TRACK_NUM_DESERT,	TRACK_NUM_JUNGLE,		TRACK_NUM_ICE},
-	[BRONZE_AGE] = {TRACK_NUM_CRETE,	TRACK_NUM_CHINA,		TRACK_NUM_EGYPT},
-	[IRON_AGE]   = {TRACK_NUM_EUROPE,	TRACK_NUM_SCANDINAVIA,	TRACK_NUM_ATLANTIS},
-};
+int					gGameMode,gTheAge,gTrackNum;
 
 
 			/* BATTLE MODE VARS */
@@ -407,18 +400,20 @@ short	placeToWin,startStage;
 					/* PLAY EACH  LEVEL OF THIS AGE */
 					/********************************/
 
-		if (GetNumAgesCompleted() >= NUM_AGES)					// if won game, then start stage @ 0
-			startStage = 0;
-		else if (gGamePrefs.difficulty >= DIFFICULTY_HARD)		// always start @ stage 0 in hard modes
-			startStage = 0;
-		else if (gTheAge == GetNumAgesCompleted())				// if it's the age we're working on completing, start where we last were
-			startStage = GetNumStagesCompleted();
-		else													// picked an age we've already completed, start @ stage 0
-			startStage = 0;
-
-		for (gTournamentStage = startStage; gTournamentStage < 3; gTournamentStage++)
+		if (GetNumAgesCompleted() >= NUM_AGES					// if won game, then start stage @ 0
+			|| gGamePrefs.difficulty >= DIFFICULTY_HARD			// always start @ stage 0 in hard modes
+			|| gTheAge < GetNumAgesCompleted())					// picked an age we've already completed, start @ stage 0
 		{
-			gTrackNum = gTournamentTrackTable[gTheAge][gTournamentStage];	// get global track # to play
+			startStage = 0;
+		}
+		else													// if it's the age we're working on completing, start where we last were
+		{
+			startStage = GetNumStagesCompletedInAge();
+		}
+
+		for (int tournamentStage = startStage; tournamentStage < TRACKS_PER_AGE; tournamentStage++)
+		{
+			gTrackNum = gTheAge * TRACKS_PER_AGE + tournamentStage;	// get global track # to play
 
 			ShowLoadingPicture();									// show track intro screen
 
@@ -439,7 +434,7 @@ short	placeToWin,startStage;
 
 					if (DoFailedMenu(s))												// returns true if want to retry
 					{
-						gTournamentStage--;											// back up, so "next" will put us back here again
+						tournamentStage--;											// back up, so "next" will put us back here again
 						gNumRetriesRemaining--;
 					}
 					else															// otherwise, user wants to retire
@@ -453,12 +448,9 @@ short	placeToWin,startStage;
 				/* IF JUST COMPLETED SOMETHING NEW THEN INC THE STAGE COUNTER */
 
 			if (!gGameOver															// dont do anything if we failed or bailed
-				&& gTheAge == GetNumAgesCompleted()									// only if this is the age we're working on winning
-				&& gTournamentStage < 2												// completing third stage bumps the age
-				&& gTournamentStage > GetNumStagesCompleted()						// only if it's better than current progress
-			   )
+				&& gTrackNum+1 > GetNumStagesCompletedTotal())						// only if it's better than current progress
 			{
-				SetPlayerProgression(gTheAge, gTournamentStage + 1);
+				SetPlayerProgression(gTrackNum+1);
 				SavePlayerFile();
 			}
 
@@ -472,13 +464,6 @@ short	placeToWin,startStage;
 		}
 
 			/* NEXT AGE */
-
-		if (gTheAge >= GetNumAgesCompleted())								// inc player's age completion value
-		{
-			SetPlayerProgression(gTheAge + 1, 0);
-			SavePlayerFile();
-		}
-
 
 		DoAgeConqueredScreen();
 

@@ -633,7 +633,7 @@ void SetDefaultPlayerSaveData(void)
 	memset(gGamePrefs.playerName, 0, sizeof(gGamePrefs.playerName));
 	snprintf(gGamePrefs.playerName, sizeof(gGamePrefs.playerName), "PLAYER");
 
-	SetPlayerProgression(0, 0);
+	SetPlayerProgression(0);
 }
 
 
@@ -648,18 +648,22 @@ void SavePlayerFile(void)
 
 int GetNumAgesCompleted(void)
 {
-	return gGamePrefs.numAgesCompleted;
+	return GAME_MIN(NUM_AGES, gGamePrefs.numStagesCompletedTotal / TRACKS_PER_AGE);
 }
 
-int GetNumStagesCompleted(void)
+int GetNumStagesCompletedInAge(void)
 {
-	return gGamePrefs.numStagesCompleted;
+	return gGamePrefs.numStagesCompletedTotal % TRACKS_PER_AGE;
 }
 
-void SetPlayerProgression(int age, int stage)
+int GetNumStagesCompletedTotal(void)
 {
-	gGamePrefs.numAgesCompleted = age;
-	gGamePrefs.numStagesCompleted = stage;
+	return gGamePrefs.numStagesCompletedTotal;
+}
+
+void SetPlayerProgression(int numStagesCompletedTotal)
+{
+	gGamePrefs.numStagesCompletedTotal = numStagesCompletedTotal;
 }
 
 

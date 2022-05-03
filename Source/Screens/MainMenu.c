@@ -585,7 +585,7 @@ static void OnToggleMusic(const MenuItem* mi)
 
 static void OnPickClearSavedGame(const MenuItem* mi)
 {
-	SetPlayerProgression(0, 0);
+	SetPlayerProgression(0);
 	SavePlayerFile();
 }
 
@@ -615,7 +615,7 @@ static void OnPickResetGamepadBindings(const MenuItem* mi)
 static bool IsClearSavedGameAvailable(const MenuItem* mi)
 {
 	(void) mi;
-	return GetNumAgesCompleted() > 0 || GetNumStagesCompleted() > 0;
+	return GetNumStagesCompletedTotal() > 0;
 }
 
 static bool IsTournamentAgeAvailable(const MenuItem* mi)

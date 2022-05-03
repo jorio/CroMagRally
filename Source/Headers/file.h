@@ -56,8 +56,7 @@ typedef struct
 typedef struct
 {
 	char	playerName[64];
-	Byte	numAgesCompleted;
-	Byte	numStagesCompleted;
+	Byte	numStagesCompletedTotal;
 
 	Byte	difficulty;
 	Byte	desiredSplitScreenMode;
@@ -102,8 +101,9 @@ void SetDefaultDirectory(void);
 void SetDefaultPlayerSaveData(void);
 void SavePlayerFile(void);
 int GetNumAgesCompleted(void);
-int GetNumStagesCompleted(void);
-void SetPlayerProgression(int age, int stage);
+int GetNumStagesCompletedInAge(void);
+int GetNumStagesCompletedTotal(void);
+void SetPlayerProgression(int numCompletedStages);
 
 Ptr LoadDataFile(const char* path, long* outLength);
 char* LoadTextFile(const char* path, long* outLength);
