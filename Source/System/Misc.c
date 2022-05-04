@@ -13,6 +13,8 @@
 #include "network.h"
 #include <SDL.h>
 #include <math.h>
+#include <stdio.h>
+#include <stdarg.h>
 
 extern	SDL_Window* 	gSDLWindow;
 
@@ -444,4 +446,20 @@ EventRecord 	theEvent;
 	FlushEvents (everyEvent, REMOVE_ALL_EVENTS);
 	FlushEventQueue(GetMainEventQueue());
 #endif
+}
+
+
+/************* SNPRINTF THAT APPENDS TO EXISTING STRING ****************/
+
+size_t snprintfcat(char* buf, size_t bufSize, char const* fmt, ...)
+{
+	size_t len = strnlen(buf, bufSize);
+	int result;
+	va_list args;
+
+	va_start(args, fmt);
+	result = vsnprintf(buf + len, bufSize - len, fmt, args);
+	va_end(args);
+
+	return result;
 }

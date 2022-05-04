@@ -25,6 +25,7 @@ Boolean IsPowerOf2(int num);
 float RandomFloat2(void);
 void SafeDisposePtr(Ptr ptr);
 void MyFlushEvents(void);
+size_t snprintfcat(char* buf, size_t bufSize, char const* fmt, ...);
 
 #define ShowSystemErr(err) DoFatalAlert("Fatal system error: %d", err)
 #define ShowSystemErr_NonFatal(err) DoFatalAlert("System error: %d", err)

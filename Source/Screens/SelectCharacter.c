@@ -109,6 +109,7 @@ OGLColorRGBA		ambientColor = { .5, .5, .5, 1 };
 OGLColorRGBA		fillColor1 = { 1.0, 1.0, 1.0, 1 };
 OGLVector3D			fillDirection1 = { .9, -.3, -1 };
 ObjNode	*newObj;
+ObjNode	*multiplayerText = NULL;
 
 	gSelectedCharacterIndex = 0;
 
@@ -169,29 +170,30 @@ ObjNode	*newObj;
 	{
 		NewObjectDefinitionType newObjDef =
 		{
-			.coord = {0, ARROW_Y, 0},
-			.scale = .4,
-			.slot = SPRITE_SLOT
+			.coord = {0, -192, 0},
+			.scale = .55,
+			.slot = 99
 		};
-		newObj = TextMesh_New(GetPlayerNameWithInputDeviceHint(whichPlayer), kTextMeshAlignCenter, &newObjDef);
+		multiplayerText = TextMesh_New(GetPlayerNameWithInputDeviceHint(whichPlayer), kTextMeshAlignCenter, &newObjDef);
 
-		newObj->ColorFilter.r = .2;
-		newObj->ColorFilter.g = .7;
-		newObj->ColorFilter.b = .2;
+		multiplayerText->ColorFilter = (OGLColorRGBA) {.2, .7, .2, 1};
 	}
-
+	else
+	{
 			/* CREATE NAME STRINGS */
 
-	NewObjectDefinitionType newObjDef_NameString =
-	{
-		.coord = {-0.5f*ARROW_2D_SPREAD, -192, 0},
-		.scale = .6f,
-		.slot = 99
-	};
-	TextMesh_New(Localize(STR_BROG), kTextMeshAlignCenter, &newObjDef_NameString);
+		NewObjectDefinitionType newObjDef_NameString =
+		{
+			.coord = {-0.5f*ARROW_2D_SPREAD, -192, 0},
+			.scale = .6f,
+			.slot = 99
+		};
+		TextMesh_New(Localize(STR_BROG), kTextMeshAlignCenter, &newObjDef_NameString);
 
-	newObjDef_NameString.coord.x 	= 0.5f*ARROW_2D_SPREAD;
-	TextMesh_New(Localize(STR_GRAG), kTextMeshAlignCenter, &newObjDef_NameString);
+		newObjDef_NameString.coord.x 	= 0.5f*ARROW_2D_SPREAD;
+		TextMesh_New(Localize(STR_GRAG), kTextMeshAlignCenter, &newObjDef_NameString);
+	}
+
 
 			/* CREATE MALE CHARACTER */
 
@@ -226,6 +228,28 @@ ObjNode	*newObj;
 			.scale = ARROW_SCALE,
 		};
 		gCharacterArrow = MakeSpriteObject(&def, gGameViewInfoPtr);
+	}
+
+			/* IN CTF, USE RED/GREEN CHARACTER SKINS */
+
+	if (gGameMode == GAME_MODE_CAPTUREFLAG)
+	{
+		LoadCavemanSkins(gGameViewInfoPtr);
+
+		int team = gPlayerInfo[gCurrentPlayerNum].team;
+		int skinID = team == RED_TEAM? 4 : 1;
+
+		gSex[0]->Skeleton->overrideTexture = gCavemanSkins[0][skinID];
+		gSex[1]->Skeleton->overrideTexture = gCavemanSkins[1][skinID];
+
+		if (team == RED_TEAM)
+		{
+			multiplayerText->ColorFilter = (OGLColorRGBA) {.8, 0, 0, 1};
+		}
+		else
+		{
+			multiplayerText->ColorFilter = (OGLColorRGBA) {0, .8, 0, 1};
+		}
 	}
 }
 

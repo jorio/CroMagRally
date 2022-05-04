@@ -733,17 +733,35 @@ void UnlockPlayerControllerMapping(void)
 	TryFillUpVacantControllerSlots();
 }
 
-const char* GetPlayerNameWithInputDeviceHint(int whichPlayer)
+const char* GetPlayerName(int whichPlayer)
 {
 	static char playerName[64];
 
+	snprintf(playerName, sizeof(playerName),
+			"%s %d", Localize(STR_PLAYER), whichPlayer+1);
+
+	return playerName;
+}
+
+const char* GetPlayerNameWithInputDeviceHint(int whichPlayer)
+{
+	static char playerName[128];
+
+	playerName[0] = '\0';
+
+	snprintfcat(playerName, sizeof(playerName),
+			"%s %d", Localize(STR_PLAYER), whichPlayer+1);
+
+	if (gGameMode == GAME_MODE_CAPTUREFLAG)
+	{
+		snprintfcat(playerName, sizeof(playerName),
+			", %s", Localize(gPlayerInfo[whichPlayer].team == 0 ? STR_RED_TEAM : STR_GREEN_TEAM));
+	}
+
 	if (whichPlayer == 0 && !gControllers[0].open)
 	{
-		snprintf(playerName, sizeof(playerName), "%s %d\n[%s]", Localize(STR_PLAYER), whichPlayer+1, Localize(STR_KEYBOARD));
-	}
-	else
-	{
-		snprintf(playerName, sizeof(playerName), "%s %d", Localize(STR_PLAYER), whichPlayer+1);
+		snprintfcat(playerName, sizeof(playerName),
+				"\n[%s]", Localize(STR_KEYBOARD));
 	}
 
 	return playerName;

@@ -359,7 +359,7 @@ int					age;
 			.slot 		= SPRITE_SLOT,
 		};
 		
-		newObj = TextMesh_New(GetPlayerNameWithInputDeviceHint(whichPlayer), kTextMeshAlignCenter, &def);
+		newObj = TextMesh_New(GetPlayerName(whichPlayer), kTextMeshAlignCenter, &def);
 
 		newObj->ColorFilter.r = .5;
 		newObj->ColorFilter.g = .3;

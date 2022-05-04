@@ -82,6 +82,12 @@ enum
 	NUM_DIFFICULTIES
 };
 
+enum
+{
+	RED_TEAM,
+	GREEN_TEAM,
+};
+
 
 //=================================================
 

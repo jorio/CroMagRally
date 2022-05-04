@@ -125,6 +125,7 @@ void Rumble(float strength, uint32_t ms);
 
 void LockPlayerControllerMapping(void);
 void UnlockPlayerControllerMapping(void);
+const char* GetPlayerName(int whichPlayer);
 const char* GetPlayerNameWithInputDeviceHint(int whichPlayer);
 
 void ResetDefaultKeyboardBindings(void);
