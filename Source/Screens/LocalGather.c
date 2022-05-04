@@ -41,13 +41,20 @@ static void UpdateGatherPrompt(int numControllersMissing)
 {
 	char message[256];
 
-	snprintf(
-		message,
-		sizeof(message),
-		"%s %s\n%s",
-		Localize(STR_CONNECT_CONTROLLERS_PREFIX),
-		Localize(STR_CONNECT_1_CONTROLLER + numControllersMissing - 1),
-		Localize(numControllersMissing==1? STR_CONNECT_CONTROLLERS_SUFFIX_KBD: STR_CONNECT_CONTROLLERS_SUFFIX));
+	if (numControllersMissing <= 0)
+	{
+		snprintf(message, sizeof(message), "OK!");
+	}
+	else
+	{
+		snprintf(
+			message,
+			sizeof(message),
+			"%s %s\n%s",
+			Localize(STR_CONNECT_CONTROLLERS_PREFIX),
+			Localize(STR_CONNECT_1_CONTROLLER + numControllersMissing - 1),
+			Localize(numControllersMissing==1? STR_CONNECT_CONTROLLERS_SUFFIX_KBD: STR_CONNECT_CONTROLLERS_SUFFIX));
+	}
 
 	TextMesh_Update(message, 0, gGatherPrompt);
 }
@@ -55,7 +62,7 @@ static void UpdateGatherPrompt(int numControllersMissing)
 
 
 
-/********************** DO CHARACTER SELECT SCREEN **************************/
+/********************** DO GATHER SCREEN **************************/
 //
 // Return true if user aborts.
 //
@@ -64,6 +71,12 @@ Boolean DoLocalGatherScreen(void)
 {
 	gNumControllersMissing = gNumLocalPlayers;
 	UnlockPlayerControllerMapping();
+
+	if (GetNumControllers() >= gNumLocalPlayers)
+	{
+		// Skip gather screen if we already have enough controllers
+		return false;
+	}
 
 	SetupLocalGatherScreen();
 	MakeFadeEvent(true);
@@ -104,6 +117,13 @@ Boolean DoLocalGatherScreen(void)
 		OGL_DrawScene(gGameViewInfoPtr, DrawObjects);
 	}
 
+			/* SHOW 'OK!' */
+
+	if (outcome >= 0)
+	{
+		UpdateGatherPrompt(0);
+	}
+
 
 			/***********/
 			/* CLEANUP */
@@ -120,7 +140,7 @@ Boolean DoLocalGatherScreen(void)
 }
 
 
-/********************* SETUP CHARACTERSELECT SCREEN **********************/
+/********************* SETUP LOCAL GATHER SCREEN **********************/
 
 static void SetupLocalGatherScreen(void)
 {
