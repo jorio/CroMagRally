@@ -28,13 +28,12 @@ static void SetMetaObjectToVertexArrayGeometry(MOVertexArrayObject *geoObj, MOVe
 static void SetMetaObjectToMatrix(MOMatrixObject *matObj, OGLMatrix4x4 *inData);
 static void MO_DetachFromLinkedList(MetaObjectPtr obj);
 static void MO_DisposeObject_Group(MOGroupObject *group);
-static void MO_DeleteObjectInfo_Material(MOMaterialObject *obj);
+static void MO_DisposeObject_Material(MOMaterialObject *obj);
 static void MO_GetNewGroupReference(MOGroupObject *obj);
 static void MO_GetNewVertexArrayReference(MOVertexArrayObject *obj);
 static void MO_CalcBoundingBox_Recurse(MetaObjectPtr object, OGLBoundingBox *bBox);
 static void SetMetaObjectToPicture(MOPictureObject *pictObj, OGLSetupOutputType *setupInfo, const char *inData, int destPixelFormat);
 static void MO_DisposeObject_Picture(MOPictureObject *obj);
-static void MO_DeleteObjectInfo_Picture(MOPictureObject *obj);
 
 static void SetMetaObjectToSprite(MOSpriteObject *spriteObj, OGLSetupOutputType *setupInfo, MOSpriteSetupData *inData);
 static void MO_DisposeObject_Sprite(MOSpriteObject *obj);
@@ -83,25 +82,6 @@ MetaObjectHeader *h = mo;
 	h->refCount++;
 	GAME_ASSERT(h->refCount < 1000000);
 
-		/********************************/
-		/* SEE IF NEED TO SUB INCREMENT */
-		/********************************/
-
-	switch(h->type)
-	{
-		case	MO_TYPE_GROUP:
-				MO_GetNewGroupReference(mo);
-				break;
-
-
-		case	MO_TYPE_GEOMETRY:
-				switch(h->subType)
-				{
-					case	MO_GEOMETRY_SUBTYPE_VERTEXARRAY:
-							MO_GetNewVertexArrayReference(mo);
-							break;
-				}
-	}
 
 	return(mo);
 }
@@ -1027,44 +1007,6 @@ MOVertexArrayObject	*vObj;
 	if (header->cookie != MO_COOKIE)					// verify cookie
 		DoFatalAlert("MO_DisposeObjectReference: bad cookie!");
 
-
-			/*************************************/
-			/* HANDLE SPECIFIC DISPOSE FUNCTIONS */
-			/*************************************/
-			//
-			// This handles the decrementing of sub references such as objects
-			// in a group or material references.
-			//
-
-	switch(header->type)
-	{
-		case	MO_TYPE_GROUP:
-				MO_DisposeObject_Group(obj);
-				break;
-
-		case	MO_TYPE_GEOMETRY:
-				switch(header->subType)
-				{
-					case	MO_GEOMETRY_SUBTYPE_VERTEXARRAY:
-							vObj = obj;
-							MO_DisposeObject_Geometry_VertexArray(&vObj->objectData);
-							break;
-
-					default:
-							DoFatalAlert("MO_DisposeObjectReference: unknown sub-type");
-				}
-				break;
-
-		case	MO_TYPE_PICTURE:
-				MO_DisposeObject_Picture(obj);
-				break;
-
-		case	MO_TYPE_SPRITE:
-				MO_DisposeObject_Sprite(obj);
-				break;
-
-	}
-
 			/**************************************/
 			/* DEC REFERENCE COUNT OF THIS OBJECT */
 			/**************************************/
@@ -1080,26 +1022,28 @@ MOVertexArrayObject	*vObj;
 
 		switch(header->type)
 		{
-			case	MO_TYPE_GEOMETRY:
-					switch(header->subType)
-					{
-						case	MO_GEOMETRY_SUBTYPE_VERTEXARRAY:
-								vObj = obj;
-								MO_DeleteObjectInfo_Geometry_VertexArray(&vObj->objectData);
-								break;
+			case	MO_TYPE_GROUP:
+					MO_DisposeObject_Group(obj);
+					break;
 
-						default:
-								DoFatalAlert("MO_DisposeObject: unknown sub-type");
-					}
+			case	MO_TYPE_GEOMETRY:
+					GAME_ASSERT_MESSAGE(header->subType == MO_GEOMETRY_SUBTYPE_VERTEXARRAY, "unknown geometry subtype");
+					vObj = obj;
+					MO_DisposeObject_Geometry_VertexArray(&vObj->objectData);
 					break;
 
 			case	MO_TYPE_MATERIAL:
-					MO_DeleteObjectInfo_Material(obj);
+					MO_DisposeObject_Material(obj);
 					break;
 
 			case	MO_TYPE_PICTURE:
-					MO_DeleteObjectInfo_Picture(obj);
+					MO_DisposeObject_Picture(obj);
 					break;
+
+			case	MO_TYPE_SPRITE:
+					MO_DisposeObject_Sprite(obj);
+					break;
+
 		}
 
 			/* DELETE THE OBJECT NODE */
@@ -1215,30 +1159,22 @@ static void MO_DisposeObject_Sprite(MOSpriteObject *obj)
 
 
 
-/****************** DISPOSE OBJECT: GEOMETRY : VERTEX ARRAY *******************/
-//
-// Decrement references to all of the materials used in this geometry.
+
+/****************** DELETE OBJECT INFO: GEOMETRY : VERTEX ARRAY *******************/
 //
 // NOTE: this function is not static because the Skeleton code calls it for stuff.
 //
 
 void MO_DisposeObject_Geometry_VertexArray(MOVertexArrayData *data)
 {
-int					i,n;
+		/* DEREFERENCE ANY MATERIALS */
 
-	n = data->numMaterials;
-	for (i = 0; i < n; i++)
+	int numMaterials = data->numMaterials;
+	for (int i = 0; i < numMaterials; i++)
+	{
 		MO_DisposeObjectReference(data->materials[i]);	// dispose of this object's ref
-}
+	}
 
-
-/****************** DELETE OBJECT INFO: GEOMETRY : VERTEX ARRAY *******************/
-//
-// Assumes the contents (the materials) have already been dereferenced!
-//
-
-void MO_DeleteObjectInfo_Geometry_VertexArray(MOVertexArrayData *data)
-{
 		/* DISPOSE OF VARIOUS ARRAYS */
 
 	if (data->points)
@@ -1282,7 +1218,7 @@ void MO_DeleteObjectInfo_Geometry_VertexArray(MOVertexArrayData *data)
 
 /****************** DELETE OBJECT INFO: MATERIAL *******************/
 
-static void MO_DeleteObjectInfo_Material(MOMaterialObject *obj)
+static void MO_DisposeObject_Material(MOMaterialObject *obj)
 {
 MOMaterialData		*data = &obj->objectData;
 
@@ -1292,12 +1228,6 @@ MOMaterialData		*data = &obj->objectData;
 		glDeleteTextures(data->numMipmaps, &data->textureName[0]);
 }
 
-
-/****************** DELETE OBJECT INFO: PICTURE *******************/
-
-static void MO_DeleteObjectInfo_Picture(MOPictureObject *obj)
-{
-}
 
 
 #pragma mark -

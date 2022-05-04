@@ -96,7 +96,6 @@ short	i;
 		for (i=0; i < gNumDecomposedTriMeshesInSkeleton[skeletonType]; i++)		// dispose of the local copies of the decomposed trimeshes
 		{
 			MO_DisposeObject_Geometry_VertexArray(&gLocalTriMeshesOfSkelType[skeletonType][i]);		// dispose of sub references
-			MO_DeleteObjectInfo_Geometry_VertexArray(&gLocalTriMeshesOfSkelType[skeletonType][i]);	// delete the data
 		}
 
 		DisposeSkeletonDefinitionMemory(gLoadedSkeletonsList[skeletonType]);	// free skeleton data

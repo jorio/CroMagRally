@@ -204,7 +204,6 @@ void MO_DrawMatrix(const MOMatrixObject *matObj, const OGLSetupOutputType *setup
 void MO_DrawPicture(const MOPictureObject *picObj, const OGLSetupOutputType *setupInfo);
 void MO_DisposeObjectReference(MetaObjectPtr obj);
 void MO_DuplicateVertexArrayData(MOVertexArrayData *inData, MOVertexArrayData *outData);
-void MO_DeleteObjectInfo_Geometry_VertexArray(MOVertexArrayData *data);
 void MO_DisposeObject_Geometry_VertexArray(MOVertexArrayData *data);
 void MO_CalcBoundingBox(MetaObjectPtr object, OGLBoundingBox *bBox);
 MOMaterialObject *MO_GetTextureFromFile(const char* path, OGLSetupOutputType *setupInfo, int destPixelFormat);
