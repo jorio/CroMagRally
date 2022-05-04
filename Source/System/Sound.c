@@ -527,7 +527,7 @@ short	musicFileRefNum;
 	iErr = FSpOpenDF(&spec, fsRdPerm, &musicFileRefNum);
 	GAME_ASSERT(!iErr);
 
-//	volumeTweak = songs[songNum].volumeTweak;
+	float volumeTweak = songs[songNum].volumeTweak;
 
 	gCurrentSong = songNum;
 
@@ -567,6 +567,15 @@ short	musicFileRefNum;
 	iErr = SndDoImmediate(gMusicChannel, &mySndCmd);
 	if (iErr)
 		DoFatalAlert("PlaySong: SndDoImmediate (pomme loop extension) failed!");
+
+	uint32_t lv2 = kFullVolume * volumeTweak * gGlobalVolume;
+	uint32_t rv2 = kFullVolume * volumeTweak * gGlobalVolume;
+	mySndCmd.cmd = volumeCmd;
+	mySndCmd.param1 = 0;
+	mySndCmd.param2 = (rv2<<16) | lv2;
+	iErr = SndDoImmediate(gMusicChannel, &mySndCmd);
+	if (iErr)
+		DoFatalAlert("PlaySong: SndDoImmediate (volumeCmd) failed!");
 
 
 
