@@ -44,9 +44,10 @@ enum
 /*     PROTOTYPES     */
 /**********************/
 
-typedef struct
+typedef struct Controller
 {
 	bool					open;
+	bool					fallbackToKeyboard;
 	SDL_GameController*		controllerInstance;
 	SDL_JoystickID			joystickInstance;
 	Byte					needStates[NUM_CONTROL_NEEDS];
@@ -295,19 +296,20 @@ Boolean GetNewClickState(int mouseButton)
 
 Boolean GetNeedState(int needID, int playerID)
 {
+	const Controller* controller = &gControllers[playerID];
+
 	GAME_ASSERT(playerID >= 0);
 	GAME_ASSERT(playerID < MAX_LOCAL_PLAYERS);
 	GAME_ASSERT(needID >= 0);
 	GAME_ASSERT(needID < NUM_CONTROL_NEEDS);
 
-	if (gControllers[playerID].open
-		&& (gControllers[playerID].needStates[needID] & KEYSTATE_ACTIVE_BIT))
+	if (controller->open && (controller->needStates[needID] & KEYSTATE_ACTIVE_BIT))
 	{
 		return true;
 	}
 
 	// Fallback to KB/M
-	if (playerID == 0)
+	if (gNumLocalPlayers <= 1 || controller->fallbackToKeyboard)
 	{
 		return gNeedStates[needID] & KEYSTATE_ACTIVE_BIT;
 	}
@@ -332,19 +334,20 @@ Boolean GetNeedStateAnyP(int needID)
 
 Boolean GetNewNeedState(int needID, int playerID)
 {
+	const Controller* controller = &gControllers[playerID];
+
 	GAME_ASSERT(playerID >= 0);
 	GAME_ASSERT(playerID < MAX_LOCAL_PLAYERS);
 	GAME_ASSERT(needID >= 0);
 	GAME_ASSERT(needID < NUM_CONTROL_NEEDS);
 
-	if (gControllers[playerID].open
-		&& (gControllers[playerID].needStates[needID] == KEYSTATE_PRESSED))
+	if (controller->open && controller->needStates[needID] == KEYSTATE_PRESSED)
 	{
 		return true;
 	}
 
 	// Fallback to KB/M
-	if (playerID == 0)
+    if (gNumLocalPlayers <= 1 || controller->fallbackToKeyboard)
 	{
 		return gNeedStates[needID] == KEYSTATE_PRESSED;
 	}
@@ -557,12 +560,15 @@ static SDL_GameController* TryOpenControllerFromJoystick(int joystickIndex)
 
 static SDL_GameController* TryOpenAnyUnusedController(bool showMessage)
 {
-	if (SDL_NumJoysticks() == 0)
+	int numJoysticks = SDL_NumJoysticks();
+	int numJoysticksAlreadyInUse = 0;
+
+	if (numJoysticks == 0)
 	{
 		return NULL;
 	}
 
-	for (int i = 0; i < SDL_NumJoysticks(); ++i)
+	for (int i = 0; i < numJoysticks; ++i)
 	{
 		// Usable as an SDL GameController?
 		if (!SDL_IsGameController(i))
@@ -573,6 +579,7 @@ static SDL_GameController* TryOpenAnyUnusedController(bool showMessage)
 		// Already in use?
 		if (GetControllerSlotFromJoystick(i) >= 0)
 		{
+			numJoysticksAlreadyInUse++;
 			continue;
 		}
 
@@ -582,6 +589,12 @@ static SDL_GameController* TryOpenAnyUnusedController(bool showMessage)
 		{
 			return newController;
 		}
+	}
+
+	if (numJoysticksAlreadyInUse == numJoysticks)
+	{
+		// All joysticks already in use
+		return NULL;
 	}
 
 	printf("Joystick(s) found, but none is suitable as an SDL_GameController.\n");
@@ -708,19 +721,11 @@ static void OnJoystickRemoved(SDL_JoystickID joystickInstanceID)
 
 void LockPlayerControllerMapping(void)
 {
-	bool p1UsesKeyboardOnly = GetNumControllers() < gNumLocalPlayers;
+	int keyboardPlayer = gNumLocalPlayers-1;
 
-	if (p1UsesKeyboardOnly)
+	for (int i = 0; i < MAX_LOCAL_PLAYERS; i++)
 	{
-		puts("P1 takes keyboard");
-
-		// shift controllers
-		for (int i = MAX_LOCAL_PLAYERS-1; i > 0; i--)
-		{
-			MoveController(i-1, i);
-		}
-
-		GAME_ASSERT(!gControllers[0].open);
+		gControllers[i].fallbackToKeyboard = (i == keyboardPlayer);
 	}
 
 	gControllerPlayerMappingLocked = true;
@@ -758,10 +763,13 @@ const char* GetPlayerNameWithInputDeviceHint(int whichPlayer)
 			", %s", Localize(gPlayerInfo[whichPlayer].team == 0 ? STR_RED_TEAM : STR_GREEN_TEAM));
 	}
 
-	if (whichPlayer == 0 && !gControllers[0].open)
+	bool enoughControllers = GetNumControllers() >= gNumLocalPlayers;
+
+	if (!enoughControllers)
 	{
+		bool hasGamepad = gControllers[whichPlayer].open;
 		snprintfcat(playerName, sizeof(playerName),
-				"\n[%s]", Localize(STR_KEYBOARD));
+					"\n[%s]", Localize(hasGamepad? STR_GAMEPAD: STR_KEYBOARD));
 	}
 
 	return playerName;
