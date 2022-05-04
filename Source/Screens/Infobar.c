@@ -977,10 +977,12 @@ short	lapNum;
 			.moveCall	= MoveLapMessage,
 			.scale		= .7f,
 			.slot		= SPRITE_SLOT,
+            .flags      = STATUS_BIT_ONLYSHOWTHISPLAYER
 		};
 
 		const char* s = Localize(lapNum == 1 ? STR_LAP_2 : STR_LAP_3);
-		TextMesh_New(s, kTextMeshAlignCenter, &def);
+		ObjNode* text = TextMesh_New(s, kTextMeshAlignCenter, &def);
+        text->PlayerNum = playerNum;
 	}
 }
 
