@@ -148,11 +148,7 @@ void LoadLocalizedStrings(GameLanguageID languageID)
 	}
 
 	// Free previous strings buffer
-	if (gStringsBuffer != nil)
-	{
-		SafeDisposePtr(gStringsBuffer);
-		gStringsBuffer = nil;
-	}
+	DisposeLocalizedStrings();
 
 	GAME_ASSERT(languageID >= 0);
 	GAME_ASSERT(languageID < NUM_LANGUAGES);
@@ -237,4 +233,13 @@ foundLocale:
 #endif
 
 	return languageID;
+}
+
+void DisposeLocalizedStrings(void)
+{
+	if (gStringsBuffer != nil)
+	{
+		SafeDisposePtr(gStringsBuffer);
+		gStringsBuffer = nil;
+	}
 }

@@ -691,5 +691,6 @@ ObjNode* MakeBackgroundPictureObject(const char* imagePath)
 	obj->BaseGroup = MO_CreateNewObjectOfType(MO_TYPE_GROUP, 0, nil);
 	MO_AppendToGroup(obj->BaseGroup, backgroundPicture);
 
+	MO_DisposeObjectReference(backgroundPicture);
 	return obj;
 }

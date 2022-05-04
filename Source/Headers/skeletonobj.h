@@ -41,6 +41,7 @@ extern	ObjNode	*MakeNewSkeletonObject(NewObjectDefinitionType *newObjDef);
 extern	void DisposeSkeletonObjectMemory(SkeletonDefType *skeleton);
 extern	void AllocSkeletonDefinitionMemory(SkeletonDefType *skeleton);
 extern	void InitSkeletonManager(void);
+void ShutdownSkeletonManager(void);
 void LoadASkeleton(Byte num, OGLSetupOutputType *setupInfo);
 extern	void FreeSkeletonFile(Byte skeletonType);
 extern	void FreeAllSkeletonFiles(short skipMe);

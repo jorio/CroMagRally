@@ -53,6 +53,16 @@ short	i;
 }
 
 
+/**************** SHUTDOWN SKELETON MANAGER *********************/
+
+void ShutdownSkeletonManager(void)
+{
+	Free_2d_array(gLocalTriMeshesOfSkelType);
+	gLocalTriMeshesOfSkelType = nil;
+
+}
+
+
 /******************** LOAD A SKELETON ****************************/
 
 void LoadASkeleton(Byte num, OGLSetupOutputType *setupInfo)

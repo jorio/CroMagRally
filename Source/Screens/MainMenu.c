@@ -363,6 +363,8 @@ do_again:
 			/* CLEANUP */
 
 	DeleteAllObjects();
+	OGL_DisposeWindowSetup(&gGameViewInfoPtr);
+
 
 	switch (outcome)
 	{

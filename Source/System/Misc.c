@@ -106,6 +106,7 @@ static Boolean	beenHere = false;
 		DisposeCavemanSkins();
 		DisposeAllSpriteGroups();						// nuke all sprites
 
+		ShutdownSkeletonManager();
 
 		if (gGameViewInfoPtr)							// see if need to dispose this
 			OGL_DisposeWindowSetup(&gGameViewInfoPtr);
@@ -113,6 +114,8 @@ static Boolean	beenHere = false;
 		OGL_Shutdown();									// nuke draw context
 
 		ShutdownSound();								// cleanup sound stuff
+
+		DisposeLocalizedStrings();
 	}
 
 

@@ -137,6 +137,7 @@ void DoPhysicsEditor(void)
 			/* CLEANUP */
 
 	DeleteAllObjects();
+	OGL_DisposeWindowSetup(&gGameViewInfoPtr);
 }
 
 

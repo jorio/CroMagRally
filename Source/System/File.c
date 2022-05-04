@@ -1318,6 +1318,7 @@ Ptr						tempBuffer16 = nil;
 			(*gPathList)[i].numPoints = filePath[i].numPoints;
 		}
 
+		ReleaseResource(hand);
 	}
 	else
 	{
