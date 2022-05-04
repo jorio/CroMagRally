@@ -709,6 +709,14 @@ void DisposeCavemanSkins(void)
 
 #pragma mark -
 
+void PreloadGameArt(OGLSetupOutputType *setupInfo)
+{
+	LoadCavemanSkins(setupInfo);
+	LoadSpriteGroup(SPRITE_GROUP_INFOBAR, "infobar", 0, setupInfo);
+	LoadSpriteGroup(SPRITE_GROUP_EFFECTS, "effects", 0, setupInfo);
+	LoadSoundBank(SOUNDBANK_MAIN);
+	LoadSoundBank(SOUNDBANK_ANNOUNCER);
+}
 
 /************************** LOAD LEVEL ART ***************************/
 
@@ -768,8 +776,6 @@ static const char*	levelModelFiles[NUM_TRACKS] =
 	GAME_ASSERT_MESSAGE((size_t)gTrackNum < (size_t)NUM_TRACKS, "illegal track#!");
 
 				/* LOAD AUDIO */
-
-	LoadSoundBank(SOUNDBANK_ANNOUNCER);
 
 
 	switch(gTrackNum)
@@ -887,9 +893,16 @@ static const char*	levelModelFiles[NUM_TRACKS] =
 
 			/* LOAD SPRITES */
 
-	LoadSpriteGroup(SPRITE_GROUP_INFOBAR, "infobar", 0, setupInfo);
-	LoadSpriteGroup(SPRITE_GROUP_EFFECTS, "effects", 0, setupInfo);		// particles & shadows
-	LoadCavemanSkins(setupInfo);
+	DisposeSpriteGroup(SPRITE_GROUP_MAINMENU);
+
+	// Ensure sprite groups are preloaded
+	GAME_ASSERT(gAtlases[SPRITE_GROUP_INFOBAR]);
+	GAME_ASSERT(gAtlases[SPRITE_GROUP_EFFECTS]);
+	for (int i = 0; i < 6; i++)
+	{
+		GAME_ASSERT(gCavemanSkins[0][i]);
+		GAME_ASSERT(gCavemanSkins[1][i]);
+	}
 
 
 			/* LOAD TERRAIN */

@@ -137,7 +137,6 @@ void DoPhysicsEditor(void)
 			/* CLEANUP */
 
 	DeleteAllObjects();
-	DisposeAllSpriteGroups();
 }
 
 

@@ -270,6 +270,8 @@ Atlas* Atlas_Load(const char* fontName, int flags, OGLSetupOutputType* setupInfo
 {
 	Atlas* atlas = AllocPtrClear(sizeof(Atlas));
 
+	snprintf(atlas->name, sizeof(atlas->name), "%s", fontName);
+
 	char pathBuf[256];
 
 	snprintf(pathBuf, sizeof(pathBuf), ":sprites:%s.png", fontName);

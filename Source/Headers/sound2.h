@@ -26,16 +26,6 @@ enum
 	MAX_SONGS
 };
 
-enum
-{
-	SOUND_BANK_MAIN 			= 0,
-	SOUND_BANK_MENU				= 1,
-	SOUND_BANK_LEVELSPECIFIC	= 2,
-	SOUND_BANK_CAVEMAN			= 3,
-
-	MAX_SOUND_BANKS
-};
-
 
 
 /***************** EFFECTS *************************/

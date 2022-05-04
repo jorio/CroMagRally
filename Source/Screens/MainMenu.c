@@ -20,7 +20,6 @@
 /****************************/
 
 static void SetupMainMenuScreen(void);
-static void FreeMainMenuArt(void);
 
 static void OnConfirmPlayMenu(const MenuItem* mi);
 static void OnPickGameMode(const MenuItem* mi);
@@ -363,7 +362,7 @@ do_again:
 
 			/* CLEANUP */
 
-	FreeMainMenuArt();
+	DeleteAllObjects();
 
 	switch (outcome)
 	{
@@ -491,13 +490,6 @@ OGLVector3D			fillDirection2 = { -1, -.2, -.5 };
 }
 
 
-/********************** FREE MAINMENU ART **********************/
-
-static void FreeMainMenuArt(void)
-{
-	DeleteAllObjects();
-	DisposeAllSpriteGroups();
-}
 
 
 #pragma mark - Menu Callbacks

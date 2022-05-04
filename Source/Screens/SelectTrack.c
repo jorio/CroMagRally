@@ -146,7 +146,8 @@ Boolean SelectSingleTrack(void)
 	OGL_FadeOutScene(gGameViewInfoPtr, DrawObjects, NULL);
 
 	DeleteAllObjects();
-	DisposeAllSpriteGroups();
+	DisposeSpriteGroup(SPRITE_GROUP_TRACKSELECTSCREEN);
+	DisposeSpriteGroup(SPRITE_GROUP_MAINMENU);
 	OGL_DisposeWindowSetup(&gGameViewInfoPtr);
 
 	if (gSelectedTrackIndex == -1)								// see if bail

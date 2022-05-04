@@ -19,7 +19,6 @@
 
 static void SetupLocalGatherScreen(void);
 static int DoLocalGatherControls(void);
-static void FreeLocalGatherArt(void);
 
 
 
@@ -130,7 +129,10 @@ Boolean DoLocalGatherScreen(void)
 			/***********/
 
 	OGL_FadeOutScene(gGameViewInfoPtr, DrawObjects, MoveObjects);
-	FreeLocalGatherArt();
+
+	DeleteAllObjects();
+	FreeAllSkeletonFiles(-1);
+	DisposeAllBG3DContainers();
 	OGL_DisposeWindowSetup(&gGameViewInfoPtr);
 
 
@@ -207,10 +209,6 @@ OGLVector3D			fillDirection1 = { .9, -.3, -1 };
 
 static void FreeLocalGatherArt(void)
 {
-	DeleteAllObjects();
-	FreeAllSkeletonFiles(-1);
-	DisposeAllSpriteGroups();
-	DisposeAllBG3DContainers();
 }
 
 

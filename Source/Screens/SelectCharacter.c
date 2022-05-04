@@ -261,7 +261,7 @@ static void FreeCharacterSelectArt(void)
 {
 	DeleteAllObjects();
 	FreeAllSkeletonFiles(-1);
-	DisposeAllSpriteGroups();
+	DisposeSpriteGroup(SPRITE_GROUP_MAINMENU);
 	DisposeAllBG3DContainers();
 }
 

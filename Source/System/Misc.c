@@ -103,6 +103,7 @@ static Boolean	beenHere = false;
 
 		DisposeTerrain();								// dispose of any memory allocated by terrain manager
 		DisposeAllBG3DContainers();						// nuke all models
+		DisposeCavemanSkins();
 		DisposeAllSpriteGroups();						// nuke all sprites
 
 

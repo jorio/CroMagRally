@@ -236,6 +236,8 @@ int	i;
 	StopAllEffectChannels();
 	KillSong();
 
+	DisposeAllSoundBanks();
+
 
 		/* DISPOSE OF CHANNELS */
 

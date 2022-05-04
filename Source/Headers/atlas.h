@@ -43,6 +43,7 @@ typedef struct
 
 typedef struct Atlas
 {
+	char name[32];
 	MOMaterialObject* material;
 	int textureWidth;
 	int textureHeight;

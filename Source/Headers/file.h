@@ -93,6 +93,7 @@ extern	void	OpenGameFile(Str255 filename,short *fRefNumPtr, Str255 errString);
 extern	OSErr LoadPrefs(PrefsType *prefBlock);
 void SavePrefs(void);
 void LoadPlayfield(FSSpec *specPtr);
+void PreloadGameArt(OGLSetupOutputType *setupInfo);
 void LoadLevelArt(OGLSetupOutputType *setupInfo);
 void LoadCavemanSkins(OGLSetupOutputType *setupInfo);
 void DisposeCavemanSkins(void);

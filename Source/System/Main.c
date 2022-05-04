@@ -1327,16 +1327,12 @@ static void CleanupLevel(void)
 	DisposeTerrain();
 	DeleteAllParticleGroups();
 	DisposeParticleSystem();
-	DisposeAllSpriteGroups();
-	DisposeCavemanSkins();
 	DisposeFences();
 
 	DisposeAllBG3DContainers();
 
-	DisposeSoundBank(SOUND_BANK_LEVELSPECIFIC);
-	DisposeSoundBank(SOUND_BANK_CAVEMAN);
-
 	OGL_DisposeWindowSetup(&gGameViewInfoPtr);	// do this last!
+	DisposeSoundBank(SOUNDBANK_LEVELSPECIFIC);
 
 	gNumRealPlayers = 1;					// reset at end of level to be safe
 	gNumLocalPlayers = 1;
@@ -1567,6 +1563,7 @@ void GameMain(void)
 		/* SHOW TITLE SCREEN */
 
 	DoTitleScreen();
+	PreloadGameArt(gGameViewInfoPtr);
 
 
 		/* MAIN LOOP */

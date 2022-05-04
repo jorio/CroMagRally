@@ -79,6 +79,22 @@ const AtlasGlyph* GetSpriteInfo(int groupNum, int spriteNum)
 
 void LoadSpriteGroup(int groupNum, const char* atlasName, int flags, OGLSetupOutputType* setupInfo)
 {
+	if (gAtlases[groupNum])
+	{
+		// Sprite group busy
+
+		if (0 == strncmp(atlasName, gAtlases[groupNum]->name, sizeof(gAtlases[groupNum]->name)))
+		{
+			// This atlas is already loaded
+			return;
+		}
+		else
+		{
+			// Make room for new atlas
+			DisposeSpriteGroup(groupNum);
+		}
+	}
+
 	GAME_ASSERT_MESSAGE(!gAtlases[groupNum], "Sprite group already loaded!");
 	gAtlases[groupNum] = Atlas_Load(atlasName, flags, setupInfo);
 }

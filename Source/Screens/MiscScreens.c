@@ -157,7 +157,6 @@ float				keyTextFadeIn = -2.0f;		// fade in after a small delay
 			/* CLEANUP */
 
 	DeleteAllObjects();
-	DisposeAllSpriteGroups();
 
 	OGL_DisposeWindowSetup(&gGameViewInfoPtr);
 }
@@ -365,7 +364,6 @@ static void FreeConqueredScreen(void)
 {
 	DeleteAllObjects();
 	DisposeParticleSystem();
-	DisposeAllSpriteGroups();
 	DisposeAllBG3DContainers();
 	OGL_DisposeWindowSetup(&gGameViewInfoPtr);
 }
@@ -578,7 +576,6 @@ static void FreeWinScreen(void)
 {
 	DeleteAllObjects();
 	DisposeParticleSystem();
-	DisposeAllSpriteGroups();
 	FreeAllSkeletonFiles(-1);
 	DisposeAllBG3DContainers();
 	OGL_DisposeWindowSetup(&gGameViewInfoPtr);
@@ -708,7 +705,6 @@ float	timer = 59.0f;
 			/* CLEANUP */
 
 	DeleteAllObjects();
-	DisposeAllSpriteGroups();
 	DisposeAllBG3DContainers();
 	OGL_DisposeWindowSetup(&gGameViewInfoPtr);
 }
