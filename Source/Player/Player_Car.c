@@ -3011,13 +3011,22 @@ stopSkidding:
 		{
 			if (gPlayerInfo[p].skidSoundTimer <= 0.0f)				// make sure its okay to do it now
 			{
+				float vol = 1.0f;
+
+				if (gPlayerInfo[p].isComputer)						// preserve my hearing from excessive CPU skidding
+					vol = 0.5f;
+
+				int effect = EFFECT_SKID;
+
 				if (gPlayerInfo[p].greasedTiresTimer > 0.0f)		// always make same sound if greased tires
-					gPlayerInfo[p].skidChannel = PlayEffect_Parms3D(EFFECT_SKID2, &gCoord, NORMAL_CHANNEL_RATE, 1.0);
-				if (gPlayerInfo[p].braking)							// always make same sound if braking
-					gPlayerInfo[p].skidChannel = PlayEffect_Parms3D(EFFECT_SKID, &gCoord, NORMAL_CHANNEL_RATE, 1.0);
+					effect = EFFECT_SKID2;
+				else if (gPlayerInfo[p].braking)					// always make same sound if braking
+					effect = EFFECT_SKID;
 				else												// otherwise random
-					gPlayerInfo[p].skidChannel = PlayEffect_Parms3D(skidEffect[RandomRange(0,2)], &gCoord, NORMAL_CHANNEL_RATE, 1.0);
-				gPlayerInfo[p].skidSoundTimer = .8f;
+					effect = skidEffect[RandomRange(0,2)];
+
+				gPlayerInfo[p].skidChannel = PlayEffect_Parms3D(effect, &gCoord, NORMAL_CHANNEL_RATE, vol);
+				gPlayerInfo[p].skidSoundTimer = gPlayerInfo[p].isComputer ? 1.3f : 0.8f;
 			}
 		}
 		gPlayerInfo[p].makingSkid = true;
