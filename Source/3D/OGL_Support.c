@@ -1407,15 +1407,46 @@ static void OGL_InitFont(void)
 
 void OGL_Update2DLogicalSize(void)
 {
-	static const float kReferenceHeight = 480.0f;
-	static const float kMinAspectRatio = 640.0f / 480.0f;
+	float referenceHeight;
+	float referenceWidth;
+	float invUIScale = 1;
 
-	g2DLogicalHeight = kReferenceHeight;
+	switch (gActiveSplitScreenMode)
+	{
+		case SPLITSCREEN_MODE_2X1:
+			referenceWidth = 320;
+			referenceHeight = 480;
+			break;
 
-	if (gCurrentAspectRatio < kMinAspectRatio)
-		g2DLogicalWidth = kReferenceHeight * kMinAspectRatio;
+		case SPLITSCREEN_MODE_1X2:
+			referenceWidth = 640;
+			referenceHeight = 240;
+			invUIScale = (1.0f / 0.75f);
+			break;
+
+		case SPLITSCREEN_MODE_2X2:
+			referenceWidth = 640;
+			referenceHeight = 480;
+			invUIScale = (1.0f / 1.5f);		// scale up a little in grid mode
+			break;
+
+		default:
+			referenceWidth = 640;
+			referenceHeight = 480;
+			break;
+	}
+
+	referenceHeight *= invUIScale;
+	referenceWidth *= invUIScale;
+
+	float minAspectRatio = referenceWidth / referenceHeight;
+
+	g2DLogicalHeight = referenceHeight;
+
+	if (gCurrentAspectRatio < minAspectRatio)
+		g2DLogicalWidth = referenceHeight * minAspectRatio;
 	else
-		g2DLogicalWidth = kReferenceHeight * gCurrentAspectRatio;
+		g2DLogicalWidth = referenceHeight * gCurrentAspectRatio;
 }
 
 
