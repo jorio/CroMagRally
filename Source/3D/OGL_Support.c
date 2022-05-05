@@ -50,11 +50,12 @@ SDL_GLContext	gAGLContext = nil;
 
 //OGLMatrix4x4	gViewToFrustumMatrix,gWorldToViewMatrix,gWorldToFrustumMatrix;
 OGLMatrix4x4	gViewToFrustumMatrix,gLocalToViewMatrix,gLocalToFrustumMatrix;
-OGLMatrix4x4	gWorldToWindowMatrix[MAX_SPLITSCREENS],gFrustumToWindowMatrix[MAX_SPLITSCREENS];
+OGLMatrix4x4	gWorldToWindowMatrix[MAX_VIEWPORTS],gFrustumToWindowMatrix[MAX_VIEWPORTS];
 
 int		gCurrentSplitScreenPane = 0;
-int		gNumSplitScreenPanes = 1;
+int		gNumSplitScreenPanes = 1;								// does NOT account for global overlay viewport
 Byte	gActiveSplitScreenMode 	= SPLITSCREEN_MODE_NONE;		// currently active split mode
+Boolean	gDrawingOverlayPane = false;
 
 float	gCurrentAspectRatio = 1;
 float	g2DLogicalWidth		= 640.0f;
@@ -157,7 +158,7 @@ static OGLVector3D			fillDirection2 = { -1, -.3, -.3 };
 	viewDef->view.pillarbox4x3	= true;
 	viewDef->view.fontName		= "wallfont";
 
-	for (int i = 0; i < MAX_SPLITSCREENS; i++)
+	for (int i = 0; i < MAX_VIEWPORTS; i++)
 	{
 		viewDef->camera.from[i]		= cameraFrom;
 		viewDef->camera.to[i]		= cameraTo;
@@ -259,7 +260,7 @@ OGLSetupOutputType	*outputPtr;
 
 	outputPtr->lightList = setupDefPtr->lights;							// copy lights
 
-	for (int i = 0; i < MAX_SPLITSCREENS; i++)
+	for (int i = 0; i < MAX_VIEWPORTS; i++)
 	{
 		outputPtr->fov[i] = setupDefPtr->camera.fov;					// each camera will have its own fov so we can change it for special effects
 		OGL_UpdateCameraFromTo(outputPtr, &setupDefPtr->camera.from[i], &setupDefPtr->camera.to[i], i);
@@ -760,8 +761,13 @@ void OGL_DrawScene(OGLSetupOutputType *setupInfo, void (*drawRoutine)(OGLSetupOu
 				/* DRAW EACH SPLIT-SCREEN PANE IF ANY */
 				/**************************************/
 
-	for (gCurrentSplitScreenPane = 0; gCurrentSplitScreenPane < gNumSplitScreenPanes; gCurrentSplitScreenPane++)
+	int numPasses = gNumSplitScreenPanes + 1;
+	gDrawingOverlayPane = false;
+
+	for (gCurrentSplitScreenPane = 0; gCurrentSplitScreenPane < numPasses; gCurrentSplitScreenPane++)
 	{
+		gDrawingOverlayPane = gCurrentSplitScreenPane == numPasses-1;
+
 		int x, y, w, h;
 		OGL_GetCurrentViewport(setupInfo, &x, &y, &w, &h, gCurrentSplitScreenPane);
 
@@ -818,7 +824,7 @@ void OGL_DrawScene(OGLSetupOutputType *setupInfo, void (*drawRoutine)(OGLSetupOu
 			"\nVRAM: %dK"
 			"\nPTRS: %d"
 			"\nTILES: %d/%d"
-			"\n%dX%d"
+			"\n%dX%d/%d"
 			,
 			(int)(gFramesPerSecond + .5f),
 			gPolysThisFrame,
@@ -831,7 +837,8 @@ void OGL_DrawScene(OGLSetupOutputType *setupInfo, void (*drawRoutine)(OGLSetupOu
 			MAX_SUPERTILES-gNumFreeSupertiles,
 			MAX_SUPERTILES,
 			gGameWindowWidth,
-			gGameWindowHeight
+			gGameWindowHeight,
+			gNumSplitScreenPanes
 		);
 		TextMesh_Update(gDebugTextBuffer, kTextMeshAlignLeft, gDebugText);
 		gDebugText->StatusBits &= ~STATUS_BIT_HIDDEN;
@@ -873,6 +880,16 @@ int	t,b,l,r;
 	int clippedWidth = gGameWindowWidth - l - r;
 	int clippedHeight = gGameWindowHeight - t - b;
 
+	if (gDrawingOverlayPane)
+	{
+		// Any pane IDs beyond gNumSplitScreenPanes is interpreted as
+		// a global viewport overlaying the rest.
+		*x = l;
+		*y = t;
+		*w = clippedWidth;
+		*h = clippedHeight;
+	}
+	else
 	if (setupInfo->pillarbox4x3)
 	{
 		int widescreenAdjustedWidth = gGameWindowHeight * 640 / 480;
@@ -1137,7 +1154,7 @@ void OGL_UpdateCameraFromTo(OGLSetupOutputType *setupInfo, OGLPoint3D *from, OGL
 {
 static const OGLVector3D up = {0,1,0};
 
-	if ((camNum < 0) || (camNum >= MAX_SPLITSCREENS))
+	if ((camNum < 0) || (camNum >= MAX_VIEWPORTS))
 		DoFatalAlert("OGL_UpdateCameraFromTo: illegal camNum");
 
 	setupInfo->cameraPlacement[camNum].upVector 		= up;
@@ -1151,7 +1168,7 @@ static const OGLVector3D up = {0,1,0};
 
 void OGL_UpdateCameraFromToUp(OGLSetupOutputType *setupInfo, OGLPoint3D *from, OGLPoint3D *to, OGLVector3D *up, int camNum)
 {
-	if ((camNum < 0) || (camNum >= MAX_SPLITSCREENS))
+	if ((camNum < 0) || (camNum >= MAX_VIEWPORTS))
 		DoFatalAlert("OGL_UpdateCameraFromToUp: illegal camNum");
 
 	setupInfo->cameraPlacement[camNum].upVector 		= *up;
@@ -1168,22 +1185,20 @@ void OGL_UpdateCameraFromToUp(OGLSetupOutputType *setupInfo, OGLPoint3D *from, O
 // This is called by OGL_DrawScene to initialize all of the view matrices,
 // and to extract the current view matrices used for culling et.al.
 //
+// Assumes gCurrentAspectRatio is set!
+//
 
 void OGL_Camera_SetPlacementAndUpdateMatrices(OGLSetupOutputType *setupInfo, int camNum)
 {
-float	aspect;
-int		temp, w, h, i;
 OGLLightDefType	*lights;
 
-	OGL_GetCurrentViewport(setupInfo, &temp, &temp, &w, &h, 0);
-	aspect = (float)w/(float)h;
 
 			/* INIT PROJECTION MATRIX -- STANDARD PERSPECTIVE CAMERA */
 
 	OGL_SetGluPerspectiveMatrix(
 			&gViewToFrustumMatrix,
 			setupInfo->fov[camNum],
-			aspect,
+			gCurrentAspectRatio,
 			setupInfo->hither,
 			setupInfo->yon);
 
@@ -1208,7 +1223,7 @@ OGLLightDefType	*lights;
 		/* UPDATE LIGHT POSITIONS */
 
 	lights =  &setupInfo->lightList;						// point to light list
-	for (i=0; i < lights->numFillLights; i++)
+	for (int i = 0; i < lights->numFillLights; i++)
 	{
 		GLfloat lightVec[4];
 
@@ -1384,7 +1399,7 @@ static void OGL_InitFont(void)
 {
 	NewObjectDefinitionType newObjDef;
 	memset(&newObjDef, 0, sizeof(newObjDef));
-	newObjDef.flags = STATUS_BIT_HIDDEN;
+	newObjDef.flags = STATUS_BIT_HIDDEN | STATUS_BIT_OVERLAYPANE;
 	newObjDef.slot = SPRITE_SLOT + 100;
 	newObjDef.scale = 0.25f;
 	newObjDef.coord = (OGLPoint3D) { 0, 480/2, 0 };
@@ -1411,6 +1426,12 @@ void OGL_Update2DLogicalSize(void)
 	float referenceWidth;
 	float invUIScale = 1;
 
+	if (gCurrentSplitScreenPane >= gNumSplitScreenPanes)		// TODO: IsDrawingOverlayPane()
+	{
+		referenceWidth = 640;
+		referenceHeight = 480;
+	}
+	else
 	switch (gActiveSplitScreenMode)
 	{
 		case SPLITSCREEN_MODE_2X1:

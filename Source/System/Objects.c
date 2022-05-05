@@ -497,6 +497,16 @@ short			skelType, playerNum;
 				goto next;
 		}
 
+		if (!gDrawingOverlayPane)
+		{
+			if (statusBits & STATUS_BIT_OVERLAYPANE)
+				goto next;
+		}
+		else
+		{
+			if (!(statusBits & STATUS_BIT_OVERLAYPANE))
+				goto next;
+		}
 
 		if (theNode->CType == INVALID_NODE_FLAG)				// see if already deleted
 			goto next;

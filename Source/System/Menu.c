@@ -1291,7 +1291,7 @@ static ObjNode* MakeText(const char* text, int row, int col, int textMeshFlags)
 			.coord = (OGLPoint3D) { 0, gNav->menuRowYs[row], 0 },
 			.scale = GetMenuItemHeight(row) * gNav->style.standardScale,
 			.slot = SLOT_OF_DUMB + 100,
-			.flags = STATUS_BIT_MOVEINPAUSE,
+			.flags = STATUS_BIT_MOVEINPAUSE | STATUS_BIT_OVERLAYPANE,
 		};
 
 		node = TextMesh_New(text, textMeshFlags, &def);

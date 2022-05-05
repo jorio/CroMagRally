@@ -8,6 +8,7 @@
 #include <SDL_opengl.h>
 
 #define MAX_SPLITSCREENS	MAX_LOCAL_PLAYERS
+#define MAX_VIEWPORTS		(1+MAX_SPLITSCREENS)
 
 #define	MAX_FILL_LIGHTS		4
 
@@ -173,9 +174,9 @@ typedef	struct
 
 typedef struct
 {
-	OGLPoint3D				from[MAX_SPLITSCREENS];			// 2 cameras, one for each viewport/player
-	OGLPoint3D				to[MAX_SPLITSCREENS];
-	OGLVector3D				up[MAX_SPLITSCREENS];
+	OGLPoint3D				from[MAX_VIEWPORTS];			// 2 cameras, one for each viewport/player
+	OGLPoint3D				to[MAX_VIEWPORTS];
+	OGLVector3D				up[MAX_VIEWPORTS];
 	float					hither;
 	float					yon;
 	float					fov;
@@ -210,8 +211,8 @@ typedef struct
 	WindowPtr				window;
 	Rect					clip;				// not pane size, but clip:  left = amount to clip off left
 	OGLLightDefType			lightList;
-	OGLCameraPlacement		cameraPlacement[MAX_SPLITSCREENS];	// 2 cameras, one for each viewport/player
-	float					fov[MAX_SPLITSCREENS],hither,yon;
+	OGLCameraPlacement		cameraPlacement[MAX_VIEWPORTS];	// 2 cameras, one for each viewport/player
+	float					fov[MAX_VIEWPORTS],hither,yon;
 	Boolean					useFog;
 	Boolean					clearBackBuffer;
 	Boolean					pillarbox4x3;

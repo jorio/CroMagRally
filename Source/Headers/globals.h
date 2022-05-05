@@ -143,7 +143,7 @@ enum
 	STATUS_BIT_NOLIGHTING	 =  (1<<13),	// used when want to render object will NULL shading (no lighting)
 	STATUS_BIT_ALWAYSCULL	 =  (1<<14),	// to force a cull-check
 	STATUS_BIT_CLIPALPHA 	 =  (1<<15), 	// set if want to modify alphafunc
-	STATUS_BIT_DELETE		=	(1<<16),	// set by a function which cannot actually delete an object but we want to tell system to delete it at its convenience
+	STATUS_BIT_OVERLAYPANE	=	(1<<16),	// set to show node on top of all panes in split-screen mode
 	STATUS_BIT_NOZBUFFER	=	(1<<17),	// set when want to turn off z buffer
 	STATUS_BIT_NOZWRITES	=	(1<<18),	// set when want to turn off z buffer writes
 	STATUS_BIT_NOFOG		=	(1<<19),
