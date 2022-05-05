@@ -194,16 +194,17 @@ static void ParseAtlasMetrics(Atlas* atlas, const char* data, int imageWidth, in
 		Atlas_SetGlyph(atlas, codepoint, &newGlyph);
 	}
 
-#if 0
 	// Force monospaced numbers
-	AtlasGlyph* asciiPage = atlas->glyphPages[0];
-	AtlasGlyph referenceNumber = asciiPage['4'];
-	for (int c = '0'; c <= '9'; c++)
+	if (atlas->isASCIIFont)
 	{
-		asciiPage[c].xoff += (referenceNumber.w - asciiPage[c].w) / 2.0f;
-		asciiPage[c].xadv = referenceNumber.xadv;
+		AtlasGlyph* asciiPage = atlas->glyphPages[0];
+		AtlasGlyph referenceNumber = asciiPage['4'];
+		for (int c = '0'; c <= '9'; c++)
+		{
+			asciiPage[c].xoff += (referenceNumber.w - asciiPage[c].w) / 2.0f;
+			asciiPage[c].xadv = referenceNumber.xadv;
+		}
 	}
-#endif
 }
 
 /***************************************************************/
@@ -270,6 +271,9 @@ Atlas* Atlas_Load(const char* fontName, int flags, OGLSetupOutputType* setupInfo
 {
 	Atlas* atlas = AllocPtrClear(sizeof(Atlas));
 
+	if (flags & kAtlasLoadFont)
+		atlas->isASCIIFont = true;
+
 	snprintf(atlas->name, sizeof(atlas->name), "%s", fontName);
 
 	char pathBuf[256];
@@ -335,7 +339,6 @@ Atlas* Atlas_Load(const char* fontName, int flags, OGLSetupOutputType* setupInfo
 		ParseKerningFile(atlas, data);
 		SafeDisposePtr(data);
 
-		atlas->isASCIIFont = true;
 	}
 
 	return atlas;
