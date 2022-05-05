@@ -147,7 +147,6 @@ Boolean SelectSingleTrack(void)
 
 	DeleteAllObjects();
 	DisposeSpriteGroup(SPRITE_GROUP_TRACKSELECTSCREEN);
-	DisposeSpriteGroup(SPRITE_GROUP_MAINMENU);
 	OGL_DisposeWindowSetup(&gGameViewInfoPtr);
 
 	if (gSelectedTrackIndex == -1)								// see if bail

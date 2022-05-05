@@ -407,7 +407,6 @@ static void MakeVehicleName(void)
 static void FreeVehicleSelectArt(void)
 {
 	DeleteAllObjects();
-	DisposeSpriteGroup(SPRITE_GROUP_MAINMENU);
 	DisposeAllBG3DContainers();
 	OGL_DisposeWindowSetup(&gGameViewInfoPtr);
 }

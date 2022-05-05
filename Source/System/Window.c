@@ -172,6 +172,7 @@ void OGL_FadeOutScene(
 		.genre = CUSTOM_GENRE,
 		.slot = FADE_SLOT,
 		.scale = 1,
+		.flags = STATUS_BIT_OVERLAYPANE
 	};
 	ObjNode* newObj = MakeNewObject(&newObjDef);
 	newObj->CustomDrawFunction = DrawFadePane;

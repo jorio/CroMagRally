@@ -1475,11 +1475,12 @@ printf("MO_GetTextureFromFile: %s\n", path);
 	pictRowBytes = 4*width;
 
 
+#if 0
 			/* GET GWORLD INFO */
 
 	if ((!IsPowerOf2(width)) || (!IsPowerOf2(height)))				// make sure its a power of 2
 		DoFatalAlert("MO_GetTextureFromFile: dimensions not power of 2");
-
+#endif
 
 		/*************************************/
 		/* CREATE TEXTURE OBJECT FROM PIXELS */

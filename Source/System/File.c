@@ -890,10 +890,13 @@ static const char*	levelModelFiles[NUM_TRACKS] =
 	}
 
 
+			/* DISPOSE MENU ASSETS THAT WE DON'T NEED IN-GAME */
+
+	DisposeSpriteGroup(SPRITE_GROUP_MAINMENU);
+	DisposePillarboxMaterial();
 
 			/* LOAD SPRITES */
 
-	DisposeSpriteGroup(SPRITE_GROUP_MAINMENU);
 
 	// Ensure sprite groups are preloaded
 	GAME_ASSERT(gAtlases[SPRITE_GROUP_INFOBAR]);

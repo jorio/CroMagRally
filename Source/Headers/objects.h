@@ -17,6 +17,8 @@ enum
 	SPRITE_SLOT		=	3100,
 	INFOBAR_SLOT	=	8999,	// before fade, but after everything else
 	FADE_SLOT		=	9000,
+	PILLARBOX_SLOT	=	9001,
+	DEBUGTEXT_SLOT	=	9002,
 };
 
 

@@ -32,6 +32,7 @@
 #include "localization.h"
 #include "atlas.h"
 #include "window.h"
+#include "pillarbox.h"
 
 extern Atlas*					gAtlases[MAX_SPRITE_GROUPS];
 extern BG3DFileContainer		*gBG3DContainerList[MAX_BG3D_GROUPS];
