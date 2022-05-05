@@ -1541,6 +1541,7 @@ static void LayOutMenu(const MenuItem* menu)
 
 		if (entry->displayIf && !(entry->displayIf(entry)))
 		{
+			gNav->numMenuEntries++;
 			continue;
 		}
 
