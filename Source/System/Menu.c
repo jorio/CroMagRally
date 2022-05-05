@@ -54,6 +54,7 @@ static void NavigateFloatRange(const MenuItem* entry);
 #define SpecialMuted				Special[2]
 #define SpecialPulsateTimer			SpecialF[0]
 #define SpecialSweepTimer			SpecialF[1]
+#define SpecialAsyncFadeOutSpeed	SpecialF[2]
 
 /****************************/
 /*    CONSTANTS             */
@@ -90,9 +91,11 @@ const MenuStyle kDefaultMenuStyle =
 	.darkenPane			= true,
 	.darkenPaneScaleY	= 480,
 	.darkenPaneOpacity	= .8f,
-	.fadeInSpeed		= 3.0f,
+	.fadeInSpeed		= (1.0f / 0.3f),
+	.fadeOutSpeed		= (1.0f / 0.2f),
 	.asyncFadeOut		= true,
 	.fadeOutSceneOnExit	= true,
+	.sweepInSpeed		= (1.0f / 0.2f),
 	.titleColor			= {1.0f, 1.0f, 0.7f, 1.0f},
 	.highlightColor		= {0.3f, 0.5f, 0.2f, 1.0f},
 	.inactiveColor		= {1.0f, 1.0f, 1.0f, 1.0f},
@@ -253,13 +256,6 @@ static void SetHandMouseCursor(void)
 /*    MENU UTILITIES        */
 /****************************/
 #pragma mark - Utilities
-
-static OGLColorRGBA TwinkleColor(void)
-{
-	//float rf = .7f + RandomFloat() * .29f;
-	//return (OGLColorRGBA){rf, rf, rf, 1};
-	return gNav->style.highlightColor;
-}
 
 static OGLColorRGBA PulsateColor(float* time)
 {
@@ -431,19 +427,21 @@ static void MoveDarkenPane(ObjNode* node)
 	node->ColorFilter.a = gNav->menuFadeAlpha * gNav->style.darkenPaneOpacity;
 }
 
-static void MoveGenericMenuItem(ObjNode* node)
+static void MoveGenericMenuItem(ObjNode* node, float baseAlpha)
 {
+	float sweepAlpha = 1;
+
 	if (node->SpecialSweepTimer < 1.0f)
 	{
-		node->SpecialSweepTimer += gFramesPerSecondFrac * 5;
+		node->SpecialSweepTimer += gFramesPerSecondFrac * gNav->style.sweepInSpeed;
 
 		if (node->SpecialSweepTimer < 0)
 		{
-			node->ColorFilter.a = 0;
+			sweepAlpha = 0;
 		}
 		else if (node->SpecialSweepTimer < 1)
 		{
-			node->ColorFilter.a *= node->SpecialSweepTimer;
+			sweepAlpha = node->SpecialSweepTimer;
 
 			float xBackup = node->Coord.x;
 
@@ -455,30 +453,35 @@ static void MoveGenericMenuItem(ObjNode* node)
 		}
 		else
 		{
-			node->ColorFilter.a = 1;
+			sweepAlpha = 1;
 			UpdateObjectTransforms(node);
 		}
 	}
 
 	if (node->SpecialMuted)
-		node->ColorFilter.a *= .5f;
+	{
+		baseAlpha *= .5f;
+	}
+
+	node->ColorFilter.a = baseAlpha * sweepAlpha;
+
+	// Don't mix gNav->menuFadeAlpha -- it's only useful when fading OUT,
+	// in which case we're using a different move call for all menu items
 }
 
 static void MoveLabel(ObjNode* node)
 {
-	node->ColorFilter.a = gNav->menuFadeAlpha;
-	MoveGenericMenuItem(node);
+	MoveGenericMenuItem(node, 1);
 }
 
 static void MoveAction(ObjNode* node)
 {
 	if (node->SpecialRow == gNav->menuRow)
-		node->ColorFilter = TwinkleColor();
+		node->ColorFilter = gNav->style.highlightColor; //TwinkleColor();
 	else
 		node->ColorFilter = gNav->style.inactiveColor;
 
-	node->ColorFilter.a *= gNav->menuFadeAlpha;
-	MoveGenericMenuItem(node);
+	MoveGenericMenuItem(node, 1);
 }
 
 static void MoveKeyBinding(ObjNode* node)
@@ -490,13 +493,14 @@ static void MoveKeyBinding(ObjNode* node)
 			node->ColorFilter = PulsateColor(&node->SpecialPulsateTimer);
 		}
 		else
-			node->ColorFilter = TwinkleColor();
+			node->ColorFilter = gNav->style.highlightColor; //TwinkleColor();
 	}
 	else
+	{
 		node->ColorFilter = gNav->style.inactiveColor;
+	}
 
-	node->ColorFilter.a *= gNav->menuFadeAlpha;
-	MoveGenericMenuItem(node);
+	MoveGenericMenuItem(node, node->ColorFilter.a);
 }
 
 static void MovePadBinding(ObjNode* node)
@@ -506,13 +510,14 @@ static void MovePadBinding(ObjNode* node)
 		if (gNav->menuState == kMenuStateAwaitingPadPress)
 			node->ColorFilter = PulsateColor(&node->SpecialPulsateTimer);
 		else
-			node->ColorFilter = TwinkleColor();
+			node->ColorFilter = gNav->style.highlightColor; //TwinkleColor();
 	}
 	else
+	{
 		node->ColorFilter = gNav->style.inactiveColor;
+	}
 
-	node->ColorFilter.a *= gNav->menuFadeAlpha;
-	MoveGenericMenuItem(node);
+	MoveGenericMenuItem(node, node->ColorFilter.a);
 }
 
 static void MoveMouseBinding(ObjNode* node)
@@ -522,22 +527,31 @@ static void MoveMouseBinding(ObjNode* node)
 		if (gNav->menuState == kMenuStateAwaitingMouseClick)
 			node->ColorFilter = PulsateColor(&node->SpecialPulsateTimer);
 		else
-			node->ColorFilter = TwinkleColor();
+			node->ColorFilter = gNav->style.highlightColor; //TwinkleColor();
 	}
 	else
+	{
 		node->ColorFilter = gNav->style.inactiveColor;
+	}
 
-	node->ColorFilter.a *= gNav->menuFadeAlpha;
-	MoveGenericMenuItem(node);
+	MoveGenericMenuItem(node, node->ColorFilter.a);
 }
 
 static void MoveAsyncFadeOutAndDelete(ObjNode *theNode)
 {
-	theNode->ColorFilter.a -= gFramesPerSecondFrac * 3.0f;
+	theNode->ColorFilter.a -= gFramesPerSecondFrac * theNode->SpecialAsyncFadeOutSpeed;
 	if (theNode->ColorFilter.a < 0.0f)
+	{
 		DeleteObject(theNode);
+	}
 }
 
+static void InstallAsyncFadeOut(ObjNode* theNode)
+{
+	theNode->MoveCall = MoveAsyncFadeOutAndDelete;
+	theNode->SpecialAsyncFadeOutSpeed = gNav->style.fadeOutSpeed;
+
+}
 
 /****************************/
 /*    MENU NAVIGATION       */
@@ -1655,7 +1669,7 @@ int StartMenuTree(
 				}
 				else
 				{
-					gNav->menuFadeAlpha -= gFramesPerSecondFrac * 2.0f;
+					gNav->menuFadeAlpha -= gFramesPerSecondFrac * gNav->style.fadeOutSpeed;
 					if (gNav->menuFadeAlpha <= 0.0f)
 					{
 						gNav->menuFadeAlpha = 0.0f;
@@ -1720,14 +1734,18 @@ int StartMenuTree(
 	if (gNav->style.asyncFadeOut)
 	{
 		if (pane)
-			pane->MoveCall = MoveAsyncFadeOutAndDelete;
+		{
+			InstallAsyncFadeOut(pane);
+		}
 
 		for (int row = 0; row < MAX_MENU_ROWS; row++)
 		{
 			for (int col = 0; col < MAX_MENU_COLS; col++)
 			{
 				if (gNav->menuObjects[row][col])
-					gNav->menuObjects[row][col]->MoveCall = MoveAsyncFadeOutAndDelete;
+				{
+					InstallAsyncFadeOut(gNav->menuObjects[row][col]);
+				}
 			}
 		}
 

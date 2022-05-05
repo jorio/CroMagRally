@@ -74,9 +74,11 @@ typedef struct MenuItem
 typedef struct MenuStyle
 {
 	bool			darkenPane;
-	float			fadeInSpeed;
+	float			fadeInSpeed;		// Menu will ignore input during 1.0/fadeInSpeed seconds after booting
+	float			fadeOutSpeed;
 	bool			asyncFadeOut;
 	bool			fadeOutSceneOnExit;
+	float			sweepInSpeed;
 	OGLColorRGBA	titleColor;
 	OGLColorRGBA	highlightColor;
 	OGLColorRGBA	inactiveColor;
