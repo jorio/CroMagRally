@@ -158,6 +158,9 @@ void InitDefaultPrefs(void)
 	gGamePrefs.desiredSplitScreenMode	= SPLITSCREEN_MODE_1X2;
 	gGamePrefs.monitorNum			= 0;			// main monitor by default
 	gGamePrefs.tagDuration 			= 3;
+	gGamePrefs.musicVolumePercent	= 60;
+	gGamePrefs.sfxVolumePercent		= 60;
+	gGamePrefs.music				= true;
 
 	memcpy(&gGamePrefs.keys, kDefaultKeyBindings, sizeof(kDefaultKeyBindings));
 }

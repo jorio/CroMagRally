@@ -181,7 +181,7 @@ Boolean IsEffectChannelPlaying(short chanNum);
 void UpdateListenerLocation(OGLSetupOutputType *setupInfo);
 void ChangeChannelRate(short channel, long rateMult);
 void StopAChannelIfEffectNum(short *channelNum, short effectNum);
-
+void UpdateGlobalVolume(void);
 
 void PlayAnnouncerSound(short effectNum, Boolean override, float delay);
 

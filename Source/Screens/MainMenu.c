@@ -27,7 +27,8 @@ static void OnPickTournamentAge(const MenuItem* mi);
 static void OnPickHostOrJoin(const MenuItem* mi);
 static void OnPickLanguage(const MenuItem* mi);
 static void OnToggleFullscreen(const MenuItem* mi);
-static void OnToggleMusic(const MenuItem* mi);
+static void OnAdjustMusicVolume(const MenuItem* mi);
+static void OnAdjustSFXVolume(const MenuItem* mi);
 static void OnPickClearSavedGame(const MenuItem* mi);
 static void OnPickTagDuration(const MenuItem* mi);
 static void OnPickResetKeyboardBindings(const MenuItem* mi);
@@ -101,9 +102,21 @@ static const MenuItem
 
 	gMenuOptions[] =
 	{
+
+		{
+			kMenuItem_CMRCycler, STR_DIFFICULTY, .cycler=
+			{
+				.valuePtr=&gGamePrefs.difficulty, .choices=
+				{
+					{STR_DIFFICULTY_1, DIFFICULTY_SIMPLISTIC},
+					{STR_DIFFICULTY_2, DIFFICULTY_EASY},
+					{STR_DIFFICULTY_3, DIFFICULTY_MEDIUM},
+					{STR_DIFFICULTY_4, DIFFICULTY_HARD},
+				}
+			}
+		},
+
 		{ kMenuItem_Pick, STR_SETTINGS, .gotoMenu=MENU_ID_SETTINGS },
-		{ kMenuItem_Pick, STR_CONFIGURE_KEYBOARD, .gotoMenu=MENU_ID_REMAP_KEYBOARD },
-		{ kMenuItem_Pick, STR_CONFIGURE_GAMEPAD, .gotoMenu=MENU_ID_REMAP_GAMEPAD },
 		{ kMenuItem_Pick, STR_CLEAR_SAVED_GAME, .gotoMenu=MENU_ID_CONFIRM_CLEAR_SAVE, .enableIf=IsClearSavedGameAvailable },
 		{ .type=kMenuItem_END_SENTINEL },
 	},
@@ -190,27 +203,48 @@ static const MenuItem
 
 	gMenuSettings[] =
 	{
-		{ 
-			kMenuItem_CMRCycler, STR_DIFFICULTY, .cycler=
-			{
-				.valuePtr=&gGamePrefs.difficulty, .choices=
-				{
-					{STR_DIFFICULTY_1, DIFFICULTY_SIMPLISTIC},
-					{STR_DIFFICULTY_2, DIFFICULTY_EASY},
-					{STR_DIFFICULTY_3, DIFFICULTY_MEDIUM},
-					{STR_DIFFICULTY_4, DIFFICULTY_HARD},
-				}
-			}
-		},
+		{ kMenuItem_Pick, STR_CONFIGURE_KEYBOARD, .gotoMenu=MENU_ID_REMAP_KEYBOARD,
+		  .customHeight=.75f },
+
+		{ kMenuItem_Pick, STR_CONFIGURE_GAMEPAD, .gotoMenu=MENU_ID_REMAP_GAMEPAD,
+				.customHeight=.75f},
 
 		{
 			kMenuItem_CMRCycler, STR_MUSIC,
-			.callback=OnToggleMusic,
+			.callback=OnAdjustMusicVolume,
 			.cycler=
 			{
-				.valuePtr=&gGamePrefs.music,
-				.choices={ {STR_OFF, 0}, {STR_ON, 1} }
-			}
+				.valuePtr=&gGamePrefs.musicVolumePercent,
+				.choices=
+				{
+					{STR_VOLUME_000, 0},
+					{STR_VOLUME_020, 20},
+					{STR_VOLUME_040, 40},
+					{STR_VOLUME_060, 60},
+					{STR_VOLUME_080, 80},
+					{STR_VOLUME_100, 100},
+				}
+			},
+			.customHeight=.75f
+		},
+
+		{
+			kMenuItem_CMRCycler, STR_SFX,
+			.callback=OnAdjustSFXVolume,
+			.cycler=
+			{
+				.valuePtr=&gGamePrefs.sfxVolumePercent,
+				.choices=
+				{
+					{STR_VOLUME_000, 0},
+					{STR_VOLUME_020, 20},
+					{STR_VOLUME_040, 40},
+					{STR_VOLUME_060, 60},
+					{STR_VOLUME_080, 80},
+					{STR_VOLUME_100, 100},
+				}
+			},
+			.customHeight=.75f
 		},
 
 		{
@@ -220,8 +254,10 @@ static const MenuItem
 			{
 				.valuePtr=&gGamePrefs.fullscreen,
 				.choices={ {STR_OFF, 0}, {STR_ON, 1} },
-			}
+			},
+			.customHeight=.75f
 		},
+
 
 		{
 			kMenuItem_CMRCycler, STR_LANGUAGE, .cycler=
@@ -237,6 +273,7 @@ static const MenuItem
 				}
 			},
 			.callback=OnPickLanguage,
+			.customHeight=.75f
 		},
 
 		{ .type=kMenuItem_END_SENTINEL },
@@ -575,6 +612,21 @@ static void OnToggleMusic(const MenuItem* mi)
 		ToggleMusic();
 	}
 }
+
+static void OnAdjustMusicVolume(const MenuItem* mi)
+{
+	UpdateGlobalVolume();
+//	if ((!gMuteMusicFlag) != gGamePrefs.music)
+//	{
+//		ToggleMusic();
+//	}
+}
+
+static void OnAdjustSFXVolume(const MenuItem* mi)
+{
+	UpdateGlobalVolume();
+}
+
 
 static void OnPickClearSavedGame(const MenuItem* mi)
 {

@@ -20,7 +20,6 @@
 static short FindSilentChannel(void);
 static short EmergencyFreeChannel(void);
 static void Calc3DEffectVolume(short effectNum, const OGLPoint3D *where, float volAdjust, uint32_t *leftVolOut, uint32_t *rightVolOut);
-static void UpdateGlobalVolume(void);
 
 
 /****************************/
@@ -72,6 +71,8 @@ float						gAnnouncerDelay = -1;
 float						gMoviesTaskTimer = 0;
 
 float						gGlobalVolume = .4;
+float						gMusicVolume = .4;
+float						gMusicVolumeTweak = 1.0f;
 
 OGLPoint3D					gEarCoords[MAX_LOCAL_PLAYERS];			// coord of camera plus a tad to get pt in front of camera
 static	OGLVector3D			gEyeVector[MAX_LOCAL_PLAYERS];
@@ -219,6 +220,8 @@ OSErr			iErr;
 		/* LOAD DEFAULT SOUNDS */
 
 	LoadSoundBank(SOUNDBANK_MAIN);
+
+	UpdateGlobalVolume();
 }
 
 
@@ -478,7 +481,6 @@ OSErr 	iErr;
 static	SndCommand 		mySndCmd;
 FSSpec	spec;
 short	musicFileRefNum;
-//float	volumeTweak;
 
 	if (songNum == gCurrentSong)					// see if this is already playing
 		return;
@@ -527,7 +529,7 @@ short	musicFileRefNum;
 	iErr = FSpOpenDF(&spec, fsRdPerm, &musicFileRefNum);
 	GAME_ASSERT(!iErr);
 
-	float volumeTweak = songs[songNum].volumeTweak;
+	gMusicVolumeTweak = songs[songNum].volumeTweak;
 
 	gCurrentSong = songNum;
 
@@ -568,8 +570,8 @@ short	musicFileRefNum;
 	if (iErr)
 		DoFatalAlert("PlaySong: SndDoImmediate (pomme loop extension) failed!");
 
-	uint32_t lv2 = kFullVolume * volumeTweak * gGlobalVolume;
-	uint32_t rv2 = kFullVolume * volumeTweak * gGlobalVolume;
+	uint32_t lv2 = kFullVolume * gMusicVolumeTweak * gMusicVolume;
+	uint32_t rv2 = kFullVolume * gMusicVolumeTweak * gMusicVolume;
 	mySndCmd.cmd = volumeCmd;
 	mySndCmd.param1 = 0;
 	mySndCmd.param2 = (rv2<<16) | lv2;
@@ -982,13 +984,13 @@ uint32_t		lv2,rv2;
 // all of the sounds with the correct volume.
 //
 
-static void UpdateGlobalVolume(void)
+void UpdateGlobalVolume(void)
 {
-int		c;
+	gGlobalVolume = 0.25f * gGamePrefs.sfxVolumePercent * (1.0f / 100.0f);
 
 			/* ADJUST VOLUMES OF ALL CHANNELS REGARDLESS IF THEY ARE PLAYING OR NOT */
 
-	for (c = 0; c < gMaxChannels; c++)
+	for (int c = 0; c < gMaxChannels; c++)
 	{
 		ChangeChannelVolume(c, gChannelInfo[c].leftVolume, gChannelInfo[c].rightVolume);
 	}
@@ -996,11 +998,16 @@ int		c;
 
 			/* UPDATE SONG VOLUME */
 
-	IMPLEMENT_ME_SOFT();
-#if 0
-	if (gSongPlayingFlag)
-		SetMovieVolume(gSongMovie, FloatToFixed16(gGlobalVolume) * SONG_VOLUME);
-#endif
+	gMusicVolume = 0.4f * gGamePrefs.musicVolumePercent * (1.0f / 100.0f);
+	uint32_t lv2 = kFullVolume * gMusicVolumeTweak * gMusicVolume;
+	uint32_t rv2 = kFullVolume * gMusicVolumeTweak * gMusicVolume;
+	SndCommand cmd =
+			{
+			.cmd = volumeCmd,
+			.param1 = 0,
+			.param2 = (rv2<<16) | lv2,
+	};
+	SndDoImmediate(gMusicChannel, &cmd);
 
 }
 

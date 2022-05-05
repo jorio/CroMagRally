@@ -66,6 +66,8 @@ typedef struct
 	Boolean	fullscreen;
 	Boolean	music;
 	Byte	monitorNum;
+	Byte	musicVolumePercent;
+	Byte	sfxVolumePercent;
 
 	KeyBinding keys[NUM_CONTROL_NEEDS];
 	Boolean	gamepadRumble;
