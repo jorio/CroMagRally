@@ -679,15 +679,21 @@ void SetPlayerProgression(int numTracksCompleted)
 
 void LoadCavemanSkins(OGLSetupOutputType *setupInfo)
 {
+	char skinPath[256];
+
 	for (int i = 0; i < 6; i++)
 	{
-		char skinPath[256];
+		if (!gCavemanSkins[0][i])
+		{
+			snprintf(skinPath, sizeof(skinPath), ":sprites:skins:brog%d.png", i + 1);
+			gCavemanSkins[0][i] = MO_GetTextureFromFile(skinPath, setupInfo, GL_RGBA);
+		}
 
-		snprintf(skinPath, sizeof(skinPath), ":sprites:skins:brog%d.png", i+1);
-		gCavemanSkins[0][i] = MO_GetTextureFromFile(skinPath, setupInfo, GL_RGBA);
-
-		snprintf(skinPath, sizeof(skinPath), ":sprites:skins:grag%d.png", i+1);
-		gCavemanSkins[1][i] = MO_GetTextureFromFile(skinPath, setupInfo, GL_RGBA);
+		if (!gCavemanSkins[1][i])
+		{
+			snprintf(skinPath, sizeof(skinPath), ":sprites:skins:grag%d.png", i + 1);
+			gCavemanSkins[1][i] = MO_GetTextureFromFile(skinPath, setupInfo, GL_RGBA);
+		}
 	}
 }
 
@@ -899,13 +905,7 @@ static const char*	levelModelFiles[NUM_TRACKS] =
 
 
 	// Ensure sprite groups are preloaded
-	GAME_ASSERT(gAtlases[SPRITE_GROUP_INFOBAR]);
-	GAME_ASSERT(gAtlases[SPRITE_GROUP_EFFECTS]);
-	for (int i = 0; i < 6; i++)
-	{
-		GAME_ASSERT(gCavemanSkins[0][i]);
-		GAME_ASSERT(gCavemanSkins[1][i]);
-	}
+	PreloadGameArt(setupInfo);
 
 
 			/* LOAD TERRAIN */
