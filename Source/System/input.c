@@ -10,8 +10,6 @@
 /***************/
 
 #include "game.h"
-#include <SDL.h>
-#include <stdlib.h>
 
 /**********************/
 /*     PROTOTYPES     */

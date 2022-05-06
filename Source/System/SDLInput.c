@@ -375,7 +375,8 @@ Boolean AreAnyNewKeysPressed(void)
 	return GetNewNeedStateAnyP(kNeed_UIConfirm)
 		|| GetNewNeedStateAnyP(kNeed_UIBack)
 		|| GetNewNeedStateAnyP(kNeed_UIPause)
-		|| GetNewClickState(SDL_BUTTON_LEFT);
+//		|| GetNewClickState(SDL_BUTTON_LEFT)
+        ;
 }
 
 Boolean IsCheatKeyComboDown(void)
