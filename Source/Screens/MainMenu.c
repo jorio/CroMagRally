@@ -103,6 +103,8 @@ static const MenuItem gMainMenuTree[] =
 	{kMIPick, STR_TOURNAMENT,	.callback=OnPickGameMode, .id=GAME_MODE_TOURNAMENT,			.next='tour' },
 
 	{ .id='tour' },
+	{kMISubtitle, .text=STR_TOURNAMENT_OBJECTIVE },
+	{kMISpacer, .customHeight=1.0f},
 	{kMIPick, STR_STONE_AGE,	.callback=OnPickTournamentAge, .id=STONE_AGE,	.next='EXIT'},
 	{kMIPick, STR_BRONZE_AGE,	.callback=OnPickTournamentAge, .id=BRONZE_AGE,	.next='EXIT', .enableIf = IsTournamentAgeAvailable},
 	{kMIPick, STR_IRON_AGE,		.callback=OnPickTournamentAge, .id=IRON_AGE,	.next='EXIT', .enableIf = IsTournamentAgeAvailable},
