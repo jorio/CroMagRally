@@ -93,7 +93,7 @@ typedef struct
 
 float	g3DTileSize, g3DMinY, g3DMaxY;
 
-MOMaterialObject* gCavemanSkins[2][6];
+MOMaterialObject* gCavemanSkins[2][NUM_CAVEMAN_SKINS];
 
 PrefsType gDiskShadowPrefs;
 
@@ -674,18 +674,17 @@ void LoadCavemanSkins(OGLSetupOutputType *setupInfo)
 {
 	char skinPath[256];
 
-	for (int i = 0; i < 6; i++)
+	for (int sex = 0; sex < 2; sex++)
 	{
-		if (!gCavemanSkins[0][i])
-		{
-			snprintf(skinPath, sizeof(skinPath), ":sprites:skins:brog%d.png", i + 1);
-			gCavemanSkins[0][i] = MO_GetTextureFromFile(skinPath, setupInfo, GL_RGBA);
-		}
+		const char* characterName = sex==0? "brog": "grag";
 
-		if (!gCavemanSkins[1][i])
+		for (int j = 0; j < NUM_CAVEMAN_SKINS; j++)
 		{
-			snprintf(skinPath, sizeof(skinPath), ":sprites:skins:grag%d.png", i + 1);
-			gCavemanSkins[1][i] = MO_GetTextureFromFile(skinPath, setupInfo, GL_RGBA);
+			if (!gCavemanSkins[sex][j])
+			{
+				snprintf(skinPath, sizeof(skinPath), ":sprites:skins:%s%d.png", characterName, j);
+				gCavemanSkins[sex][j] = MO_GetTextureFromFile(skinPath, setupInfo, GL_RGBA);
+			}
 		}
 	}
 }
@@ -693,9 +692,9 @@ void LoadCavemanSkins(OGLSetupOutputType *setupInfo)
 
 void DisposeCavemanSkins(void)
 {
-	for (int i = 0; i < 6; i++)
+	for (int sex = 0; sex < 2; sex++)
 	{
-		for (int sex = 0; sex < 2; sex++)
+		for (int i = 0; i < NUM_CAVEMAN_SKINS; i++)
 		{
 			if (gCavemanSkins[sex][i])
 			{

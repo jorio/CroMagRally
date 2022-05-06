@@ -2715,22 +2715,8 @@ ObjNode			*wheel,*link;
 			/* SET OVERRIDE TEXTURE */
 			/************************/
 
-#if 1
-	switch(gGameMode)
-	{
-			/* DO TEAM COLORS IN CAPTURE-FLAG MODE */
-
-		case	GAME_MODE_CAPTUREFLAG:
-				if (gPlayerInfo[playerNum].team == 0)
-					wheel->Skeleton->overrideTexture = gCavemanSkins[sex][4];		// red
-				else
-					wheel->Skeleton->overrideTexture = gCavemanSkins[sex][1];		// green
-				break;
-
-		default:
-				wheel->Skeleton->overrideTexture = gCavemanSkins[sex][playerNum];	// get illegal ref to texture
-	}
-#endif
+	int skinID = gPlayerInfo[playerNum].skin;
+	wheel->Skeleton->overrideTexture = gCavemanSkins[sex][skinID];
 
 
 			/* ALIGN THEM */

@@ -48,6 +48,8 @@ void InitPlayerInfo_Game(void)
 {
 short	i;
 
+	memset(gPlayerInfo, 0, sizeof(gPlayerInfo));		// init everything to 0
+
 	for (i = 0; i < MAX_PLAYERS; i++)
 	{
 		gPlayerInfo[i].objNode			= nil;
@@ -73,6 +75,17 @@ short	i;
 
 
 		gPlayerInfo[i].team = i % 2;			// set team for capture the flag mode
+
+
+		if (gGameMode == GAME_MODE_CAPTUREFLAG)
+		{
+			gPlayerInfo[i].skin = gPlayerInfo[i].team == RED_TEAM ? CAVEMAN_SKIN_RED : CAVEMAN_SKIN_GREEN;
+		}
+		else
+		{
+			gPlayerInfo[i].skin = i % NUM_CAVEMAN_SKINS;
+		}
+
 
 				/* CAR SPECS INFO */
 

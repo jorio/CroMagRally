@@ -229,25 +229,36 @@ ObjNode	*multiplayerText = NULL;
 		gCharacterArrow = MakeSpriteObject(&def, gGameViewInfoPtr);
 	}
 
-			/* IN CTF, USE RED/GREEN CHARACTER SKINS */
 
-	if (gGameMode == GAME_MODE_CAPTUREFLAG)
+				/* SET UP CHARACTER SKINS */
+
+	if (gGameMode == GAME_MODE_PRACTICE || gGameMode == GAME_MODE_TOURNAMENT)
 	{
+		// Single-player mode: keep stock model skins so we get a chance to show off
+		// Grag's trademark purple outfit even though it's actually unused in-game.
+	}
+	else
+	{
+				/* IN MULTIPLAYER, USE ACTUAL CHARACTER SKINS */
+
 		LoadCavemanSkins(gGameViewInfoPtr);
 
-		int team = gPlayerInfo[gCurrentPlayerNum].team;
-		int skinID = team == RED_TEAM? 4 : 1;
+		int skinID = gPlayerInfo[gCurrentPlayerNum].skin;
 
 		gSex[0]->Skeleton->overrideTexture = gCavemanSkins[0][skinID];
 		gSex[1]->Skeleton->overrideTexture = gCavemanSkins[1][skinID];
 
-		if (team == RED_TEAM)
+		if (gGameMode == GAME_MODE_CAPTUREFLAG)
 		{
-			multiplayerText->ColorFilter = (OGLColorRGBA) {.8, 0, 0, 1};
-		}
-		else
-		{
-			multiplayerText->ColorFilter = (OGLColorRGBA) {0, .8, 0, 1};
+			int team = gPlayerInfo[gCurrentPlayerNum].team;
+			if (team == RED_TEAM)
+			{
+				multiplayerText->ColorFilter = (OGLColorRGBA) {.8, 0, 0, 1};
+			}
+			else
+			{
+				multiplayerText->ColorFilter = (OGLColorRGBA) {0, .8, 0, 1};
+			}
 		}
 	}
 }

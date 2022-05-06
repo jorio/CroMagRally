@@ -88,6 +88,17 @@ enum
 	GREEN_TEAM,
 };
 
+enum
+{
+	CAVEMAN_SKIN_BROWN,
+	CAVEMAN_SKIN_GREEN,
+	CAVEMAN_SKIN_BLUE,
+	CAVEMAN_SKIN_GRAY,
+	CAVEMAN_SKIN_RED,
+	CAVEMAN_SKIN_WHITE,
+	NUM_CAVEMAN_SKINS
+};
+
 
 //=================================================
 

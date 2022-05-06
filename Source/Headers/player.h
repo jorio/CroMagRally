@@ -97,7 +97,7 @@ typedef struct
 
 	short				sex;					// 0 = male, 1 = female
 	short				vehicleType;
-	short				playerNum;
+	short 				skin;
 
 	Boolean				onThisMachine;
 	float				distToFloor;
