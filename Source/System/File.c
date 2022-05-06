@@ -95,6 +95,8 @@ float	g3DTileSize, g3DMinY, g3DMaxY;
 
 MOMaterialObject* gCavemanSkins[2][6];
 
+PrefsType gDiskShadowPrefs;
+
 
 /****************** SET DEFAULT DIRECTORY ********************/
 //
@@ -104,30 +106,6 @@ MOMaterialObject* gCavemanSkins[2][6];
 
 void SetDefaultDirectory(void)
 {
-	IMPLEMENT_ME_SOFT();
-#if 0
-ProcessSerialNumber serial;
-ProcessInfoRec info;
-FSSpec	app_spec;
-WDPBRec wpb;
-OSErr	iErr;
-
-	serial.highLongOfPSN = 0;
-	serial.lowLongOfPSN = kCurrentProcess;
-
-
-	info.processInfoLength = sizeof(ProcessInfoRec);
-	info.processName = NULL;
-	info.processAppSpec = &app_spec;
-
-	iErr = GetProcessInformation(&serial, & info);
-
-	wpb.ioVRefNum = app_spec.vRefNum;
-	wpb.ioWDDirID = app_spec.parID;
-	wpb.ioNamePtr = NULL;
-
-	iErr = PBHSetVolSync(&wpb);
-#endif
 }
 
 
@@ -519,7 +497,7 @@ SkeletonFile_AnimHeader_Type	*animHeaderPtr;
 // Load in standard preferences
 //
 
-OSErr LoadPrefs(PrefsType *prefBlock)
+OSErr LoadPrefs(void)
 {
 OSErr		iErr;
 short		refNum;
@@ -558,7 +536,7 @@ char		magic[sizeof(PREFS_MAGIC)];
 				/* READ PREFS STRUCT */
 
 	count = sizeof(PrefsType);
-	iErr = FSRead(refNum, &count,  (Ptr)prefBlock);		// read data from file
+	iErr = FSRead(refNum, &count,  (Ptr)&gGamePrefs);		// read data from file
 	if (iErr || count != sizeof(PrefsType))
 	{
 		goto fileIsCorrupt;
@@ -570,12 +548,15 @@ char		magic[sizeof(PREFS_MAGIC)];
 			/* VERIFY PREFS */
 			/****************/
 
-	return(noErr);
+	goto done;
 
 fileIsCorrupt:
 	puts("Prefs file appears to be corrupt!");
 	FSClose(refNum);
 	InitDefaultPrefs();
+
+done:
+	memcpy(&gDiskShadowPrefs, &gGamePrefs, sizeof(gDiskShadowPrefs));
 	return(noErr);
 }
 
@@ -589,6 +570,16 @@ FSSpec				file;
 OSErr				iErr;
 short				refNum;
 long				count;
+
+#if _DEBUG
+	// If prefs didn't change relative to what's on disk, don't bother rewriting them
+	if (0 == memcmp(&gDiskShadowPrefs, &gGamePrefs, sizeof(gGamePrefs)))
+	{
+		return;
+	}
+
+	puts("Saving prefs");
+#endif
 
 				/* CREATE BLANK FILE */
 
@@ -617,6 +608,8 @@ long				count;
 	count = sizeof(PrefsType);
 	FSWrite(refNum, &count, (Ptr) &gGamePrefs);
 	FSClose(refNum);
+
+	memcpy(&gDiskShadowPrefs, &gGamePrefs, sizeof(gGamePrefs));
 }
 
 #pragma mark -

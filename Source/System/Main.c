@@ -133,7 +133,7 @@ OSErr		iErr;
 			/********************/
 
 	InitDefaultPrefs();
-	LoadPrefs(&gGamePrefs);							// attempt to read from prefs file
+	LoadPrefs();										// attempt to read from prefs file
 
 	LoadLocalizedStrings(gGamePrefs.language);
 

@@ -91,8 +91,7 @@ typedef struct
 //=================================================
 
 SkeletonDefType *LoadSkeletonFile(short skeletonType, OGLSetupOutputType *setupInfo);
-extern	void	OpenGameFile(Str255 filename,short *fRefNumPtr, Str255 errString);
-extern	OSErr LoadPrefs(PrefsType *prefBlock);
+OSErr LoadPrefs(void);
 void SavePrefs(void);
 void LoadPlayfield(FSSpec *specPtr);
 void PreloadGameArt(OGLSetupOutputType *setupInfo);

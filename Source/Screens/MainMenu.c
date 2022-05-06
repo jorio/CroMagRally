@@ -185,18 +185,11 @@ do_again:
 				/* MAIN LOOP */
 				/*************/
 
-	PrefsType oldPrefs;
-	memcpy(&oldPrefs, &gGamePrefs, sizeof(oldPrefs));
-
 	int outcome = StartMenu(gMainMenuTree, NULL, UpdateMainMenuScreen, DrawObjects);
 
 			/* SAVE PREFS IF THEY CHANGED */
-	
-	if (0 != memcmp(&oldPrefs, &gGamePrefs, sizeof(oldPrefs)))
-	{
-		puts("Saving prefs");
-		SavePrefs();
-	}
+
+	SavePrefs();
 
 			/* CLEANUP */
 
