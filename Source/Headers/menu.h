@@ -6,27 +6,20 @@
 
 typedef enum
 {
-	kMenuItem_END_SENTINEL,
-	kMenuItem_Pick,
-	kMenuItem_Title,
-	kMenuItem_Subtitle,
-	kMenuItem_Label,
-	kMenuItem_Spacer,
-	kMenuItem_Cycler,
-	kMenuItem_CMRCycler,
-	kMenuItem_FloatRange,
-	kMenuItem_KeyBinding,
-	kMenuItem_PadBinding,
-	kMenuItem_MouseBinding,
-	kMenuItem_NUM_ITEM_TYPES
+	kMISENTINEL,
+	kMIPick,
+	kMITitle,
+	kMISubtitle,
+	kMILabel,
+	kMISpacer,
+	kMICycler1,
+	kMICycler2,
+	kMIFloatRange,
+	kMIKeyBinding,
+	kMIPadBinding,
+	kMIMouseBinding,
+	kMI_COUNT
 } MenuItemType;
-
-enum
-{
-	kGotoMenu_ExitMenuTree = 0,
-	kGotoMenu_GoBack = -1,
-	kGotoMenu_NoOp = -2,
-};
 
 typedef struct
 {
@@ -59,7 +52,7 @@ typedef struct MenuItem
 	bool					(*displayIf)(const struct MenuItem*);
 
 	int						id;			// value returned by StartMenu if exiting menu
-	int						gotoMenu;	// 0 exits menu tree
+	int						next;		// next menu, or one of 'EXIT', 'BACK' or 0 (no-op)
 
 	union
 	{
@@ -98,19 +91,15 @@ typedef struct MenuStyle
 
 extern const MenuStyle kDefaultMenuStyle;
 
+void RegisterMenu(const MenuItem* menus);
+
 int StartMenu(
 		const MenuItem* menu,
 		const MenuStyle* style,
 		void (*updateRoutine)(void),
 		void (*backgroundDrawRoutine)(OGLSetupOutputType *));
 
-int StartMenuTree(
-		const MenuItem** menus,
-		const MenuStyle* style,
-		void (*updateRoutine)(void),
-		void (*backgroundDrawRoutine)(OGLSetupOutputType *));
-
 void LayoutCurrentMenuAgain(void);
-const MenuItem* GetCurrentMenu(void);
+int GetCurrentMenu(void);
 float GetMenuIdleTime(void);
 void KillMenu(int returnCode);

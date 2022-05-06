@@ -108,7 +108,6 @@ OGLSetupInputType	viewDef;
 OGLColorRGBA		ambientColor = { .5, .5, .5, 1 };
 OGLColorRGBA		fillColor1 = { 1.0, 1.0, 1.0, 1 };
 OGLVector3D			fillDirection1 = { .9, -.3, -1 };
-ObjNode	*newObj;
 ObjNode	*multiplayerText = NULL;
 
 	gSelectedCharacterIndex = 0;

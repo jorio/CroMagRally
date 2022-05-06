@@ -13,6 +13,7 @@
 #include "game.h"
 #include "menu.h"
 #include "network.h"
+#include "miscscreens.h"
 
 /****************************/
 /*    PROTOTYPES            */
@@ -26,27 +27,28 @@ static void OnToggleSplitscreenMode(const MenuItem* mi);
 /*    CONSTANTS             */
 /****************************/
 
-static const MenuItem
-	gMenuPause[] =
-	{
-		{ kMenuItem_Pick, STR_RESUME_GAME, .id=0 },
-		{ kMenuItem_Pick, STR_RETIRE_GAME, .id=1 },
-		{ kMenuItem_CMRCycler, STR_SPLITSCREEN_MODE,
-			.displayIf = ShouldDisplaySplitscreenModeCycler,
-			.callback = OnToggleSplitscreenMode,
-			.cycler =
+static const MenuItem gPauseMenuTree[] =
+{
+	{ .id='paus' },
+	{kMIPick, STR_RESUME_GAME, .id=0, .next='EXIT' },
+	{kMIPick, STR_RETIRE_GAME, .id=1, .next='EXIT' },
+	{kMICycler1, STR_SPLITSCREEN_MODE,
+		.displayIf = ShouldDisplaySplitscreenModeCycler,
+		.callback = OnToggleSplitscreenMode,
+		.cycler =
+		{
+			.valuePtr = &gGamePrefs.desiredSplitScreenMode,
+			.choices =
 			{
-				.valuePtr = &gGamePrefs.desiredSplitScreenMode,
-				.choices =
-				{
-					{ .text = STR_SPLITSCREEN_HORIZ, .value = SPLITSCREEN_MODE_2X1 },
-					{ .text = STR_SPLITSCREEN_VERT, .value = SPLITSCREEN_MODE_1X2 },
-				},
-			}
-		},
-		{ kMenuItem_Pick, STR_QUIT_APPLICATION, .id=2 },
-		{ .type=kMenuItem_END_SENTINEL },
-	};
+				{ .text = STR_SPLITSCREEN_HORIZ, .value = SPLITSCREEN_MODE_2X1 },
+				{ .text = STR_SPLITSCREEN_VERT, .value = SPLITSCREEN_MODE_1X2 },
+			},
+		}
+	},
+	{kMIPick, STR_SETTINGS, .callback=RegisterSettingsMenu, .next='sett' },
+	{kMIPick, STR_QUIT_APPLICATION, .id=2, .next='EXIT' },
+	{ 0 },
+};
 
 
 /*********************/
@@ -110,13 +112,8 @@ void DoPaused(void)
 
 	CalcFramesPerSecond();
 	ReadKeyboard();
-	
-	int outcome = StartMenu(
-		gMenuPause,
-		&style,
-		UpdatePausedMenuCallback,
-		DrawPausedMenuCallback
-		);
+
+	int outcome = StartMenu(gPauseMenuTree, &style, UpdatePausedMenuCallback, DrawPausedMenuCallback);
 
 	gGamePaused = false;
 	

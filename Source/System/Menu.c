@@ -26,7 +26,9 @@
 /****************************/
 
 static ObjNode* MakeText(const char* text, int row, int col, int flags);
-static void LayOutMenu(const MenuItem* menu);
+
+static const MenuItem* LookUpMenu(int menuID);
+static void LayOutMenu(int menuID);
 
 static ObjNode* LayOutCyclerValueText(int row);
 static ObjNode* LayOutFloatRangeValueText(int row);
@@ -118,20 +120,20 @@ typedef struct
 	void (*navigateCallback)(const MenuItem* menuItem);
 } MenuItemClass;
 
-static const MenuItemClass kMenuItemClasses[kMenuItem_NUM_ITEM_TYPES] =
+static const MenuItemClass kMenuItemClasses[kMI_COUNT] =
 {
-	[kMenuItem_END_SENTINEL]	= { 0.0f, NULL, NULL },
-	[kMenuItem_Title]			= { 1.4f, LayOutTitle, NULL },
-	[kMenuItem_Subtitle]		= { 0.6f, LayOutSubtitle, NULL },
-	[kMenuItem_Label]			= { 1.0f, LayOutLabel, NULL },
-	[kMenuItem_Spacer]			= { 0.5f, NULL, NULL },
-	[kMenuItem_Cycler]			= { 1.0f, LayOutCycler, NavigateCycler },
-	[kMenuItem_CMRCycler]		= { 1.0f, LayOutCMRCycler, NavigateCycler },
-	[kMenuItem_FloatRange]		= { 1.0f, LayOutFloatRange, NavigateFloatRange },
-	[kMenuItem_Pick]			= { 1.0f, LayOutPick, NavigatePick },
-	[kMenuItem_KeyBinding]		= { 0.5f, LayOutKeyBinding, NavigateKeyBinding },
-	[kMenuItem_PadBinding]		= { 0.5f, LayOutPadBinding, NavigatePadBinding },
-	[kMenuItem_MouseBinding]	= { 0.5f, LayOutMouseBinding, NavigateMouseBinding },
+	[kMISENTINEL]		= {0.0f, NULL, NULL },
+	[kMITitle]			= {1.4f, LayOutTitle, NULL },
+	[kMISubtitle]		= {0.6f, LayOutSubtitle, NULL },
+	[kMILabel]			= {1.0f, LayOutLabel, NULL },
+	[kMISpacer]			= {0.5f, NULL, NULL },
+	[kMICycler2]			= {1.0f, LayOutCycler, NavigateCycler },
+	[kMICycler1]		= {1.0f, LayOutCMRCycler, NavigateCycler },
+	[kMIFloatRange]		= {1.0f, LayOutFloatRange, NavigateFloatRange },
+	[kMIPick]			= {1.0f, LayOutPick, NavigatePick },
+	[kMIKeyBinding]		= {0.5f, LayOutKeyBinding, NavigateKeyBinding },
+	[kMIPadBinding]		= {0.5f, LayOutPadBinding, NavigatePadBinding },
+	[kMIMouseBinding]	= {0.5f, LayOutMouseBinding, NavigateMouseBinding },
 };
 
 /*********************/
@@ -140,9 +142,8 @@ static const MenuItemClass kMenuItemClasses[kMenuItem_NUM_ITEM_TYPES] =
 
 typedef struct
 {
-	const MenuItem**	menuTree;
+	int					menuID;
 	const MenuItem*		menu;
-	const MenuItem*		rootMenu;
 	MenuStyle			style;
 
 	int					numMenuEntries;
@@ -157,7 +158,7 @@ typedef struct
 
 	struct
 	{
-		const MenuItem* menu;
+		int menuID;
 		int row;
 	} history[MAX_STACK_LENGTH];
 	int					historyPos;
@@ -215,9 +216,9 @@ static void DisposeMenuNavigation(void)
 	gNav = nil;
 }
 
-const MenuItem* GetCurrentMenu(void)
+int GetCurrentMenu(void)
 {
-	return gNav->menu;
+	return gNav->menuID;
 }
 
 float GetMenuIdleTime(void)
@@ -256,6 +257,17 @@ static void SetHandMouseCursor(void)
 /*    MENU UTILITIES        */
 /****************************/
 #pragma mark - Utilities
+
+static const char* FourccToString(int fourCC)
+{
+	static char string[5];
+	string[0] = (fourCC >> 24) & 0xFF;
+	string[1] = (fourCC >> 16) & 0xFF;
+	string[2] = (fourCC >> 8) & 0xFF;
+	string[3] = (fourCC) & 0xFF;
+	string[4] = 0;
+	return string;
+}
 
 static OGLColorRGBA PulsateColor(float* time)
 {
@@ -378,10 +390,10 @@ static bool IsMenuItemSelectable(const MenuItem* mi)
 {
 	switch (mi->type)
 	{
-		case kMenuItem_Spacer:
-		case kMenuItem_Label:
-		case kMenuItem_Title:
-		case kMenuItem_Subtitle:
+		case kMISpacer:
+		case kMILabel:
+		case kMITitle:
+		case kMISubtitle:
 			return false;
 		
 		default:
@@ -403,7 +415,7 @@ static bool IsMenuItemSelectable(const MenuItem* mi)
 
 static void ReplaceMenuText(LocStrID originalTextInMenuDefinition, LocStrID newText)
 {
-	for (int i = 0; i < MAX_MENU_ROWS && gNav->menu[i].type != kMenuItem_END_SENTINEL; i++)
+	for (int i = 0; i < MAX_MENU_ROWS && gNav->menu[i].type != kMISENTINEL; i++)
 	{
 		if (gNav->menu[i].text == originalTextInMenuDefinition)
 		{
@@ -566,7 +578,7 @@ static void GoBackInHistory(void)
 	{
 		PlayEffect(kSfxBack);
 		gNav->historyPos--;
-		LayOutMenu(gNav->history[gNav->historyPos].menu);
+		LayOutMenu(gNav->history[gNav->historyPos].menuID);
 	}
 	else if (gNav->style.canBackOutOfRootMenu)
 	{
@@ -681,41 +693,39 @@ static void NavigatePick(const MenuItem* entry)
 {
 	if (GetNewNeedStateAnyP(kNeed_UIConfirm) || (gNav->mouseHoverValid && GetNewClickState(SDL_BUTTON_LEFT)))
 	{
-		gNav->idleTime = 0;
-
 		PlayConfirmEffect();
 
+		gNav->idleTime = 0;
 		gNav->menuPick = entry->id;
 
 		if (entry->callback)
+		{
 			entry->callback(entry);
-
-		if (entry->gotoMenu > 0)
-		{
-			const MenuItem* newMenu = gNav->menuTree[entry->gotoMenu];
-
-			SaveSelectedRowInHistory();  // remember which row we were on
-
-			// advance history
-			gNav->historyPos++;
-			gNav->history[gNav->historyPos].menu = newMenu;
-			gNav->history[gNav->historyPos].row = 0;  // don't reuse stale row value
-
-			LayOutMenu(newMenu);
 		}
-		else if (entry->gotoMenu == kGotoMenu_ExitMenuTree)
+
+		switch (entry->next)
 		{
-			// Exit
-			gNav->menuState = kMenuStateFadeOut;
-		}
-		else if (entry->gotoMenu == kGotoMenu_GoBack)
-		{
-			// Go up
-			GoBackInHistory();
-		}
-		else if (entry->gotoMenu == kGotoMenu_NoOp)
-		{
-			// Stay on current menu
+			case 0:
+			case 'NOOP':
+				break;
+
+			case 'EXIT':
+				gNav->menuState = kMenuStateFadeOut;
+				break;
+
+			case 'BACK':
+				GoBackInHistory();
+				break;
+
+			default:
+				SaveSelectedRowInHistory();  // remember which row we were on
+
+				// advance history
+				gNav->historyPos++;
+				gNav->history[gNav->historyPos].menuID = entry->next;
+				gNav->history[gNav->historyPos].row = 0;  // don't reuse stale row value
+
+				LayOutMenu(entry->next);
 		}
 	}
 }
@@ -785,7 +795,7 @@ static void NavigateCycler(const MenuItem* entry)
 		if (entry->callback)
 			entry->callback(entry);
 
-		if (entry->type == kMenuItem_CMRCycler)
+		if (entry->type == kMICycler1)
 			LayOutCMRCycler(gNav->menuRow, 0);
 		else
 			LayOutCyclerValueText(gNav->menuRow);
@@ -1006,7 +1016,7 @@ static void UnbindScancodeFromAllRemappableInputNeeds(int16_t sdlScancode)
 {
 	for (int row = 0; row < gNav->numMenuEntries; row++)
 	{
-		if (gNav->menu[row].type != kMenuItem_KeyBinding)
+		if (gNav->menu[row].type != kMIKeyBinding)
 			continue;
 
 		KeyBinding* binding = GetBindingAtRow(row);
@@ -1026,7 +1036,7 @@ static void UnbindPadButtonFromAllRemappableInputNeeds(int8_t type, int8_t id)
 {
 	for (int row = 0; row < gNav->numMenuEntries; row++)
 	{
-		if (gNav->menu[row].type != kMenuItem_PadBinding)
+		if (gNav->menu[row].type != kMIPadBinding)
 			continue;
 
 		KeyBinding* binding = GetBindingAtRow(row);
@@ -1047,7 +1057,7 @@ static void UnbindMouseButtonFromAllRemappableInputNeeds(int8_t id)
 {
 	for (int row = 0; row < gNav->numMenuEntries; row++)
 	{
-		if (gNav->menu[row].type != kMenuItem_MouseBinding)
+		if (gNav->menu[row].type != kMIMouseBinding)
 			continue;
 
 		KeyBinding* binding = GetBindingAtRow(row);
@@ -1521,12 +1531,20 @@ static ObjNode* LayOutMouseBinding(int row, float sweepFactor)
 	return label;		// TODO: chain other nodes?
 }
 
-static void LayOutMenu(const MenuItem* menu)
+static void LayOutMenu(int menuID)
 {
 	// Remember we've been to this menu
-	gNav->history[gNav->historyPos].menu = menu;
+	gNav->history[gNav->historyPos].menuID = menuID;
+
+	const MenuItem* menu = LookUpMenu(menuID);
+
+	if (!menu)
+	{
+		DoFatalAlert("Menu not registered: '%s'", FourccToString(menuID));
+	}
 
 	gNav->menu				= menu;
+	gNav->menuID			= menuID;
 	gNav->numMenuEntries	= 0;
 	gNav->menuPick			= -1;
 	gNav->idleTime			= 0;
@@ -1537,7 +1555,7 @@ static void LayOutMenu(const MenuItem* menu)
 	DeleteAllText();
 
 	float totalHeight = 0;
-	for (int row = 0; menu[row].type != kMenuItem_END_SENTINEL; row++)
+	for (int row = 0; menu[row].type != kMISENTINEL; row++)
 	{
 		totalHeight += GetMenuItemHeight(row) * gNav->style.rowHeight;
 	}
@@ -1546,7 +1564,7 @@ static void LayOutMenu(const MenuItem* menu)
 
 	float sweepFactor = 0.0f;
 
-	for (int row = 0; menu[row].type != kMenuItem_END_SENTINEL; row++)
+	for (int row = 0; menu[row].type != kMISENTINEL; row++)
 	{
 		gNav->menuRowYs[row] = y;
 
@@ -1566,7 +1584,7 @@ static void LayOutMenu(const MenuItem* menu)
 
 		y += GetMenuItemHeight(row) * gNav->style.rowHeight;
 
-		if (entry->type != kMenuItem_Spacer)
+		if (entry->type != kMISpacer)
 		{
 			sweepFactor -= .2f;
 		}
@@ -1587,25 +1605,52 @@ static void LayOutMenu(const MenuItem* menu)
 void LayoutCurrentMenuAgain(void)
 {
 	GAME_ASSERT(gNav->menu);
-	LayOutMenu(gNav->menu);
+	LayOutMenu(gNav->menuID);
+}
+
+#define MAX_REGISTERED_MENUS 32
+
+int gNumMenusRegistered = 0;
+const MenuItem* gMenuRegistry[MAX_REGISTERED_MENUS];
+
+void RegisterMenu(const MenuItem* menuTree)
+{
+	for (const MenuItem* menuItem = menuTree; menuItem->type || menuItem->id; menuItem++)
+	{
+		if (menuItem->type == 0)
+		{
+			if (menuItem->id == 0)			// end sentinel
+			{
+				break;
+			}
+
+			if (LookUpMenu(menuItem->id))	// already registered
+			{
+				continue;
+			}
+
+			GAME_ASSERT(gNumMenusRegistered < MAX_REGISTERED_MENUS);
+			gMenuRegistry[gNumMenusRegistered] = menuItem;
+			gNumMenusRegistered++;
+
+//			printf("Registered menu '%s'\n", FourccToString(menuItem->id));
+		}
+	}
+}
+
+static const MenuItem* LookUpMenu(int menuID)
+{
+	for (int i = 0; i < gNumMenusRegistered; i++)
+	{
+		if (gMenuRegistry[i]->id == menuID)
+			return gMenuRegistry[i] + 1;
+	}
+
+	return NULL;
 }
 
 int StartMenu(
 		const MenuItem* menu,
-		const MenuStyle* style,
-		void (*update)(void),
-		void (*draw)(OGLSetupOutputType *))
-{
-	static const MenuItem* menuTree[2];
-
-	menuTree[0] = NULL;
-	menuTree[1] = menu;
-
-	return StartMenuTree(menuTree, style, update, draw);
-}
-
-int StartMenuTree(
-		const MenuItem** menuTree,
 		const MenuStyle* style,
 		void (*update)(void),
 		void (*draw)(OGLSetupOutputType *))
@@ -1615,13 +1660,12 @@ int StartMenuTree(
 
 		/* INITIALIZE MENU STATE */
 
-	GAME_ASSERT_MESSAGE(menuTree[0] == NULL, "menuTree[0] should be NULL; root menu should be menuTree[1]");
+	gNumMenusRegistered = 0;
+	RegisterMenu(menu);
 
 	InitMenuNavigation();
 	if (style)
 		memcpy(&gNav->style, style, sizeof(*style));
-	gNav->menuTree			= menuTree;
-	gNav->rootMenu			= menuTree[1];
 	gNav->menuState			= kMenuStateFadeIn;
 	gNav->menuFadeAlpha		= 0;
 	gNav->menuRow			= -1;
@@ -1635,7 +1679,7 @@ int StartMenuTree(
 		pane = MakeDarkenPane();
 #endif
 
-	LayOutMenu(gNav->rootMenu);
+	LayOutMenu(menu->id);
 
 		/* SHOW IN ANIMATED LOOP */
 

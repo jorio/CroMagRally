@@ -2,6 +2,8 @@
 // miscscreens.h
 //
 
+#include "menu.h"
+
 void DisplayPicture(const char* picturePath, float timeout);
 void DoPaused(void);
 void ShowAgePicture(int age);
@@ -26,3 +28,5 @@ Boolean DoVehicleSelectScreen(short whichPlayer, Boolean allowAborting);
 Boolean DoLocalGatherScreen(void);
 
 void DoPhysicsEditor(void);
+
+void RegisterSettingsMenu(const MenuItem* junk);

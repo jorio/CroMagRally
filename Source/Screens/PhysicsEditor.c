@@ -26,16 +26,6 @@ static void SetupPhysicsEditorScreen(void);
 
 enum
 {
-	MENU_ID_NULL,		// keep ID=0 unused
-	MENU_ID_PHYSICS_ROOT,
-	MENU_ID_PHYSICS_CAR_STATS,
-	MENU_ID_PHYSICS_CONSTANTS,
-	NUM_MENU_IDS
-};
-
-
-enum
-{
 	MENU_EXITCODE_HELP = 1000,
 	MENU_EXITCODE_CREDITS,
 	MENU_EXITCODE_PHYSICS,
@@ -49,69 +39,50 @@ enum
 
 static Byte gSelectedCarPhysics = 0;
 
-static const MenuItem
-	gMenuPhysicsRoot[] =
-	{
-		{ kMenuItem_Subtitle, .text = STR_PHYSICS_SETTINGS_RESET_INFO },
-		{ kMenuItem_Spacer, .text = STR_NULL },
-		{ kMenuItem_Spacer, .text = STR_NULL },
-		{ kMenuItem_Spacer, .text = STR_NULL },
-		{ kMenuItem_Pick, STR_PHYSICS_EDIT_CAR_STATS, .gotoMenu=MENU_ID_PHYSICS_CAR_STATS, },
-		{ kMenuItem_Pick, STR_PHYSICS_EDIT_CONSTANTS, .gotoMenu=MENU_ID_PHYSICS_CONSTANTS, },
-		{ kMenuItem_Pick, STR_PHYSICS_RESET, .callback=OnPickResetPhysics },
-		{.type = kMenuItem_END_SENTINEL },
-	},
-
-	gMenuPhysicsCarStats[] =
-	{
-		{
-			kMenuItem_CMRCycler, STR_CAR, .cycler =
-			{
-				.valuePtr = &gSelectedCarPhysics, .choices =
-				{
-					{STR_CAR_MODEL_1, 0},
-					{STR_CAR_MODEL_2, 1},
-					{STR_CAR_MODEL_3, 2},
-					{STR_CAR_MODEL_4, 3},
-					{STR_CAR_MODEL_5, 4},
-					{STR_CAR_MODEL_6, 5},
-					{STR_CAR_MODEL_7, 6},
-					{STR_CAR_MODEL_8, 7},
-					{STR_CAR_MODEL_9, 8},
-					{STR_CAR_MODEL_10, 9},
-					//{STR_CAR_MODEL_11, 1},	// don't expose submarine
-				}
-			},
-		},
-
-		{ kMenuItem_Pick, STR_CAR_STAT_1,	},
-		{ kMenuItem_Pick, STR_CAR_STAT_2,	},
-		{ kMenuItem_Pick, STR_CAR_STAT_3,	},
-		{ kMenuItem_Pick, STR_CAR_STAT_4,	},
-		{.type = kMenuItem_END_SENTINEL },
-	},
-
-	gMenuPhysicsConstants[] =
-	{
-		{ kMenuItem_FloatRange, STR_PHYSICS_CONSTANT_STEERING_RESPONSIVENESS,	.floatRange={.valuePtr=&gSteeringResponsiveness }	},
-		{ kMenuItem_FloatRange, STR_PHYSICS_CONSTANT_MAX_TIGHT_TURN,			.floatRange={.valuePtr=&gCarMaxTightTurn}	},
-		{ kMenuItem_FloatRange, STR_PHYSICS_CONSTANT_TURNING_RADIUS,			.floatRange={.valuePtr=&gCarTurningRadius} },
-		{ kMenuItem_FloatRange, STR_PHYSICS_CONSTANT_TIRE_TRACTION,				.floatRange={.valuePtr=&gTireTractionConstant}	},
-		{ kMenuItem_FloatRange, STR_PHYSICS_CONSTANT_TIRE_FRICTION,				.floatRange={.valuePtr=&gTireFrictionConstant}	},
-		{ kMenuItem_FloatRange, STR_PHYSICS_CONSTANT_GRAVITY,					.floatRange={.valuePtr=&gCarGravity}	},
-		{ kMenuItem_FloatRange, STR_PHYSICS_CONSTANT_SLOPE_RATIO_ADJUSTER,		.floatRange={.valuePtr=&gSlopeRatioAdjuster}	},
-		{.type = kMenuItem_END_SENTINEL },
-	}
-
-	;
-
-
-
-static const MenuItem* gPhysicsMenuTree[NUM_MENU_IDS] =
+static const MenuItem gPhysicsMenuTree[] =
 {
-	[MENU_ID_PHYSICS_ROOT] = gMenuPhysicsRoot,
-	[MENU_ID_PHYSICS_CAR_STATS] = gMenuPhysicsCarStats,
-	[MENU_ID_PHYSICS_CONSTANTS] = gMenuPhysicsConstants,
+	{.id='phys'},
+	{kMISubtitle, .text=STR_PHYSICS_SETTINGS_RESET_INFO },
+	{kMISpacer, .customHeight=1.5f },
+	{kMIPick, STR_PHYSICS_EDIT_CAR_STATS, .next='stat', },
+	{kMIPick, STR_PHYSICS_EDIT_CONSTANTS, .next='cons', },
+	{kMIPick, STR_PHYSICS_RESET, .callback=OnPickResetPhysics, .next='EXIT' },
+
+	{.id='stat'},
+	{
+			kMICycler1,    STR_CAR, .cycler =
+		{
+			.valuePtr = &gSelectedCarPhysics, .choices =
+			{
+				{STR_CAR_MODEL_1, 0},
+				{STR_CAR_MODEL_2, 1},
+				{STR_CAR_MODEL_3, 2},
+				{STR_CAR_MODEL_4, 3},
+				{STR_CAR_MODEL_5, 4},
+				{STR_CAR_MODEL_6, 5},
+				{STR_CAR_MODEL_7, 6},
+				{STR_CAR_MODEL_8, 7},
+				{STR_CAR_MODEL_9, 8},
+				{STR_CAR_MODEL_10, 9},
+				//{STR_CAR_MODEL_11, 1},	// don't expose submarine
+			}
+		},
+	},
+	{ kMIPick, .text=STR_CAR_STAT_1,	},
+	{ kMIPick, .text=STR_CAR_STAT_2,	},
+	{ kMIPick, .text=STR_CAR_STAT_3,	},
+	{ kMIPick, .text=STR_CAR_STAT_4,	},
+
+	{.id='cons'},
+	{ kMIFloatRange, STR_PHYSICS_CONSTANT_STEERING_RESPONSIVENESS,	.floatRange={.valuePtr=&gSteeringResponsiveness }	},
+	{ kMIFloatRange, STR_PHYSICS_CONSTANT_MAX_TIGHT_TURN,			.floatRange={.valuePtr=&gCarMaxTightTurn}	},
+	{ kMIFloatRange, STR_PHYSICS_CONSTANT_TURNING_RADIUS,			.floatRange={.valuePtr=&gCarTurningRadius} },
+	{ kMIFloatRange, STR_PHYSICS_CONSTANT_TIRE_TRACTION,			.floatRange={.valuePtr=&gTireTractionConstant}	},
+	{ kMIFloatRange, STR_PHYSICS_CONSTANT_TIRE_FRICTION,			.floatRange={.valuePtr=&gTireFrictionConstant}	},
+	{ kMIFloatRange, STR_PHYSICS_CONSTANT_GRAVITY,					.floatRange={.valuePtr=&gCarGravity}	},
+	{ kMIFloatRange, STR_PHYSICS_CONSTANT_SLOPE_RATIO_ADJUSTER,		.floatRange={.valuePtr=&gSlopeRatioAdjuster}	},
+
+	{ 0 },
 };
 
 
@@ -132,7 +103,7 @@ void DoPhysicsEditor(void)
 	physicsEditorMenuStyle.canBackOutOfRootMenu = true;
 	physicsEditorMenuStyle.standardScale = .3f;
 
-	int outcome = StartMenuTree(gPhysicsMenuTree, &physicsEditorMenuStyle, MoveObjects, DrawObjects);
+	StartMenu(gPhysicsMenuTree, &physicsEditorMenuStyle, MoveObjects, DrawObjects);
 
 			/* CLEANUP */
 

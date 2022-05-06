@@ -31,8 +31,6 @@ static void OnAdjustMusicVolume(const MenuItem* mi);
 static void OnAdjustSFXVolume(const MenuItem* mi);
 static void OnPickClearSavedGame(const MenuItem* mi);
 static void OnPickTagDuration(const MenuItem* mi);
-static void OnPickResetKeyboardBindings(const MenuItem* mi);
-static void OnPickResetGamepadBindings(const MenuItem* mi);
 
 static bool IsClearSavedGameAvailable(const MenuItem* mi);
 static bool IsTournamentAgeAvailable(const MenuItem* mi);
@@ -40,26 +38,6 @@ static bool IsTournamentAgeAvailable(const MenuItem* mi);
 /****************************/
 /*    CONSTANTS             */
 /****************************/
-
-enum
-{
-	MENU_ID_NULL			= 0,		// keep ID=0 unused
-	MENU_ID_TITLE,
-	MENU_ID_PLAY,
-	MENU_ID_OPTIONS,
-	MENU_ID_EXTRAS,
-	MENU_ID_MULTIPLAYERGAMETYPE,
-	MENU_ID_1PLAYERGAMETYPE,
-	MENU_ID_TOURNAMENT,
-	MENU_ID_KEEPAWAYTAG_DURATION,
-	MENU_ID_STAMPEDETAG_DURATION,
-	MENU_ID_NETGAME,
-	MENU_ID_SETTINGS,
-	MENU_ID_CONFIRM_CLEAR_SAVE,
-	MENU_ID_REMAP_KEYBOARD,
-	MENU_ID_REMAP_GAMEPAD,
-	NUM_MENU_IDS
-};
 
 enum
 {
@@ -77,268 +55,90 @@ enum
 /*    VARIABLES      */
 /*********************/
 
-static const MenuItem
-	gMenuTitle[] =
-	{
-		{ kMenuItem_Pick, STR_NEW_GAME, .gotoMenu=MENU_ID_PLAY, },
-//		{ kMenuItem_Pick, STR_LOAD_GAME },  // DoSavedPlayerDialog
-		{ kMenuItem_Pick, STR_OPTIONS, .gotoMenu=MENU_ID_OPTIONS, },
-		{ kMenuItem_Pick, STR_EXTRAS, .gotoMenu=MENU_ID_EXTRAS, },
-		{ kMenuItem_Pick, STR_QUIT, .id=MENU_EXITCODE_QUITGAME },
-		{ .type=kMenuItem_END_SENTINEL },
-	},
-
-	gMenuPlay[] =
-	{
-		{ kMenuItem_Pick, STR_1PLAYER,	.id=1, .callback=OnConfirmPlayMenu, .gotoMenu=MENU_ID_1PLAYERGAMETYPE },
-		{ kMenuItem_Pick, STR_2PLAYER,	.id=2, .callback=OnConfirmPlayMenu, .gotoMenu=MENU_ID_MULTIPLAYERGAMETYPE },
-		{ kMenuItem_Pick, STR_3PLAYER,	.id=3, .callback=OnConfirmPlayMenu, .gotoMenu=MENU_ID_MULTIPLAYERGAMETYPE },
-		{ kMenuItem_Pick, STR_4PLAYER,	.id=4, .callback=OnConfirmPlayMenu, .gotoMenu=MENU_ID_MULTIPLAYERGAMETYPE },
-#if 0	// TODO!
-		{ kMenuItem_Pick, STR_NET_GAME,	.id=0, .callback=OnConfirmPlayMenu, .gotoMenu=MENU_ID_NETGAME },
-#endif
-		{ .type=kMenuItem_END_SENTINEL },
-	},
-
-	gMenuOptions[] =
-	{
-
-		{
-			kMenuItem_CMRCycler, STR_DIFFICULTY, .cycler=
-			{
-				.valuePtr=&gGamePrefs.difficulty, .choices=
-				{
-					{STR_DIFFICULTY_1, DIFFICULTY_SIMPLISTIC},
-					{STR_DIFFICULTY_2, DIFFICULTY_EASY},
-					{STR_DIFFICULTY_3, DIFFICULTY_MEDIUM},
-					{STR_DIFFICULTY_4, DIFFICULTY_HARD},
-				}
-			}
-		},
-
-		{ kMenuItem_Pick, STR_SETTINGS, .gotoMenu=MENU_ID_SETTINGS },
-		{ kMenuItem_Pick, STR_CLEAR_SAVED_GAME, .gotoMenu=MENU_ID_CONFIRM_CLEAR_SAVE, .enableIf=IsClearSavedGameAvailable },
-		{ .type=kMenuItem_END_SENTINEL },
-	},
-
-	gMenuExtras[] =
-	{
-		{ kMenuItem_Pick, STR_HELP, .id=MENU_EXITCODE_HELP },
-		{ kMenuItem_Pick, STR_CREDITS, .id=MENU_EXITCODE_CREDITS },
-		{ kMenuItem_Pick, STR_PHYSICS_EDITOR, .id=MENU_EXITCODE_PHYSICS },
-		{ .type=kMenuItem_END_SENTINEL },
-	},
-
-	gMenuMPGameModes[] =
-	{
-		{ kMenuItem_Pick,	STR_RACE,			.callback=OnPickGameMode, .id=GAME_MODE_MULTIPLAYERRACE	},
-		{ kMenuItem_Pick,	STR_KEEP_AWAY_TAG,	.callback=OnPickGameMode, .id=GAME_MODE_TAG1,				.gotoMenu=MENU_ID_KEEPAWAYTAG_DURATION, },
-		{ kMenuItem_Pick,	STR_STAMPEDE_TAG,	.callback=OnPickGameMode, .id=GAME_MODE_TAG2,				.gotoMenu=MENU_ID_STAMPEDETAG_DURATION, },
-		{ kMenuItem_Pick,	STR_SURVIVAL,		.callback=OnPickGameMode, .id=GAME_MODE_SURVIVAL		},
-		{ kMenuItem_Pick,	STR_QUEST_FOR_FIRE,	.callback=OnPickGameMode, .id=GAME_MODE_CAPTUREFLAG		},
-		{ .type=kMenuItem_END_SENTINEL },
-	},
-
-	gMenu1PGameModes[] =
-	{
-		{ kMenuItem_Pick,	STR_PRACTICE,		.callback=OnPickGameMode, .id=GAME_MODE_PRACTICE		 },
-		{ kMenuItem_Pick,	STR_TOURNAMENT,		.callback=OnPickGameMode, .id=GAME_MODE_TOURNAMENT,			.gotoMenu=MENU_ID_TOURNAMENT, },
-		// ^^^ TODO: if picking tournament, pick saved game file?
-		{ .type=kMenuItem_END_SENTINEL },
-	},
-
-	gMenuTournament[] =
-	{
-		{ kMenuItem_Pick, STR_STONE_AGE,	.callback=OnPickTournamentAge, .id=STONE_AGE,	},
-		{ kMenuItem_Pick, STR_BRONZE_AGE,	.callback=OnPickTournamentAge, .id=BRONZE_AGE,	.enableIf=IsTournamentAgeAvailable },
-		{ kMenuItem_Pick, STR_IRON_AGE,		.callback=OnPickTournamentAge, .id=IRON_AGE,	.enableIf=IsTournamentAgeAvailable },
-		{ .type=kMenuItem_END_SENTINEL },
-	},
-
-	gMenuNetGame[] =
-	{
-		{ kMenuItem_Pick, STR_HOST_NET_GAME, .callback=OnPickHostOrJoin, .id=0, .gotoMenu=MENU_ID_MULTIPLAYERGAMETYPE }, // host gets to select game type
-		{ kMenuItem_Pick, STR_JOIN_NET_GAME, .callback=OnPickHostOrJoin, .id=1 },
-		{ .type=kMenuItem_END_SENTINEL },
-	},
-
-	gMenuConfirmClearSave[] =
-	{
-		{ kMenuItem_Subtitle, .text=STR_CLEAR_SAVED_GAME_TEXT_1 },
-		{ kMenuItem_Spacer, .text=STR_NULL },
-		{ kMenuItem_Spacer, .text=STR_NULL },
-		{ kMenuItem_Subtitle, .text=STR_CLEAR_SAVED_GAME_TEXT_2 },
-		{ kMenuItem_Spacer, .text=STR_NULL },
-		{ kMenuItem_Spacer, .text=STR_NULL },
-		{ kMenuItem_Pick, .text=STR_CLEAR_SAVED_GAME_CANCEL, .gotoMenu=kGotoMenu_GoBack },
-		{ kMenuItem_Pick, .text=STR_CLEAR_SAVED_GAME, .callback=OnPickClearSavedGame, .gotoMenu=kGotoMenu_GoBack },
-		{ .type=kMenuItem_END_SENTINEL },
-	},
-
-	gMenuKeepAwayTagDuration[] =
-	{
-		{ kMenuItem_Subtitle, .text = STR_KEEPAWAYTAG_HELP },
-		{ kMenuItem_Spacer, .text = STR_NULL },
-		{ kMenuItem_Subtitle, .text = STR_TAG_DURATION },
-		{ kMenuItem_Spacer, .text = STR_NULL },
-		{ kMenuItem_Spacer, .text = STR_NULL },
-		{ kMenuItem_Pick, STR_2_MINUTES, .callback=OnPickTagDuration, .id=2 },
-		{ kMenuItem_Pick, STR_3_MINUTES, .callback=OnPickTagDuration, .id=3 },
-		{ kMenuItem_Pick, STR_4_MINUTES, .callback=OnPickTagDuration, .id=4 },
-		{ .type=kMenuItem_END_SENTINEL },
-	},
-
-	gMenuStampedeTagDuration[] =
-	{
-		{ kMenuItem_Subtitle, .text=STR_STAMPEDETAG_HELP },
-		{ kMenuItem_Spacer, .text=STR_NULL },
-		{ kMenuItem_Subtitle, .text = STR_TAG_DURATION },
-		{ kMenuItem_Spacer, .text = STR_NULL },
-		{ kMenuItem_Spacer, .text = STR_NULL },
-		{ kMenuItem_Pick, STR_2_MINUTES, .callback=OnPickTagDuration, .id=2 },
-		{ kMenuItem_Pick, STR_3_MINUTES, .callback=OnPickTagDuration, .id=3 },
-		{ kMenuItem_Pick, STR_4_MINUTES, .callback=OnPickTagDuration, .id=4 },
-		{ .type=kMenuItem_END_SENTINEL },
-	},
-
-	gMenuSettings[] =
-	{
-		{ kMenuItem_Pick, STR_CONFIGURE_KEYBOARD, .gotoMenu=MENU_ID_REMAP_KEYBOARD,
-		  .customHeight=.75f },
-
-		{ kMenuItem_Pick, STR_CONFIGURE_GAMEPAD, .gotoMenu=MENU_ID_REMAP_GAMEPAD,
-				.customHeight=.75f},
-
-		{
-			kMenuItem_CMRCycler, STR_MUSIC,
-			.callback=OnAdjustMusicVolume,
-			.cycler=
-			{
-				.valuePtr=&gGamePrefs.musicVolumePercent,
-				.choices=
-				{
-					{STR_VOLUME_000, 0},
-					{STR_VOLUME_020, 20},
-					{STR_VOLUME_040, 40},
-					{STR_VOLUME_060, 60},
-					{STR_VOLUME_080, 80},
-					{STR_VOLUME_100, 100},
-				}
-			},
-			.customHeight=.75f
-		},
-
-		{
-			kMenuItem_CMRCycler, STR_SFX,
-			.callback=OnAdjustSFXVolume,
-			.cycler=
-			{
-				.valuePtr=&gGamePrefs.sfxVolumePercent,
-				.choices=
-				{
-					{STR_VOLUME_000, 0},
-					{STR_VOLUME_020, 20},
-					{STR_VOLUME_040, 40},
-					{STR_VOLUME_060, 60},
-					{STR_VOLUME_080, 80},
-					{STR_VOLUME_100, 100},
-				}
-			},
-			.customHeight=.75f
-		},
-
-		{
-			kMenuItem_CMRCycler, STR_FULLSCREEN,
-			.callback=OnToggleFullscreen,
-			.cycler=
-			{
-				.valuePtr=&gGamePrefs.fullscreen,
-				.choices={ {STR_OFF, 0}, {STR_ON, 1} },
-			},
-			.customHeight=.75f
-		},
-
-
-		{
-			kMenuItem_CMRCycler, STR_LANGUAGE, .cycler=
-			{
-				.valuePtr=&gGamePrefs.language, .choices=
-				{
-					{STR_LANGUAGE_NAME, LANGUAGE_ENGLISH},
-					{STR_LANGUAGE_NAME, LANGUAGE_FRENCH},
-					{STR_LANGUAGE_NAME, LANGUAGE_GERMAN},
-					{STR_LANGUAGE_NAME, LANGUAGE_SPANISH},
-					{STR_LANGUAGE_NAME, LANGUAGE_ITALIAN},
-					{STR_LANGUAGE_NAME, LANGUAGE_SWEDISH},
-				}
-			},
-			.callback=OnPickLanguage,
-			.customHeight=.75f
-		},
-
-		{ .type=kMenuItem_END_SENTINEL },
-	},
-
-	gMenuRemapKeyboard[] =
-	{
-		{ kMenuItem_Spacer, .customHeight=.2f },
-		{ kMenuItem_Subtitle, STR_CONFIGURE_KEYBOARD_HELP, .customHeight=.5f },
-		{ kMenuItem_Spacer, .customHeight=.4f },
-		{ kMenuItem_KeyBinding, .inputNeed=kNeed_Forward },
-		{ kMenuItem_KeyBinding, .inputNeed=kNeed_Backward },
-		{ kMenuItem_KeyBinding, .inputNeed=kNeed_Left },
-		{ kMenuItem_KeyBinding, .inputNeed=kNeed_Right },
-		{ kMenuItem_KeyBinding, .inputNeed=kNeed_Brakes },
-		{ kMenuItem_KeyBinding, .inputNeed=kNeed_ThrowForward },
-		{ kMenuItem_KeyBinding, .inputNeed=kNeed_ThrowBackward },
-		{ kMenuItem_KeyBinding, .inputNeed=kNeed_CameraMode },
-		{ kMenuItem_KeyBinding, .inputNeed=kNeed_RearView },
-		{ kMenuItem_Spacer, .customHeight=.25f },
-		{ kMenuItem_Pick, STR_RESET_KEYBINDINGS, .callback=OnPickResetKeyboardBindings, .gotoMenu=kGotoMenu_NoOp, .customHeight=.5f },
-		{ .type=kMenuItem_END_SENTINEL },
-	},
-
-	gMenuRemapGamepad[] =
-	{
-		{ kMenuItem_Spacer, .customHeight=.2f },
-		{ kMenuItem_Subtitle, STR_CONFIGURE_GAMEPAD_HELP, .customHeight=.5f },
-		{ kMenuItem_Spacer, .customHeight=.4f },
-		{ kMenuItem_PadBinding, .inputNeed=kNeed_Forward },
-		{ kMenuItem_PadBinding, .inputNeed=kNeed_Backward },
-		{ kMenuItem_PadBinding, .inputNeed=kNeed_Left },
-		{ kMenuItem_PadBinding, .inputNeed=kNeed_Right },
-		{ kMenuItem_PadBinding, .inputNeed=kNeed_Brakes },
-		{ kMenuItem_PadBinding, .inputNeed=kNeed_ThrowForward },
-		{ kMenuItem_PadBinding, .inputNeed=kNeed_ThrowBackward },
-		{ kMenuItem_PadBinding, .inputNeed=kNeed_CameraMode },
-		{ kMenuItem_PadBinding, .inputNeed=kNeed_RearView },
-		{ kMenuItem_Spacer, .customHeight=.25f },
-		{ kMenuItem_Pick, STR_RESET_KEYBINDINGS, .callback=OnPickResetGamepadBindings, .gotoMenu=kGotoMenu_NoOp, .customHeight=.5f },
-		{ .type=kMenuItem_END_SENTINEL },
-	}
-
-	;
-
-
-
-static const MenuItem* gMainMenuTree[NUM_MENU_IDS] =
+static const MenuItem gMainMenuTree[] =
 {
-	[MENU_ID_TITLE] = gMenuTitle,
-	[MENU_ID_PLAY] = gMenuPlay,
-	[MENU_ID_OPTIONS] = gMenuOptions,
-	[MENU_ID_EXTRAS] = gMenuExtras,
-	[MENU_ID_MULTIPLAYERGAMETYPE] = gMenuMPGameModes,
-	[MENU_ID_1PLAYERGAMETYPE] = gMenu1PGameModes,
-	[MENU_ID_TOURNAMENT] = gMenuTournament,
-	[MENU_ID_KEEPAWAYTAG_DURATION] = gMenuKeepAwayTagDuration,
-	[MENU_ID_STAMPEDETAG_DURATION] = gMenuStampedeTagDuration,
-	[MENU_ID_NETGAME] = gMenuNetGame,
-	[MENU_ID_SETTINGS] = gMenuSettings,
-	[MENU_ID_CONFIRM_CLEAR_SAVE] = gMenuConfirmClearSave,
-	[MENU_ID_REMAP_KEYBOARD] = gMenuRemapKeyboard,
-	[MENU_ID_REMAP_GAMEPAD] = gMenuRemapGamepad,
-};
+	{ .id='titl' },
+	{kMIPick, STR_NEW_GAME,		.next='play', },
+	{kMIPick, STR_OPTIONS,		.next='optn', },
+	{kMIPick, STR_EXTRAS,		.next='xtra', },
+	{kMIPick, STR_QUIT,			.next='EXIT', .id=MENU_EXITCODE_QUITGAME },
 
+	{ .id='play' },
+	{kMIPick, STR_1PLAYER,	.id=1, .callback=OnConfirmPlayMenu, .next='spgm' },
+	{kMIPick, STR_2PLAYER,	.id=2, .callback=OnConfirmPlayMenu, .next='mpgm' },
+	{kMIPick, STR_3PLAYER,	.id=3, .callback=OnConfirmPlayMenu, .next='mpgm' },
+	{kMIPick, STR_4PLAYER,	.id=4, .callback=OnConfirmPlayMenu, .next='mpgm' },
+//	{kMIPick, STR_NET_GAME,	.id=0, .callback=OnConfirmPlayMenu, .next='netg' },
+
+	{ .id='optn' },
+	{
+		kMICycler1, STR_DIFFICULTY, .cycler=
+		{
+			.valuePtr=&gGamePrefs.difficulty, .choices=
+			{
+				{STR_DIFFICULTY_1, DIFFICULTY_SIMPLISTIC},
+				{STR_DIFFICULTY_2, DIFFICULTY_EASY},
+				{STR_DIFFICULTY_3, DIFFICULTY_MEDIUM},
+				{STR_DIFFICULTY_4, DIFFICULTY_HARD},
+			}
+		}
+	},
+	{kMIPick, STR_SETTINGS, .callback=RegisterSettingsMenu, .next='sett' },
+	{kMIPick, STR_CLEAR_SAVED_GAME, .next='clrs', .enableIf=IsClearSavedGameAvailable },
+
+	{ .id='xtra' },
+	{kMIPick, STR_HELP,				.id=MENU_EXITCODE_HELP,		.next='EXIT' },
+	{kMIPick, STR_CREDITS,			.id=MENU_EXITCODE_CREDITS,	.next='EXIT' },
+	{kMIPick, STR_PHYSICS_EDITOR,	.id=MENU_EXITCODE_PHYSICS,	.next='EXIT' },
+
+	{ .id='mpgm' },
+	{kMIPick, STR_RACE,			.callback=OnPickGameMode, .id=GAME_MODE_MULTIPLAYERRACE,	.next='EXIT' },
+	{kMIPick, STR_TAG1,			.callback=OnPickGameMode, .id=GAME_MODE_TAG1,				.next='tag1' },
+	{kMIPick, STR_TAG2,			.callback=OnPickGameMode, .id=GAME_MODE_TAG2,				.next='tag2' },
+	{kMIPick, STR_SURVIVAL,		.callback=OnPickGameMode, .id=GAME_MODE_SURVIVAL,			.next='EXIT' },
+	{kMIPick, STR_CAPTUREFLAG,	.callback=OnPickGameMode, .id=GAME_MODE_CAPTUREFLAG,		.next='EXIT' },
+
+	{ .id='spgm' },
+	{kMIPick, STR_PRACTICE,		.callback=OnPickGameMode, .id=GAME_MODE_PRACTICE,			.next='EXIT' },
+	{kMIPick, STR_TOURNAMENT,	.callback=OnPickGameMode, .id=GAME_MODE_TOURNAMENT,			.next='tour' },
+
+	{ .id='tour' },
+	{kMIPick, STR_STONE_AGE,	.callback=OnPickTournamentAge, .id=STONE_AGE,	.next='EXIT'},
+	{kMIPick, STR_BRONZE_AGE,	.callback=OnPickTournamentAge, .id=BRONZE_AGE,	.next='EXIT', .enableIf = IsTournamentAgeAvailable},
+	{kMIPick, STR_IRON_AGE,		.callback=OnPickTournamentAge, .id=IRON_AGE,	.next='EXIT', .enableIf = IsTournamentAgeAvailable},
+
+	{ .id='netg' },
+	{kMIPick, STR_HOST_NET_GAME, .callback=OnPickHostOrJoin, .id=0, .next='mpgm' }, // host gets to select game type
+	{kMIPick, STR_JOIN_NET_GAME, .callback=OnPickHostOrJoin, .id=1 },
+
+	{ .id='clrs' },
+	{kMISubtitle, .text=STR_CLEAR_SAVED_GAME_TEXT_1 },
+	{kMISpacer, .text=STR_NULL, .customHeight=1 },
+	{kMISubtitle, .text=STR_CLEAR_SAVED_GAME_TEXT_2 },
+	{kMISpacer, .text=STR_NULL, .customHeight=1 },
+	{kMIPick, .text=STR_CLEAR_SAVED_GAME_CANCEL, .next='BACK' },
+	{kMIPick, .text=STR_CLEAR_SAVED_GAME, .callback=OnPickClearSavedGame, .next='BACK' },
+
+	{ .id='tag1' },
+	{kMISubtitle, .text=STR_KEEPAWAYTAG_HELP },
+	{kMISpacer, .text=STR_NULL },
+	{kMISubtitle, .text=STR_TAG_DURATION },
+	{kMISpacer, .text=STR_NULL, .customHeight=1 },
+	{kMIPick, STR_2_MINUTES, .callback=OnPickTagDuration, .id=2, .next='EXIT' },
+	{kMIPick, STR_3_MINUTES, .callback=OnPickTagDuration, .id=3, .next='EXIT' },
+	{kMIPick, STR_4_MINUTES, .callback=OnPickTagDuration, .id=4, .next='EXIT' },
+
+	{ .id='tag2' },
+	{kMISubtitle, .text=STR_STAMPEDETAG_HELP },
+	{kMISpacer, .text=STR_NULL },
+	{kMISubtitle, .text=STR_TAG_DURATION },
+	{kMISpacer, .text=STR_NULL, .customHeight=1 },
+	{kMIPick, STR_2_MINUTES, .callback=OnPickTagDuration, .id=2, .next='EXIT' },
+	{kMIPick, STR_3_MINUTES, .callback=OnPickTagDuration, .id=3, .next='EXIT' },
+	{kMIPick, STR_4_MINUTES, .callback=OnPickTagDuration, .id=4, .next='EXIT' },
+
+	{ .id=0 }
+};
 
 
 /********************** PRIME SELF-RUNNING DEMO **************************/
@@ -363,7 +163,7 @@ static void UpdateMainMenuScreen(void)
 {
 	MoveObjects();
 
-	if (GetCurrentMenu() == gMenuTitle &&
+	if (GetCurrentMenu() == 'TITL' &&
 		(GetMenuIdleTime() > DEMO_DELAY || IsCheatKeyComboDown()))
 	{
 		gGameViewInfoPtr->fadePillarbox = true;
@@ -386,7 +186,7 @@ do_again:
 	PrefsType oldPrefs;
 	memcpy(&oldPrefs, &gGamePrefs, sizeof(oldPrefs));
 
-	int outcome = StartMenuTree(gMainMenuTree, NULL, UpdateMainMenuScreen, DrawObjects);
+	int outcome = StartMenu(gMainMenuTree, NULL, UpdateMainMenuScreen, DrawObjects);
 
 			/* SAVE PREFS IF THEY CHANGED */
 	
@@ -594,39 +394,6 @@ static void OnPickHostOrJoin(const MenuItem* mi)
 	}
 }
 
-static void OnPickLanguage(const MenuItem* mi)
-{
-	LoadLocalizedStrings(gGamePrefs.language);
-	LayoutCurrentMenuAgain();
-}
-
-static void OnToggleFullscreen(const MenuItem* mi)
-{
-	SetFullscreenMode(true);
-}
-
-static void OnToggleMusic(const MenuItem* mi)
-{
-	if ((!gMuteMusicFlag) != gGamePrefs.music)
-	{
-		ToggleMusic();
-	}
-}
-
-static void OnAdjustMusicVolume(const MenuItem* mi)
-{
-	UpdateGlobalVolume();
-//	if ((!gMuteMusicFlag) != gGamePrefs.music)
-//	{
-//		ToggleMusic();
-//	}
-}
-
-static void OnAdjustSFXVolume(const MenuItem* mi)
-{
-	UpdateGlobalVolume();
-}
-
 
 static void OnPickClearSavedGame(const MenuItem* mi)
 {
@@ -637,22 +404,6 @@ static void OnPickClearSavedGame(const MenuItem* mi)
 static void OnPickTagDuration(const MenuItem* mi)
 {
 	gGamePrefs.tagDuration = mi->id;
-}
-
-static void OnPickResetKeyboardBindings(const MenuItem* mi)
-{
-	MyFlushEvents();
-	ResetDefaultKeyboardBindings();
-	PlayEffect(EFFECT_BOOM);
-	LayoutCurrentMenuAgain();
-}
-
-static void OnPickResetGamepadBindings(const MenuItem* mi)
-{
-	MyFlushEvents();
-	ResetDefaultGamepadBindings();
-	PlayEffect(EFFECT_BOOM);
-	LayoutCurrentMenuAgain();
 }
 
 #pragma mark -

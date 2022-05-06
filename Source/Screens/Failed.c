@@ -67,9 +67,10 @@ Boolean DoFailedMenu(const char* headerString)
 
 	static const MenuItem failedMenu[] =
 	{
-		{ kMenuItem_Pick, STR_TRY_AGAIN, .id=1 },
-		{ kMenuItem_Pick, STR_RETIRE, .id=0 },
-		{ .type=kMenuItem_END_SENTINEL },
+		{ .id='fail' },
+		{kMIPick, STR_TRY_AGAIN, .id=1, .next='EXIT'},
+		{kMIPick, STR_RETIRE, .id=0, .next='EXIT'},
+		{0 },
 	};
 
 	MenuStyle failedMenuStyle = kDefaultMenuStyle;
