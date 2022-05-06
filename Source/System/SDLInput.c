@@ -24,13 +24,15 @@ extern SDL_Window* gSDLWindow;
 
 enum
 {
-	KEYSTATE_OFF		= 0b00,
-	KEYSTATE_UP			= 0b01,
+	KEYSTATE_ACTIVE_BIT		= 0b001,
+	KEYSTATE_CHANGE_BIT		= 0b010,
+	KEYSTATE_IGNORE_BIT		= 0b100,
 
-	KEYSTATE_PRESSED	= 0b10,
-	KEYSTATE_HELD		= 0b11,
-
-	KEYSTATE_ACTIVE_BIT	= 0b10,
+	KEYSTATE_OFF			= 0b000,
+	KEYSTATE_PRESSED		= KEYSTATE_ACTIVE_BIT | KEYSTATE_CHANGE_BIT,
+	KEYSTATE_HELD			= KEYSTATE_ACTIVE_BIT,
+	KEYSTATE_UP				= KEYSTATE_OFF | KEYSTATE_CHANGE_BIT,
+	KEYSTATE_IGNOREHELD		= KEYSTATE_OFF | KEYSTATE_IGNORE_BIT,
 };
 
 #define kJoystickDeadZone				(20 * 32767 / 100)
@@ -67,14 +69,13 @@ Byte				gNeedStates[NUM_CONTROL_NEEDS];
 
 Boolean				gMouseMotionNow = false;
 
-/**********************/
-/* STATIC FUNCTIONS   */
-/**********************/
-
 static void OnJoystickRemoved(SDL_JoystickID which);
 static SDL_GameController* TryOpenControllerFromJoystick(int joystickIndex);
 static SDL_GameController* TryOpenAnyController(bool showMessage);
 static int GetControllerSlotFromSDLJoystickInstanceID(SDL_JoystickID joystickInstanceID);
+
+#pragma mark -
+/**********************/
 
 static inline void UpdateKeyState(Byte* state, bool downNow)
 {
@@ -84,13 +85,134 @@ static inline void UpdateKeyState(Byte* state, bool downNow)
 		case KEYSTATE_PRESSED:
 			*state = downNow ? KEYSTATE_HELD : KEYSTATE_UP;
 			break;
+
 		case KEYSTATE_OFF:
 		case KEYSTATE_UP:
 		default:
 			*state = downNow ? KEYSTATE_PRESSED : KEYSTATE_OFF;
 			break;
+
+		case KEYSTATE_IGNOREHELD:
+			*state = downNow ? KEYSTATE_IGNOREHELD : KEYSTATE_OFF;
+			break;
 	}
 }
+
+static void UpdateRawKeyboardStates(void)
+{
+	int numkeys = 0;
+	const UInt8* keystate = SDL_GetKeyboardState(&numkeys);
+
+	int minNumKeys = GAME_MIN(numkeys, SDL_NUM_SCANCODES);
+
+	for (int i = 0; i < minNumKeys; i++)
+		UpdateKeyState(&gRawKeyboardState[i], keystate[i]);
+
+	// fill out the rest
+	for (int i = minNumKeys; i < SDL_NUM_SCANCODES; i++)
+		UpdateKeyState(&gRawKeyboardState[i], false);
+}
+
+static void ParseAltEnter(void)
+{
+	if (GetNewKeyState(SDL_SCANCODE_RETURN)
+		&& (GetKeyState(SDL_SCANCODE_LALT) || GetKeyState(SDL_SCANCODE_RALT)))
+	{
+		gGamePrefs.fullscreen = !gGamePrefs.fullscreen;
+		SetFullscreenMode(false);
+
+		gRawKeyboardState[SDL_SCANCODE_RETURN] = KEYSTATE_IGNOREHELD;
+	}
+
+}
+
+static void UpdateMouseButtonStates(int mouseWheelDelta)
+{
+	uint32_t mouseButtons = SDL_GetMouseState(NULL, NULL);
+
+	for (int i = 1; i < NUM_SUPPORTED_MOUSE_BUTTONS_PURESDL; i++)	// SDL buttons start at 1!
+	{
+		bool buttonBit = 0 != (mouseButtons & SDL_BUTTON(i));
+		UpdateKeyState(&gMouseButtonState[i], buttonBit);
+	}
+
+	// Fake buttons for mouse wheel up/down
+	UpdateKeyState(&gMouseButtonState[SDL_BUTTON_WHEELUP], mouseWheelDelta > 0);
+	UpdateKeyState(&gMouseButtonState[SDL_BUTTON_WHEELDOWN], mouseWheelDelta < 0);
+}
+
+static void UpdateInputNeeds(void)
+{
+	for (int i = 0; i < NUM_CONTROL_NEEDS; i++)
+	{
+		const KeyBinding* kb = &gGamePrefs.keys[i];
+
+		bool downNow = false;
+
+		for (int j = 0; j < KEYBINDING_MAX_KEYS; j++)
+		{
+			int16_t scancode = kb->key[j];
+			if (scancode && scancode < SDL_NUM_SCANCODES)
+			{
+				downNow |= gRawKeyboardState[scancode] & KEYSTATE_ACTIVE_BIT;
+			}
+		}
+
+//		downNow |= gMouseButtonState[kb->mouseButton] & KEYSTATE_ACTIVE_BIT;
+
+		UpdateKeyState(&gNeedStates[i], downNow);
+	}
+}
+
+static void UpdateControllerSpecificInputNeeds(int controllerNum)
+{
+	if (!gControllers[controllerNum].open)
+	{
+		return;
+	}
+
+	SDL_GameController* controllerInstance = gControllers[controllerNum].controllerInstance;
+
+	for (int needNum = 0; needNum < NUM_CONTROL_NEEDS; needNum++)
+	{
+		const KeyBinding* kb = &gGamePrefs.keys[needNum];
+
+		int16_t deadZone = needNum >= NUM_REMAPPABLE_NEEDS
+						   ? kJoystickDeadZone_UI
+						   : kJoystickDeadZone;
+
+		bool downNow = false;
+
+		for (int buttonNum = 0; buttonNum < KEYBINDING_MAX_GAMEPAD_BUTTONS; buttonNum++)
+		{
+			switch (kb->gamepad[buttonNum].type)
+			{
+				case kInputTypeButton:
+					downNow |= 0 != SDL_GameControllerGetButton(controllerInstance, kb->gamepad[buttonNum].id);
+					break;
+
+				case kInputTypeAxisPlus:
+					downNow |= SDL_GameControllerGetAxis(controllerInstance, kb->gamepad[buttonNum].id) > deadZone;
+					break;
+
+				case kInputTypeAxisMinus:
+					downNow |= SDL_GameControllerGetAxis(controllerInstance, kb->gamepad[buttonNum].id) < -deadZone;
+					break;
+
+				default:
+					break;
+			}
+		}
+
+		UpdateKeyState(&gControllers[controllerNum].needStates[needNum], downNow);
+	}
+}
+
+#pragma mark -
+
+/**********************/
+/* PUBLIC FUNCTIONS   */
+/**********************/
 
 void DoSDLMaintenance(void)
 {
@@ -161,55 +283,18 @@ void DoSDLMaintenance(void)
 		}
 	}
 
-	// --------------------------------------------
+
 	// Refresh the state of each individual keyboard key
+	UpdateRawKeyboardStates();
 
-	int numkeys = 0;
-	const UInt8* keystate = SDL_GetKeyboardState(&numkeys);
+	// On ALT+ENTER, toggle fullscreen, and ignore ENTER until keyup
+	ParseAltEnter();
 
-	{
-		int minNumKeys = numkeys < SDL_NUM_SCANCODES ? numkeys : SDL_NUM_SCANCODES;
-
-		for (int i = 0; i < minNumKeys; i++)
-			UpdateKeyState(&gRawKeyboardState[i], keystate[i]);
-
-		// fill out the rest
-		for (int i = minNumKeys; i < SDL_NUM_SCANCODES; i++)
-			UpdateKeyState(&gRawKeyboardState[i], false);
-	}
-
-	// --------------------------------------------
 	// Refresh the state of each mouse button
+	UpdateMouseButtonStates(mouseWheelDelta);
 
-	uint32_t mouseButtons = SDL_GetMouseState(NULL, NULL);
-
-	for (int i = 1; i < NUM_SUPPORTED_MOUSE_BUTTONS_PURESDL; i++)	// SDL buttons start at 1!
-	{
-		bool buttonBit = 0 != (mouseButtons & SDL_BUTTON(i));
-		UpdateKeyState(&gMouseButtonState[i], buttonBit);
-	}
-
-	// Fake buttons for mouse wheel up/down
-	UpdateKeyState(&gMouseButtonState[SDL_BUTTON_WHEELUP], mouseWheelDelta > 0);
-	UpdateKeyState(&gMouseButtonState[SDL_BUTTON_WHEELDOWN], mouseWheelDelta < 0);
-
-	// --------------------------------------------
 	// Refresh the state of each input need
-
-	for (int i = 0; i < NUM_CONTROL_NEEDS; i++)
-	{
-		const KeyBinding* kb = &gGamePrefs.keys[i];
-
-		bool downNow = false;
-
-		for (int j = 0; j < KEYBINDING_MAX_KEYS; j++)
-			if (kb->key[j] && kb->key[j] < numkeys)
-				downNow |= 0 != keystate[kb->key[j]];
-
-//		downNow |= gMouseButtonState[kb->mouseButton] & KEYSTATE_ACTIVE_BIT;
-
-		UpdateKeyState(&gNeedStates[i], downNow);
-	}
+	UpdateInputNeeds();
 
 	//-------------------------------------------------------------------------
 	// Multiplayer gamepad input
@@ -217,47 +302,9 @@ void DoSDLMaintenance(void)
 
 	for (int controllerNum = 0; controllerNum < MAX_LOCAL_PLAYERS; controllerNum++)
 	{
-		if (!gControllers[controllerNum].open)
-		{
-			continue;
-		}
-
-		SDL_GameController* controllerInstance = gControllers[controllerNum].controllerInstance;
-		
-		for (int needNum = 0; needNum < NUM_CONTROL_NEEDS; needNum++)
-		{
-			const KeyBinding* kb = &gGamePrefs.keys[needNum];
-
-			int16_t deadZone = needNum >= NUM_REMAPPABLE_NEEDS
-							? kJoystickDeadZone_UI
-							: kJoystickDeadZone;
-
-			bool downNow = false;
-
-			for (int buttonNum = 0; buttonNum < KEYBINDING_MAX_GAMEPAD_BUTTONS; buttonNum++)
-			{
-				switch (kb->gamepad[buttonNum].type)
-				{
-					case kInputTypeButton:
-						downNow |= 0 != SDL_GameControllerGetButton(controllerInstance, kb->gamepad[buttonNum].id);
-						break;
-
-					case kInputTypeAxisPlus:
-						downNow |= SDL_GameControllerGetAxis(controllerInstance, kb->gamepad[buttonNum].id) > deadZone;
-						break;
-
-					case kInputTypeAxisMinus:
-						downNow |= SDL_GameControllerGetAxis(controllerInstance, kb->gamepad[buttonNum].id) < -deadZone;
-						break;
-
-					default:
-						break;
-				}
-			}
-
-			UpdateKeyState(&gControllers[controllerNum].needStates[needNum], downNow);
-		}
+		UpdateControllerSpecificInputNeeds(controllerNum);
 	}
+
 }
 
 #pragma mark -
