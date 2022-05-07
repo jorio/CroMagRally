@@ -167,6 +167,8 @@ typedef struct
 	SDL_Cursor*			standardCursor;
 
 	float				idleTime;
+
+	ObjNode*			arrowObjects[2];
 } MenuNavigation;
 
 static MenuNavigation* gNav = NULL;
@@ -191,11 +193,28 @@ static void InitMenuNavigation(void)
 
 	nav->standardCursor = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_ARROW);
 	nav->handCursor = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_HAND);
+
+	NewObjectDefinitionType arrowDef =
+	{
+		.scale = 1,
+		.slot = SPRITE_SLOT,
+	};
+	nav->arrowObjects[0] = TextMesh_New("<", 0, &arrowDef);
+	nav->arrowObjects[1] = TextMesh_New(">", 0, &arrowDef);
 }
 
 static void DisposeMenuNavigation(void)
 {
 	MenuNavigation* nav = gNav;
+
+	for (int i = 0; i < 2; i++)
+	{
+		if (nav->arrowObjects[i] != NULL)
+		{
+			DeleteObject(nav->arrowObjects[i]);
+			nav->arrowObjects[i] = NULL;
+		}
+	}
 
 	if (nav->standardCursor != NULL)
 	{
@@ -589,6 +608,55 @@ static void GoBackInHistory(void)
 	}
 }
 
+static void RepositionArrows(void)
+{
+	bool showArrows = true;
+	switch (gNav->menu[gNav->menuRow].type)
+	{
+		case kMICycler1:
+		case kMICycler2:
+		case kMIFloatRange:
+		case kMIKeyBinding:
+		case kMIPadBinding:
+		case kMIMouseBinding:
+			showArrows = true;
+			break;
+		default:
+			showArrows = false;
+			break;
+	}
+
+	if (showArrows)
+	{
+		ObjNode* snapTo = gNav->menuObjects[gNav->menuRow][0];
+		OGLRect extents = TextMesh_GetExtents(snapTo);
+
+		float spacing = 50 * snapTo->Scale.x;
+
+		for (int i = 0; i < 2; i++)
+		{
+			ObjNode* arrowObj = gNav->arrowObjects[i];
+			SetObjectVisible(arrowObj, true);
+
+			arrowObj->Coord.x = i==0? extents.left - spacing: extents.right + spacing;
+			arrowObj->Coord.y = snapTo->Coord.y;
+			arrowObj->Scale = snapTo->Scale;
+			UpdateObjectTransforms(arrowObj);
+
+		}
+	}
+	else
+	{
+
+		for (int i = 0; i < 2; i++)
+		{
+			SetObjectVisible(gNav->arrowObjects[i], false);
+		}
+	}
+
+
+}
+
 static void NavigateSettingEntriesVertically(int delta)
 {
 	bool makeSound = gNav->menuRow >= 0;
@@ -610,9 +678,15 @@ static void NavigateSettingEntriesVertically(int delta)
 	} while (skipEntry);
 
 	gNav->idleTime = 0;
-	if (makeSound)
-		PlayEffect(kSfxNavigate);
 	gNav->mouseHoverValid = false;
+
+	if (makeSound)
+	{
+		PlayEffect(kSfxNavigate);
+	}
+
+	// Reposition arrows
+	RepositionArrows();
 }
 
 static void NavigateSettingEntriesMouseHover(void)
@@ -1590,6 +1664,8 @@ static void LayOutMenu(int menuID)
 		gNav->menuRow = -1;
 		NavigateSettingEntriesVertically(1);
 	}
+
+	RepositionArrows();
 }
 
 void LayoutCurrentMenuAgain(void)

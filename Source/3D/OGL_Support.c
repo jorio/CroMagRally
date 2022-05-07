@@ -1211,12 +1211,13 @@ void OGL_DisableLighting(void)
 
 static void OGL_InitFont(void)
 {
-	NewObjectDefinitionType newObjDef;
-	memset(&newObjDef, 0, sizeof(newObjDef));
-	newObjDef.flags = STATUS_BIT_HIDDEN | STATUS_BIT_OVERLAYPANE;
-	newObjDef.slot = DEBUGTEXT_SLOT;
-	newObjDef.scale = 0.25f;
-	newObjDef.coord = (OGLPoint3D) { 0, 480/2, 0 };
+	NewObjectDefinitionType newObjDef =
+	{
+		.flags = STATUS_BIT_HIDDEN | STATUS_BIT_OVERLAYPANE,
+		.slot = DEBUGTEXT_SLOT,
+		.scale = .25f,
+		.coord = (OGLPoint3D) { 0, 480.0f/2.0f, 0 },
+	};
 	gDebugText = TextMesh_NewEmpty(sizeof(gDebugTextBuffer), &newObjDef);
 	gDebugText->Projection = kProjectionType2DOrthoFullRect;
 }
