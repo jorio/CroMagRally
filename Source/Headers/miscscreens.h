@@ -4,6 +4,7 @@
 
 #include "menu.h"
 
+void DoWarmUpScreen(void);
 void DisplayPicture(const char* picturePath, float timeout);
 void DoPaused(void);
 void ShowAgePicture(int age);

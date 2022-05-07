@@ -1559,14 +1559,14 @@ void GameMain(void)
 		gCommandLine.bootToTrack = 0;
 	}
 
-
+	DoWarmUpScreen();
+	PreloadGameArt(gGameViewInfoPtr);
 	PlaySong(SONG_THEME, true);
 
 
 		/* SHOW TITLE SCREEN */
 
 	DoTitleScreen();
-	PreloadGameArt(gGameViewInfoPtr);
 
 
 		/* MAIN LOOP */

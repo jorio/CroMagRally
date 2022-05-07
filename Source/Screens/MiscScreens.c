@@ -17,7 +17,6 @@
 /*    PROTOTYPES            */
 /****************************/
 
-static void DisplayPicture_Draw(OGLSetupOutputType *info);
 static void SetupConqueredScreen(void);
 static void FreeConqueredScreen(void);
 static void MoveCup(ObjNode *theNode);
@@ -116,7 +115,7 @@ float				keyTextFadeIn = -2.0f;		// fade in after a small delay
 		int	i;
 
 		for (i = 0; i < 10; i++)
-			OGL_DrawScene(gGameViewInfoPtr, DisplayPicture_Draw);
+			OGL_DrawScene(gGameViewInfoPtr, DrawObjects);
 
 		// TODO: Fade in, I guess?
 	}
@@ -133,7 +132,7 @@ float				keyTextFadeIn = -2.0f;		// fade in after a small delay
 		{
 			CalcFramesPerSecond();
 			MoveObjects();
-			OGL_DrawScene(gGameViewInfoPtr, DisplayPicture_Draw);
+			OGL_DrawScene(gGameViewInfoPtr, DrawObjects);
 
 			ReadKeyboard();
 			if (UserWantsOut())
@@ -151,7 +150,7 @@ float				keyTextFadeIn = -2.0f;		// fade in after a small delay
 
 				/* FADE OUT */
 
-		OGL_FadeOutScene(gGameViewInfoPtr, DisplayPicture_Draw, NULL);
+		OGL_FadeOutScene(gGameViewInfoPtr, DrawObjects, NULL);
 	}
 
 			/* CLEANUP */
@@ -160,15 +159,6 @@ float				keyTextFadeIn = -2.0f;		// fade in after a small delay
 
 	OGL_DisposeWindowSetup(&gGameViewInfoPtr);
 }
-
-
-/***************** DISPLAY PICTURE: DRAW *******************/
-
-static void DisplayPicture_Draw(OGLSetupOutputType *info)
-{
-	DrawObjects(info);
-}
-
 
 #pragma mark -
 
@@ -213,6 +203,38 @@ void DoTitleScreen(void)
 	DisplayPicture(":images:TitleScreen.jpg", 5.0f);
 }
 
+
+#pragma mark -
+
+
+/******* DO PROGRAM WARM-UP SCREEN AS WE PRELOAD ASSETS **********/
+
+void DoWarmUpScreen(void)
+{
+	OGLSetupInputType	viewDef;
+
+			/* SETUP VIEW */
+
+	OGL_NewViewDef(&viewDef);
+	viewDef.view.pillarbox4x3		= false;
+	viewDef.view.fontName			= "rockfont";
+
+	OGL_SetupWindow(&viewDef, &gGameViewInfoPtr);
+
+			/* SHOW IT */
+
+	for (int i = 0; i < 8; i++)
+	{
+		OGL_DrawScene(gGameViewInfoPtr, DrawObjects);
+		DoSDLMaintenance();
+	}
+
+			/* CLEANUP */
+
+	DeleteAllObjects();
+
+	OGL_DisposeWindowSetup(&gGameViewInfoPtr);
+}
 
 
 #pragma mark -
