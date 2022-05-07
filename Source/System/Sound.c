@@ -68,11 +68,10 @@ short						gRecentAnnouncerEffect = -1, gDelayedAnnouncerEffect;
 short						gRecentAnnouncerChannel = -1;
 float						gAnnouncerDelay = -1;
 
-float						gMoviesTaskTimer = 0;
-
-float						gGlobalVolume = .4;
-float						gMusicVolume = .4;
-float						gMusicVolumeTweak = 1.0f;
+static float				gGlobalVolumeFade = 1.0f;
+static float				gEffectsVolume = .4;
+static float				gMusicVolume = .4;
+static float				gMusicVolumeTweak = 1.0f;
 
 OGLPoint3D					gEarCoords[MAX_LOCAL_PLAYERS];			// coord of camera plus a tad to get pt in front of camera
 static	OGLVector3D			gEyeVector[MAX_LOCAL_PLAYERS];
@@ -91,6 +90,8 @@ Boolean						gLoopSongFlag = true;
 
 Boolean				gMuteMusicFlag = false;
 static short				gCurrentSong = -1;
+
+Boolean						gFadeOutMusic = false;
 
 
 		/*****************/
@@ -911,8 +912,8 @@ uint32_t		lv2,rv2;
 		return(-1);
 	}
 
-	lv2 = (float)leftVolume * gGlobalVolume;							// amplify by global volume
-	rv2 = (float)rightVolume * gGlobalVolume;
+	lv2 = (float)leftVolume * gEffectsVolume;							// amplify by global volume
+	rv2 = (float)rightVolume * gEffectsVolume;
 
 
 					/* GET IT GOING */
@@ -980,13 +981,13 @@ uint32_t		lv2,rv2;
 
 /****************** UPDATE GLOBAL VOLUME ************************/
 //
-// Call this whenever gGlobalVolume is changed.  This will update
+// Call this whenever gEffectsVolume is changed.  This will update
 // all of the sounds with the correct volume.
 //
 
 void UpdateGlobalVolume(void)
 {
-	gGlobalVolume = 0.25f * gGamePrefs.sfxVolumePercent * (1.0f / 100.0f);
+	gEffectsVolume = 0.25f * (0.01f * gGamePrefs.sfxVolumePercent) * gGlobalVolumeFade;
 
 			/* ADJUST VOLUMES OF ALL CHANNELS REGARDLESS IF THEY ARE PLAYING OR NOT */
 
@@ -998,7 +999,7 @@ void UpdateGlobalVolume(void)
 
 			/* UPDATE SONG VOLUME */
 
-	gMusicVolume = 0.4f * gGamePrefs.musicVolumePercent * (1.0f / 100.0f);
+	gMusicVolume = 0.4f * (0.01f * gGamePrefs.musicVolumePercent) * gGlobalVolumeFade;
 	uint32_t lv2 = kFullVolume * gMusicVolumeTweak * gMusicVolume;
 	uint32_t rv2 = kFullVolume * gMusicVolumeTweak * gMusicVolume;
 	SndCommand cmd =
@@ -1025,8 +1026,8 @@ uint32_t			lv2,rv2;
 	if (channel < 0)									// make sure it's valid
 		return;
 
-	lv2 = (float)leftVol * gGlobalVolume;				// amplify by global volume
-	rv2 = (float)rightVol * gGlobalVolume;
+	lv2 = (float)leftVol * gEffectsVolume;				// amplify by global volume
+	rv2 = (float)rightVol * gEffectsVolume;
 
 	chanPtr = gSndChannel[channel];						// get the actual channel ptr
 
@@ -1091,15 +1092,15 @@ void DoSoundMaintenance(void)
 
 	if (GetNewKeyState_Real(kKey_RaiseVolume))
 	{
-		gGlobalVolume += .5f * gFramesPerSecondFrac;
+		gEffectsVolume += .5f * gFramesPerSecondFrac;
 		UpdateGlobalVolume();
 	}
 	else
 	if (GetNewKeyState_Real(kKey_LowerVolume))
 	{
-		gGlobalVolume -= .5f * gFramesPerSecondFrac;
-		if (gGlobalVolume < 0.0f)
-			gGlobalVolume = 0.0f;
+		gEffectsVolume -= .5f * gFramesPerSecondFrac;
+		if (gEffectsVolume < 0.0f)
+			gEffectsVolume = 0.0f;
 		UpdateGlobalVolume();
 	}
 
@@ -1282,4 +1283,17 @@ void PlayAnnouncerSound(short effectNum, Boolean override, float delay)
 
 	}
 
+}
+
+
+
+#pragma mark -
+
+/********************** GLOBAL VOLUME FADE ***************************/
+
+
+void FadeSound(float loudness)
+{
+	gGlobalVolumeFade = loudness;
+	UpdateGlobalVolume();
 }

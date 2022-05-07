@@ -185,7 +185,4 @@ void UpdateGlobalVolume(void);
 
 void PlayAnnouncerSound(short effectNum, Boolean override, float delay);
 
-
-
-
-
+void FadeSound(float globalVolumeMultiplier);

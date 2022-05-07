@@ -217,6 +217,8 @@ typedef struct
 	Boolean					clearBackBuffer;
 	Boolean					pillarbox4x3;
 	Boolean					fadePillarbox;		// if true, pillarbox border brightness tracks global gamma fade
+	Boolean					fadeSound;			// if true, global sound volume will track global gamma fade
+	float					fadeDuration;
 }OGLSetupOutputType;
 
 

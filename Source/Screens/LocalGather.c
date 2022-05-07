@@ -42,7 +42,11 @@ static void UpdateGatherPrompt(int numControllersMissing)
 
 	if (numControllersMissing <= 0)
 	{
-		snprintf(message, sizeof(message), "OK!");
+		TextMesh_Update("OK", 0, gGatherPrompt);
+		gGatherPrompt->Scale.x = 1;
+		gGatherPrompt->Scale.y = 1;
+		UpdateObjectTransforms(gGatherPrompt);
+		gGameViewInfoPtr->fadeDuration = .3f;
 	}
 	else
 	{
@@ -53,9 +57,10 @@ static void UpdateGatherPrompt(int numControllersMissing)
 			Localize(STR_CONNECT_CONTROLLERS_PREFIX),
 			Localize(STR_CONNECT_1_CONTROLLER + numControllersMissing - 1),
 			Localize(numControllersMissing==1? STR_CONNECT_CONTROLLERS_SUFFIX_KBD: STR_CONNECT_CONTROLLERS_SUFFIX));
+
+		TextMesh_Update(message, 0, gGatherPrompt);
 	}
 
-	TextMesh_Update(message, 0, gGatherPrompt);
 }
 
 

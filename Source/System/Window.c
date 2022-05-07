@@ -177,11 +177,10 @@ void OGL_FadeOutScene(
 	ObjNode* newObj = MakeNewObject(&newObjDef);
 	newObj->CustomDrawFunction = DrawFadePane;
 
-	const float duration = 0.15f;
-	float timer = duration;
+	float timer = setupInfo->fadeDuration;
 	while (timer >= 0)
 	{
-		gGammaFadePercent = 1.0f * timer / duration;
+		gGammaFadePercent = 1.0f * timer / (setupInfo->fadeDuration + .01f);
 
 		CalcFramesPerSecond();
 		DoSDLMaintenance();
@@ -191,6 +190,11 @@ void OGL_FadeOutScene(
 
 		OGL_DrawScene(setupInfo, drawRoutine);
 
+		if (setupInfo->fadeSound)
+		{
+			FadeSound(gGammaFadePercent);
+		}
+
 		timer -= gFramesPerSecondFrac;
 	}
 
@@ -199,6 +203,14 @@ void OGL_FadeOutScene(
 	CalcFramesPerSecond();
 	DoSDLMaintenance();
 	OGL_DrawScene(setupInfo, drawRoutine);
+
+	if (setupInfo->fadeSound)
+	{
+		FadeSound(0);
+		KillSong();
+		StopAllEffectChannels();
+		FadeSound(1);
+	}
 }
 
 

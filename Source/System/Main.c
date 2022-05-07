@@ -993,6 +993,8 @@ void FadeOutArea(void)
 {
 			/* FADE OUT */
 
+	gGameViewInfoPtr->fadeSound = true;
+	gGameViewInfoPtr->fadeDuration = .3f;
 	OGL_FadeOutScene(gGameViewInfoPtr, DrawTerrain, DoPlayerTerrainUpdate);		// need to keep supertiles alive
 }
 

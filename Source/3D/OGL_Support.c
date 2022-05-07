@@ -193,7 +193,7 @@ OGLSetupOutputType	*outputPtr;
 
 			/* ALLOC MEMORY FOR OUTPUT DATA */
 
-	outputPtr = (OGLSetupOutputType *)AllocPtr(sizeof(OGLSetupOutputType));
+	outputPtr = (OGLSetupOutputType *)AllocPtrClear(sizeof(OGLSetupOutputType));
 	if (outputPtr == nil)
 		DoFatalAlert("OGL_SetupWindow: AllocPtr failed");
 
@@ -253,6 +253,7 @@ OGLSetupOutputType	*outputPtr;
 	outputPtr->clearBackBuffer 	= setupDefPtr->view.clearBackBuffer;
 	outputPtr->pillarbox4x3		= setupDefPtr->view.pillarbox4x3;
 	outputPtr->fadePillarbox	= false;
+	outputPtr->fadeDuration		= .15f;
 
 	outputPtr->isActive = true;											// it's now an active structure
 
