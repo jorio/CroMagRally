@@ -24,12 +24,12 @@ static void CleanupLevel(void);
 static void PlayArea(void);
 static Boolean PlayGame(void);
 
-static void PlayGame_MultiplayerRace(void);
+static Boolean PlayGame_MultiplayerRace(void);
 static Boolean PlayGame_Practice(void);
 static Boolean PlayGame_Tournament(void);
-static void PlayGame_Tag(void);
-static void PlayGame_Survival(void);
-static void PlayGame_CaptureTheFlag(void);
+static Boolean PlayGame_Tag(void);
+static Boolean PlayGame_Survival(void);
+static Boolean PlayGame_CaptureTheFlag(void);
 static void UpdateGameModeSpecifics(void);
 
 static void TallyTokens(void);
@@ -193,42 +193,45 @@ static Boolean PlayGame(void)
 		LockPlayerControllerMapping();
 	}
 
+	bool bailed = false;
+
 	switch(gGameMode)
 	{
 		case	GAME_MODE_PRACTICE:
-				if (PlayGame_Practice())
-					return(true);
+				bailed = PlayGame_Practice();
 				break;
 
 		case	GAME_MODE_TOURNAMENT:
-				if (PlayGame_Tournament())
-					return(true);
+				bailed = PlayGame_Tournament();
 				break;
 
 		case	GAME_MODE_MULTIPLAYERRACE:
-				PlayGame_MultiplayerRace();
+				bailed = PlayGame_MultiplayerRace();
 				break;
 
 		case	GAME_MODE_TAG1:
 		case	GAME_MODE_TAG2:
-				PlayGame_Tag();
+				bailed = PlayGame_Tag();
 				break;
 
 		case	GAME_MODE_SURVIVAL:
-				PlayGame_Survival();
+				bailed = PlayGame_Survival();
 				break;
 
 		case	GAME_MODE_CAPTUREFLAG:
-				PlayGame_CaptureTheFlag();
+				bailed = PlayGame_CaptureTheFlag();
 				break;
 
 		default:
 				DoFatalAlert("PlayGame: unknown game mode");
-
 	}
 
 
 	UnlockPlayerControllerMapping();
+
+
+	if (bailed)
+		return true;
 
 
 		/* UPDATE ANY SAVED PLAYER FILE THAT'S ACTIVE */
@@ -493,8 +496,10 @@ short	placeToWin,startStage;
 //
 // gTrackNum has already been set by the Host
 //
+// return true if user aborted before game started
+//
 
-static void PlayGame_MultiplayerRace(void)
+static Boolean PlayGame_MultiplayerRace(void)
 {
 			/* SET PLAYER INFO */
 
@@ -510,7 +515,8 @@ static void PlayGame_MultiplayerRace(void)
 			// Must do this after InitPlayerInfo_Game above!
 			//
 
-	DoMultiPlayerVehicleSelections();
+	if (DoMultiPlayerVehicleSelections())
+		return true;
 
 
 			/* LOAD TRACK */
@@ -527,6 +533,8 @@ static void PlayGame_MultiplayerRace(void)
 
 	FadeOutArea();
 	CleanupLevel();
+
+	return false;
 }
 
 
@@ -534,8 +542,10 @@ static void PlayGame_MultiplayerRace(void)
 //
 // Multiplayer tag can be a 2-player splitscreen or network.
 //
+// return true if user aborted before game started
+//
 
-static void PlayGame_Tag(void)
+static Boolean PlayGame_Tag(void)
 {
 
 			/* SET PLAYER INFO */
@@ -552,7 +562,8 @@ static void PlayGame_Tag(void)
 			// Must do this after InitPlayerInfo_Game above!
 			//
 
-	DoMultiPlayerVehicleSelections();
+	if (DoMultiPlayerVehicleSelections())
+		return true;
 
 
 			/* INIT TRACK */
@@ -578,12 +589,17 @@ static void PlayGame_Tag(void)
 
 	FadeOutArea();
 	CleanupLevel();
+
+	return false;
 }
 
 
 /******************** PLAY GAME: SURVIVAL ************************/
+//
+// return true if user aborted before game started
+//
 
-static void PlayGame_Survival(void)
+static Boolean PlayGame_Survival(void)
 {
 
 			/* SET PLAYER INFO */
@@ -600,7 +616,8 @@ static void PlayGame_Survival(void)
 			// Must do this after InitPlayerInfo_Game above!
 			//
 
-	DoMultiPlayerVehicleSelections();
+	if (DoMultiPlayerVehicleSelections())
+		return true;
 
 
 			/* INIT TRACK */
@@ -621,12 +638,17 @@ static void PlayGame_Survival(void)
 
 	FadeOutArea();
 	CleanupLevel();
+
+	return false;
 }
 
 
 /******************** PLAY GAME: CAPTURE THE FLAG ************************/
+//
+// return true if user aborted before game started
+//
 
-static void PlayGame_CaptureTheFlag(void)
+static Boolean PlayGame_CaptureTheFlag(void)
 {
 
 			/* SET PLAYER INFO */
@@ -645,7 +667,8 @@ static void PlayGame_CaptureTheFlag(void)
 			// Must do this after InitPlayerInfo_Game above!
 			//
 
-	DoMultiPlayerVehicleSelections();
+	if (DoMultiPlayerVehicleSelections())
+		return true;
 
 
 			/* INIT TRACK */
@@ -665,6 +688,8 @@ static void PlayGame_CaptureTheFlag(void)
 
 	FadeOutArea();
 	CleanupLevel();
+
+	return false;
 }
 
 #pragma mark -

@@ -104,25 +104,61 @@ int		gDefaultVehicleParameters[NUM_CAR_TYPES_TOTAL][NUM_VEHICLE_PARAMETERS] =			
 
 /******************* DO MULTIPLAYER VEHICLE SELECTIONS ********************/
 
-void DoMultiPlayerVehicleSelections(void)
+Boolean DoMultiPlayerVehicleSelections(void)
 {
 	if (gNetGameInProgress)
 	{
+		// TODO: We should allow bailing out of Character/Vehicle Select screens, even if we started a net game.
 		DoCharacterSelectScreen(gMyNetworkPlayerNum, false);		// get player's sex
 		DoVehicleSelectScreen(gMyNetworkPlayerNum, false);			// get this player's vehicle
 		PlayerBroadcastVehicleType();								// tell other net players about my type
 		GetVehicleSelectionFromNetPlayers();						// get types from other net players
+		return false;
 	}
 	else
 	{
-		for (gCurrentPlayerNum = 0; gCurrentPlayerNum < gNumLocalPlayers; gCurrentPlayerNum++)
+		short currentScreen = 0;
+		short screensPerPlayer = 2;
+		bool bailed;
+
+		while (currentScreen < screensPerPlayer * gNumLocalPlayers)
 		{
-			DoCharacterSelectScreen(gCurrentPlayerNum, false);		// get player's sex
-			DoVehicleSelectScreen(gCurrentPlayerNum, false);		// do it for each local player (split screen mode)
+			gCurrentPlayerNum = currentScreen / screensPerPlayer;
+			int screenToShow = currentScreen % screensPerPlayer;
+
+			switch (screenToShow)
+			{
+				case 0:
+					bailed = DoCharacterSelectScreen(gCurrentPlayerNum, true);
+					break;
+
+				case 1:
+					bailed = DoVehicleSelectScreen(gCurrentPlayerNum, true);
+					break;
+
+				default:
+					DoFatalAlert("Unknown MP prep screen %d", screenToShow);
+			}
+
+			if (bailed)
+			{
+				if (currentScreen == 0)
+				{
+					return true;	// bail
+				}
+				else
+				{
+					currentScreen--;
+				}
+			}
+			else
+			{
+				currentScreen++;
+			}
 		}
+
+		return false;
 	}
-
-
 }
 
 
@@ -495,13 +531,11 @@ short	p;
 
 		/* SEE IF ABORT */
 
-	if (allowAborting)
+	if (allowAborting && GetNewNeedStateAnyP(kNeed_UIBack))		// anyone can abort
 	{
-		if (GetNewNeedState(kNeed_UIBack, p))
-		{
-			gSelectedVehicleIndex = -1;
-			return(true);
-		}
+		PlayEffect(EFFECT_GETPOW);
+		gSelectedVehicleIndex = -1;
+		return(true);
 	}
 
 		/* SEE IF SELECT THIS ONE */

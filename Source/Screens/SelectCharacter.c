@@ -292,13 +292,11 @@ short	p;
 
 		/* SEE IF ABORT */
 
-	if (allowAborting)
+	if (allowAborting && GetNewNeedStateAnyP(kNeed_UIBack))		// anyone can abort
 	{
-		if (GetNewNeedState(kNeed_UIBack, p))
-		{
-			gSelectedCharacterIndex = -1;
-			return(true);
-		}
+		PlayEffect(EFFECT_GETPOW);
+		gSelectedCharacterIndex = -1;
+		return(true);
 	}
 
 		/* SEE IF SELECT THIS ONE */

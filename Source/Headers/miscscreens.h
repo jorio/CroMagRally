@@ -23,7 +23,7 @@ void DoTournamentWinScreen(void);
 void DoHelpScreen(void);
 Boolean SelectSingleTrack(void);
 
-void DoMultiPlayerVehicleSelections(void);
+Boolean DoMultiPlayerVehicleSelections(void);
 Boolean DoVehicleSelectScreen(short whichPlayer, Boolean allowAborting);
 
 Boolean DoLocalGatherScreen(void);
