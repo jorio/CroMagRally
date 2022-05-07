@@ -198,6 +198,7 @@ static void InitMenuNavigation(void)
 	{
 		.scale = 1,
 		.slot = SPRITE_SLOT,
+		.flags = STATUS_BIT_OVERLAYPANE,
 	};
 	nav->arrowObjects[0] = TextMesh_New("<", 0, &arrowDef);
 	nav->arrowObjects[1] = TextMesh_New(">", 0, &arrowDef);
