@@ -59,7 +59,8 @@ typedef struct
 	Byte	numTracksCompleted;
 
 	Byte	difficulty;
-	Byte	desiredSplitScreenMode;
+	Byte	splitScreenMode2P;
+	Byte	splitScreenMode3P;
 	Byte	language;
 	Byte	tagDuration;		// legal values: 2,3,4
 	Byte	antialiasingLevel;

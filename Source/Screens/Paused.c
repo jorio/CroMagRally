@@ -30,23 +30,52 @@ static void OnToggleSplitscreenMode(const MenuItem* mi);
 static const MenuItem gPauseMenuTree[] =
 {
 	{ .id='paus' },
-	{kMIPick, STR_RESUME_GAME, .id=0, .next='EXIT' },
-	{kMIPick, STR_RETIRE_GAME, .id=1, .next='EXIT' },
-	{kMICycler1, STR_SPLITSCREEN_MODE,
+
+	{kMIPick, STR_RESUME_GAME, .id='resu', .next='EXIT' },
+
+	{kMIPick, STR_RETIRE_GAME, .id='bail', .next='EXIT' },
+
+	// 2P split-screen mode chooser
+	{
+		.type = kMICycler1,
+		.text = STR_SPLITSCREEN_MODE,
+		.id = 2,	// ShouldDisplaySplitscreenModeCycler looks at this ID to know it's meant for 2P
 		.displayIf = ShouldDisplaySplitscreenModeCycler,
 		.callback = OnToggleSplitscreenMode,
 		.cycler =
 		{
-			.valuePtr = &gGamePrefs.desiredSplitScreenMode,
+			.valuePtr = &gGamePrefs.splitScreenMode2P,
 			.choices =
 			{
-				{ .text = STR_SPLITSCREEN_HORIZ, .value = SPLITSCREEN_MODE_2X1 },
-				{ .text = STR_SPLITSCREEN_VERT, .value = SPLITSCREEN_MODE_1X2 },
+				{ .text = STR_SPLITSCREEN_HORIZ, .value = SPLITSCREEN_MODE_2P_TALL },
+				{ .text = STR_SPLITSCREEN_VERT, .value = SPLITSCREEN_MODE_2P_WIDE },
 			},
-		}
+		},
 	},
+
+	// 3P split-screen mode chooser
+	{
+		.type = kMICycler1,
+		.text = STR_SPLITSCREEN_MODE,
+		.id = 3,	// ShouldDisplaySplitscreenModeCycler looks at this ID to know it's meant for 3P
+		.displayIf = ShouldDisplaySplitscreenModeCycler,
+		.callback = OnToggleSplitscreenMode,
+
+		.cycler =
+		{
+			.valuePtr = &gGamePrefs.splitScreenMode3P,
+			.choices =
+			{
+				{ .text = STR_SPLITSCREEN_HORIZ, .value = SPLITSCREEN_MODE_3P_TALL },
+				{ .text = STR_SPLITSCREEN_VERT, .value = SPLITSCREEN_MODE_3P_WIDE },
+			},
+		},
+	},
+
 	{kMIPick, STR_SETTINGS, .callback=RegisterSettingsMenu, .next='sett' },
-	{kMIPick, STR_QUIT_APPLICATION, .id=2, .next='EXIT' },
+
+	{kMIPick, STR_QUIT_APPLICATION, .id='quit', .next='EXIT' },
+
 	{ 0 },
 };
 
@@ -62,12 +91,24 @@ Boolean gGamePaused = false;
 
 bool ShouldDisplaySplitscreenModeCycler(const MenuItem* mi)
 {
-	return gNumSplitScreenPanes == 2;
+	return gNumSplitScreenPanes == mi->id;
 }
 
 void OnToggleSplitscreenMode(const MenuItem* mi)
 {
-	gActiveSplitScreenMode = gGamePrefs.desiredSplitScreenMode;
+	switch (gNumSplitScreenPanes)
+	{
+		case 2:
+			gActiveSplitScreenMode = gGamePrefs.splitScreenMode2P;
+			break;
+
+		case 3:
+			gActiveSplitScreenMode = gGamePrefs.splitScreenMode3P;
+			break;
+
+		default:
+			printf("%s: what am I supposed to do with %d split-screen panes?\n", __func__, gNumSplitScreenPanes);
+	}
 }
 
 
@@ -124,14 +165,15 @@ void DoPaused(void)
 
 	switch (outcome)
 	{
-		case	0:								// RESUME
+		case	'resu':								// RESUME
+		default:
 			break;
 
-		case	1:								// EXIT
+		case	'bail':								// EXIT
 			gGameOver = true;
 			break;
 
-		case	2:								// QUIT
+		case	'quit':								// QUIT
 			CleanQuit();
 			break;
 	}

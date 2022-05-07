@@ -209,15 +209,15 @@ OGLSetupOutputType	*outputPtr;
 				break;
 
 		case	2:
-				gActiveSplitScreenMode = gGamePrefs.desiredSplitScreenMode;
+				gActiveSplitScreenMode = gGamePrefs.splitScreenMode2P;
 				break;
 
 		case	3:
-				gActiveSplitScreenMode = SPLITSCREEN_MODE_2X2;
+				gActiveSplitScreenMode = gGamePrefs.splitScreenMode3P;
 				break;
 
 		case	4:
-				gActiveSplitScreenMode = SPLITSCREEN_MODE_2X2;
+				gActiveSplitScreenMode = SPLITSCREEN_MODE_4P_GRID;
 				break;
 
 		default:
@@ -736,7 +736,8 @@ int	t,b,l,r;
 				*h = clippedHeight;
 				break;
 
-		case	SPLITSCREEN_MODE_1X2:
+		case	SPLITSCREEN_MODE_2P_WIDE:
+		_2pwide:
 				*x = l;
 				*w = clippedWidth;
 				*h = clippedHeight/2;
@@ -751,11 +752,12 @@ int	t,b,l,r;
 							break;
 					
 					default:
-							DoFatalAlert("Unsupported pane # (1x2 split)");
+							DoFatalAlert("Unsupported pane %d in 2P_WIDE split", whichPane);
 				}
 				break;
 
-		case	SPLITSCREEN_MODE_2X1:
+		case	SPLITSCREEN_MODE_2P_TALL:
+		_2ptall:
 				*w = clippedWidth/2;
 				*h = clippedHeight;
 				*y = t;
@@ -770,11 +772,46 @@ int	t,b,l,r;
 							break;
 						
 					default:
-							DoFatalAlert("Unsupported pane # (2x1 split)");
+							DoFatalAlert("Unsupported pane %d in 2P_TALL split", whichPane);
 				}
 				break;
 
-		case	SPLITSCREEN_MODE_2X2:
+		case	SPLITSCREEN_MODE_3P_WIDE:
+				switch (whichPane)
+				{
+					case	0:				// Player 1 has top-left pane in 2x2 grid
+					case	1:				// Player 2 has top-right pane in 2x2 grid
+							goto _4pgrid;
+
+					case	2:				// Player 3 has wide pane spanning bottom row
+							whichPane = 1;
+							goto _2pwide;
+
+					default:
+							DoFatalAlert("Unsupported pane %d in 3P_WIDE split", whichPane);
+				}
+
+		case	SPLITSCREEN_MODE_3P_TALL:
+				switch (whichPane)
+				{
+					case	0:				// Player 1 has top-left pane in 2x2 grid
+							goto _4pgrid;
+
+					case	1:				// Player 2 has bottom-left pane in 2x2 grid
+							whichPane = 2;
+							goto _4pgrid;
+
+					case	2:				// Player 3 has tall pane spanning right column
+							whichPane = 1;
+							goto _2ptall;
+
+					default:
+							DoFatalAlert("Unsupported pane %d in 3P_TALL split", whichPane);
+				}
+				break;
+
+		case	SPLITSCREEN_MODE_4P_GRID:
+		_4pgrid:
 				*w = clippedWidth / 2;
 				*h = clippedHeight / 2;
 				switch (whichPane)
@@ -800,7 +837,7 @@ int	t,b,l,r;
 						break;
 
 					default:
-						DoFatalAlert("Unsupported pane # (2x2 split)");
+						DoFatalAlert("Unsupported pane %d in 4P_GRID split", whichPane);
 				}
 				break;
 
@@ -1250,22 +1287,37 @@ void OGL_Update2DLogicalSize(void)
 	else
 	switch (gActiveSplitScreenMode)
 	{
-		case SPLITSCREEN_MODE_2X1:
+		case SPLITSCREEN_MODE_2P_TALL:
+		_2ptall:
 			referenceWidth = 320;
 			referenceHeight = 480;
 			break;
 
-		case SPLITSCREEN_MODE_1X2:
+		case SPLITSCREEN_MODE_2P_WIDE:
+		_2pwide:
 			referenceWidth = 640;
 			referenceHeight = 240;
 			invUIScale = (1.0f / 0.75f);
 			break;
 
-		case SPLITSCREEN_MODE_2X2:
+		case SPLITSCREEN_MODE_4P_GRID:
+		_4pgrid:
 			referenceWidth = 640;
 			referenceHeight = 480;
 			invUIScale = (1.0f / 1.5f);		// scale up a little in grid mode
 			break;
+
+		case SPLITSCREEN_MODE_3P_WIDE:
+			if (gCurrentSplitScreenPane == 2)		// Player 3 has wide pane (like 1x2 grid)
+				goto _2pwide;
+			else									// Players 1 & 2 have standard pane in 2x2 grid
+				goto _4pgrid;
+
+		case SPLITSCREEN_MODE_3P_TALL:
+			if (gCurrentSplitScreenPane == 2)		// Player 3 has tall pane (like 2x1 grid)
+				goto _2ptall;
+			else									// Players 1 & 2 have standard pane in 2x2 grid
+				goto _4pgrid;
 
 		default:
 			referenceWidth = 640;

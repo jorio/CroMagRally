@@ -225,12 +225,47 @@ typedef struct
 
 enum
 {
+	//  +---------+
+	//  |         |
+	//  |         |
+	//  |         |
+	//  +---------+
 	SPLITSCREEN_MODE_NONE = 0,
 
-	SPLITSCREEN_MODE_2X1,			// 2 horizontal panes
-	SPLITSCREEN_MODE_1X2,			// 2 vertical panes
+	//  +----+----+
+	//  |    |    |
+	//  |    |    |
+	//  |    |    |
+	//  +----+----+
+	SPLITSCREEN_MODE_2P_TALL,
 
-	SPLITSCREEN_MODE_2X2,			// 2x2 grid
+	//  +---------+
+	//  |         |
+	//  +---------+
+	//  |         |
+	//  +---------+
+	SPLITSCREEN_MODE_2P_WIDE,
+
+	//  +----+----+
+	//  |    |    |
+	//  +----+----+
+	//  |         |
+	//  +---------+
+	SPLITSCREEN_MODE_3P_WIDE,
+
+	//  +----+----+
+	//  |    |    |
+	//  +----+    |
+	//  |    |    |
+	//  +----+----+
+	SPLITSCREEN_MODE_3P_TALL,
+
+	//  +----+----+
+	//  |    |    |
+	//  +----+----+
+	//  |    |    |
+	//  +----+----+
+	SPLITSCREEN_MODE_4P_GRID,
 
 	NUM_SPLITSCREEN_MODES
 };
