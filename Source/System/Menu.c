@@ -300,27 +300,16 @@ static KeyBinding* GetBindingAtRow(int row)
 
 static const char* GetKeyBindingName(int row, int col)
 {
-	static const char* kCustomKeyNames[256] =
-	{
-		[SDL_SCANCODE_APOSTROPHE] = "Apostrophe",
-		[SDL_SCANCODE_BACKSLASH] = "Backslash",
-		[SDL_SCANCODE_GRAVE] = "Backtick",
-		[SDL_SCANCODE_SEMICOLON] = "Semicolon",
-	};
-
 	int16_t scancode = GetBindingAtRow(row)->key[col];
 
-	if (scancode == 0)
+	switch (scancode)
 	{
-		return Localize(STR_UNBOUND_PLACEHOLDER);
-	}
-	else if (scancode < 256 && kCustomKeyNames[scancode])
-	{
-		return kCustomKeyNames[scancode];
-	}
-	else
-	{
-		return SDL_GetScancodeName(scancode);
+		case 0:								return Localize(STR_UNBOUND_PLACEHOLDER);
+		case SDL_SCANCODE_APOSTROPHE:		return "Apostrophe";
+		case SDL_SCANCODE_BACKSLASH:		return "Backslash";
+		case SDL_SCANCODE_GRAVE:			return "Backtick";
+		case SDL_SCANCODE_SEMICOLON:		return "Semicolon";
+		default:							return SDL_GetScancodeName(scancode);
 	}
 }
 
@@ -337,14 +326,18 @@ static const char* GetPadBindingName(int row, int col)
 			switch (kb->gamepad[col].id)
 			{
 				case SDL_CONTROLLER_BUTTON_INVALID:			return Localize(STR_UNBOUND_PLACEHOLDER);
-				case SDL_CONTROLLER_BUTTON_A:				return "A";
-				case SDL_CONTROLLER_BUTTON_B:				return "B";
-				case SDL_CONTROLLER_BUTTON_X:				return "X";
-				case SDL_CONTROLLER_BUTTON_Y:				return "Y";
-				case SDL_CONTROLLER_BUTTON_LEFTSHOULDER:	return "LB";
-				case SDL_CONTROLLER_BUTTON_RIGHTSHOULDER:	return "RB";
-				case SDL_CONTROLLER_BUTTON_LEFTSTICK:		return "Push LS";
-				case SDL_CONTROLLER_BUTTON_RIGHTSTICK:		return "Push RS";
+				case SDL_CONTROLLER_BUTTON_A:				return Localize(STR_CONTROLLER_BUTTON_A);
+				case SDL_CONTROLLER_BUTTON_B:				return Localize(STR_CONTROLLER_BUTTON_B);
+				case SDL_CONTROLLER_BUTTON_X:				return Localize(STR_CONTROLLER_BUTTON_X);
+				case SDL_CONTROLLER_BUTTON_Y:				return Localize(STR_CONTROLLER_BUTTON_Y);
+				case SDL_CONTROLLER_BUTTON_LEFTSHOULDER:	return Localize(STR_CONTROLLER_BUTTON_LEFTSHOULDER);
+				case SDL_CONTROLLER_BUTTON_RIGHTSHOULDER:	return Localize(STR_CONTROLLER_BUTTON_RIGHTSHOULDER);
+				case SDL_CONTROLLER_BUTTON_LEFTSTICK:		return Localize(STR_CONTROLLER_BUTTON_LEFTSTICK);
+				case SDL_CONTROLLER_BUTTON_RIGHTSTICK:		return Localize(STR_CONTROLLER_BUTTON_RIGHTSTICK);
+				case SDL_CONTROLLER_BUTTON_DPAD_UP:			return Localize(STR_CONTROLLER_BUTTON_DPAD_UP);
+				case SDL_CONTROLLER_BUTTON_DPAD_DOWN:		return Localize(STR_CONTROLLER_BUTTON_DPAD_DOWN);
+				case SDL_CONTROLLER_BUTTON_DPAD_LEFT:		return Localize(STR_CONTROLLER_BUTTON_DPAD_LEFT);
+				case SDL_CONTROLLER_BUTTON_DPAD_RIGHT:		return Localize(STR_CONTROLLER_BUTTON_DPAD_RIGHT);
 				default:
 					return SDL_GameControllerGetStringForButton(kb->gamepad[col].id);
 			}
@@ -353,12 +346,13 @@ static const char* GetPadBindingName(int row, int col)
 		case kInputTypeAxisPlus:
 			switch (kb->gamepad[col].id)
 			{
-				case SDL_CONTROLLER_AXIS_LEFTX:				return "LS right";
-				case SDL_CONTROLLER_AXIS_LEFTY:				return "LS down";
-				case SDL_CONTROLLER_AXIS_RIGHTX:			return "RS right";
-				case SDL_CONTROLLER_AXIS_RIGHTY:			return "RS down";
-				case SDL_CONTROLLER_AXIS_TRIGGERLEFT:		return "LT";
-				case SDL_CONTROLLER_AXIS_TRIGGERRIGHT:		return "RT";
+				case SDL_CONTROLLER_AXIS_INVALID:			return Localize(STR_UNBOUND_PLACEHOLDER);
+				case SDL_CONTROLLER_AXIS_LEFTX:				return Localize(STR_CONTROLLER_AXIS_LEFTSTICK_RIGHT);
+				case SDL_CONTROLLER_AXIS_LEFTY:				return Localize(STR_CONTROLLER_AXIS_LEFTSTICK_DOWN);
+				case SDL_CONTROLLER_AXIS_RIGHTX:			return Localize(STR_CONTROLLER_AXIS_RIGHTSTICK_RIGHT);
+				case SDL_CONTROLLER_AXIS_RIGHTY:			return Localize(STR_CONTROLLER_AXIS_RIGHTSTICK_DOWN);
+				case SDL_CONTROLLER_AXIS_TRIGGERLEFT:		return Localize(STR_CONTROLLER_AXIS_LEFTTRIGGER);
+				case SDL_CONTROLLER_AXIS_TRIGGERRIGHT:		return Localize(STR_CONTROLLER_AXIS_RIGHTTRIGGER);
 				default:
 					return SDL_GameControllerGetStringForAxis(kb->gamepad[col].id);
 			}
@@ -367,12 +361,13 @@ static const char* GetPadBindingName(int row, int col)
 		case kInputTypeAxisMinus:
 			switch (kb->gamepad[col].id)
 			{
-				case SDL_CONTROLLER_AXIS_LEFTX:				return "LS left";
-				case SDL_CONTROLLER_AXIS_LEFTY:				return "LS up";
-				case SDL_CONTROLLER_AXIS_RIGHTX:			return "RS left";
-				case SDL_CONTROLLER_AXIS_RIGHTY:			return "RS up";
-				case SDL_CONTROLLER_AXIS_TRIGGERLEFT:		return "LT";
-				case SDL_CONTROLLER_AXIS_TRIGGERRIGHT:		return "RT";
+				case SDL_CONTROLLER_AXIS_INVALID:			return Localize(STR_UNBOUND_PLACEHOLDER);
+				case SDL_CONTROLLER_AXIS_LEFTX:				return Localize(STR_CONTROLLER_AXIS_LEFTSTICK_LEFT);
+				case SDL_CONTROLLER_AXIS_LEFTY:				return Localize(STR_CONTROLLER_AXIS_LEFTSTICK_UP);
+				case SDL_CONTROLLER_AXIS_RIGHTX:			return Localize(STR_CONTROLLER_AXIS_RIGHTSTICK_LEFT);
+				case SDL_CONTROLLER_AXIS_RIGHTY:			return Localize(STR_CONTROLLER_AXIS_RIGHTSTICK_UP);
+				case SDL_CONTROLLER_AXIS_TRIGGERLEFT:		return Localize(STR_CONTROLLER_AXIS_LEFTTRIGGER);
+				case SDL_CONTROLLER_AXIS_TRIGGERRIGHT:		return Localize(STR_CONTROLLER_AXIS_RIGHTTRIGGER);
 				default:
 					return SDL_GameControllerGetStringForAxis(kb->gamepad[col].id);
 			}
