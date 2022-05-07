@@ -21,7 +21,7 @@
 
 typedef struct KeyBinding
 {
-	int16_t			key[KEYBINDING_MAX_KEYS];
+	int16_t			key[KEYBINDING_MAX_KEYS];	// SDL scancodes
 
 	int8_t			mouseButton;
 
@@ -91,6 +91,7 @@ enum
 
 void InitInput(void);
 void ReadKeyboard(void);
+void InvalidateAllInputs(void);
 
 Boolean GetKeyState(uint16_t sdlScancode);
 Boolean GetNewKeyState(uint16_t sdlScancode);
@@ -106,7 +107,7 @@ Boolean GetNewNeedStateAnyP(int needID);
 
 float GetAnalogSteering(int playerID);
 
-Boolean AreAnyNewKeysPressed(void);
+Boolean UserWantsOut(void);
 Boolean IsCheatKeyComboDown(void);
 void InitControlBits(void);
 void GetLocalKeyState(void);

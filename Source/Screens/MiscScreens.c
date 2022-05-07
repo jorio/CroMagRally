@@ -136,7 +136,7 @@ float				keyTextFadeIn = -2.0f;		// fade in after a small delay
 			OGL_DrawScene(gGameViewInfoPtr, DisplayPicture_Draw);
 
 			ReadKeyboard();
-			if (AreAnyNewKeysPressed())
+			if (UserWantsOut())
 				break;
 
 			timeout -= gFramesPerSecondFrac;
@@ -244,7 +244,7 @@ void DoAgeConqueredScreen(void)
 		MoveParticleGroups();
 		OGL_DrawScene(gGameViewInfoPtr, DrawConqueredCallback);
 
-		if (AreAnyNewKeysPressed())
+		if (UserWantsOut())
 			break;
 	}
 
@@ -424,7 +424,7 @@ float	timer = 0;
 		OGL_DrawScene(gGameViewInfoPtr, DrawWinCallback);
 
 		timer += gFramesPerSecondFrac;
-		if (timer > 10.0f && AreAnyNewKeysPressed())
+		if (timer > 10.0f && UserWantsOut())
 		{
 			break;
 		}
@@ -695,7 +695,7 @@ float	timer = 59.0f;
 		MoveParticleGroups();
 		OGL_DrawScene(gGameViewInfoPtr, DrawObjects);
 
-		if (AreAnyNewKeysPressed() || GetNewNeedStateAnyP(kNeed_UIBack))
+		if (UserWantsOut())
 			break;
 
 		timer -= gFramesPerSecondFrac;

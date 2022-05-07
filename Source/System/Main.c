@@ -976,7 +976,7 @@ static void PlayArea(void)
 
 		if (gIsSelfRunningDemo)
 		{
-			if (AreAnyNewKeysPressed())									// stop SRD if any key is pressed
+			if (UserWantsOut())											// stop SRD if any key is pressed
 				break;
 
 			gSelfRunningDemoTimer -= gFramesPerSecondFrac;

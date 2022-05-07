@@ -46,28 +46,28 @@ enum
 /*     PROTOTYPES     */
 /**********************/
 
+typedef uint8_t KeyState;
+
 typedef struct Controller
 {
 	bool					open;
 	bool					fallbackToKeyboard;
 	SDL_GameController*		controllerInstance;
 	SDL_JoystickID			joystickInstance;
-	Byte					needStates[NUM_CONTROL_NEEDS];
+	KeyState				needStates[NUM_CONTROL_NEEDS];
 } Controller;
 
 Boolean				gUserPrefersGamepad = false;
 
-Boolean				gControllerPlayerMappingLocked = false;
-int					gNumControllersOpen = 0;
+static Boolean		gControllerPlayerMappingLocked = false;
 Controller			gControllers[MAX_LOCAL_PLAYERS];
 
-Byte				gMouseButtonState[NUM_SUPPORTED_MOUSE_BUTTONS];
-Byte				gRawKeyboardState[SDL_NUM_SCANCODES];
-char				gTextInput[SDL_TEXTINPUTEVENT_TEXT_SIZE];
-
-Byte				gNeedStates[NUM_CONTROL_NEEDS];
+static KeyState		gKeyboardStates[SDL_NUM_SCANCODES];
+static KeyState		gMouseButtonStates[NUM_SUPPORTED_MOUSE_BUTTONS];
+static KeyState		gNeedStates[NUM_CONTROL_NEEDS];
 
 Boolean				gMouseMotionNow = false;
+char				gTextInput[SDL_TEXTINPUTEVENT_TEXT_SIZE];
 
 static void OnJoystickRemoved(SDL_JoystickID which);
 static SDL_GameController* TryOpenControllerFromJoystick(int joystickIndex);
@@ -77,7 +77,7 @@ static int GetControllerSlotFromSDLJoystickInstanceID(SDL_JoystickID joystickIns
 #pragma mark -
 /**********************/
 
-static inline void UpdateKeyState(Byte* state, bool downNow)
+static inline void UpdateKeyState(KeyState* state, bool downNow)
 {
 	switch (*state)	// look at prev state
 	{
@@ -98,6 +98,26 @@ static inline void UpdateKeyState(Byte* state, bool downNow)
 	}
 }
 
+void InvalidateNeedState(int need)
+{
+	gNeedStates[need] = KEYSTATE_IGNOREHELD;
+}
+
+void InvalidateAllInputs(void)
+{
+	_Static_assert(1 == sizeof(KeyState), "sizeof(KeyState) has changed -- Rewrite this function without memset()!");
+
+	memset(gNeedStates, KEYSTATE_IGNOREHELD, NUM_CONTROL_NEEDS);
+	memset(gKeyboardStates, KEYSTATE_IGNOREHELD, SDL_NUM_SCANCODES);
+	memset(gMouseButtonStates, KEYSTATE_IGNOREHELD, NUM_SUPPORTED_MOUSE_BUTTONS);
+
+	for (int i = 0; i < MAX_LOCAL_PLAYERS; i++)
+	{
+		memset(gControllers[i].needStates, KEYSTATE_IGNOREHELD, NUM_CONTROL_NEEDS);
+	}
+
+}
+
 static void UpdateRawKeyboardStates(void)
 {
 	int numkeys = 0;
@@ -106,11 +126,11 @@ static void UpdateRawKeyboardStates(void)
 	int minNumKeys = GAME_MIN(numkeys, SDL_NUM_SCANCODES);
 
 	for (int i = 0; i < minNumKeys; i++)
-		UpdateKeyState(&gRawKeyboardState[i], keystate[i]);
+		UpdateKeyState(&gKeyboardStates[i], keystate[i]);
 
 	// fill out the rest
 	for (int i = minNumKeys; i < SDL_NUM_SCANCODES; i++)
-		UpdateKeyState(&gRawKeyboardState[i], false);
+		UpdateKeyState(&gKeyboardStates[i], false);
 }
 
 static void ParseAltEnter(void)
@@ -121,7 +141,7 @@ static void ParseAltEnter(void)
 		gGamePrefs.fullscreen = !gGamePrefs.fullscreen;
 		SetFullscreenMode(false);
 
-		gRawKeyboardState[SDL_SCANCODE_RETURN] = KEYSTATE_IGNOREHELD;
+		InvalidateAllInputs();
 	}
 
 }
@@ -133,12 +153,12 @@ static void UpdateMouseButtonStates(int mouseWheelDelta)
 	for (int i = 1; i < NUM_SUPPORTED_MOUSE_BUTTONS_PURESDL; i++)	// SDL buttons start at 1!
 	{
 		bool buttonBit = 0 != (mouseButtons & SDL_BUTTON(i));
-		UpdateKeyState(&gMouseButtonState[i], buttonBit);
+		UpdateKeyState(&gMouseButtonStates[i], buttonBit);
 	}
 
 	// Fake buttons for mouse wheel up/down
-	UpdateKeyState(&gMouseButtonState[SDL_BUTTON_WHEELUP], mouseWheelDelta > 0);
-	UpdateKeyState(&gMouseButtonState[SDL_BUTTON_WHEELDOWN], mouseWheelDelta < 0);
+	UpdateKeyState(&gMouseButtonStates[SDL_BUTTON_WHEELUP], mouseWheelDelta > 0);
+	UpdateKeyState(&gMouseButtonStates[SDL_BUTTON_WHEELDOWN], mouseWheelDelta < 0);
 }
 
 static void UpdateInputNeeds(void)
@@ -154,11 +174,11 @@ static void UpdateInputNeeds(void)
 			int16_t scancode = kb->key[j];
 			if (scancode && scancode < SDL_NUM_SCANCODES)
 			{
-				downNow |= gRawKeyboardState[scancode] & KEYSTATE_ACTIVE_BIT;
+				downNow |= gKeyboardStates[scancode] & KEYSTATE_ACTIVE_BIT;
 			}
 		}
 
-//		downNow |= gMouseButtonState[kb->mouseButton] & KEYSTATE_ACTIVE_BIT;
+//		downNow |= gMouseButtonStates[kb->mouseButton] & KEYSTATE_ACTIVE_BIT;
 
 		UpdateKeyState(&gNeedStates[i], downNow);
 	}
@@ -313,14 +333,14 @@ Boolean GetKeyState(uint16_t sdlScancode)
 {
 	if (sdlScancode >= SDL_NUM_SCANCODES)
 		return false;
-	return 0 != (gRawKeyboardState[sdlScancode] & KEYSTATE_ACTIVE_BIT);
+	return 0 != (gKeyboardStates[sdlScancode] & KEYSTATE_ACTIVE_BIT);
 }
 
 Boolean GetNewKeyState(uint16_t sdlScancode)
 {
 	if (sdlScancode >= SDL_NUM_SCANCODES)
 		return false;
-	return gRawKeyboardState[sdlScancode] == KEYSTATE_PRESSED;
+	return gKeyboardStates[sdlScancode] == KEYSTATE_PRESSED;
 }
 
 #pragma mark -
@@ -329,14 +349,14 @@ Boolean GetClickState(int mouseButton)
 {
 	if (mouseButton >= NUM_SUPPORTED_MOUSE_BUTTONS)
 		return false;
-	return 0 != (gMouseButtonState[mouseButton] & KEYSTATE_ACTIVE_BIT);
+	return 0 != (gMouseButtonStates[mouseButton] & KEYSTATE_ACTIVE_BIT);
 }
 
 Boolean GetNewClickState(int mouseButton)
 {
 	if (mouseButton >= NUM_SUPPORTED_MOUSE_BUTTONS)
 		return false;
-	return gMouseButtonState[mouseButton] == KEYSTATE_PRESSED;
+	return gMouseButtonStates[mouseButton] == KEYSTATE_PRESSED;
 }
 
 #pragma mark -
@@ -417,7 +437,7 @@ Boolean GetNewNeedStateAnyP(int needID)
 	return gNeedStates[needID] == KEYSTATE_PRESSED;
 }
 
-Boolean AreAnyNewKeysPressed(void)
+Boolean UserWantsOut(void)
 {
 	return GetNewNeedStateAnyP(kNeed_UIConfirm)
 		|| GetNewNeedStateAnyP(kNeed_UIBack)

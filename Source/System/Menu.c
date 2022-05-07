@@ -1,6 +1,6 @@
 // MENU.C
-// (c)2021 Iliyas Jorio
-// This file is part of Otto Matic. https://github.com/jorio/ottomatic
+// (c)2022 Iliyas Jorio
+// This file is part of Cro-Mag Rally. https://github.com/jorio/cromagrally
 
 /****************************/
 /*    EXTERNALS             */
@@ -17,8 +17,6 @@
 #define DECLARE_WORKBUF(buf, bufSize) char (buf)[256]; const int (bufSize) = 256
 #define DECLARE_STATIC_WORKBUF(buf, bufSize) static char (buf)[256]; static const int (bufSize) = 256
 
-#define UpdateInput() DoSDLMaintenance()
-#define UserWantsOut() AreAnyNewKeysPressed()
 
 
 /****************************/
@@ -928,11 +926,7 @@ static void NavigatePadBinding(const MenuItem* entry)
 		|| (gNav->mouseHoverValid && GetNewClickState(SDL_BUTTON_LEFT)))
 	{
 		gNav->idleTime = 0;
-		while (GetNeedStateAnyP(kNeed_UIConfirm))
-		{
-			UpdateInput();
-			SDL_Delay(30);
-		}
+		InvalidateAllInputs();
 
 		gNav->menuState = kMenuStateAwaitingPadPress;
 		MakeText(Localize(STR_PRESS), gNav->menuRow, gNav->padColumn+1, kTextMeshAllCaps | kTextMeshAlignLeft);
@@ -960,11 +954,7 @@ static void NavigateMouseBinding(const MenuItem* entry)
 		|| (gNav->mouseHoverValid && GetNewClickState(SDL_BUTTON_LEFT)))
 	{
 		gNav->idleTime = 0;
-		while (GetNeedStateAnyP(kNeed_UIConfirm))
-		{
-			UpdateInput();
-			SDL_Delay(30);
-		}
+		InvalidateAllInputs();
 
 		gNav->menuState = kMenuStateAwaitingMouseClick;
 		MakeText(Localize(STR_CLICK), gNav->menuRow, 1, 0);
@@ -1688,7 +1678,7 @@ int StartMenu(
 
 	while (gNav->menuState != kMenuStateOff)
 	{
-		UpdateInput();
+		DoSDLMaintenance();
 
 		gNav->idleTime += gFramesPerSecondFrac;
 
@@ -1803,7 +1793,7 @@ int StartMenu(
 			DeleteObject(pane);
 	}
 
-	UpdateInput();
+	DoSDLMaintenance();
 	MyFlushEvents();
 
 	SetStandardMouseCursor();
