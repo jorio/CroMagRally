@@ -14,6 +14,7 @@
 #include "menu.h"
 #include "miscscreens.h"
 #include "network.h"
+#include "version.h"
 
 /****************************/
 /*    PROTOTYPES            */
@@ -315,6 +316,16 @@ OGLVector3D			fillDirection2 = { -1, -.2, -.5 };
 			/* MAKE BACKGROUND PICTURE OBJECT */
 
 	MakeBackgroundPictureObject(":images:MainMenuBackground.jpg");
+
+
+	NewObjectDefinitionType versionDef =
+	{
+		.coord = {280, -220, 0},
+		.scale = .25f,
+		.slot = FADE_SLOT
+	};
+	ObjNode* versionText = TextMesh_New(PROJECT_VERSION, kTextMeshAlignRight, &versionDef);
+	versionText->ColorFilter = (OGLColorRGBA) {.5f, .5f, .5f, .5f};
 
 
 			/* SETUP TITLE MENU */
