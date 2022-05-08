@@ -61,7 +61,6 @@ static void NavigateFloatRange(const MenuItem* entry);
 /****************************/
 
 #define MAX_MENU_ROWS	25
-#define MAX_MENU_COLS	5
 #define MAX_STACK_LENGTH 16
 
 #define kSfxNavigate	EFFECT_SELECTCLICK
@@ -142,14 +141,15 @@ typedef struct
 	MenuStyle			style;
 
 	int					numMenuEntries;
+
 	int					menuRow;
-	int					keyColumn;
-	int					padColumn;
+	int					menuCol;
+
 	float				menuRowYs[MAX_MENU_ROWS];
 	float				menuFadeAlpha;
 	int					menuState;
 	int					menuPick;
-	ObjNode*			menuObjects[MAX_MENU_ROWS][MAX_MENU_COLS];
+	ObjNode*			menuObjects[MAX_MENU_ROWS];
 
 	struct
 	{
@@ -159,7 +159,7 @@ typedef struct
 	int					historyPos;
 
 	bool				mouseHoverValid;
-	int					mouseHoverColumn;
+//	int					mouseHoverColumn;
 	SDL_Cursor*			handCursor;
 	SDL_Cursor*			standardCursor;
 
@@ -187,7 +187,7 @@ static void InitMenuNavigation(void)
 	memcpy(&nav->style, &kDefaultMenuStyle, sizeof(MenuStyle));
 	nav->menuPick = -1;
 	nav->menuState = kMenuStateOff;
-	nav->mouseHoverColumn = -1;
+//	nav->mouseHoverColumn = -1;
 
 	nav->standardCursor = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_ARROW);
 	nav->handCursor = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_HAND);
@@ -397,6 +397,42 @@ static const char* GetMouseBindingName(int row)
 	}
 }
 
+static ObjNode* MakeKbText(int row, int keyNo)
+{
+	const char* kbName;
+
+	if (gNav->menuState == kMenuStateAwaitingKeyPress)
+	{
+		kbName = Localize(STR_PRESS);
+	}
+	else
+	{
+		kbName = GetKeyBindingName(row, keyNo);
+	}
+
+	ObjNode* text = MakeText(kbName, row, 1+keyNo, kTextMeshAllCaps | kTextMeshAlignLeft);
+	text->SpecialCol = keyNo;
+	return text;
+}
+
+static ObjNode* MakePbText(int row, int btnNo)
+{
+	const char* pbName;
+
+	if (gNav->menuState == kMenuStateAwaitingPadPress)
+	{
+		pbName = Localize(STR_PRESS);
+	}
+	else
+	{
+		pbName = GetPadBindingName(row, btnNo);
+	}
+
+	ObjNode* text = MakeText(pbName, row, 1+btnNo, kTextMeshAllCaps | kTextMeshAlignLeft);
+	text->SpecialCol = btnNo;
+	return text;
+}
+
 static bool IsMenuItemSelectable(const MenuItem* mi)
 {
 	switch (mi->type)
@@ -406,7 +442,7 @@ static bool IsMenuItemSelectable(const MenuItem* mi)
 		case kMITitle:
 		case kMISubtitle:
 			return false;
-		
+
 		default:
 			if (mi->displayIf != NULL && !(mi->displayIf(mi)))
 			{
@@ -509,7 +545,7 @@ static void MoveAction(ObjNode* node)
 
 static void MoveKeyBinding(ObjNode* node)
 {
-	if (node->SpecialRow == gNav->menuRow && node->SpecialCol == (gNav->keyColumn+1))
+	if (node->SpecialRow == gNav->menuRow && node->SpecialCol == gNav->menuCol)
 	{
 		if (gNav->menuState == kMenuStateAwaitingKeyPress)
 		{
@@ -528,7 +564,7 @@ static void MoveKeyBinding(ObjNode* node)
 
 static void MovePadBinding(ObjNode* node)
 {
-	if (node->SpecialRow == gNav->menuRow && node->SpecialCol == (gNav->padColumn+1))
+	if (node->SpecialRow == gNav->menuRow && node->SpecialCol == gNav->menuCol)
 	{
 		if (gNav->menuState == kMenuStateAwaitingPadPress)
 			node->ColorFilter = PulsateColor(&node->SpecialPulsateTimer);
@@ -622,7 +658,7 @@ static void RepositionArrows(void)
 
 	if (showArrows)
 	{
-		ObjNode* snapTo = gNav->menuObjects[gNav->menuRow][0];
+		ObjNode* snapTo = gNav->menuObjects[gNav->menuRow];
 		OGLRect extents = TextMesh_GetExtents(snapTo);
 
 		float spacing = 50 * snapTo->Scale.x;
@@ -672,7 +708,7 @@ static void NavigateSettingEntriesVertically(int delta)
 	} while (skipEntry);
 
 	gNav->idleTime = 0;
-	gNav->mouseHoverValid = false;
+//	gNav->mouseHoverValid = false;
 
 	if (makeSound)
 	{
@@ -685,6 +721,7 @@ static void NavigateSettingEntriesVertically(int delta)
 
 static void NavigateSettingEntriesMouseHover(void)
 {
+#if 0
 	if (!gMouseMotionNow)
 	{
 		return;
@@ -753,11 +790,14 @@ static void NavigateSettingEntriesMouseHover(void)
 	GAME_ASSERT(!gNav->mouseHoverValid);		// if we got here, we're not hovering over anything
 
 	SetStandardMouseCursor();					// restore standard cursor
+#endif
 }
 
 static void NavigatePick(const MenuItem* entry)
 {
-	if (GetNewNeedStateAnyP(kNeed_UIConfirm) || (gNav->mouseHoverValid && GetNewClickState(SDL_BUTTON_LEFT)))
+	if (GetNewNeedStateAnyP(kNeed_UIConfirm)
+//			|| (gNav->mouseHoverValid && GetNewClickState(SDL_BUTTON_LEFT))
+			)
 	{
 		PlayConfirmEffect();
 
@@ -828,7 +868,7 @@ static void NavigateCycler(const MenuItem* entry)
 	if (GetNewNeedStateAnyP(kNeed_UILeft)
 		|| GetNewNeedStateAnyP(kNeed_UIPrev)
 		|| (gNav->mouseHoverValid && GetNewClickState(SDL_BUTTON_RIGHT))
-//		|| (gNav->mouseHoverValid && GetNewClickState(SDL_BUTTON_WHEELDOWN))
+		|| (gNav->mouseHoverValid && GetNewClickState(SDL_BUTTON_WHEELDOWN))
 		)
 	{
 		delta = -1;
@@ -837,7 +877,7 @@ static void NavigateCycler(const MenuItem* entry)
 		|| GetNewNeedStateAnyP(kNeed_UINext)
 		|| GetNewNeedStateAnyP(kNeed_UIConfirm)
 		|| (gNav->mouseHoverValid && GetNewClickState(SDL_BUTTON_LEFT))
-//		|| (gNav->mouseHoverValid && GetNewClickState(SDL_BUTTON_WHEELUP))
+		|| (gNav->mouseHoverValid && GetNewClickState(SDL_BUTTON_WHEELUP))
 		)
 	{
 		delta = 1;
@@ -902,13 +942,20 @@ static void NavigateFloatRange(const MenuItem* entry)
 
 static void NavigateKeyBinding(const MenuItem* entry)
 {
+	gNav->menuCol = PositiveModulo(gNav->menuCol, KEYBINDING_MAX_KEYS);
+	int keyNo = gNav->menuCol;
+	int row = gNav->menuRow;
+
+#if 0 // TODO: review this if we ever bring back mouse support in menus
 	if (gNav->mouseHoverValid && (gNav->mouseHoverColumn == 1 || gNav->mouseHoverColumn == 2))
 		gNav->keyColumn = gNav->mouseHoverColumn - 1;
+#endif
 
 	if (GetNewNeedStateAnyP(kNeed_UILeft) || GetNewNeedStateAnyP(kNeed_UIPrev))
 	{
+		keyNo = PositiveModulo(keyNo - 1, KEYBINDING_MAX_KEYS);
 		gNav->idleTime = 0;
-		gNav->keyColumn = PositiveModulo(gNav->keyColumn - 1, KEYBINDING_MAX_KEYS);
+		gNav->menuCol = keyNo;
 		PlayEffect(kSfxNavigate);
 		gNav->mouseHoverValid = false;
 		return;
@@ -916,16 +963,11 @@ static void NavigateKeyBinding(const MenuItem* entry)
 
 	if (GetNewNeedStateAnyP(kNeed_UIRight) || GetNewNeedStateAnyP(kNeed_UINext))
 	{
+		keyNo = PositiveModulo(keyNo + 1, KEYBINDING_MAX_KEYS);
 		gNav->idleTime = 0;
-		gNav->keyColumn = PositiveModulo(gNav->keyColumn + 1, KEYBINDING_MAX_KEYS);
+		gNav->menuCol = keyNo;
 		PlayEffect(kSfxNavigate);
 		gNav->mouseHoverValid = false;
-		return;
-	}
-
-	// Past this point we must have a valid column
-	if (gNav->keyColumn < 0 || gNav->keyColumn >= KEYBINDING_MAX_KEYS)
-	{
 		return;
 	}
 
@@ -934,9 +976,9 @@ static void NavigateKeyBinding(const MenuItem* entry)
 		|| (gNav->mouseHoverValid && GetNewClickState(SDL_BUTTON_MIDDLE)))
 	{
 		gNav->idleTime = 0;
-		gGamePrefs.keys[entry->inputNeed].key[gNav->keyColumn] = 0;
+		gGamePrefs.keys[entry->inputNeed].key[keyNo] = 0;
 		PlayEffect(kSfxDelete);
-		MakeText(Localize(STR_UNBOUND_PLACEHOLDER), gNav->menuRow, gNav->keyColumn+1, kTextMeshAllCaps | kTextMeshAlignLeft);
+		MakeKbText(row, keyNo);
 		return;
 	}
 
@@ -944,26 +986,35 @@ static void NavigateKeyBinding(const MenuItem* entry)
 		|| GetNewKeyState(SDL_SCANCODE_KP_ENTER)
 		|| (gNav->mouseHoverValid && GetNewClickState(SDL_BUTTON_LEFT)))
 	{
+		PlayEffect(EFFECT_MINE);
+		InvalidateAllInputs();
 		gNav->idleTime = 0;
 		gNav->menuState = kMenuStateAwaitingKeyPress;
-		MakeText(Localize(STR_PRESS), gNav->menuRow, gNav->keyColumn+1, kTextMeshAllCaps | kTextMeshAlignLeft);
+
+		MakeKbText(row, keyNo);		// It'll show "PRESS!" because we're in kMenuStateAwaitingKeyPress
 
 		// Change subtitle to help message
 		ReplaceMenuText(STR_CONFIGURE_KEYBOARD_HELP, STR_CONFIGURE_KEYBOARD_HELP_CANCEL);
-
 		return;
 	}
 }
 
 static void NavigatePadBinding(const MenuItem* entry)
 {
+	gNav->menuCol = PositiveModulo(gNav->menuCol, KEYBINDING_MAX_GAMEPAD_BUTTONS);
+	int btnNo = gNav->menuCol;
+	int row = gNav->menuRow;
+
+#if 0 // TODO: review this if we ever bring back mouse support in menus
 	if (gNav->mouseHoverValid && (gNav->mouseHoverColumn == 1 || gNav->mouseHoverColumn == 2))
 		gNav->padColumn = gNav->mouseHoverColumn - 1;
+#endif
 
 	if (GetNewNeedStateAnyP(kNeed_UILeft) || GetNewNeedStateAnyP(kNeed_UIPrev))
 	{
+		btnNo = PositiveModulo(btnNo - 1, KEYBINDING_MAX_GAMEPAD_BUTTONS);
+		gNav->menuCol = btnNo;
 		gNav->idleTime = 0;
-		gNav->padColumn = PositiveModulo(gNav->padColumn - 1, KEYBINDING_MAX_GAMEPAD_BUTTONS);
 		PlayEffect(kSfxNavigate);
 		gNav->mouseHoverValid = false;
 		return;
@@ -971,8 +1022,9 @@ static void NavigatePadBinding(const MenuItem* entry)
 
 	if (GetNewNeedStateAnyP(kNeed_UIRight) || GetNewNeedStateAnyP(kNeed_UINext))
 	{
+		btnNo = PositiveModulo(btnNo + 1, KEYBINDING_MAX_GAMEPAD_BUTTONS);
+		gNav->menuCol = btnNo;
 		gNav->idleTime = 0;
-		gNav->padColumn = PositiveModulo(gNav->padColumn + 1, KEYBINDING_MAX_GAMEPAD_BUTTONS);
 		PlayEffect(kSfxNavigate);
 		gNav->mouseHoverValid = false;
 		return;
@@ -983,9 +1035,9 @@ static void NavigatePadBinding(const MenuItem* entry)
 		|| (gNav->mouseHoverValid && GetNewClickState(SDL_BUTTON_MIDDLE)))
 	{
 		gNav->idleTime = 0;
-		gGamePrefs.keys[entry->inputNeed].gamepad[gNav->padColumn].type = kInputTypeUnbound;
+		gGamePrefs.keys[entry->inputNeed].gamepad[btnNo].type = kInputTypeUnbound;
 		PlayEffect(kSfxDelete);
-		MakeText(Localize(STR_UNBOUND_PLACEHOLDER), gNav->menuRow, gNav->padColumn+1, kTextMeshAllCaps | kTextMeshAlignLeft);
+		MakePbText(row, btnNo);
 		return;
 	}
 
@@ -993,11 +1045,12 @@ static void NavigatePadBinding(const MenuItem* entry)
 		|| GetNewKeyState(SDL_SCANCODE_KP_ENTER)
 		|| (gNav->mouseHoverValid && GetNewClickState(SDL_BUTTON_LEFT)))
 	{
-		gNav->idleTime = 0;
+		PlayEffect(EFFECT_MINE);
 		InvalidateAllInputs();
-
+		gNav->idleTime = 0;
 		gNav->menuState = kMenuStateAwaitingPadPress;
-		MakeText(Localize(STR_PRESS), gNav->menuRow, gNav->padColumn+1, kTextMeshAllCaps | kTextMeshAlignLeft);
+
+		MakePbText(row, btnNo);			// It'll show "PRESS!" because we're in MenuStateAwaitingPadPress
 
 		// Change subtitle to help message
 		ReplaceMenuText(STR_CONFIGURE_GAMEPAD_HELP, STR_CONFIGURE_GAMEPAD_HELP_CANCEL);
@@ -1008,6 +1061,7 @@ static void NavigatePadBinding(const MenuItem* entry)
 
 static void NavigateMouseBinding(const MenuItem* entry)
 {
+#if 0 // TODO: review this if we bring back mouse input support
 	if (GetNewNeedStateAnyP(kNeed_UIDelete)
 		|| (gNav->mouseHoverValid && GetNewClickState(SDL_BUTTON_MIDDLE)))
 	{
@@ -1028,6 +1082,7 @@ static void NavigateMouseBinding(const MenuItem* entry)
 		MakeText(Localize(STR_CLICK), gNav->menuRow, 1, 0);
 		return;
 	}
+#endif
 }
 
 static void NavigateMenu(void)
@@ -1130,45 +1185,50 @@ static void UnbindMouseButtonFromAllRemappableInputNeeds(int8_t id)
 
 static void AwaitKeyPress(void)
 {
+	int row = gNav->menuRow;
+	int keyNo = gNav->menuCol;
+	GAME_ASSERT(keyNo >= 0);
+	GAME_ASSERT(keyNo < KEYBINDING_MAX_KEYS);
+
 	if (GetNewKeyState(SDL_SCANCODE_ESCAPE))
 	{
-		MakeText(GetKeyBindingName(gNav->menuRow, gNav->keyColumn), gNav->menuRow, 1 + gNav->keyColumn, kTextMeshAllCaps | kTextMeshAlignLeft);
-		gNav->menuState = kMenuStateReady;
 		PlayEffect(kSfxError);
-		ReplaceMenuText(STR_CONFIGURE_KEYBOARD_HELP, STR_CONFIGURE_KEYBOARD_HELP);
-		return;
+		goto updateText;
 	}
-
-	KeyBinding* kb = GetBindingAtRow(gNav->menuRow);
 
 	for (int16_t scancode = 0; scancode < SDL_NUM_SCANCODES; scancode++)
 	{
 		if (GetNewKeyState(scancode))
 		{
 			UnbindScancodeFromAllRemappableInputNeeds(scancode);
-			kb->key[gNav->keyColumn] = scancode;
-			MakeText(GetKeyBindingName(gNav->menuRow, gNav->keyColumn), gNav->menuRow, gNav->keyColumn+1, kTextMeshAllCaps | kTextMeshAlignLeft);
-			gNav->menuState = kMenuStateReady;
-			gNav->idleTime = 0;
+			GetBindingAtRow(row)->key[keyNo] = scancode;
+
 			PlayEffect(kSfxCycle);
-			ReplaceMenuText(STR_CONFIGURE_KEYBOARD_HELP, STR_CONFIGURE_KEYBOARD_HELP);
-			return;
+			goto updateText;
 		}
 	}
+	return;
 
-
+updateText:
+	gNav->menuState = kMenuStateReady;
+	gNav->idleTime = 0;
+	MakeKbText(row, keyNo);		// update text after state changed back to Ready
+	ReplaceMenuText(STR_CONFIGURE_KEYBOARD_HELP, STR_CONFIGURE_KEYBOARD_HELP);
+	return;
 }
 
 static bool AwaitGamepadPress(SDL_GameController* controller)
 {
+	int row = gNav->menuRow;
+	int btnNo = gNav->menuCol;
+	GAME_ASSERT(btnNo >= 0);
+	GAME_ASSERT(btnNo < KEYBINDING_MAX_GAMEPAD_BUTTONS);
+
 	if (GetNewKeyState(SDL_SCANCODE_ESCAPE)
 		|| SDL_GameControllerGetButton(controller, SDL_CONTROLLER_BUTTON_START))
 	{
-		MakeText(GetPadBindingName(gNav->menuRow, gNav->padColumn), gNav->menuRow, 1 + gNav->padColumn, kTextMeshAllCaps | kTextMeshAlignLeft);
-		gNav->menuState = kMenuStateReady;
 		PlayEffect(kSfxError);
-		ReplaceMenuText(STR_CONFIGURE_GAMEPAD_HELP, STR_CONFIGURE_GAMEPAD_HELP);
-		return true;
+		goto updateText;
 	}
 
 	KeyBinding* kb = GetBindingAtRow(gNav->menuRow);
@@ -1188,15 +1248,11 @@ static bool AwaitGamepadPress(SDL_GameController* controller)
 
 		if (SDL_GameControllerGetButton(controller, button))
 		{
-			UnbindPadButtonFromAllRemappableInputNeeds(kInputTypeButton, button);
-			kb->gamepad[gNav->padColumn].type = kInputTypeButton;
-			kb->gamepad[gNav->padColumn].id = button;
-			MakeText(GetPadBindingName(gNav->menuRow, gNav->padColumn), gNav->menuRow, gNav->padColumn+1, kTextMeshAllCaps | kTextMeshAlignLeft);
-			gNav->menuState = kMenuStateReady;
-			gNav->idleTime = 0;
 			PlayEffect(kSfxCycle);
-			ReplaceMenuText(STR_CONFIGURE_GAMEPAD_HELP, STR_CONFIGURE_GAMEPAD_HELP);
-			return true;
+			UnbindPadButtonFromAllRemappableInputNeeds(kInputTypeButton, button);
+			kb->gamepad[btnNo].type = kInputTypeButton;
+			kb->gamepad[btnNo].id = button;
+			goto updateText;
 		}
 	}
 
@@ -1216,20 +1272,23 @@ static bool AwaitGamepadPress(SDL_GameController* controller)
 		int16_t axisValue = SDL_GameControllerGetAxis(controller, axis);
 		if (abs(axisValue) > kJoystickDeadZone_BindingThreshold)
 		{
+			PlayEffect(kSfxCycle);
 			int axisType = axisValue < 0 ? kInputTypeAxisMinus : kInputTypeAxisPlus;
 			UnbindPadButtonFromAllRemappableInputNeeds(axisType, axis);
-			kb->gamepad[gNav->padColumn].type = axisType;
-			kb->gamepad[gNav->padColumn].id = axis;
-			MakeText(GetPadBindingName(gNav->menuRow, gNav->padColumn), gNav->menuRow, gNav->padColumn+1, kTextMeshAllCaps | kTextMeshAlignLeft);
-			gNav->menuState = kMenuStateReady;
-			gNav->idleTime = 0;
-			PlayEffect(kSfxCycle);
-			ReplaceMenuText(STR_CONFIGURE_GAMEPAD_HELP_CANCEL, STR_CONFIGURE_GAMEPAD_HELP);
-			return true;
+			kb->gamepad[btnNo].type = axisType;
+			kb->gamepad[btnNo].id = axis;
+			goto updateText;
 		}
 	}
 
 	return false;
+
+updateText:
+	gNav->menuState = kMenuStateReady;
+	gNav->idleTime = 0;
+	MakePbText(row, btnNo);		// update text after state changed back to Ready
+	ReplaceMenuText(STR_CONFIGURE_GAMEPAD_HELP_CANCEL, STR_CONFIGURE_GAMEPAD_HELP);
+	return true;
 }
 
 static void AwaitMetaGamepadPress(void)
@@ -1251,7 +1310,7 @@ static void AwaitMetaGamepadPress(void)
 
 	if (!anyGamepadFound)
 	{
-		MakeText(GetPadBindingName(gNav->menuRow, gNav->padColumn), gNav->menuRow, gNav->padColumn+1, kTextMeshAllCaps | kTextMeshAlignLeft);
+		MakeText(GetPadBindingName(gNav->menuRow, gNav->menuCol), gNav->menuRow, gNav->menuCol+1, kTextMeshAllCaps | kTextMeshAlignLeft);
 		ReplaceMenuText(STR_CONFIGURE_GAMEPAD_HELP, STR_NO_GAMEPAD_DETECTED);
 		PlayEffect(kSfxError);
 		gNav->menuState = kMenuStateReady;
@@ -1320,13 +1379,10 @@ static void DeleteAllText(void)
 {
 	for (int row = 0; row < MAX_MENU_ROWS; row++)
 	{
-		for (int col = 0; col < MAX_MENU_COLS; col++)
+		if (gNav->menuObjects[row])
 		{
-			if (gNav->menuObjects[row][col])
-			{
-				DeleteObject(gNav->menuObjects[row][col]);
-				gNav->menuObjects[row][col] = nil;
-			}
+			DeleteObject(gNav->menuObjects[row]);
+			gNav->menuObjects[row] = nil;
 		}
 	}
 }
@@ -1334,7 +1390,7 @@ static void DeleteAllText(void)
 static float GetMenuItemHeight(int row)
 {
 	const MenuItem* menuItem = &gNav->menu[row];
-	
+
 	if (menuItem->displayIf && !(menuItem->displayIf(menuItem)))
 		return false;
 	else if (menuItem->customHeight > 0)
@@ -1343,9 +1399,13 @@ static float GetMenuItemHeight(int row)
 		return kMenuItemClasses[menuItem->type].height;
 }
 
-static ObjNode* MakeText(const char* text, int row, int col, int textMeshFlags)
+static ObjNode* MakeText(const char* text, int row, int desiredCol, int textMeshFlags)
 {
-	ObjNode* node = gNav->menuObjects[row][col];
+	ObjNode* chainHead = gNav->menuObjects[row];
+	ObjNode* pNode = NULL;
+	GAME_ASSERT(GetNodeChainLength(chainHead) >= desiredCol);
+
+	ObjNode* node = GetNthChainedNode(chainHead, desiredCol, &pNode);
 
 	if (node)
 	{
@@ -1358,14 +1418,23 @@ static ObjNode* MakeText(const char* text, int row, int col, int textMeshFlags)
 		{
 			.coord = (OGLPoint3D) { 0, gNav->menuRowYs[row], 0 },
 			.scale = GetMenuItemHeight(row) * gNav->style.standardScale,
-			.slot = gNav->style.textSlot,
+			.slot = gNav->style.textSlot + desiredCol,  // chained node must be after their parent!
 			.flags = STATUS_BIT_MOVEINPAUSE | STATUS_BIT_OVERLAYPANE,
 		};
 
 		node = TextMesh_New(text, textMeshFlags, &def);
 		node->SpecialRow = row;
-		node->SpecialCol = col;
-		gNav->menuObjects[row][col] = node;
+		node->SpecialCol = desiredCol;
+
+		if (pNode)
+		{
+			pNode->ChainHead = chainHead;
+			pNode->ChainNode = node;
+		}
+		else
+		{
+			gNav->menuObjects[row] = node;
+		}
 	}
 
 	/*
@@ -1422,7 +1491,7 @@ static ObjNode* LayOutTitle(int row, float sweepFactor)
 static ObjNode* LayOutSubtitle(int row, float sweepFactor)
 {
 	const MenuItem* entry = &gNav->menu[row];
-	
+
 	ObjNode* label = MakeText(GetMenuItemLabel(entry), row, 0, 0);
 	label->ColorFilter = (OGLColorRGBA){ 0.7, .4, .2, 1 };
 	label->MoveCall = MoveLabel;
@@ -1477,7 +1546,7 @@ static ObjNode* LayOutCycler(int row, float sweepFactor)
 	ObjNode* node2 = LayOutCyclerValueText(row);
 	node2->SpecialSweepTimer = sweepFactor;
 
-	return node1;	// TODO: chain node2?
+	return node1;
 }
 
 static ObjNode* LayOutCMRCycler(int row, float sweepFactor)
@@ -1501,7 +1570,7 @@ static ObjNode* LayOutFloatRangeValueText(int row)
 	DECLARE_WORKBUF(buf, bufSize);
 
 	snprintf(buf, bufSize, "%.4f", *entry->floatRange.valuePtr);
-	ObjNode* node2 = MakeText(buf, row, 3, kTextMeshAlignRight);
+	ObjNode* node2 = MakeText(buf, row, 1, kTextMeshAlignRight);
 	return node2;
 }
 
@@ -1518,7 +1587,7 @@ static ObjNode* LayOutFloatRange(int row, float sweepFactor)
 	ObjNode* node2 = LayOutFloatRangeValueText(row);
 	node2->SpecialSweepTimer = sweepFactor;
 
-	return node1;	// TODO: chain node2?
+	return node1;
 }
 
 static ObjNode* LayOutKeyBinding(int row, float sweepFactor)
@@ -1536,14 +1605,14 @@ static ObjNode* LayOutKeyBinding(int row, float sweepFactor)
 
 	for (int j = 0; j < KEYBINDING_MAX_KEYS; j++)
 	{
-		ObjNode* keyNode = MakeText(GetKeyBindingName(row, j), row, j + 1, kTextMeshAllCaps | kTextMeshAlignLeft);
+		ObjNode* keyNode = MakeKbText(row, j);
+		keyNode->SpecialCol = j;
 		keyNode->Coord.x = -50 + j * 170 ;
 		keyNode->MoveCall = MoveKeyBinding;
-//		keyNode->Scale.x *= 0.75f;
 		keyNode->SpecialSweepTimer = sweepFactor;
 	}
 
-	return label;	// TODO: chain other nodes?
+	return label;
 }
 
 static ObjNode* LayOutPadBinding(int row, float sweepFactor)
@@ -1561,13 +1630,14 @@ static ObjNode* LayOutPadBinding(int row, float sweepFactor)
 
 	for (int j = 0; j < KEYBINDING_MAX_KEYS; j++)
 	{
-		ObjNode* keyNode = MakeText(GetPadBindingName(row, j), row, j+1, kTextMeshAllCaps | kTextMeshAlignLeft);
+		ObjNode* keyNode = MakePbText(row, j);
+		keyNode->SpecialCol = j;
 		keyNode->Coord.x = -50 + j * 170;
 		keyNode->MoveCall = MovePadBinding;
 		keyNode->SpecialSweepTimer = sweepFactor;
 	}
 
-	return label;		// TODO: chain other nodes?
+	return label;
 }
 
 static ObjNode* LayOutMouseBinding(int row, float sweepFactor)
@@ -1585,8 +1655,8 @@ static ObjNode* LayOutMouseBinding(int row, float sweepFactor)
 	ObjNode* keyNode = MakeText(GetMouseBindingName(row), row, 1, 0);
 	keyNode->MoveCall = MoveMouseBinding;
 	keyNode->SpecialSweepTimer = sweepFactor;
-	
-	return label;		// TODO: chain other nodes?
+
+	return label;
 }
 
 static void LayOutMenu(int menuID)
@@ -1826,7 +1896,7 @@ int StartMenu(
 			update();
 		else
 			MoveObjects();
-			
+
 		OGL_DrawScene(gGameViewInfoPtr, draw);
 	}
 
@@ -1851,12 +1921,9 @@ int StartMenu(
 
 		for (int row = 0; row < MAX_MENU_ROWS; row++)
 		{
-			for (int col = 0; col < MAX_MENU_COLS; col++)
+			if (gNav->menuObjects[row])
 			{
-				if (gNav->menuObjects[row][col])
-				{
-					InstallAsyncFadeOut(gNav->menuObjects[row][col]);
-				}
+				InstallAsyncFadeOut(gNav->menuObjects[row]);
 			}
 		}
 
