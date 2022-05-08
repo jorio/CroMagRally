@@ -1,5 +1,28 @@
-import sys, os, html, rectpack, argparse
+# Cro-Mag Rally atlas/font packer
+#
+# This file is part of Cro-Mag Rally: https://github.com/jorio/cromagrally
+# (C)2022 Iliyas Jorio
+#
+# Requirements: Python 3, Python Imaging Library, rectpack (https://github.com/secnot/rectpack)
+
+from dataclasses import dataclass, field
 from PIL import Image
+import argparse, html, os,  rectpack
+
+@dataclass
+class Glyph:
+    codepoint: int
+    slice_image: Image
+    xoff: int
+    yoff: int
+    xadv: int
+    yadv: int
+    #aliases: list[int] = field(default_factory=list)
+    alias_of: int = -1
+    atlas_x: int = 0
+    atlas_y: int = 0
+    atlas_w: int = 0
+    atlas_h: int = 0
 
 parser = argparse.ArgumentParser(description="Create atlas for CMR")
 parser.add_argument('srcdir', type=str, help="path to dir of PNG files")
@@ -22,106 +45,161 @@ SPACE_W = args.space_width
 CHAR_SPACING = args.char_spacing
 PADDING = args.padding
 IS_FONT = args.font
+DO_CROP = args.crop
 
 if not IS_FONT:
-    SPACE_W = 0
-    CHAR_SPACING = 0
     BASE_H = 0
 
 if not outpath:
     outpath = os.path.join(os.path.dirname(fontname), os.path.basename(fontname).lower())
     outpath = os.path.abspath(outpath)
 
-packer = rectpack.newPacker(rotation=False, pack_algo=rectpack.MaxRectsBl)
-packer.add_bin(ATLAS_W, ATLAS_H)
-
-glyphs = {}
-offsets = {}
+glyphs: dict[int, Glyph] = {}
+num_master_glyphs = 0
 atlas_needs_alpha = False
 
-for filename in sorted(os.listdir(fontname)):
-    if not filename.endswith(".png"):
-        continue
-
-    glyphstr = filename.removesuffix(".png")
+def get_raw_glyph_info(path):
+    glyphstr = os.path.basename(path).removesuffix(".png")
 
     fixw = glyphstr.endswith(".FIXW")
     glyphstr = glyphstr.removesuffix(".FIXW")
 
     if glyphstr.startswith('#'):
         glyphstr = glyphstr.removeprefix('#')
-        glyphstr = chr(int(glyphstr))
+        codepoint = int(glyphstr)
+        glyphstr = chr(codepoint)
     elif len(glyphstr) > 1:
         glyphstr = html.unescape("&" + glyphstr + ";")
+        codepoint = ord(glyphstr)
+    else:
+        codepoint = ord(glyphstr)
     assert len(glyphstr) == 1, glyphstr
 
-    im = Image.open(F"{fontname}/{filename}")
+    image = Image.open(F"{fontname}/{filename}")
+    return image, codepoint, fixw
 
-    if im.mode == 'RGBA':
+for filename in sorted(os.listdir(fontname)):
+    if not filename.endswith(".png"):
+        continue
+
+    raw_image, codepoint, fixw = get_raw_glyph_info(os.path.join(fontname, filename))
+
+    if raw_image.mode == 'RGBA':
         atlas_needs_alpha = True
 
-    if args.crop:
-        cropped_bbox = im.getbbox()
+    if DO_CROP:
+        cropped_bbox = raw_image.getbbox()
         cx1, cy1, cx2, cy2 = cropped_bbox
-        cropped_im = im.crop(cropped_bbox)
+        slice_image = raw_image.crop(cropped_bbox)
+        del cropped_bbox
     else:
-        cropped_bbox = None
-        cropped_im = im
-        cx1 = 0
-        cy1 = 0
-        cx2 = cropped_im.width
-        cy2 = cropped_im.height
+        slice_image = raw_image
+        cx1, cy1, cx2, cy2 = 0, 0, slice_image.width, slice_image.height
 
-    packer.add_rect(cropped_im.width+PADDING*2, cropped_im.height+PADDING*2, glyphstr)
-    glyphs[glyphstr] = cropped_im
+    try:
+        alias_of = next(k for k in glyphs if glyphs[k].slice_image == slice_image)
+        print(f"[{fontname}] Codepoint {codepoint} aliases {alias_of}")
+    except StopIteration:
+        alias_of = -1
+        num_master_glyphs += 1
 
     if IS_FONT:
-        xoff = 0
-        yoff = ( BASE_H//2 + int(im.height/2 - cy2) )
-        xadv = cropped_im.width
-        yadv = im.height #BASE_H
+        yoff = ( BASE_H//2 + int(raw_image.height/2 - cy2) )
+        yadv = raw_image.height  # perhaps BASE_H would be better here?  the game doesn't use yadv for fonts anyway
         if fixw:
-            xoff = int(im.width - cropped_im.width)//2
-            xadv = im.width
+            xoff = int(raw_image.width - slice_image.width)//2
+            xadv = raw_image.width
+        else:
+            xoff = 0
+            xadv = slice_image.width
+        xadv += CHAR_SPACING
     else:
-        xoff = cx1 #int(im.width/2 - cx2)
-        yoff = cy1 #int(im.height/2 - cy2)
-        xadv = im.width
-        yadv = im.height
+        xoff = cx1
+        yoff = cy1
+        xadv = raw_image.width
+        yadv = raw_image.height
+    
+    glyphs[codepoint] = Glyph(codepoint, slice_image, xoff, yoff, xadv, yadv, alias_of)
 
-    offsets[glyphstr] = (xoff, yoff, xadv+CHAR_SPACING, yadv)
-    #print(ord(glyphstr[0]), glyphstr, cropped_bbox, "-->", cropped_im.size, "offset:", offsets[glyphstr])
+def pack_the_glyphs(glyphs, atlas_w, atlas_h):
+    # Prep the packer
+    packer = rectpack.newPacker(rotation=False, pack_algo=rectpack.MaxRectsBl)
+    packer.add_bin(atlas_w, atlas_h)
 
-packer.pack()
+    for codepoint in glyphs:
+        glyph = glyphs[codepoint]
+        if glyph.alias_of < 0:  # only add rects for glyphs that are don't alias any other glyph (or are the master alias)
+            padded_width = glyph.slice_image.width + PADDING*2
+            padded_height = glyph.slice_image.height + PADDING*2
+            packer.add_rect(padded_width, padded_height, codepoint)
 
-all_rects = packer.rect_list()
+    # Pack the rects
+    packer.pack()
+    all_rects = packer.rect_list()
 
-assert len(all_rects) == len(glyphs), "Not all glyphs accounted for. Try increasing atlas dimensions."
+    if len(all_rects) == num_master_glyphs:
+        return all_rects
+    else:
+        # Not all glyphs accounted for. Try increasing atlas dimensions.
+        return None
 
-# add space
-if IS_FONT and SPACE_W != 0:
-    assert ' ' not in glyphs
-    assert ' ' not in offsets
-    offsets[' '] = (0, 0, SPACE_W, BASE_H)
-    all_rects.append( (0, 0, 0, SPACE_W, 0, ' '))
-
-sfl = f"{len(all_rects)}\t{BASE_H}\t{os.path.basename(fontname)}\n"
-
+# Compose atlas image and fill out atlas positions in each glyph
 atlas_mode = "RGBA" if atlas_needs_alpha else "RGB"
-
 atlas = Image.new(atlas_mode, (ATLAS_W, ATLAS_H))
 
-for rect in sorted(all_rects, key=lambda r: r[5]):
-    bin_no, x, y, w, h, c = rect
+all_rects = pack_the_glyphs(glyphs, ATLAS_W, ATLAS_H)
+assert all_rects, "Try increasing atlas dimensions"
+
+for rect in all_rects:
+    bin_no, x, y, w, h, codepoint = rect
     assert bin_no == 0, "Not enough bins!!"
 
+    glyph = glyphs[codepoint]
+
     if w != 0 and h != 0:
-        frame = glyphs[c]
-        atlas.paste(frame, (x+PADDING, y+PADDING))
+        x += PADDING
+        y += PADDING
+        w -= 2*PADDING
+        h -= 2*PADDING
+        atlas.paste(glyph.slice_image, (x, y))
 
-    xo, yo, xadv, yadv = offsets[c]
-    sfl += F"{ord(c)}\t{x+PADDING}\t{y+PADDING}\t{w-2*PADDING}\t{h-2*PADDING}\t{xo}\t{yo}\t{xadv}\t{yadv}\n"
+    glyph.atlas_x = x
+    glyph.atlas_y = y
+    glyph.atlas_w = w
+    glyph.atlas_h = h
 
+# Add fake space glyph
+if IS_FONT and SPACE_W != 0:
+    space_codepoint = ord(' ')
+    assert space_codepoint not in glyphs, "There's an explicit space glyph in this font!"
+    glyphs[space_codepoint] = Glyph(space_codepoint, None, 0, 0, SPACE_W, BASE_H)
+
+# Generate atlas text
+atlas_text = (
+    f"{len(glyphs)}"
+    f"\t{BASE_H}"
+    f"\t{os.path.basename(fontname)}"
+    f"\n")
+for codepoint in sorted(glyphs):
+    glyph = glyphs[codepoint]
+    if glyph.alias_of >= 0:  # steal master alias's position in atlas
+        atlas_glyph = glyphs[glyph.alias_of]
+    else:
+        atlas_glyph = glyph
+    atlas_text += (
+        f"{codepoint}"
+        f"\t{atlas_glyph.atlas_x}"
+        f"\t{atlas_glyph.atlas_y}"
+        f"\t{atlas_glyph.atlas_w}"
+        f"\t{atlas_glyph.atlas_h}"
+        f"\t{glyph.xoff}"
+        f"\t{glyph.yoff}"
+        f"\t{glyph.xadv}"
+        f"\t{glyph.yadv}"
+        f"\n"
+        )
+
+# Save png & txt files
 atlas.save(f"{outpath}.png")
-open(f"{outpath}.txt", "w").write(sfl)
+open(f"{outpath}.txt", "wt").write(atlas_text)
 print(F"Wrote {outpath}.{{png,txt}}")
