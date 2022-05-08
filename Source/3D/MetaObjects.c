@@ -972,12 +972,13 @@ void MO_DrawSprite(const MOSpriteObject *spriteObj, const OGLSetupOutputType *se
 {
 const MOSpriteData	*spriteData = &spriteObj->objectData;
 
-	DrawSprite(
+	DrawSprite2(
 		spriteData->group,
 		spriteData->type,
 		spriteData->coord.x,
 		spriteData->coord.y,
 		spriteData->scaleX,
+		spriteData->scaleY,
 		spriteData->rot,
 		kTextMeshAlignCenter | kTextMeshAlignMiddle | kTextMeshKeepCurrentProjection,
 		setupInfo

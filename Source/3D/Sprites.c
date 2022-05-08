@@ -188,8 +188,17 @@ MOSpriteObject		*spriteMO;
 
 /************************** DRAW SPRITE ************************/
 
-void DrawSprite(int group, int spriteNo, float x, float y, float scale, float rot, uint32_t flags, const OGLSetupOutputType *setupInfo)
+void DrawSprite2(
+		int group,
+		int spriteNo,
+		float x,
+		float y,
+		float scaleX,
+		float scaleY,
+		float rot,
+		uint32_t flags,
+		const OGLSetupOutputType *setupInfo)
 {
 	char text[2] = { spriteNo, 0 };
-	Atlas_DrawString(group, text, x, y, scale, rot, flags, setupInfo);
+	Atlas_DrawString2(group, text, x, y, scaleX, scaleY, rot, flags, setupInfo);
 }

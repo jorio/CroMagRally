@@ -420,9 +420,7 @@ static const OGLColorRGB	teamColors[] =
 			GetIconX(ICON_MAP),
 			GetIconY(ICON_MAP),
 			scale * gMapFit,
-			0,
-			INFOBAR_SPRITE_FLAGS,
-			setupInfo);
+			INFOBAR_SPRITE_FLAGS);
 
 
 			/***********************/
@@ -473,8 +471,14 @@ static const OGLColorRGB	teamColors[] =
 		}
 
 		
-		DrawSprite(SPRITE_GROUP_INFOBAR, INFOBAR_SObjType_PlayerBlip,
-			x, z, scaleBasis, rot,
+		DrawSprite2(
+			SPRITE_GROUP_INFOBAR,
+			INFOBAR_SObjType_PlayerBlip,
+			x,
+			z,
+			scaleBasis,
+			scaleBasis,
+			rot,
 			INFOBAR_SPRITE_FLAGS,
 			setupInfo);
 	}
@@ -509,9 +513,8 @@ static const OGLColorRGB	teamColors[] =
 				/* DRAW IT */
 
 		DrawSprite(SPRITE_GROUP_INFOBAR, sprite,
-			x, z, scaleBasis, 0,
-			INFOBAR_SPRITE_FLAGS,
-			setupInfo);
+			x, z, scaleBasis,
+			INFOBAR_SPRITE_FLAGS);
 	}
 }
 
@@ -529,9 +532,7 @@ int	place,playerNum;
 				GetIconX(ICON_PLACE),
 				GetIconY(ICON_PLACE),
 				GetIconScale(ICON_PLACE),
-				0,
-				INFOBAR_SPRITE_FLAGS,
-				setupInfo);
+				INFOBAR_SPRITE_FLAGS);
 }
 
 
@@ -560,14 +561,14 @@ float		x,y,scale, spacing, fontScale;
 		/* DRAW WEAPON ICON */
 
 	DrawSprite(SPRITE_GROUP_INFOBAR, INFOBAR_SObjType_Weapon_Bone + powType,
-				x, y, scale, 0, INFOBAR_SPRITE_FLAGS, setupInfo);
+				x, y, scale, INFOBAR_SPRITE_FLAGS);
 
 
 		/* DRAW X-QUANTITY ICON */
 
 	x += spacing;
 	DrawSprite(SPRITE_GROUP_INFOBAR, INFOBAR_SObjType_WeaponX,
-				x, y, scale * .8f, 0, INFOBAR_SPRITE_FLAGS, setupInfo);
+				x, y, scale * .8f, INFOBAR_SPRITE_FLAGS);
 
 
 		/* DRAW QUANTITY NUMBER */
@@ -580,7 +581,7 @@ float		x,y,scale, spacing, fontScale;
 	snprintf(s, sizeof(s), "%d", q);
 
 	x += spacing;
-	Atlas_DrawString(SPRITE_GROUP_FONT, s, x, y, fontScale, 0, INFOBAR_SPRITE_FLAGS, setupInfo);
+	Atlas_DrawString(SPRITE_GROUP_FONT, s, x, y, fontScale, INFOBAR_SPRITE_FLAGS);
 
 
 	gGlobalColorFilter.r = 1;
@@ -607,7 +608,7 @@ short	p;
 					GetIconX(ICON_WRONGWAY),
 					GetIconY(ICON_WRONGWAY),
 					GetIconScale(ICON_WRONGWAY),
-					0, INFOBAR_SPRITE_FLAGS, setupInfo);
+					INFOBAR_SPRITE_FLAGS);
 	}
 }
 
@@ -643,7 +644,7 @@ int		oldTimer;
 					GetIconX(ICON_STARTLIGHT),
 					GetIconY(ICON_STARTLIGHT),
 					GetIconScale(ICON_STARTLIGHT),
-					0, INFOBAR_SPRITE_FLAGS, setupInfo);
+					INFOBAR_SPRITE_FLAGS);
 	}
 	else
 	if (gStartingLightTimer <= 2.0f)								// yellow
@@ -652,7 +653,7 @@ int		oldTimer;
 					GetIconX(ICON_STARTLIGHT),
 					GetIconY(ICON_STARTLIGHT),
 					GetIconScale(ICON_STARTLIGHT),
-					0, INFOBAR_SPRITE_FLAGS, setupInfo);
+					INFOBAR_SPRITE_FLAGS);
 	}
 	else															// red
 	{
@@ -660,7 +661,7 @@ int		oldTimer;
 					GetIconX(ICON_STARTLIGHT),
 					GetIconY(ICON_STARTLIGHT),
 					GetIconScale(ICON_STARTLIGHT),
-					0, INFOBAR_SPRITE_FLAGS, setupInfo);
+					INFOBAR_SPRITE_FLAGS);
 	}
 
 
@@ -703,7 +704,7 @@ int	lap,playerNum;
 				GetIconX(ICON_LAP),
 				GetIconY(ICON_LAP),
 				GetIconScale(ICON_LAP),
-				0, INFOBAR_SPRITE_FLAGS, setupInfo);
+				INFOBAR_SPRITE_FLAGS);
 }
 
 /********************** DRAW TOKENS *************************/
@@ -725,7 +726,7 @@ float	x,y,scale,spacing;
 	{
 		DrawSprite(SPRITE_GROUP_INFOBAR,
 					i > numTokens ? INFOBAR_SObjType_Token_ArrowheadDim : INFOBAR_SObjType_Token_Arrowhead,
-					x, y, scale, 0, INFOBAR_SPRITE_FLAGS, setupInfo);
+					x, y, scale, INFOBAR_SPRITE_FLAGS);
 
 		x += spacing;
 	}
@@ -766,7 +767,7 @@ static const OGLColorRGB noTint = {1,1,1};
 
 			/* DRAW ICON */
 
-		DrawSprite(SPRITE_GROUP_INFOBAR, gInfobarTimers[i].sprite, x, y, scale, 0, INFOBAR_SPRITE_FLAGS, setupInfo);
+		DrawSprite(SPRITE_GROUP_INFOBAR, gInfobarTimers[i].sprite, x, y, scale, INFOBAR_SPRITE_FLAGS);
 
 			/* DRAW TIME */
 
@@ -775,7 +776,7 @@ static const OGLColorRGB noTint = {1,1,1};
 		snprintf(s, sizeof(s), "%d", (int) (timer+.5f));
 
 		x2 = x + spacing;
-		Atlas_DrawString(SPRITE_GROUP_FONT, s, x2, y, fontScale, 0, INFOBAR_SPRITE_FLAGS, setupInfo);
+		Atlas_DrawString(SPRITE_GROUP_FONT, s, x2, y, fontScale, INFOBAR_SPRITE_FLAGS);
 
 		y += lineSpacing;												// move down to prep for next item
 
@@ -803,7 +804,7 @@ float	timer,x,y, scale, spacing;
 
 				/* DRAW BAR */
 
-	DrawSprite(SPRITE_GROUP_INFOBAR, INFOBAR_SObjType_TimeBar,	x, y, scale, 0, INFOBAR_SPRITE_FLAGS, setupInfo);
+	DrawSprite(SPRITE_GROUP_INFOBAR, INFOBAR_SObjType_TimeBar,	x, y, scale, INFOBAR_SPRITE_FLAGS);
 
 
 
@@ -819,7 +820,7 @@ float	timer,x,y, scale, spacing;
 	timer = (gPlayerInfo[p].tagTimer / TAG_TIME_LIMIT);							// get timer value 0..1
 	x += timer * spacing;
 
-	DrawSprite(SPRITE_GROUP_INFOBAR, INFOBAR_SObjType_Marker, x, y, scale, 0, INFOBAR_SPRITE_FLAGS, setupInfo);
+	DrawSprite(SPRITE_GROUP_INFOBAR, INFOBAR_SObjType_Marker, x, y, scale, INFOBAR_SPRITE_FLAGS);
 
 
 		/**********************************************/
@@ -837,7 +838,7 @@ float	timer,x,y, scale, spacing;
 		gGlobalColorFilter = gTagColor;							// tint
 		gGlobalTransparency = .35;
 
-		DrawSprite(SPRITE_GROUP_INFOBAR, INFOBAR_SObjType_Marker, x, y, scale, 0, INFOBAR_SPRITE_FLAGS, setupInfo);
+		DrawSprite(SPRITE_GROUP_INFOBAR, INFOBAR_SObjType_Marker, x, y, scale, INFOBAR_SPRITE_FLAGS);
 
 		gGlobalColorFilter.r =
 		gGlobalColorFilter.g =
@@ -868,7 +869,7 @@ float	timer,x,y, scale, spacing, dist;
 
 				/* DRAW BAR */
 
-	DrawSprite(SPRITE_GROUP_INFOBAR, INFOBAR_SObjType_TimeBar,	x, y, scale, 0, INFOBAR_SPRITE_FLAGS, setupInfo);
+	DrawSprite(SPRITE_GROUP_INFOBAR, INFOBAR_SObjType_TimeBar,	x, y, scale, INFOBAR_SPRITE_FLAGS);
 
 
 
@@ -884,7 +885,7 @@ float	timer,x,y, scale, spacing, dist;
 	timer = gPlayerInfo[p].health;							// get timer value 0..1
 	x += timer * spacing;
 
-	DrawSprite(SPRITE_GROUP_INFOBAR, INFOBAR_SObjType_Marker, x, y, scale, 0, INFOBAR_SPRITE_FLAGS, setupInfo);
+	DrawSprite(SPRITE_GROUP_INFOBAR, INFOBAR_SObjType_Marker, x, y, scale, INFOBAR_SPRITE_FLAGS);
 
 
 		/**********************************************/
@@ -906,7 +907,7 @@ float	timer,x,y, scale, spacing, dist;
 		gGlobalColorFilter.b = 0;
 		gGlobalTransparency = .35;
 
-		DrawSprite(SPRITE_GROUP_INFOBAR, INFOBAR_SObjType_Marker, x, y, scale, 0, INFOBAR_SPRITE_FLAGS, setupInfo);
+		DrawSprite(SPRITE_GROUP_INFOBAR, INFOBAR_SObjType_Marker, x, y, scale, INFOBAR_SPRITE_FLAGS);
 
 		gGlobalColorFilter.r =
 		gGlobalColorFilter.g =
@@ -936,7 +937,7 @@ float	x,y, scale, spacing;
 
 	for (i = 0; i < gCapturedFlagCount[t]; i++)
 	{
-		DrawSprite(SPRITE_GROUP_INFOBAR, INFOBAR_SObjType_RedTorch + t,	x, y, scale, 0, INFOBAR_SPRITE_FLAGS, setupInfo);
+		DrawSprite(SPRITE_GROUP_INFOBAR, INFOBAR_SObjType_RedTorch + t,	x, y, scale, INFOBAR_SPRITE_FLAGS);
 		x += spacing;
 	}
 

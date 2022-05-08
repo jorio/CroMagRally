@@ -755,12 +755,13 @@ void TextMesh_DrawExtents(ObjNode* textNode)
 	OGL_PopState();
 }
 
-void Atlas_DrawString(
+void Atlas_DrawString2(
 	int groupNum,
 	const char* text,
 	float x,
 	float y,
-	float scale,
+	float scaleX,
+	float scaleY,
 	float rot,
 	uint32_t flags,
 	const OGLSetupOutputType *setupInfo)
@@ -785,7 +786,7 @@ void Atlas_DrawString(
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE);
 
 	glTranslatef(x,y,0);
-	glScalef(scale, scale, 1);						// Assume ortho projection
+	glScalef(scaleX, scaleY, 1);					// Assume ortho projection
 
 	if (rot != 0.0f)
 		glRotatef(OGLMath_RadiansToDegrees(rot), 0, 0, 1);											// remember:  rotation is in degrees, not radians!
@@ -824,7 +825,12 @@ void Atlas_DrawString(
 		glTexCoord2f(g.u2, g.v1);	glVertex3f(qx + halfw, qy - halfh, 0);
 		glTexCoord2f(g.u1, g.v1);	glVertex3f(qx - halfw, qy - halfh, 0);
 
-		cx += g.xadv * Kern(font, &g, utftext, flags);
+		float xadv = g.xadv;
+
+		if (font->isASCIIFont)
+			xadv *= Kern(font, &g, utftext, flags);
+
+		cx += xadv;
 
 		gPolysThisFrame += 2;						// 2 tris drawn
 	}

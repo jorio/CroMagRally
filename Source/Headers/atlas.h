@@ -77,22 +77,30 @@ void TextMesh_Update(const char* text, int flags, ObjNode* textNode);
 OGLRect TextMesh_GetExtents(ObjNode* textNode);
 void TextMesh_DrawExtents(ObjNode* textNode);
 
-void Atlas_DrawString(
+void Atlas_DrawString2(
 	int groupNum,
 	const char* text,
 	float x,
 	float y,
-	float scale,
+	float scaleX,
+	float scaleY,
 	float rot,
 	uint32_t flags,
 	const OGLSetupOutputType *setupInfo);
 
-void DrawSprite(
+#define Atlas_DrawString(group, text, x, y, scale, flags) \
+	Atlas_DrawString2(group, text, x, y, scale, scale, 0, flags, gGameViewInfoPtr)
+
+void DrawSprite2(
 	int groupNum,
 	int spriteNum,
 	float x,
 	float y,
-	float scale,
+	float scaleX,
+	float scaleY,
 	float rot,
 	uint32_t flags,
 	const OGLSetupOutputType *setupInfo);
+
+#define DrawSprite(group, sprite, x, y, scale, flags) \
+	DrawSprite2(group, sprite, x, y, scale, scale, 0, flags, gGameViewInfoPtr)
