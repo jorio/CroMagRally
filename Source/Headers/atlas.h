@@ -1,7 +1,11 @@
 #pragma once
 
-// This covers the basic multilingual plane (0000-FFFF)
-#define MAX_CODEPOINT_PAGES 256
+
+// A "codepoint page" is a block of 256 codepoints. For Western European
+// languages, we only need codepoint page 0, which covers Unicode blocks
+// "Basic Latin" and "Latin-1 Supplement".
+#define MAX_CODEPOINT_PAGES 1
+
 #define MAX_KERNPAIRS		256
 
 enum
@@ -48,10 +52,11 @@ typedef struct Atlas
 	int textureWidth;
 	int textureHeight;
 	float lineHeight;
-	AtlasGlyph* glyphPages[MAX_CODEPOINT_PAGES];
+	uint32_t maxPages;
+	AtlasGlyph** glyphPages;
 
-	uint16_t kernPairs[MAX_KERNPAIRS];
-	uint8_t kernTracking[MAX_KERNPAIRS];
+	uint16_t* kernPairs;
+	uint8_t* kernTracking;
 
 	bool isASCIIFont;
 } Atlas;

@@ -98,7 +98,7 @@ static AtlasGlyph* Atlas_GetGlyphPtr(const Atlas* atlas, uint32_t codepoint)
 {
 	uint32_t page = codepoint >> 8;
 
-	if (page >= MAX_CODEPOINT_PAGES
+	if (page >= atlas->maxPages
 		|| NULL == atlas->glyphPages[page])
 	{
 		return NULL;
@@ -116,9 +116,9 @@ static void Atlas_SetGlyph(Atlas* atlas, uint32_t codepoint, AtlasGlyph* src)
 {
 	// Compute page for codepoint
 	uint32_t page = codepoint >> 8;
-	if (page >= MAX_CODEPOINT_PAGES)
+	if (page >= atlas->maxPages)
 	{
-		printf("WARNING: codepoint 0x%x exceeds supported maximum (0x%x)\n", codepoint, MAX_CODEPOINT_PAGES * 256 - 1);
+		printf("WARNING: codepoint 0x%x exceeds supported maximum (0x%x)\n", codepoint, atlas->maxPages * 256 - 1);
 		return;
 	}
 
@@ -272,7 +272,23 @@ Atlas* Atlas_Load(const char* fontName, int flags, OGLSetupOutputType* setupInfo
 	Atlas* atlas = AllocPtrClear(sizeof(Atlas));
 
 	if (flags & kAtlasLoadFont)
+	{
 		atlas->isASCIIFont = true;
+
+		atlas->maxPages = MAX_CODEPOINT_PAGES;
+		atlas->glyphPages = AllocPtrClear(sizeof(AtlasGlyph*) * atlas->maxPages);
+
+		atlas->kernPairs = AllocPtrClear(sizeof(atlas->kernPairs[0]) * MAX_KERNPAIRS);
+		atlas->kernTracking = AllocPtrClear(sizeof(atlas->kernTracking[0]) * MAX_KERNPAIRS);
+	}
+	else
+	{
+		atlas->maxPages = 1;
+		atlas->glyphPages = AllocPtrClear(sizeof(AtlasGlyph*) * atlas->maxPages);
+
+		atlas->kernPairs = nil;
+		atlas->kernTracking = nil;
+	}
 
 	snprintf(atlas->name, sizeof(atlas->name), "%s", fontName);
 
@@ -349,13 +365,28 @@ void Atlas_Dispose(Atlas* atlas)
 	MO_DisposeObjectReference(atlas->material);
 	atlas->material = NULL;
 
-	for (int i = 0; i < MAX_CODEPOINT_PAGES; i++)
+	for (size_t i = 0; i < atlas->maxPages; i++)
 	{
 		if (atlas->glyphPages[i])
 		{
 			SafeDisposePtr((Ptr) atlas->glyphPages[i]);
 			atlas->glyphPages[i] = NULL;
 		}
+	}
+
+	SafeDisposePtr((Ptr) atlas->glyphPages);
+	atlas->glyphPages = nil;
+
+	if (atlas->kernPairs)
+	{
+		SafeDisposePtr((Ptr) atlas->kernPairs);
+		atlas->kernPairs = nil;
+	}
+
+	if (atlas->kernTracking)
+	{
+		SafeDisposePtr((Ptr) atlas->kernTracking);
+		atlas->kernTracking = nil;
 	}
 
 	SafeDisposePtr((Ptr) atlas);
