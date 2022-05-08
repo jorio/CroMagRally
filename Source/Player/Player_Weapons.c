@@ -1855,7 +1855,7 @@ Boolean DoTrig_LandMine(ObjNode *theNode, ObjNode *whoNode, Byte sideBits)
 
 	MakeConeBlast(theNode->Coord.x, theNode->Coord.y, theNode->Coord.z);
 
-	PlayEffect_Parms3D(EFFECT_BOOM, &theNode->Coord, NORMAL_CHANNEL_RATE + 0x1000, 6);
+	PlayEffect_Parms3D(EFFECT_BOOM, &theNode->Coord, NORMAL_CHANNEL_RATE + 0x1000, 4);
 
 
 			/* DELETE THE MINE */

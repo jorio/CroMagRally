@@ -971,7 +971,7 @@ short					p;
 	MakeShockwave(where.x, where.y+100.0f, where.z);
 	MakeConeBlast(where.x, where.y, where.z);
 
-	PlayEffect_Parms3D(EFFECT_BOOM, &where, NORMAL_CHANNEL_RATE, 6);
+	PlayEffect_Parms3D(EFFECT_BOOM, &where, NORMAL_CHANNEL_RATE, 4);
 
 
 		/* SEE IF IT HIT ANY CARS */
