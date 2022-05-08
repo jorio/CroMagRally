@@ -521,14 +521,44 @@ static const OGLColorRGB	teamColors[] =
 
 /********************** DRAW PLACE *************************/
 
+static int LocalizeOrdinalSprite(int place, int sex)
+{
+	switch (gGamePrefs.language)
+	{
+		case LANGUAGE_ENGLISH:
+		default:
+			switch (place)
+			{
+				case 0: return INFOBAR_SObjType_PlaceST;
+				case 1: return INFOBAR_SObjType_PlaceND;
+				case 2: return INFOBAR_SObjType_PlaceRD;
+				default: return INFOBAR_SObjType_PlaceTH;
+			}
+			break;
+
+		case LANGUAGE_FRENCH:
+			if (place == 0)
+				return sex==1? INFOBAR_SObjType_PlaceRE: INFOBAR_SObjType_PlaceER;
+			else
+				return INFOBAR_SObjType_PlaceE;
+	}
+}
+
 static void Infobar_DrawPlace(const OGLSetupOutputType *setupInfo)
 {
-int	place,playerNum;
+	int playerNum = GetPlayerNum(gCurrentSplitScreenPane);
+	int place = gPlayerInfo[playerNum].place;
+	int sex = gPlayerInfo[playerNum].sex;
 
-	playerNum = GetPlayerNum(gCurrentSplitScreenPane);
-	place = gPlayerInfo[playerNum].place;
-
+	// Draw big number
 	DrawSprite(SPRITE_GROUP_INFOBAR, INFOBAR_SObjType_Place1+place,
+				GetIconX(ICON_PLACE),
+				GetIconY(ICON_PLACE),
+				GetIconScale(ICON_PLACE),
+				INFOBAR_SPRITE_FLAGS);
+
+	// Draw ordinal suffix
+	DrawSprite(SPRITE_GROUP_INFOBAR, LocalizeOrdinalSprite(place, sex),
 				GetIconX(ICON_PLACE),
 				GetIconY(ICON_PLACE),
 				GetIconScale(ICON_PLACE),
@@ -1003,11 +1033,13 @@ static void MoveLapMessage(ObjNode *theNode)
 void ShowFinalPlace(short playerNum)
 {
 short	place;
+short	sex;
 
 	if ((!gPlayerInfo[playerNum].onThisMachine) || gPlayerInfo[playerNum].isComputer)
 		return;
 
 	place = gPlayerInfo[playerNum].place;
+	sex = gPlayerInfo[playerNum].sex;
 
 
 			/* MAKE SPRITE OBJECT */
@@ -1025,6 +1057,18 @@ short	place;
 	gFinalPlaceObj = MakeSpriteObject(&def, gGameViewInfoPtr);
 
 	gFinalPlaceObj->PlayerNum = playerNum;						// only show for this player
+
+
+
+	def.slot++;
+	def.type = LocalizeOrdinalSprite(place, sex);
+	ObjNode* ordinalObj = MakeSpriteObject(&def, gGameViewInfoPtr);
+	ordinalObj->PlayerNum = playerNum;
+
+	gFinalPlaceObj->ChainNode = ordinalObj;
+	ordinalObj->ChainHead = gFinalPlaceObj;
+
+
 
 	PlayAnnouncerSound(EFFECT_1st + place, true, 1.0);
 

@@ -116,5 +116,13 @@ enum
 	INFOBAR_SObjType_PlayerBlip,
 
 	INFOBAR_SObjType_OverlayBackground,
+
+	INFOBAR_SObjType_PlaceST,	// English ordinal "1st"
+	INFOBAR_SObjType_PlaceND,	// English ordinal "2nd"
+	INFOBAR_SObjType_PlaceRD,	// English ordinal "3rd"
+	INFOBAR_SObjType_PlaceTH,	// English ordinal "Nth"
+	INFOBAR_SObjType_PlaceER,	// French ordinal "1st" masculine
+	INFOBAR_SObjType_PlaceRE,	// French ordinal "1st" feminine
+	INFOBAR_SObjType_PlaceE,	// French ordinal "Nth"
 };
 
