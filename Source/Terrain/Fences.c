@@ -494,13 +494,16 @@ float			cameraX, cameraZ;
 
 			/* UPDATE SEAWEED ANIMATION */
 
-	gSeaweedFrameTimer += gFramesPerSecondFrac;
-	if (gSeaweedFrameTimer > .09f)
+	if (gCurrentSplitScreenPane == 0)		// update timer once per frame only
 	{
-		gSeaweedFrameTimer -= .09f;
+		gSeaweedFrameTimer += gFramesPerSecondFrac;
+		if (gSeaweedFrameTimer > .09f)
+		{
+			gSeaweedFrameTimer -= .09f;
 
-		if (++gSeaweedFrame > 5)
-			gSeaweedFrame = 0;
+			if (++gSeaweedFrame > 5)
+				gSeaweedFrame = 0;
+		}
 	}
 
 
