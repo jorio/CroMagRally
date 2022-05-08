@@ -909,6 +909,8 @@ static void NavigateCycler(const MenuItem* entry)
 			LayOutCMRCycler(gNav->menuRow, 0);
 		else
 			LayOutCyclerValueText(gNav->menuRow);
+
+		RepositionArrows();
 	}
 }
 
