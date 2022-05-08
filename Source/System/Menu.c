@@ -640,25 +640,33 @@ static void GoBackInHistory(void)
 
 static void RepositionArrows(void)
 {
-	bool showArrows = true;
+	ObjNode* snapTo = NULL;
+	ObjNode* chainRoot = gNav->menuObjects[gNav->menuRow];
+
 	switch (gNav->menu[gNav->menuRow].type)
 	{
 		case kMICycler1:
+			snapTo = chainRoot;
+			break;
+
 		case kMICycler2:
 		case kMIFloatRange:
+			snapTo = GetNthChainedNode(chainRoot, 1, NULL);
+			break;
+
 		case kMIKeyBinding:
 		case kMIPadBinding:
 		case kMIMouseBinding:
-			showArrows = true;
+			snapTo = GetNthChainedNode(chainRoot, 1 + gNav->menuCol, NULL);
 			break;
+
 		default:
-			showArrows = false;
+			snapTo = NULL;
 			break;
 	}
 
-	if (showArrows)
+	if (snapTo)
 	{
-		ObjNode* snapTo = gNav->menuObjects[gNav->menuRow];
 		OGLRect extents = TextMesh_GetExtents(snapTo);
 
 		float spacing = 50 * snapTo->Scale.x;
@@ -672,19 +680,15 @@ static void RepositionArrows(void)
 			arrowObj->Coord.y = snapTo->Coord.y;
 			arrowObj->Scale = snapTo->Scale;
 			UpdateObjectTransforms(arrowObj);
-
 		}
 	}
 	else
 	{
-
 		for (int i = 0; i < 2; i++)
 		{
 			SetObjectVisible(gNav->arrowObjects[i], false);
 		}
 	}
-
-
 }
 
 static void NavigateSettingEntriesVertically(int delta)
@@ -958,6 +962,7 @@ static void NavigateKeyBinding(const MenuItem* entry)
 		gNav->menuCol = keyNo;
 		PlayEffect(kSfxNavigate);
 		gNav->mouseHoverValid = false;
+		RepositionArrows();
 		return;
 	}
 
@@ -968,6 +973,7 @@ static void NavigateKeyBinding(const MenuItem* entry)
 		gNav->menuCol = keyNo;
 		PlayEffect(kSfxNavigate);
 		gNav->mouseHoverValid = false;
+		RepositionArrows();
 		return;
 	}
 
@@ -1017,6 +1023,7 @@ static void NavigatePadBinding(const MenuItem* entry)
 		gNav->idleTime = 0;
 		PlayEffect(kSfxNavigate);
 		gNav->mouseHoverValid = false;
+		RepositionArrows();
 		return;
 	}
 
@@ -1027,6 +1034,7 @@ static void NavigatePadBinding(const MenuItem* entry)
 		gNav->idleTime = 0;
 		PlayEffect(kSfxNavigate);
 		gNav->mouseHoverValid = false;
+		RepositionArrows();
 		return;
 	}
 
