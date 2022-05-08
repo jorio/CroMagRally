@@ -187,7 +187,10 @@ do_again:
 				/* MAIN LOOP */
 				/*************/
 
-	int outcome = StartMenu(gMainMenuTree, NULL, UpdateMainMenuScreen, DrawObjects);
+	MenuStyle style = kDefaultMenuStyle;
+	style.yOffset = 16;
+
+	int outcome = StartMenu(gMainMenuTree, &style, UpdateMainMenuScreen, DrawObjects);
 
 			/* SAVE PREFS IF THEY CHANGED */
 

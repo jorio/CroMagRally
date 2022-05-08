@@ -66,11 +66,9 @@ typedef struct MenuItem
 
 typedef struct MenuStyle
 {
-	bool			darkenPane;
+	float			darkenPaneOpacity;
 	float			fadeInSpeed;		// Menu will ignore input during 1.0/fadeInSpeed seconds after booting
 	float			fadeOutSpeed;
-	bool			asyncFadeOut;
-	bool			fadeOutSceneOnExit;
 	float			sweepInSpeed;
 	OGLColorRGBA	titleColor;
 	OGLColorRGBA	highlightColor;
@@ -79,14 +77,17 @@ typedef struct MenuStyle
 	float			standardScale;
 	float			rowHeight;
 	float			uniformXExtent;
-	bool			playMenuChangeSounds;
-	float			darkenPaneScaleY;
-	float			darkenPaneOpacity;
-	bool			startButtonExits;
-	bool			isInteractive;
-	bool			canBackOutOfRootMenu;
 	short			textSlot;
 	float			yOffset;
+
+	struct
+	{
+		bool			asyncFadeOut : 1;
+		bool			fadeOutSceneOnExit : 1;
+		bool			startButtonExits : 1;
+		bool			isInteractive : 1;
+		bool			canBackOutOfRootMenu : 1;
+	};
 } MenuStyle;
 
 extern const MenuStyle kDefaultMenuStyle;

@@ -15,10 +15,11 @@ enum
 	FENCE_SLOT		=	3098,	// before sprites
 	PARTICLE_SLOT	=	3099,	// before sprites
 	SPRITE_SLOT		=	3100,
-	INFOBAR_SLOT	=	8999,	// before fade, but after everything else
+	INFOBAR_SLOT	=	8500,
+	MENU_SLOT		=	8600,
 	FADE_SLOT		=	9000,
-	PILLARBOX_SLOT	=	9001,
-	DEBUGTEXT_SLOT	=	9002,
+	PILLARBOX_SLOT	=	9100,
+	DEBUGTEXT_SLOT	=	9200,
 };
 
 

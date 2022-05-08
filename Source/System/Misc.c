@@ -105,6 +105,7 @@ static Boolean	beenHere = false;
 		DisposeAllBG3DContainers();						// nuke all models
 		DisposeCavemanSkins();
 		DisposeAllSpriteGroups();						// nuke all sprites
+		DisposePillarboxMaterial();
 
 		ShutdownSkeletonManager();
 

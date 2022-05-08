@@ -114,5 +114,7 @@ enum
 	INFOBAR_SObjType_GreenTorchBlip,
 
 	INFOBAR_SObjType_PlayerBlip,
+
+	INFOBAR_SObjType_OverlayBackground,
 };
 

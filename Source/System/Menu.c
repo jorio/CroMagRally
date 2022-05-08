@@ -88,9 +88,7 @@ enum
 
 const MenuStyle kDefaultMenuStyle =
 {
-	.darkenPane			= true,
-	.darkenPaneScaleY	= 480,
-	.darkenPaneOpacity	= .8f,
+	.darkenPaneOpacity	= 0,
 	.fadeInSpeed		= (1.0f / 0.3f),
 	.fadeOutSpeed		= (1.0f / 0.2f),
 	.asyncFadeOut		= true,
@@ -103,12 +101,11 @@ const MenuStyle kDefaultMenuStyle =
 	.standardScale		= .5f,
 	.rowHeight			= 40,
 	.uniformXExtent		= 0,
-	.playMenuChangeSounds	= true,
 	.startButtonExits	= false,
 	.isInteractive		= true,
 	.canBackOutOfRootMenu	= false,
-	.textSlot			= SLOT_OF_DUMB + 100,
-	.yOffset			= 32,
+	.textSlot			= MENU_SLOT,
+	.yOffset			= 0,
 };
 
 typedef struct
@@ -169,6 +166,7 @@ typedef struct
 	float				idleTime;
 
 	ObjNode*			arrowObjects[2];
+	ObjNode*			darkenPane;
 } MenuNavigation;
 
 static MenuNavigation* gNav = NULL;
@@ -197,7 +195,7 @@ static void InitMenuNavigation(void)
 	NewObjectDefinitionType arrowDef =
 	{
 		.scale = 1,
-		.slot = SPRITE_SLOT,
+		.slot = nav->style.textSlot,
 		.flags = STATUS_BIT_OVERLAYPANE,
 	};
 	nav->arrowObjects[0] = TextMesh_New("<", 0, &arrowDef);
@@ -1294,7 +1292,6 @@ static void AwaitMouseClick(void)
 /****************************/
 #pragma mark - Page Layout
 
-#if 0
 static ObjNode* MakeDarkenPane(void)
 {
 	ObjNode* pane;
@@ -1302,21 +1299,22 @@ static ObjNode* MakeDarkenPane(void)
 	NewObjectDefinitionType def =
 	{
 		.genre = CUSTOM_GENRE,
-		.flags = STATUS_BIT_NOZWRITES | STATUS_BIT_NOLIGHTING | STATUS_BIT_NOFOG
-				| STATUS_BIT_NOTEXTUREWRAP | STATUS_BIT_KEEPBACKFACES | STATUS_BIT_MOVEINPAUSE,
-		.slot = SLOT_OF_DUMB + 100 - 1,
+		.flags = STATUS_BITS_FOR_2D | STATUS_BIT_MOVEINPAUSE | STATUS_BIT_OVERLAYPANE,
+		.slot = gNav->style.textSlot-1,
 		.scale = 1,
+		.group = SPRITE_GROUP_INFOBAR,
+		.type = INFOBAR_SObjType_OverlayBackground,
+		.coord = {0,16,0},
 	};
 
-	pane = MakeNewObject(&def);
-	pane->CustomDrawFunction = DrawDarkenPane;
+	pane = MakeSpriteObject(&def, gGameViewInfoPtr);
 	pane->ColorFilter = (OGLColorRGBA) {0, 0, 0, 0};
-	pane->Scale.y = gNav->style.darkenPaneScaleY;
+	pane->Scale.x = 480;
+	pane->Scale.y = 1;
 	pane->MoveCall = MoveDarkenPane;
 
 	return pane;
 }
-#endif
 
 static void DeleteAllText(void)
 {
@@ -1360,7 +1358,7 @@ static ObjNode* MakeText(const char* text, int row, int col, int textMeshFlags)
 		{
 			.coord = (OGLPoint3D) { 0, gNav->menuRowYs[row], 0 },
 			.scale = GetMenuItemHeight(row) * gNav->style.standardScale,
-			.slot = SLOT_OF_DUMB + 100,
+			.slot = gNav->style.textSlot,
 			.flags = STATUS_BIT_MOVEINPAUSE | STATUS_BIT_OVERLAYPANE,
 		};
 
@@ -1621,6 +1619,14 @@ static void LayOutMenu(int menuID)
 	}
 
 	float y = -totalHeight*.5f + gNav->style.yOffset;
+	y += GetMenuItemHeight(0) * gNav->style.rowHeight / 2.0f;
+
+	if (gNav->darkenPane)
+	{
+		gNav->darkenPane->Coord.y = gNav->style.yOffset;
+		gNav->darkenPane->Scale.y = 1.3f * totalHeight / GetSpriteInfo(SPRITE_GROUP_INFOBAR, INFOBAR_SObjType_OverlayBackground)->yadv;
+		UpdateObjectTransforms(gNav->darkenPane);
+	}
 
 	float sweepFactor = 0.0f;
 
@@ -1734,12 +1740,11 @@ int StartMenu(
 
 		/* LAY OUT MENU COMPONENTS */
 
-	ObjNode* pane = nil;
-
-#if 0
-	if (gNav->style.darkenPane)
-		pane = MakeDarkenPane();
-#endif
+	gNav->darkenPane = nil;
+	if (gNav->style.darkenPaneOpacity > 0.0f)
+	{
+		gNav->darkenPane = MakeDarkenPane();
+	}
 
 	LayOutMenu(menu->id);
 
@@ -1839,9 +1844,9 @@ int StartMenu(
 
 	if (gNav->style.asyncFadeOut)
 	{
-		if (pane)
+		if (gNav->darkenPane)
 		{
-			InstallAsyncFadeOut(pane);
+			InstallAsyncFadeOut(gNav->darkenPane);
 		}
 
 		for (int row = 0; row < MAX_MENU_ROWS; row++)
@@ -1861,8 +1866,11 @@ int StartMenu(
 	{
 		DeleteAllText();
 
-		if (pane)
-			DeleteObject(pane);
+		if (gNav->darkenPane)
+		{
+			DeleteObject(gNav->darkenPane);
+			gNav->darkenPane = nil;
+		}
 	}
 
 	DoSDLMaintenance();

@@ -139,6 +139,7 @@ void DoPaused(void)
 	MenuStyle style = kDefaultMenuStyle;
 	style.canBackOutOfRootMenu = true;
 	style.fadeOutSceneOnExit = false;
+	style.darkenPaneOpacity = .7f;
 
 	PushKeys();										// save key state so things dont get de-synced during net games
 
@@ -146,6 +147,7 @@ void DoPaused(void)
 		ToggleMusic();
 
 	gGamePaused = true;
+	gHideInfobar = true;
 
 				/*************/
 				/* MAIN LOOP */
@@ -157,6 +159,7 @@ void DoPaused(void)
 	int outcome = StartMenu(gPauseMenuTree, &style, UpdatePausedMenuCallback, DrawPausedMenuCallback);
 
 	gGamePaused = false;
+	gHideInfobar = false;
 	
 	PopKeys();										// restore key state
 
