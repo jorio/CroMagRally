@@ -30,6 +30,7 @@ static void MoveWinGuy(ObjNode *theNode);
 
 static void SetupCreditsScreen(void);
 static void MoveCredit(ObjNode *theNode);
+static void MoveCreditFadePane(ObjNode *theNode);
 
 
 /****************************/
@@ -140,7 +141,6 @@ float				keyTextFadeIn = -2.0f;		// fade in after a small delay
 
 			timeout -= gFramesPerSecondFrac;
 
-			
 			if (keyText)
 			{
 				keyTextFadeIn += gFramesPerSecondFrac;
@@ -693,7 +693,7 @@ OGLMatrix4x4			m,m3,m2;
 
 void DoCreditsScreen(void)
 {
-float	timer = 59.0f;
+float	timer = 60.0f;
 
 			/* SETUP */
 
@@ -723,6 +723,9 @@ float	timer = 59.0f;
 		timer -= gFramesPerSecondFrac;
 	}
 
+	gGameViewInfoPtr->fadeDuration = .5f;
+	OGL_FadeOutScene(gGameViewInfoPtr, DrawObjects, MoveObjects);
+
 
 			/* CLEANUP */
 
@@ -751,43 +754,33 @@ OGLSetupInputType	viewDef;
 
 static const CreditLine lines[] =
 {
-	{0, 2, .loca=STR_CREDITS_PROGRAMMING_AND_CONCEPT},
+	{0, 2, .loca=STR_CREDITS_PROGRAMMING},
 	{1, 4, .text=""},
 	{1, 0, .text="BRIAN GREENSTONE"},
-	{2, 1, .text="WWW.BRIANGREENSTONE.COM"},
 	{1, 3, .text=""},
 	{0, 2, .loca=STR_CREDITS_ART},
 	{1, 4, .text=""},
-	{1, 0, .text="JOSH MARUSKA"},
-	{1, 4, .text=""},
 	{1, 0, .text="MARCUS CONGE"},
-	{2, 1, .text="WWW.DIGITALMANIPULATION.COM"},
+	{1, 4, .text=""},
+	{1, 0, .text="DEE BROWN"},
+	{1, 4, .text=""},
+	{1, 0, .text="JOSHUA MARUSKA"},
 	{1, 4, .text=""},
 	{1, 0, .text="DANIEL MARCOUX"},
 	{1, 4, .text=""},
 	{1, 0, .text="CARL LOISELLE"},
-	{1, 4, .text=""},
-	{1, 0, .text="BRIAN GREENSTONE"},
 	{1, 3, .text=""},
 	{0, 2, .loca=STR_CREDITS_MUSIC},
 	{1, 4, .text=""},
 	{1, 0, .text="MIKE BECKETT"},
-	{2, 1, .text="WWW.NUCLEARKANGAROOMUSIC.COM"},
 	{0, 3, .text=""},
-	{0, 2, .loca=STR_CREDITS_ADDITIONAL_WORK},
-	{1, 4, .text=""},
-	{1, 0, .text="DEE BROWN"},
-	{2, 1, .text="WWW.BEENOX.COM"},
-	{1, 0, .text=""},
-	{1, 0, .text="PASCAL BRULOTTE"},
-	{1, 3, .text=""},
 	{0, 2, .loca=STR_CREDITS_PORT},
 	{1, 4, .text=""},
 	{1, 0, .text="ILIYAS JORIO"},
-	{2, 1, .text="GITHUB.COM/JORIO/CROMAGRALLY"},
 	{0, 3, .text=""},
 	{0, 2, .loca=STR_CREDITS_SPECIAL_THANKS},
 	{1, 4, .text=""},
+	{1, 0, .text="PASCAL BRULOTTE"},
 	{1, 0, .text="TUNCER DENIZ"},
 	{1, 0, .text="ZOE BENTLEY"},
 	{1, 0, .text="CHRIS BENTLEY"},
@@ -797,9 +790,19 @@ static const CreditLine lines[] =
 	{1, 0, .text="FELIX SEGEBRECHT"},
 	{1, 3, .text=""},
 	{1, 4, .text=""},
-	{1, 1, .text="COPYRIGHT 2000 PANGEA SOFTWARE, INC."},
+	{1, 1, .text="[C] 2000 PANGEA SOFTWARE, INC."},
 	{1, 1, .loca=STR_CREDITS_ALL_RIGHTS_RESERVED},
+	{1, 4, .text=""},
+	{1, 1, .text="CRO-MAG RALLY IS A REGISTERED"},
+	{1, 1, .text="TRADEMARK OF PANGEA SOFTWARE, INC."},
+	{1, 4, .text=""},
+	{1, 4, .text=""},
+	{1, 4, .text=""},
 	{2, 1, .text="WWW.PANGEASOFT.NET"},
+	{1, 4, .text=""},
+	{1, 4, .text=""},
+	{1, 4, .text=""},
+	{2, 1, .text="GITHUB.COM/JORIO/CROMAGRALLY"},
 	{-1,0, .text=""},
 };
 
@@ -813,10 +816,10 @@ static const OGLColorRGBA	colors[] =
 
 static const float sizes[] =
 {
-	.4,
 	.3,
-	.5,
-	.8,	// large spacing
+	.2,
+	.4,
+	1.8,	// large spacing
 	.2,	// small spacing
 };
 
@@ -835,7 +838,7 @@ static const float sizes[] =
 	viewDef.camera.yon 				= 2000;
 	viewDef.camera.from[0].z		= 1200;
 	viewDef.camera.from[0].y		= 0;
-	viewDef.view.clearColor 		= (OGLColorRGBA) { .49f, .39f, .29f, 1 };
+	viewDef.view.clearColor 		= (OGLColorRGBA) { .49f, .39f, .29f, 0 };
 	viewDef.view.pillarbox4x3		= true;
 	viewDef.view.fontName			= "rockfont";
 
@@ -857,14 +860,14 @@ static const float sizes[] =
 			/* BUILD CREDITS */
 			/*****************/
 
-	float y = 1.1 * 240.0f;
+	float y = 1.3 * 240.0f;
 	for (int i = 0; lines[i].color != -1; i++)
 	{
 		NewObjectDefinitionType def =
 		{
-			.coord		= {0,y,0},
+			.coord		= {-200,y,0},
 			.moveCall	= MoveCredit,
-			.scale		= sizes[lines[i].size],
+			.scale		= .66 * sizes[lines[i].size],
 			.slot 		= PARTICLE_SLOT-1,		// in this rare case we want to draw text before particles
 		};
 
@@ -886,6 +889,24 @@ static const float sizes[] =
 
 		y += def.scale * .275f * 240.0f;
 	}
+
+
+
+	NewObjectDefinitionType def =
+	{
+		.genre = SPRITE_GENRE,
+		.slot = PARTICLE_SLOT-2,
+		.scale = 1,
+		.group = SPRITE_GROUP_INFOBAR,
+		.type = INFOBAR_SObjType_OverlayBackgroundH,
+		.coord = {-200,0,0},
+		.moveCall = MoveCreditFadePane
+	};
+
+	ObjNode* pane = MakeSpriteObject(&def, gGameViewInfoPtr);
+	pane->ColorFilter = (OGLColorRGBA) {0, 0, 0, 0};
+	pane->Scale.x = 1.6f;
+	pane->Scale.y = 250;
 }
 
 
@@ -893,10 +914,52 @@ static const float sizes[] =
 
 static void MoveCredit(ObjNode *theNode)
 {
-	theNode->Coord.y -= .13f * gFramesPerSecondFrac * 240.0f;
+	theNode->Coord.y -= .1f * gFramesPerSecondFrac * 240.0f;
 	UpdateObjectTransforms(theNode);
 }
 
+
+static float EaseInOutSine	(float x) { return -(cosf(PI*x) - 1) / 2; }
+
+static void MoveCreditFadePane(ObjNode* theNode)
+{
+	float maxAlpha = .55f;
+
+	float stateAge = theNode->SpecialF[0];
+	float stateDuration = 1000000;
+
+	switch (theNode->Special[0])
+	{
+		case 0:
+			stateDuration = 1.5;
+			break;
+
+		case 1:
+			stateDuration = 1.5f;
+			theNode->ColorFilter.a = maxAlpha * EaseInOutSine(stateAge / stateDuration);
+			break;
+
+		case 2:
+			stateDuration = 55;
+			break;
+
+		case 3:
+			stateDuration = 1;
+			theNode->ColorFilter.a = maxAlpha * EaseInOutSine(1.0f - stateAge / stateDuration);
+			break;
+	}
+
+	stateAge += gFramesPerSecondFrac;
+	if (stateAge > stateDuration)
+	{
+		theNode->Special[0]++;
+		theNode->SpecialF[0] = 0;
+	}
+	else
+	{
+		theNode->SpecialF[0] = stateAge;
+	}
+}
 
 
 #pragma mark -

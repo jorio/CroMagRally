@@ -386,6 +386,8 @@ MOMaterialData	matData;
 
 	GLuint textureName = OGL_TextureMap_LoadImageFile(inData, &width, &height);
 
+	float scale = 480.0f / height;
+
 			/********************************/
 			/* SET SOME PICTURE OBJECT DATA */
 			/********************************/
@@ -393,8 +395,8 @@ MOMaterialData	matData;
 	picData->drawCoord.x	= -1.0;						// assume upper left corner
 	picData->drawCoord.y	= 1.0;
 	picData->drawCoord.z	= .999;						// assume in back
-	picData->drawScaleX		= 1.0;						// scale is normal
-	picData->drawScaleY		= 1.0;
+	picData->drawScaleX		= scale;
+	picData->drawScaleY		= scale;
 
 	picData->fullWidth 		= width;
 	picData->fullHeight		= height;

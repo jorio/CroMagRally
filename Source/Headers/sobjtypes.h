@@ -124,5 +124,7 @@ enum
 	INFOBAR_SObjType_PlaceER,	// French ordinal "1st" masculine
 	INFOBAR_SObjType_PlaceRE,	// French ordinal "1st" feminine
 	INFOBAR_SObjType_PlaceE,	// French ordinal "Nth"
+
+	INFOBAR_SObjType_OverlayBackgroundH,
 };
 
