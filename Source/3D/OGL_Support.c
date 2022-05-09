@@ -40,6 +40,7 @@ static void OGL_CreateLights(OGLLightDefType *lightDefPtr);
 
 #define	STATE_STACK_SIZE	20
 
+#define SPLITSCREEN_DIVIDER_THICKNESS 2			// relative to 640x480
 
 
 /*********************/
@@ -96,13 +97,13 @@ void OGL_Boot(void)
 {
 	OGL_CreateDrawContext();
 	OGL_CheckError();
-	
+
 	OGL_InitDrawContext();
 	OGL_CheckError();
-	
-	
-	
-	
+
+
+
+
 		/***************************/
 		/* GET OPENGL CAPABILITIES */
 		/***************************/
@@ -232,7 +233,7 @@ OGLSetupOutputType	*outputPtr;
 
 	glClearColor(setupDefPtr->view.clearColor.r, setupDefPtr->view.clearColor.g, setupDefPtr->view.clearColor.b, 1.0);
 	OGL_CheckError();
-	
+
 	OGL_SetStyles(setupDefPtr);
 	OGL_CheckError();
 
@@ -573,8 +574,8 @@ void OGL_DrawScene(OGLSetupOutputType *setupInfo, void (*drawRoutine)(OGLSetupOu
 	}
 
 
-	glColor4f(1,1,1,1);
-	glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);		// this lets us hot-switch between anaglyph and non-anaglyph in the settings
+//	glColor4f(1,1,1,1);
+//	glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);		// this lets us hot-switch between anaglyph and non-anaglyph in the settings
 
 
 				/**************************************/
@@ -695,6 +696,14 @@ int	t,b,l,r;
 	int clippedWidth = gGameWindowWidth - l - r;
 	int clippedHeight = gGameWindowHeight - t - b;
 
+	// Split-screen divider thickness
+	float div;
+	if (gGameWindowWidth >= gGameWindowHeight)
+		div = SPLITSCREEN_DIVIDER_THICKNESS * (gGameWindowHeight*(1.0f/480.0f));
+	else
+		div = SPLITSCREEN_DIVIDER_THICKNESS * (gGameWindowWidth*(1.0f/640.0f));
+	div = GAME_MAX(1, div);
+
 	if (whichPane >= gNumSplitScreenPanes) //gDrawingOverlayPane)
 	{
 		// Any pane IDs beyond gNumSplitScreenPanes is interpreted as
@@ -740,17 +749,17 @@ int	t,b,l,r;
 		_2pwide:
 				*x = l;
 				*w = clippedWidth;
-				*h = clippedHeight/2;
+				*h = clippedHeight/2 - div/2;
 				switch(whichPane)
 				{
-					case	0:
-							*y = t + clippedHeight/2;
+					case	0:		// top pane (y points up!)
+							*y = t + clippedHeight/2 + div/2;
 							break;
 
-					case	1:
+					case	1:		// bottom pane (y points up!)
 							*y = t;
 							break;
-					
+
 					default:
 							DoFatalAlert("Unsupported pane %d in 2P_WIDE split", whichPane);
 				}
@@ -758,7 +767,7 @@ int	t,b,l,r;
 
 		case	SPLITSCREEN_MODE_2P_TALL:
 		_2ptall:
-				*w = clippedWidth/2;
+				*w = clippedWidth/2 - div/2;
 				*h = clippedHeight;
 				*y = t;
 				switch(whichPane)
@@ -768,9 +777,9 @@ int	t,b,l,r;
 							break;
 
 					case	1:
-							*x = l + clippedWidth/2;
+							*x = l + clippedWidth/2 + div/2;
 							break;
-						
+
 					default:
 							DoFatalAlert("Unsupported pane %d in 2P_TALL split", whichPane);
 				}
@@ -812,28 +821,28 @@ int	t,b,l,r;
 
 		case	SPLITSCREEN_MODE_4P_GRID:
 		_4pgrid:
-				*w = clippedWidth / 2;
-				*h = clippedHeight / 2;
+				*w = clippedWidth / 2 - div/2;
+				*h = clippedHeight / 2 - div/2;
 				switch (whichPane)
 				{
+					case	0:
+						*x = l;
+						*y = t + clippedHeight / 2 + div/2;
+						break;
+
+					case	1:
+						*x = l + clippedWidth / 2 + div/2;
+						*y = t + clippedHeight / 2 + div/2;
+						break;
+
 					case	2:
 						*x = l;
 						*y = t;
 						break;
 
 					case	3:
-						*x = l + clippedWidth / 2;
+						*x = l + clippedWidth / 2 + div/2;
 						*y = t;
-						break;
-
-					case	0:
-						*x = l;
-						*y = t + clippedHeight / 2;
-						break;
-
-					case	1:
-						*x = l + clippedWidth / 2;
-						*y = t + clippedHeight / 2;
 						break;
 
 					default:
