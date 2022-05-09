@@ -749,11 +749,11 @@ int	t,b,l,r;
 		_2pwide:
 				*x = l;
 				*w = clippedWidth;
-				*h = clippedHeight/2 - div/2;
+				*h = 0.5f * (clippedHeight - div) + 0.5f;
 				switch(whichPane)
 				{
 					case	0:		// top pane (y points up!)
-							*y = t + clippedHeight/2 + div/2;
+							*y = t + 0.5f * (clippedHeight + div) + 0.5f;
 							break;
 
 					case	1:		// bottom pane (y points up!)
@@ -767,7 +767,7 @@ int	t,b,l,r;
 
 		case	SPLITSCREEN_MODE_2P_TALL:
 		_2ptall:
-				*w = clippedWidth/2 - div/2;
+				*w = 0.5f * (clippedWidth - div) + 0.5f;
 				*h = clippedHeight;
 				*y = t;
 				switch(whichPane)
@@ -777,7 +777,7 @@ int	t,b,l,r;
 							break;
 
 					case	1:
-							*x = l + clippedWidth/2 + div/2;
+							*x = l + 0.5f * (clippedWidth + div) + 0.5f;
 							break;
 
 					default:
@@ -821,18 +821,18 @@ int	t,b,l,r;
 
 		case	SPLITSCREEN_MODE_4P_GRID:
 		_4pgrid:
-				*w = clippedWidth / 2 - div/2;
-				*h = clippedHeight / 2 - div/2;
+				*w = 0.5f * (clippedWidth - div) + 0.5f;
+				*h = 0.5f * (clippedHeight - div) + 0.5f;
 				switch (whichPane)
 				{
 					case	0:
 						*x = l;
-						*y = t + clippedHeight / 2 + div/2;
+						*y = t + 0.5f * (clippedHeight + div) + 0.5f;
 						break;
 
 					case	1:
-						*x = l + clippedWidth / 2 + div/2;
-						*y = t + clippedHeight / 2 + div/2;
+						*x = l + 0.5f * (clippedWidth + div) + 0.5f;
+						*y = t + 0.5f * (clippedHeight + div) + 0.5f;
 						break;
 
 					case	2:
@@ -841,7 +841,7 @@ int	t,b,l,r;
 						break;
 
 					case	3:
-						*x = l + clippedWidth / 2 + div/2;
+						*x = l + 0.5f * (clippedWidth + div) + 0.5f;
 						*y = t;
 						break;
 
