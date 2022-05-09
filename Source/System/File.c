@@ -548,6 +548,12 @@ char		magic[sizeof(PREFS_MAGIC)];
 			/* VERIFY PREFS */
 			/****************/
 
+	if (gGamePrefs.language >= NUM_LANGUAGES
+		|| gGamePrefs.numTracksCompleted >= NUM_RACE_TRACKS)
+	{
+		goto fileIsCorrupt;
+	}
+
 	goto done;
 
 fileIsCorrupt:
