@@ -230,27 +230,26 @@ static int DoLocalGatherControls(void)
 		return -1;
 	}
 
-	if (GetNewNeedStateAnyP(kNeed_UILeft))
-	{
-		gNumControllersMissing--;
-		UpdateGatherPrompt(gNumControllersMissing);
-	}
-	else if (GetNewNeedStateAnyP(kNeed_UIRight))
-	{
-		gNumControllersMissing++;
-		UpdateGatherPrompt(gNumControllersMissing);
-	}
-
 		/* SEE IF SELECT THIS ONE */
 
-	if (GetNewKeyState(SDL_SCANCODE_RETURN))
+	if (GetNewKeyState(SDL_SCANCODE_RETURN) || GetNewKeyState(SDL_SCANCODE_KP_ENTER))
 	{
+		// User pressed [ENTER] on keyboard
 		if (gNumControllersMissing == 1)
 		{
 			PlayEffect_Parms(EFFECT_SELECTCLICK, FULL_CHANNEL_VOLUME, FULL_CHANNEL_VOLUME, NORMAL_CHANNEL_RATE * 2/3);
 			return 1;
 		}
 		else
+		{
+			PlayEffect(EFFECT_BADSELECT);
+			WiggleUIPadlock(gGatherPrompt);
+		}
+	}
+	else if (GetNewNeedStateAnyP(kNeed_UIConfirm))
+	{
+		// User pressed [A] on gamepad
+		if (gNumControllersMissing > 0)
 		{
 			PlayEffect(EFFECT_BADSELECT);
 			WiggleUIPadlock(gGatherPrompt);
