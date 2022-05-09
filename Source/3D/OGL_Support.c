@@ -226,6 +226,11 @@ OGLSetupOutputType	*outputPtr;
 	}
 
 
+				/* UPDATE WINDOW SIZE */
+
+	SDL_GetWindowSize(gSDLWindow, &gGameWindowWidth, &gGameWindowHeight);
+
+
 				/* SETUP */
 
 	OGL_InitDrawContext();
@@ -543,7 +548,13 @@ void OGL_DrawScene(OGLSetupOutputType *setupInfo, void (*drawRoutine)(OGLSetupOu
 #endif
 
 
+			/* UPDATE WINDOW SIZE ONCE PER FRAME */
+
+	SDL_GetWindowSize(gSDLWindow, &gGameWindowWidth, &gGameWindowHeight);
+
+
 			/* INIT SOME STUFF */
+
 
 	if (gDebugMode)
 	{
@@ -686,7 +697,6 @@ void OGL_GetCurrentViewport(const OGLSetupOutputType *setupInfo, int *x, int *y,
 {
 int	t,b,l,r;
 
-	SDL_GetWindowSize(gSDLWindow, &gGameWindowWidth, &gGameWindowHeight);
 
 	t = setupInfo->clip.top;
 	b = setupInfo->clip.bottom;
