@@ -53,7 +53,8 @@ enum
 	ICON_LAP,
 	ICON_WRONGWAY,
 	ICON_TOKEN,
-	ICON_WEAPON,
+	ICON_WEAPON_RACE,
+	ICON_WEAPON_BATTLE,
 	ICON_TIMER,
 	ICON_TIMERINDEX,
 	ICON_POWTIMER,
@@ -83,9 +84,9 @@ typedef struct
 	float scale;
 	float xSpacing;
 	float ySpacing;
-} IconPositioning;
+} IconPlacement;
 
-static const IconPositioning gIconInfo[NUM_INFOBAR_ICONTYPES] =
+static const IconPlacement gIconInfo[NUM_INFOBAR_ICONTYPES] =
 {
 	[ICON_PLACE]		= { kAnchorTopLeft,		  64,  48, 0.9,   0,  0 },
 	[ICON_MAP]			= { kAnchorBottomRight,	 -80, -84, 0.5,   0,  0 },
@@ -93,7 +94,8 @@ static const IconPositioning gIconInfo[NUM_INFOBAR_ICONTYPES] =
 	[ICON_LAP]			= { kAnchorBottomLeft,	  51, -48, 0.7,   0,  0 },
 	[ICON_WRONGWAY]		= { kAnchorCenter,		   0,-120, 1.0,   0,  0 },
 	[ICON_TOKEN]		= { kAnchorTopRight,	-196,  24, 0.4,  26,  0 },
-	[ICON_WEAPON]		= { kAnchorTop,			 -16,  36, 0.9,  42,  0 },
+	[ICON_WEAPON_RACE]	= { kAnchorTop,			 -16,  36, 0.9,  42,  0 },
+	[ICON_WEAPON_BATTLE]= { kAnchorTopLeft,		  32,  36, 0.9,  42,  0 },
 	[ICON_TIMER]		= { kAnchorTopRight,	-118,  36, 1.0, 125,  0 },
 	[ICON_TIMERINDEX]	= { kAnchorTopRight,	-166,  36, 0.6, 106,  0 },
 	[ICON_POWTIMER]		= { kAnchorTopLeft,		  29, 144, 0.8,  45, 46 },
@@ -555,10 +557,24 @@ float		x,y,scale, spacing, fontScale;
 	if (powType == POW_TYPE_NONE)
 		return;
 
-	x			= GetIconX(ICON_WEAPON);
-	y			= GetIconY(ICON_WEAPON);
-	scale		= GetIconScale(ICON_WEAPON);
-	spacing		= GetIconXSpacing(ICON_WEAPON);
+	int icon;
+	switch (gGameMode)
+	{
+		case GAME_MODE_TAG1:
+		case GAME_MODE_TAG2:
+		case GAME_MODE_SURVIVAL:
+		case GAME_MODE_CAPTUREFLAG:
+			icon = ICON_WEAPON_BATTLE;
+			break;
+		default:
+			icon = ICON_WEAPON_RACE;
+			break;
+	}
+
+	x			= GetIconX(icon);
+	y			= GetIconY(icon);
+	scale		= GetIconScale(icon);
+	spacing		= GetIconXSpacing(icon);
 
 	fontScale = scale * .7f;
 
