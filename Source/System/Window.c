@@ -61,10 +61,10 @@ static void DrawFadePane(ObjNode* theNode, OGLSetupOutputType* setupInfo)
 
 	glColor4f(0, 0, 0, 1.0f - gGammaFadePercent);
 	glBegin(GL_QUADS);
-	glVertex3f(-1, +1, 0);
-	glVertex3f(+1, +1, 0);
-	glVertex3f(+1, -1, 0);
 	glVertex3f(-1, -1, 0);
+	glVertex3f(+1, -1, 0);
+	glVertex3f(+1, +1, 0);
+	glVertex3f(-1, +1, 0);
 	glEnd();
 	glDisable(GL_BLEND);
 
