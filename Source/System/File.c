@@ -1103,7 +1103,7 @@ Ptr						tempBuffer16 = nil;
 	else
 	{
 		float* src = (float *)*hand;
-		BYTESWAP_HANDLE("f", float, gTerrainTileDepth*gTerrainTileWidth, hand);
+		BYTESWAP_HANDLE("f", float, (gTerrainTileDepth+1)*(gTerrainTileWidth+1), hand);
 		for (row = 0; row <= gTerrainTileDepth; row++)
 			for (col = 0; col <= gTerrainTileWidth; col++)
 				gMapYCoords[row][col] = *src++ * yScale;
