@@ -375,6 +375,7 @@ ObjNode	*shadowObj;
 		.flags		= STATUS_BIT_NOZWRITES | STATUS_BIT_NOLIGHTING | STATUS_BIT_NOFOG | gAutoFadeStatusBits,
 		.slot		= SLOT_OF_DUMB+1,
 		.scale		= scaleX,
+		.drawCall	= DrawShadow,
 	};
 
 	def.coord.y += SHADOW_Y_OFF;		// rise it a little
@@ -392,8 +393,6 @@ ObjNode	*shadowObj;
 	shadowObj->SpecialF[1] = scaleZ;
 
 	shadowObj->CheckForBlockers = checkBlockers;
-
-	shadowObj->CustomDrawFunction = DrawShadow;
 
 	shadowObj->Kind = shadowType;							// remember the shadow type
 

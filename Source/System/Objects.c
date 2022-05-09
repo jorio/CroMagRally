@@ -97,9 +97,9 @@ unsigned long flags = newObjDef->flags;
 	if (newNodePtr == nil)
 		DoFatalAlert("MakeNewObject: Alloc Ptr failed!");
 
-	if (newObjDef->slot == 0)
+	if (newObjDef->slot <= 0)
 	{
-		printf("%s: Slot is 0, are you sure?\n", __func__);
+		printf("%s: Slot is %d, are you sure?\n", __func__, newObjDef->slot);
 	}
 
 	if (newObjDef->scale == 0.0f)
@@ -130,6 +130,8 @@ unsigned long flags = newObjDef->flags;
 	newNodePtr->Genre = newObjDef->genre;
 	newNodePtr->Coord = newNodePtr->InitCoord = newNodePtr->OldCoord = newObjDef->coord;		// save coords
 	newNodePtr->StatusBits = flags;
+	newNodePtr->Projection = newObjDef->projection;
+	newNodePtr->CustomDrawFunction = newObjDef->drawCall;
 
 /*	newNodePtr->Flag[0] =
 	newNodePtr->Flag[1] =

@@ -2,8 +2,10 @@
 // window.h
 //
 
+#pragma once
+
 void InitWindowStuff(void);
-void MakeFadeEvent(Boolean fadeIn);
+ObjNode* MakeFadeEvent(Boolean fadeIn);
 void OGL_FadeOutScene(OGLSetupOutputType* setupInfo, void (*drawRoutine)(OGLSetupOutputType*), void (*updateRoutine)(void));
 void Enter2D(Boolean pauseDSp);
 void Exit2D(void);

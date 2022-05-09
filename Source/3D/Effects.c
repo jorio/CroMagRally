@@ -144,11 +144,8 @@ float	fps = gFramesPerSecondFrac;
 
 /************************ INIT PARTICLE SYSTEM **************************/
 
-void InitParticleSystem(OGLSetupOutputType *setupInfo)
+ObjNode* InitParticleSystem(OGLSetupOutputType *setupInfo)
 {
-ObjNode	*obj;
-
-
 			/* INIT GROUP ARRAY */
 
 	for (int i = 0; i < MAX_PARTICLE_GROUPS; i++)
@@ -177,11 +174,10 @@ ObjNode	*obj;
 		.moveCall 	= nil,
 		.scale 		= 1,
 		.flags 		= STATUS_BIT_KEEPBACKFACES|STATUS_BIT_NOLIGHTING|STATUS_BIT_NOZWRITES,
+		.drawCall	= DrawParticleGroup,
 	};
 
-	obj = MakeNewObject(&def);
-	obj->CustomDrawFunction = DrawParticleGroup;
-
+	return MakeNewObject(&def);
 }
 
 

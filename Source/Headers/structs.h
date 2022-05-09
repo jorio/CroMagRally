@@ -339,10 +339,16 @@ typedef struct ObjNode ObjNode;
 
 typedef struct
 {
-	Byte		genre,group,type,animNum;
+	Byte		genre;
+	Byte		group;
+	Byte		type;
+	Byte		animNum;
+	Byte		projection;
+	short		slot;
 	OGLPoint3D	coord;
 	uint32_t	flags;
-	short		slot;
 	void		(*moveCall)(ObjNode *);
-	float		rot,scale;
+	void		(*drawCall)(ObjNode *, OGLSetupOutputType *);
+	float		rot;
+	float		scale;
 }NewObjectDefinitionType;

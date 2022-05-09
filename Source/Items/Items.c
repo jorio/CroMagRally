@@ -47,9 +47,7 @@ void InitItemsManager(void)
 {
 int	i;
 
-	gCycloramaObj = nil;
-
-	CreateCyclorama();
+	gCycloramaObj = CreateCyclorama();
 
 	for (i = 0; i < MAX_POW_TYPES; i++)
 		gAnnouncedPOW[i] = false;
@@ -63,7 +61,7 @@ int	i;
 // This one cyc is used for all players on this machine.  Coords are reset during player render loop for each player.
 //
 
-void CreateCyclorama(void)
+ObjNode* CreateCyclorama(void)
 {
 	NewObjectDefinitionType def =
 	{
@@ -71,15 +69,13 @@ void CreateCyclorama(void)
 		.type		= 0,						// cyc is always 1st model in level bg3d file!
 		.coord		= {0, 0, 0},
 		.flags		= STATUS_BIT_DONTCULL|STATUS_BIT_NOLIGHTING|STATUS_BIT_NOFOG,
-		.slot		= 0,
+		.slot		= CYCLORAMA_SLOT,
 		.moveCall	= nil,
 		.rot		= 0,
 		.scale		= gGameViewInfoPtr->yon * .99f,
 	};
 
-	gCycloramaObj = MakeNewDisplayGroupObject(&def);
-	if (gCycloramaObj == nil)
-		return;
+	return MakeNewDisplayGroupObject(&def);
 }
 
 

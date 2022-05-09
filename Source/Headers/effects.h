@@ -2,6 +2,7 @@
 // effects.h
 //
 
+#pragma once
 
 #define	MAX_PARTICLE_GROUPS		70
 #define	MAX_PARTICLES			250		// (note change Byte below if > 255)
@@ -97,7 +98,7 @@ typedef struct
 
 
 void InitEffects(OGLSetupOutputType *setupInfo);
-void InitParticleSystem(OGLSetupOutputType *setupInfo);
+ObjNode* InitParticleSystem(OGLSetupOutputType *setupInfo);
 
 
 void DeleteAllParticleGroups(void);

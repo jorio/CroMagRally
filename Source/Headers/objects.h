@@ -8,12 +8,14 @@
 
 enum
 {
+	CYCLORAMA_SLOT	=	1,
+	TRIGGER_SLOT	=	4,		// needs to be early in the collision list
 	BGPIC_SLOT		=	10,
 	PLAYER_SLOT		=	200,
 	ENEMY_SLOT		=	210,	// after player
 	SLOT_OF_DUMB	=	3000,	// ----- collision checks don't look beyond SLOT_OF_DUMB
-	FENCE_SLOT		=	3098,	// before sprites
-	PARTICLE_SLOT	=	3099,	// before sprites
+	FENCE_SLOT		=	3098,	// after cyc, before sprites
+	PARTICLE_SLOT	=	3099,	// after fences, before sprites
 	SPRITE_SLOT		=	3100,
 	INFOBAR_SLOT	=	8500,
 	MENU_SLOT		=	8600,

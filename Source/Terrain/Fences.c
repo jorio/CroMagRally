@@ -209,12 +209,11 @@ void DisposeFences(void)
 // Called during terrain prime function to initialize
 //
 
-void PrimeFences(void)
+ObjNode* PrimeFences(void)
 {
 long					numNubs;
 FenceDefType			*fence;
 OGLPoint3D				*nubs;
-ObjNode					*obj;
 
 	gSeaweedFrame = 0;
 	gSeaweedFrameTimer = 0;
@@ -331,10 +330,10 @@ ObjNode					*obj;
 		.slot		= FENCE_SLOT,
 		.flags		= STATUS_BIT_KEEPBACKFACES|STATUS_BIT_NOLIGHTING,
 		.scale		= 1,
+		.drawCall	= DrawFences,
 	};
 
-	obj = MakeNewObject(&def);
-	obj->CustomDrawFunction = DrawFences;
+	return MakeNewObject(&def);
 }
 
 

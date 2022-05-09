@@ -2,11 +2,8 @@
 // triggers.h
 //
 
-#ifndef __TRIGGERS_H__
-#define __TRIGGERS_H__
+#pragma once
 
-
-#define	TRIGGER_SLOT	4					// needs to be early in the collision list
 #define	TriggerSides	Special[5]
 
 
@@ -84,7 +81,3 @@ Boolean AddCauldron(TerrainItemEntryType *itemPtr, long  x, long z);
 Boolean AddGong(TerrainItemEntryType *itemPtr, long  x, long z);
 Boolean AddSeaMine(TerrainItemEntryType *itemPtr, long  x, long z);
 Boolean AddDruid(TerrainItemEntryType *itemPtr, long  x, long z);
-
-#endif
-
-

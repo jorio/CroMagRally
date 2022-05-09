@@ -28,12 +28,7 @@ static void DrawPillarbox(ObjNode* objNode, OGLSetupOutputType* setupInfo)
 		return;
 	}
 
-	OGL_PushState();
-
-	OGL_DisableLighting();
-	glEnable(GL_CULL_FACE);
-	glDisable(GL_DEPTH_TEST);
-	glDisable(GL_BLEND);
+	// 2D state should have been set for us by STATUS_BITS_FOR_2D and ObjNode::Projection.
 
 	MO_DrawMaterial(gPillarboxMaterial, gGameViewInfoPtr);
 
@@ -179,8 +174,6 @@ static void DrawPillarbox(ObjNode* objNode, OGLSetupOutputType* setupInfo)
 		glVertex3f(qL, qT2, z);
 		glEnd();
 	}
-
-	OGL_PopState();
 }
 
 static ObjNode* MakePillarboxObject(void)
@@ -188,16 +181,14 @@ static ObjNode* MakePillarboxObject(void)
 	NewObjectDefinitionType def =
 	{
 		.genre = CUSTOM_GENRE,
-		.flags = STATUS_BIT_OVERLAYPANE,
+		.flags = STATUS_BIT_OVERLAYPANE | STATUS_BITS_FOR_2D,
 		.slot = PILLARBOX_SLOT,
 		.scale = 1,
+		.projection = kProjectionType2DNDC,
+		.drawCall = DrawPillarbox,
 	};
 
-	ObjNode* pillarbox = MakeNewObject(&def);
-	pillarbox->CustomDrawFunction = DrawPillarbox;
-	pillarbox->Projection = kProjectionType2DNDC;
-
-	return pillarbox;
+	return MakeNewObject(&def);
 }
 
 void InitPillarbox(void)

@@ -159,7 +159,7 @@ void LoadLocalizedStrings(GameLanguageID languageID)
 	for (int i = 0; i < MAX_STRINGS; i++)
 		gStringsTable[i] = nil;
 	gStringsTable[STR_NULL] = "???";
-	GAME_ASSERT(STR_NULL == 0);
+	_Static_assert(STR_NULL == 0, "STR_NULL must be 0!");
 
 	int row = 1;	// start row at 1, so that 0 is an illegal index (STR_NULL)
 

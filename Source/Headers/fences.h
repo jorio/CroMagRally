@@ -22,6 +22,6 @@ typedef struct
 
 //============================================
 
-void PrimeFences(void);
+ObjNode* PrimeFences(void);
 void DoFenceCollision(ObjNode *theNode);
 void DisposeFences(void);

@@ -687,25 +687,27 @@ void TextMesh_Update(const char* text, int flags, ObjNode* textNode)
 
 ObjNode *TextMesh_NewEmpty(int capacity, NewObjectDefinitionType* newObjDef)
 {
-	MOVertexArrayData mesh;
-	TextMesh_InitMesh(&mesh, capacity);
-
+	// Patch newObjDef with bare minimum flags for TextMesh
 	newObjDef->genre = TEXTMESH_GENRE;
 	newObjDef->flags |= STATUS_BITS_FOR_2D;
+	newObjDef->projection = kProjectionType2DOrthoCentered;
+
+	// Create object
 	ObjNode* textNode = MakeNewObject(newObjDef);
+	textNode->TextQuadCapacity = capacity;
 
-	textNode->Projection = kProjectionType2DOrthoCentered;
-
-	// Attach color mesh
+	// Create mesh
+	MOVertexArrayData mesh;
+	TextMesh_InitMesh(&mesh, capacity);
 	MetaObjectPtr meshMO = MO_CreateNewObjectOfType(MO_TYPE_GEOMETRY, MO_GEOMETRY_SUBTYPE_VERTEXARRAY, &mesh);
 
+	// Attach color mesh
 	CreateBaseGroup(textNode);
 	AttachGeometryToDisplayGroupObject(textNode, meshMO);
 
-	textNode->TextQuadCapacity = capacity;
-
 	// Dispose of extra reference to mesh
 	MO_DisposeObjectReference(meshMO);
+	meshMO = NULL;
 
 	UpdateObjectTransforms(textNode);
 

@@ -2,9 +2,10 @@
 // items.h
 //
 
+#pragma once
 
-extern	void InitItemsManager(void);
-void CreateCyclorama(void);
+void InitItemsManager(void);
+ObjNode* CreateCyclorama(void);
 Boolean AddTree(TerrainItemEntryType *itemPtr, long  x, long z);
 Boolean AddFinishLine(TerrainItemEntryType *itemPtr, long  x, long z);
 Boolean AddEasterHead(TerrainItemEntryType *itemPtr, long  x, long z);
@@ -50,9 +51,3 @@ Boolean PrimePolarBear(long splineNum, SplineItemType *itemPtr);
 Boolean AddFlower(TerrainItemEntryType *itemPtr, long  x, long z);
 
 Boolean PrimeViking(long splineNum, SplineItemType *itemPtr);
-
-
-
-
-
-

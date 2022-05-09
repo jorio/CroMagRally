@@ -55,12 +55,9 @@ static void DrawFadePane(ObjNode* theNode, OGLSetupOutputType* setupInfo)
 {
 	OGL_PushState();
 
-	OGL_SetProjection(kProjectionType2DNDC);
-	OGL_DisableLighting();
-	glDisable(GL_CULL_FACE);
-	glDisable(GL_DEPTH_TEST);
-	glDisable(GL_TEXTURE_2D);
+	// 2D state should have been set for us by STATUS_BITS_FOR_2D and ObjNode::Projection.
 	glEnable(GL_BLEND);
+	glDisable(GL_TEXTURE_2D);
 
 	glColor4f(0, 0, 0, 1.0f - gGammaFadePercent);
 	glBegin(GL_QUADS);
@@ -82,7 +79,7 @@ static void DrawFadePane(ObjNode* theNode, OGLSetupOutputType* setupInfo)
 // INPUT:	fadeIn = true if want fade IN, otherwise fade OUT.
 //
 
-void MakeFadeEvent(Boolean	fadeIn)
+ObjNode* MakeFadeEvent(Boolean fadeIn)
 {
 ObjNode	*newObj;
 ObjNode		*thisNodePtr;
@@ -90,7 +87,7 @@ ObjNode		*thisNodePtr;
 	if (gDebugMode)
 	{
 		gGammaFadePercent = fadeIn? 1: 0;
-		return;
+		return NULL;
 	}
 
 		/* SCAN FOR OLD FADE EVENTS STILL IN LIST */
@@ -102,7 +99,7 @@ ObjNode		*thisNodePtr;
 		if (thisNodePtr->MoveCall == MoveFadeEvent)
 		{
 			thisNodePtr->Flag[0] = fadeIn;								// set new mode
-			return;
+			return thisNodePtr;
 		}
 		thisNodePtr = thisNodePtr->NextNode;							// next node
 	}
@@ -115,11 +112,14 @@ ObjNode		*thisNodePtr;
 		.genre = CUSTOM_GENRE,
 		.slot = FADE_SLOT,
 		.scale = 1,
-		.moveCall = MoveFadeEvent
+		.flags = STATUS_BITS_FOR_2D | STATUS_BIT_OVERLAYPANE,
+		.projection = kProjectionType2DNDC,
+		.moveCall = MoveFadeEvent,
+		.drawCall = DrawFadePane,
 	};
 	newObj = MakeNewObject(&newObjDef);
-	newObj->CustomDrawFunction = DrawFadePane;
 	newObj->Flag[0] = fadeIn;
+	return newObj;
 }
 
 
@@ -172,10 +172,11 @@ void OGL_FadeOutScene(
 		.genre = CUSTOM_GENRE,
 		.slot = FADE_SLOT,
 		.scale = 1,
-		.flags = STATUS_BIT_OVERLAYPANE
+		.flags = STATUS_BIT_OVERLAYPANE | STATUS_BITS_FOR_2D,
+		.drawCall = DrawFadePane,
+		.projection = kProjectionType2DNDC,
 	};
-	ObjNode* newObj = MakeNewObject(&newObjDef);
-	newObj->CustomDrawFunction = DrawFadePane;
+	MakeNewObject(&newObjDef);
 
 	float timer = setupInfo->fadeDuration;
 	while (timer >= 0)

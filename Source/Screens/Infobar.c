@@ -211,16 +211,16 @@ static const char*	maps[] =
 
 	GAME_ASSERT(!gInfobarMasterObj);
 
+	NewObjectDefinitionType masterObjDef =
 	{
-		NewObjectDefinitionType def =
-		{
-			.scale = 1,
-			.slot = INFOBAR_SLOT,
-			.genre = CUSTOM_GENRE,
-		};
-		gInfobarMasterObj = MakeNewObject(&def);
-		gInfobarMasterObj->CustomDrawFunction = DrawInfobar;
-	}
+		.scale = 1,
+		.slot = INFOBAR_SLOT,
+		.genre = CUSTOM_GENRE,
+		.flags = STATUS_BITS_FOR_2D,
+		.projection = kProjectionType2DOrthoFullRect,
+		.drawCall = DrawInfobar,
+	};
+	gInfobarMasterObj = MakeNewObject(&masterObjDef);
 
 	
 
@@ -278,27 +278,10 @@ static void DrawInfobar(ObjNode* theNode, OGLSetupOutputType *setupInfo)
 	if (gHideInfobar)
 		return;
 
-		/************/
-		/* SET TAGS */
-		/************/
-
-	OGL_PushState();
-
-	if (setupInfo->useFog)
-		glDisable(GL_FOG);
-	OGL_DisableLighting();
-	glDisable(GL_CULL_FACE);
-	glDisable(GL_DEPTH_TEST);								// no z-buffer
-
-
-			/* INIT MATRICES */
-
-	OGL_SetProjection(kProjectionType2DOrthoFullRect);
-
-
 		/***************/
 		/* DRAW THINGS */
 		/***************/
+		// STATUS_BITS_FOR_2D has already set the tedious OpenGL 2D state for us.
 
 
 		/* DRAW THE STANDARD THINGS */
@@ -339,15 +322,7 @@ static void DrawInfobar(ObjNode* theNode, OGLSetupOutputType *setupInfo)
 		case	GAME_MODE_CAPTUREFLAG:
 				Infobar_DrawFlags(setupInfo);
 				break;
-
 	}
-
-
-			/***********/
-			/* CLEANUP */
-			/***********/
-
-	OGL_PopState();
 }
 
 

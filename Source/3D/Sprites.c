@@ -118,12 +118,11 @@ MOSpriteSetupData	spriteData;
 
 	newObjDef->genre = SPRITE_GENRE;
 	newObjDef->flags |= STATUS_BITS_FOR_2D;
+	newObjDef->projection = kProjectionType2DOrthoCentered;
 
 	newObj = MakeNewObject(newObjDef);
 	if (newObj == nil)
 		return(nil);
-
-	newObj->Projection = kProjectionType2DOrthoCentered;
 
 			/* MAKE SPRITE META-OBJECT */
 
