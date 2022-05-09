@@ -19,7 +19,7 @@
 /*    PROTOTYPES            */
 /****************************/
 
-static bool ShouldDisplaySplitscreenModeCycler(const MenuItem* mi);
+static int ShouldDisplaySplitscreenModeCycler(const MenuItem* mi);
 static void OnToggleSplitscreenMode(const MenuItem* mi);
 
 
@@ -40,7 +40,7 @@ static const MenuItem gPauseMenuTree[] =
 		.type = kMICycler1,
 		.text = STR_SPLITSCREEN_MODE,
 		.id = 2,	// ShouldDisplaySplitscreenModeCycler looks at this ID to know it's meant for 2P
-		.displayIf = ShouldDisplaySplitscreenModeCycler,
+		.getLayoutFlags = ShouldDisplaySplitscreenModeCycler,
 		.callback = OnToggleSplitscreenMode,
 		.cycler =
 		{
@@ -58,9 +58,8 @@ static const MenuItem gPauseMenuTree[] =
 		.type = kMICycler1,
 		.text = STR_SPLITSCREEN_MODE,
 		.id = 3,	// ShouldDisplaySplitscreenModeCycler looks at this ID to know it's meant for 3P
-		.displayIf = ShouldDisplaySplitscreenModeCycler,
+		.getLayoutFlags = ShouldDisplaySplitscreenModeCycler,
 		.callback = OnToggleSplitscreenMode,
-
 		.cycler =
 		{
 			.valuePtr = &gGamePrefs.splitScreenMode3P,
@@ -89,9 +88,12 @@ Boolean gGamePaused = false;
 
 /****************** TOGGLE SPLIT-SCREEN MODE ********************/
 
-bool ShouldDisplaySplitscreenModeCycler(const MenuItem* mi)
+int ShouldDisplaySplitscreenModeCycler(const MenuItem* mi)
 {
-	return gNumSplitScreenPanes == mi->id;
+	if (gNumSplitScreenPanes == mi->id)
+		return 0;
+	else
+		return kMILayoutFlagHidden | kMILayoutFlagDisabled;
 }
 
 void OnToggleSplitscreenMode(const MenuItem* mi)

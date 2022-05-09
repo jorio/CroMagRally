@@ -42,7 +42,7 @@ static Byte gSelectedCarPhysics = 0;
 static const MenuItem gPhysicsMenuTree[] =
 {
 	{.id='phys'},
-	{kMISubtitle, .text=STR_PHYSICS_SETTINGS_RESET_INFO },
+	{kMILabel, .text=STR_PHYSICS_SETTINGS_RESET_INFO },
 	{kMISpacer, .customHeight=1.5f },
 	{kMIPick, STR_PHYSICS_EDIT_CAR_STATS, .next='stat', },
 	{kMIPick, STR_PHYSICS_EDIT_CONSTANTS, .next='cons', },

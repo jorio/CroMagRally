@@ -35,8 +35,6 @@ static ObjNode* LayOutCMRCycler(int row, float sweepFactor);
 static ObjNode* LayOutCycler(int row, float sweepFactor);
 static ObjNode* LayOutPick(int row, float sweepFactor);
 static ObjNode* LayOutLabel(int row, float sweepFactor);
-static ObjNode* LayOutSubtitle(int row, float sweepFactor);
-static ObjNode* LayOutTitle(int row, float sweepFactor);
 static ObjNode* LayOutKeyBinding(int row, float sweepFactor);
 static ObjNode* LayOutPadBinding(int row, float sweepFactor);
 static ObjNode* LayOutMouseBinding(int row, float sweepFactor);
@@ -94,10 +92,6 @@ const MenuStyle kDefaultMenuStyle =
 	.asyncFadeOut		= true,
 	.fadeOutSceneOnExit	= true,
 	.sweepInSpeed		= (1.0f / 0.2f),
-	.titleColor			= {1.0f, 1.0f, 0.7f, 1.0f},
-	.highlightColor		= {0.3f, 0.5f, 0.2f, 1.0f},
-	.inactiveColor		= {1.0f, 1.0f, 1.0f, 1.0f},
-	.inactiveColor2		= {0.5f, 0.5f, 0.5f, 0.5f},
 	.standardScale		= .5f,
 	.rowHeight			= 40,
 	.uniformXExtent		= 0,
@@ -106,6 +100,10 @@ const MenuStyle kDefaultMenuStyle =
 	.canBackOutOfRootMenu	= false,
 	.textSlot			= MENU_SLOT,
 	.yOffset			= 0,
+
+	.highlightColor		= {0.3f, 0.5f, 0.2f, 1.0f},
+	.idleColor			= {1.0f, 1.0f, 1.0f, 1.0f},
+	.labelColor			= {0.5f, 0.5f, 0.5f, 1.0f},
 };
 
 typedef struct
@@ -118,12 +116,10 @@ typedef struct
 static const MenuItemClass kMenuItemClasses[kMI_COUNT] =
 {
 	[kMISENTINEL]		= {0.0f, NULL, NULL },
-	[kMITitle]			= {1.4f, LayOutTitle, NULL },
-	[kMISubtitle]		= {0.6f, LayOutSubtitle, NULL },
-	[kMILabel]			= {1.0f, LayOutLabel, NULL },
+	[kMILabel]			= {0.5f, LayOutLabel, NULL },
 	[kMISpacer]			= {0.5f, NULL, NULL },
-	[kMICycler2]			= {1.0f, LayOutCycler, NavigateCycler },
 	[kMICycler1]		= {1.0f, LayOutCMRCycler, NavigateCycler },
+	[kMICycler2]		= {1.0f, LayOutCycler, NavigateCycler },
 	[kMIFloatRange]		= {1.0f, LayOutFloatRange, NavigateFloatRange },
 	[kMIPick]			= {1.0f, LayOutPick, NavigatePick },
 	[kMIKeyBinding]		= {0.5f, LayOutKeyBinding, NavigateKeyBinding },
@@ -286,6 +282,14 @@ static const char* FourccToString(int fourCC)
 	return string;
 }
 
+static int GetLayoutFlags(const MenuItem* mi)
+{
+	if (mi->getLayoutFlags)
+		return mi->getLayoutFlags(mi);
+	else
+		return 0;
+}
+
 static OGLColorRGBA PulsateColor(float* time)
 {
 	*time += gFramesPerSecondFrac;
@@ -440,23 +444,10 @@ static bool IsMenuItemSelectable(const MenuItem* mi)
 	{
 		case kMISpacer:
 		case kMILabel:
-		case kMITitle:
-		case kMISubtitle:
 			return false;
 
 		default:
-			if (mi->displayIf != NULL && !(mi->displayIf(mi)))
-			{
-				return false;
-			}
-			else if (mi->enableIf != NULL)
-			{
-				return mi->enableIf(mi);
-			}
-			else
-			{
-				return true;
-			}
+			return !(GetLayoutFlags(mi) & (kMILayoutFlagHidden | kMILayoutFlagDisabled));
 	}
 
 }
@@ -539,7 +530,7 @@ static void MoveAction(ObjNode* node)
 	if (node->SpecialRow == gNav->menuRow)
 		node->ColorFilter = gNav->style.highlightColor; //TwinkleColor();
 	else
-		node->ColorFilter = gNav->style.inactiveColor;
+		node->ColorFilter = gNav->style.idleColor;
 
 	MoveGenericMenuItem(node, 1);
 }
@@ -557,7 +548,7 @@ static void MoveKeyBinding(ObjNode* node)
 	}
 	else
 	{
-		node->ColorFilter = gNav->style.inactiveColor;
+		node->ColorFilter = gNav->style.idleColor;
 	}
 
 	MoveGenericMenuItem(node, node->ColorFilter.a);
@@ -574,7 +565,7 @@ static void MovePadBinding(ObjNode* node)
 	}
 	else
 	{
-		node->ColorFilter = gNav->style.inactiveColor;
+		node->ColorFilter = gNav->style.idleColor;
 	}
 
 	MoveGenericMenuItem(node, node->ColorFilter.a);
@@ -591,7 +582,7 @@ static void MoveMouseBinding(ObjNode* node)
 	}
 	else
 	{
-		node->ColorFilter = gNav->style.inactiveColor;
+		node->ColorFilter = gNav->style.idleColor;
 	}
 
 	MoveGenericMenuItem(node, node->ColorFilter.a);
@@ -1414,7 +1405,7 @@ static float GetMenuItemHeight(int row)
 {
 	const MenuItem* menuItem = &gNav->menu[row];
 
-	if (menuItem->displayIf && !(menuItem->displayIf(menuItem)))
+	if (GetLayoutFlags(menuItem) & kMILayoutFlagHidden)
 		return false;
 	else if (menuItem->customHeight > 0)
 		return menuItem->customHeight;
@@ -1482,12 +1473,16 @@ static ObjNode* MakeText(const char* text, int row, int desiredCol, int textMesh
 
 static const char* GetMenuItemLabel(const MenuItem* entry)
 {
+#if 0
 	if (entry->rawText)
 		return entry->rawText;
 	else if (entry->generateText)
 		return entry->generateText();
 	else
 		return Localize(entry->text);
+#else
+	return Localize(entry->text);
+#endif
 }
 
 static const char* GetCyclerValueText(int row)
@@ -1499,36 +1494,12 @@ static const char* GetCyclerValueText(int row)
 	return "VALUE NOT FOUND???";
 }
 
-static ObjNode* LayOutTitle(int row, float sweepFactor)
-{
-	const MenuItem* entry = &gNav->menu[row];
-
-	ObjNode* label = MakeText(GetMenuItemLabel(entry), row, 0, 0);
-	label->ColorFilter = gNav->style.titleColor;
-	label->MoveCall = MoveLabel;
-	label->SpecialSweepTimer = .5f;		// Title appears sooner than the rest
-
-	return label;
-}
-
-static ObjNode* LayOutSubtitle(int row, float sweepFactor)
-{
-	const MenuItem* entry = &gNav->menu[row];
-
-	ObjNode* label = MakeText(GetMenuItemLabel(entry), row, 0, 0);
-	label->ColorFilter = (OGLColorRGBA){ 0.7, .4, .2, 1 };
-	label->MoveCall = MoveLabel;
-	label->SpecialSweepTimer = .5f;		// Title appears sooner than the rest
-
-	return label;
-}
-
 static ObjNode* LayOutLabel(int row, float sweepFactor)
 {
 	const MenuItem* entry = &gNav->menu[row];
 
 	ObjNode* label = MakeText(GetMenuItemLabel(entry), row, 0, 0);
-	label->ColorFilter = (OGLColorRGBA){ 0.7, .4, .2, 1 };//gNav->style.inactiveColor;
+	label->ColorFilter = gNav->style.labelColor;
 	label->MoveCall = MoveLabel;
 	label->SpecialSweepTimer = sweepFactor;
 
@@ -1622,7 +1593,7 @@ static ObjNode* LayOutKeyBinding(int row, float sweepFactor)
 
 	ObjNode* label = MakeText(buf, row, 0, kTextMeshAlignLeft);
 	label->Coord.x -= 256;
-	label->ColorFilter = gNav->style.inactiveColor2;
+	label->ColorFilter = gNav->style.labelColor;
 	label->MoveCall = MoveLabel;
 	label->SpecialSweepTimer = sweepFactor;
 
@@ -1647,7 +1618,7 @@ static ObjNode* LayOutPadBinding(int row, float sweepFactor)
 
 	ObjNode* label = MakeText(buf, row, 0, kTextMeshAlignLeft);
 	label->Coord.x -= 256;
-	label->ColorFilter = gNav->style.inactiveColor2;
+	label->ColorFilter = gNav->style.labelColor;
 	label->MoveCall = MoveLabel;
 	label->SpecialSweepTimer = sweepFactor;
 
@@ -1671,7 +1642,7 @@ static ObjNode* LayOutMouseBinding(int row, float sweepFactor)
 	snprintf(buf, bufSize, "%s:", Localize(STR_KEYBINDING_DESCRIPTION_0 + entry->inputNeed));
 
 	ObjNode* label = MakeText(buf, row, 0, 0);
-	label->ColorFilter = gNav->style.inactiveColor2;
+	label->ColorFilter = gNav->style.labelColor;
 	label->MoveCall = MoveAction;
 	label->SpecialSweepTimer = sweepFactor;
 
@@ -1730,7 +1701,7 @@ static void LayOutMenu(int menuID)
 		const MenuItem* entry = &menu[row];
 		const MenuItemClass* cls = &kMenuItemClasses[entry->type];
 
-		if (entry->displayIf && !(entry->displayIf(entry)))
+		if (GetLayoutFlags(entry) & kMILayoutFlagHidden)
 		{
 			gNav->numMenuEntries++;
 			continue;

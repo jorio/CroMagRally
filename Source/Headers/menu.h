@@ -8,8 +8,6 @@ typedef enum
 {
 	kMISENTINEL,
 	kMIPick,
-	kMITitle,
-	kMISubtitle,
 	kMILabel,
 	kMISpacer,
 	kMICycler1,
@@ -42,17 +40,12 @@ typedef struct
 typedef struct MenuItem
 {
 	MenuItemType			type;
-
 	LocStrID				text;
-	const char*				rawText;	// takes precedence over localizable text if non-NULL
-	const char*				(*generateText)(void);
+	int32_t					id;			// value returned by StartMenu if exiting menu
+	int32_t					next;		// next menu, or one of 'EXIT', 'BACK' or 0 (no-op)
 
 	void					(*callback)(const struct MenuItem*);
-	bool					(*enableIf)(const struct MenuItem*);
-	bool					(*displayIf)(const struct MenuItem*);
-
-	int						id;			// value returned by StartMenu if exiting menu
-	int						next;		// next menu, or one of 'EXIT', 'BACK' or 0 (no-op)
+	int						(*getLayoutFlags)(const struct MenuItem*);
 
 	union
 	{
@@ -64,22 +57,27 @@ typedef struct MenuItem
 	float					customHeight;
 } MenuItem;
 
+enum	// Returned by getLayoutFlags
+{
+	kMILayoutFlagDisabled = 1 << 0,
+	kMILayoutFlagHidden = 1 << 1,
+};
+
 typedef struct MenuStyle
 {
 	float			darkenPaneOpacity;
 	float			fadeInSpeed;		// Menu will ignore input during 1.0/fadeInSpeed seconds after booting
 	float			fadeOutSpeed;
 	float			sweepInSpeed;
-	OGLColorRGBA	titleColor;
-	OGLColorRGBA	highlightColor;
-	OGLColorRGBA	inactiveColor;
-	OGLColorRGBA	inactiveColor2;
 	float			standardScale;
 	float			rowHeight;
 	float			uniformXExtent;
 	short			textSlot;
 	float			yOffset;
 
+	OGLColorRGBA	labelColor;
+	OGLColorRGBA	idleColor;
+	OGLColorRGBA	highlightColor;
 	struct
 	{
 		bool			asyncFadeOut : 1;

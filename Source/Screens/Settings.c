@@ -121,7 +121,7 @@ const MenuItem gSettingsMenuTree[] =
 
 	{ .id='keyb' },
 	{kMISpacer, .customHeight=.35f },
-	{kMISubtitle, STR_CONFIGURE_KEYBOARD_HELP, .customHeight=.5f },
+	{kMILabel, STR_CONFIGURE_KEYBOARD_HELP, .customHeight=.5f },
 	{kMISpacer, .customHeight=.4f },
 	{kMIKeyBinding, .inputNeed=kNeed_Forward },
 	{kMIKeyBinding, .inputNeed=kNeed_Backward },
@@ -137,7 +137,7 @@ const MenuItem gSettingsMenuTree[] =
 
 	{ .id='gpad' },
 	{kMISpacer, .customHeight=.35f },
-	{kMISubtitle,         STR_CONFIGURE_GAMEPAD_HELP, .customHeight=.5f },
+	{kMILabel, STR_CONFIGURE_GAMEPAD_HELP, .customHeight=.5f },
 	{kMISpacer, .customHeight=.4f },
 	{kMIPadBinding, .inputNeed=kNeed_Forward },
 	{kMIPadBinding, .inputNeed=kNeed_Backward },

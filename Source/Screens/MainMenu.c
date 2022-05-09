@@ -34,8 +34,8 @@ static void OnAdjustSFXVolume(const MenuItem* mi);
 static void OnPickClearSavedGame(const MenuItem* mi);
 static void OnPickTagDuration(const MenuItem* mi);
 
-static bool IsClearSavedGameAvailable(const MenuItem* mi);
-static bool IsTournamentAgeAvailable(const MenuItem* mi);
+static int IsClearSavedGameAvailable(const MenuItem* mi);
+static int IsTournamentAgeAvailable(const MenuItem* mi);
 
 /****************************/
 /*    CONSTANTS             */
@@ -86,7 +86,7 @@ static const MenuItem gMainMenuTree[] =
 		}
 	},
 	{kMIPick, STR_SETTINGS, .callback=RegisterSettingsMenu, .next='sett' },
-	{kMIPick, STR_CLEAR_SAVED_GAME, .next='clrs', .enableIf=IsClearSavedGameAvailable },
+	{kMIPick, STR_CLEAR_SAVED_GAME, .next='clrs', .getLayoutFlags=IsClearSavedGameAvailable },
 
 	{ .id='xtra' },
 	{kMIPick, STR_HELP,				.id=MENU_EXITCODE_HELP,		.next='EXIT' },
@@ -105,37 +105,37 @@ static const MenuItem gMainMenuTree[] =
 	{kMIPick, STR_TOURNAMENT,	.callback=OnPickGameMode, .id=GAME_MODE_TOURNAMENT,			.next='tour' },
 
 	{ .id='tour' },
-	{kMISubtitle, .text=STR_TOURNAMENT_OBJECTIVE },
+	{kMILabel, .text=STR_TOURNAMENT_OBJECTIVE },
 	{kMISpacer, .customHeight=1.0f},
 	{kMIPick, STR_STONE_AGE,	.callback=OnPickTournamentAge, .id=STONE_AGE,	.next='EXIT'},
-	{kMIPick, STR_BRONZE_AGE,	.callback=OnPickTournamentAge, .id=BRONZE_AGE,	.next='EXIT', .enableIf = IsTournamentAgeAvailable},
-	{kMIPick, STR_IRON_AGE,		.callback=OnPickTournamentAge, .id=IRON_AGE,	.next='EXIT', .enableIf = IsTournamentAgeAvailable},
+	{kMIPick, STR_BRONZE_AGE,	.callback=OnPickTournamentAge, .id=BRONZE_AGE,	.next='EXIT', .getLayoutFlags=IsTournamentAgeAvailable},
+	{kMIPick, STR_IRON_AGE,		.callback=OnPickTournamentAge, .id=IRON_AGE,	.next='EXIT', .getLayoutFlags=IsTournamentAgeAvailable},
 
 	{ .id='netg' },
 	{kMIPick, STR_HOST_NET_GAME, .callback=OnPickHostOrJoin, .id=0, .next='mpgm' }, // host gets to select game type
 	{kMIPick, STR_JOIN_NET_GAME, .callback=OnPickHostOrJoin, .id=1 },
 
 	{ .id='clrs' },
-	{kMISubtitle, .text=STR_CLEAR_SAVED_GAME_TEXT_1 },
+	{kMILabel, .text=STR_CLEAR_SAVED_GAME_TEXT_1 },
 	{kMISpacer, .text=STR_NULL, .customHeight=1 },
-	{kMISubtitle, .text=STR_CLEAR_SAVED_GAME_TEXT_2 },
+	{kMILabel, .text=STR_CLEAR_SAVED_GAME_TEXT_2 },
 	{kMISpacer, .text=STR_NULL, .customHeight=1 },
 	{kMIPick, .text=STR_CLEAR_SAVED_GAME_CANCEL, .next='BACK' },
 	{kMIPick, .text=STR_CLEAR_SAVED_GAME, .callback=OnPickClearSavedGame, .next='BACK' },
 
 	{ .id='tag1' },
-	{kMISubtitle, .text=STR_KEEPAWAYTAG_HELP },
+	{kMILabel, .text=STR_KEEPAWAYTAG_HELP },
 	{kMISpacer, .text=STR_NULL },
-	{kMISubtitle, .text=STR_TAG_DURATION },
+	{kMILabel, .text=STR_TAG_DURATION },
 	{kMISpacer, .text=STR_NULL, .customHeight=1 },
 	{kMIPick, STR_2_MINUTES, .callback=OnPickTagDuration, .id=2, .next='EXIT' },
 	{kMIPick, STR_3_MINUTES, .callback=OnPickTagDuration, .id=3, .next='EXIT' },
 	{kMIPick, STR_4_MINUTES, .callback=OnPickTagDuration, .id=4, .next='EXIT' },
 
 	{ .id='tag2' },
-	{kMISubtitle, .text=STR_STAMPEDETAG_HELP },
+	{kMILabel, .text=STR_STAMPEDETAG_HELP },
 	{kMISpacer, .text=STR_NULL },
-	{kMISubtitle, .text=STR_TAG_DURATION },
+	{kMILabel, .text=STR_TAG_DURATION },
 	{kMISpacer, .text=STR_NULL, .customHeight=1 },
 	{kMIPick, STR_2_MINUTES, .callback=OnPickTagDuration, .id=2, .next='EXIT' },
 	{kMIPick, STR_3_MINUTES, .callback=OnPickTagDuration, .id=3, .next='EXIT' },
@@ -425,13 +425,20 @@ static void OnPickTagDuration(const MenuItem* mi)
 
 #pragma mark -
 
-static bool IsClearSavedGameAvailable(const MenuItem* mi)
+static int IsClearSavedGameAvailable(const MenuItem* mi)
 {
 	(void) mi;
-	return GetNumTracksCompletedTotal() > 0;
+
+	if ((GetNumTracksCompletedTotal() > 0) || IsCheatKeyComboDown())
+		return 0;
+	else
+		return kMILayoutFlagDisabled;
 }
 
-static bool IsTournamentAgeAvailable(const MenuItem* mi)
+static int IsTournamentAgeAvailable(const MenuItem* mi)
 {
-	return mi->id <= GetNumAgesCompleted();
+	if (mi->id <= GetNumAgesCompleted())
+		return 0;
+	else
+		return kMILayoutFlagDisabled;
 }
