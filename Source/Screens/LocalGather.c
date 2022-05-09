@@ -46,7 +46,7 @@ static void UpdateGatherPrompt(int numControllersMissing)
 		gGatherPrompt->Scale.x = 1;
 		gGatherPrompt->Scale.y = 1;
 		UpdateObjectTransforms(gGatherPrompt);
-		gGameViewInfoPtr->fadeDuration = .3f;
+		gGameView->fadeDuration = .3f;
 	}
 	else
 	{
@@ -118,7 +118,7 @@ Boolean DoLocalGatherScreen(void)
 		CalcFramesPerSecond();
 		ReadKeyboard();
 		MoveObjects();
-		OGL_DrawScene(gGameViewInfoPtr, DrawObjects);
+		OGL_DrawScene(DrawObjects);
 	}
 
 			/* SHOW 'OK!' */
@@ -133,12 +133,12 @@ Boolean DoLocalGatherScreen(void)
 			/* CLEANUP */
 			/***********/
 
-	OGL_FadeOutScene(gGameViewInfoPtr, DrawObjects, MoveObjects);
+	OGL_FadeOutScene(DrawObjects, MoveObjects);
 
 	DeleteAllObjects();
 	FreeAllSkeletonFiles(-1);
 	DisposeAllBG3DContainers();
-	OGL_DisposeWindowSetup(&gGameViewInfoPtr);
+	OGL_DisposeGameView();
 
 
 		/* SET CHARACTER TYPE SELECTED */
@@ -178,7 +178,7 @@ OGLVector3D			fillDirection1 = { .9, -.3, -1 };
 
 	viewDef.view.fontName			= "rockfont";
 
-	OGL_SetupWindow(&viewDef, &gGameViewInfoPtr);
+	OGL_SetupGameView(&viewDef);
 
 
 

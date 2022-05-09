@@ -77,16 +77,16 @@ Boolean DoCharacterSelectScreen(short whichPlayer, Boolean allowAborting)
 		CalcFramesPerSecond();
 		ReadKeyboard();
 		MoveObjects();
-		OGL_DrawScene(gGameViewInfoPtr, DrawObjects);
+		OGL_DrawScene(DrawObjects);
 	}
 
 			/***********/
 			/* CLEANUP */
 			/***********/
 
-	OGL_FadeOutScene(gGameViewInfoPtr, DrawObjects, MoveObjects);
+	OGL_FadeOutScene(DrawObjects, MoveObjects);
 	FreeCharacterSelectArt();
-	OGL_DisposeWindowSetup(&gGameViewInfoPtr);
+	OGL_DisposeGameView();
 
 	if (gSelectedCharacterIndex == -1)										// see if user bailed
 		return(true);
@@ -132,7 +132,7 @@ ObjNode	*multiplayerText = NULL;
 	viewDef.lights.fillDirection[0] = fillDirection1;
 	viewDef.lights.fillColor[0] 	= fillColor1;
 
-	OGL_SetupWindow(&viewDef, &gGameViewInfoPtr);
+	OGL_SetupGameView(&viewDef);
 
 
 
@@ -148,13 +148,13 @@ ObjNode	*multiplayerText = NULL;
 
 			/* LOAD SPRITES */
 
-	LoadSpriteGroup(SPRITE_GROUP_MAINMENU, "menus", 0, gGameViewInfoPtr);
+	LoadSpriteGroup(SPRITE_GROUP_MAINMENU, "menus", 0);
 
 
 			/* LOAD SKELETONS */
 
-	LoadASkeleton(SKELETON_TYPE_MALESTANDING, gGameViewInfoPtr);
-	LoadASkeleton(SKELETON_TYPE_FEMALESTANDING, gGameViewInfoPtr);
+	LoadASkeleton(SKELETON_TYPE_MALESTANDING);
+	LoadASkeleton(SKELETON_TYPE_FEMALESTANDING);
 
 
 
@@ -226,7 +226,7 @@ ObjNode	*multiplayerText = NULL;
 			.moveCall = MoveUIArrow,
 			.scale = ARROW_SCALE,
 		};
-		gCharacterArrow = MakeSpriteObject(&def, gGameViewInfoPtr);
+		gCharacterArrow = MakeSpriteObject(&def);
 	}
 
 
@@ -241,7 +241,7 @@ ObjNode	*multiplayerText = NULL;
 	{
 				/* IN MULTIPLAYER, USE ACTUAL CHARACTER SKINS */
 
-		LoadCavemanSkins(gGameViewInfoPtr);
+		LoadCavemanSkins();
 
 		int skinID = gPlayerInfo[gCurrentPlayerNum].skin;
 

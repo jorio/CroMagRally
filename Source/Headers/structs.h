@@ -271,7 +271,7 @@ struct ObjNode
 	Byte			Projection;
 	void			(*MoveCall)(struct ObjNode *);			// pointer to object's move routine
 	void			(*SplineMoveCall)(struct ObjNode *);	// pointer to object's spline move routine
-	void			(*CustomDrawFunction)(struct ObjNode *, OGLSetupOutputType *setupInfo);// pointer to object's custom draw function
+	void			(*CustomDrawFunction)(struct ObjNode *);// pointer to object's custom draw function
 	uint32_t		StatusBits;			// various status bits
 
 	OGLPoint3D		Coord;				// coord of object
@@ -348,7 +348,7 @@ typedef struct
 	OGLPoint3D	coord;
 	uint32_t	flags;
 	void		(*moveCall)(ObjNode *);
-	void		(*drawCall)(ObjNode *, OGLSetupOutputType *);
+	void		(*drawCall)(ObjNode *);
 	float		rot;
 	float		scale;
 }NewObjectDefinitionType;

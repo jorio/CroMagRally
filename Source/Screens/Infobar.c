@@ -15,19 +15,19 @@
 /*    PROTOTYPES            */
 /****************************/
 
-static void DrawInfobar(ObjNode* theNode, OGLSetupOutputType* setupInfo);
+static void DrawInfobar(ObjNode* theNode);
 
-static void Infobar_DrawMap(const OGLSetupOutputType *setupInfo);
-static void Infobar_DrawPlace(const OGLSetupOutputType *setupInfo);
-static void Infobar_DrawInventoryPOW(const OGLSetupOutputType *setupInfo);
-static void Infobar_DrawWrongWay(const OGLSetupOutputType *setupInfo);
-static void Infobar_DrawStartingLight(const OGLSetupOutputType *setupInfo);
-static void Infobar_DrawLap(const OGLSetupOutputType *setupInfo);
-static void Infobar_DrawTokens(const OGLSetupOutputType *setupInfo);
-static void Infobar_DrawTimerPowerups(const OGLSetupOutputType *setupInfo);
-static void Infobar_DrawTagTimer(const OGLSetupOutputType *setupInfo);
-static void Infobar_DrawFlags(const OGLSetupOutputType *setupInfo);
-static void Infobar_DrawHealth(const OGLSetupOutputType *setupInfo);
+static void Infobar_DrawMap(void);
+static void Infobar_DrawPlace(void);
+static void Infobar_DrawInventoryPOW(void);
+static void Infobar_DrawWrongWay(void);
+static void Infobar_DrawStartingLight(void);
+static void Infobar_DrawLap(void);
+static void Infobar_DrawTokens(void);
+static void Infobar_DrawTimerPowerups(void);
+static void Infobar_DrawTagTimer(void);
+static void Infobar_DrawFlags(void);
+static void Infobar_DrawHealth(void);
 
 static void MoveFinalPlace(ObjNode *theNode);
 static void MoveTrackName(ObjNode *theNode);
@@ -183,7 +183,7 @@ static float GetIconY(int iconID)
 // Called at beginning of level
 //
 
-void InitInfobar(OGLSetupOutputType *setupInfo)
+void InitInfobar(void)
 {
 static const char*	maps[] =
 {
@@ -235,7 +235,7 @@ static const char*	maps[] =
 
 			/* LOAD MAP SPRITE */
 
-	LoadSpriteGroup(SPRITE_GROUP_OVERHEADMAP, maps[gTrackNum], kAtlasLoadAsSingleSprite, setupInfo);
+	LoadSpriteGroup(SPRITE_GROUP_OVERHEADMAP, maps[gTrackNum], kAtlasLoadAsSingleSprite);
 
 	float mapImageHeight = GetSpriteInfo(SPRITE_GROUP_OVERHEADMAP, 1)->yadv;
 	gMapFit = OVERHEAD_MAP_REFERENCE_SIZE / mapImageHeight;
@@ -273,7 +273,7 @@ void DisposeInfobar(void)
 
 /********************** DRAW INFOBAR ****************************/
 
-static void DrawInfobar(ObjNode* theNode, OGLSetupOutputType *setupInfo)
+static void DrawInfobar(ObjNode* theNode)
 {
 	if (gHideInfobar)
 		return;
@@ -286,10 +286,10 @@ static void DrawInfobar(ObjNode* theNode, OGLSetupOutputType *setupInfo)
 
 		/* DRAW THE STANDARD THINGS */
 
-	Infobar_DrawMap(setupInfo);
-	Infobar_DrawInventoryPOW(setupInfo);
-	Infobar_DrawStartingLight(setupInfo);
-	Infobar_DrawTimerPowerups(setupInfo);
+	Infobar_DrawMap();
+	Infobar_DrawInventoryPOW();
+	Infobar_DrawStartingLight();
+	Infobar_DrawTimerPowerups();
 
 
 		/* DRAW GAME MODE SPECIFICS */
@@ -298,29 +298,29 @@ static void DrawInfobar(ObjNode* theNode, OGLSetupOutputType *setupInfo)
 	{
 		case	GAME_MODE_PRACTICE:
 		case	GAME_MODE_MULTIPLAYERRACE:
-				Infobar_DrawPlace(setupInfo);
-				Infobar_DrawWrongWay(setupInfo);
-				Infobar_DrawLap(setupInfo);
+				Infobar_DrawPlace();
+				Infobar_DrawWrongWay();
+				Infobar_DrawLap();
 				break;
 
 		case	GAME_MODE_TOURNAMENT:
-				Infobar_DrawPlace(setupInfo);
-				Infobar_DrawWrongWay(setupInfo);
-				Infobar_DrawLap(setupInfo);
-				Infobar_DrawTokens(setupInfo);
+				Infobar_DrawPlace();
+				Infobar_DrawWrongWay();
+				Infobar_DrawLap();
+				Infobar_DrawTokens();
 				break;
 
 		case	GAME_MODE_TAG1:
 		case	GAME_MODE_TAG2:
-				Infobar_DrawTagTimer(setupInfo);
+				Infobar_DrawTagTimer();
 				break;
 
 		case	GAME_MODE_SURVIVAL:
-				Infobar_DrawHealth(setupInfo);
+				Infobar_DrawHealth();
 				break;
 
 		case	GAME_MODE_CAPTUREFLAG:
-				Infobar_DrawFlags(setupInfo);
+				Infobar_DrawFlags();
 				break;
 	}
 }
@@ -352,7 +352,7 @@ static void GetPointOnOverheadMap(float* px, float* pz)
 	*pz = z;
 }
 
-static void Infobar_DrawMap(const OGLSetupOutputType *setupInfo)
+static void Infobar_DrawMap(void)
 {
 static const OGLColorRGB	blipColors[] =
 {
@@ -454,8 +454,7 @@ static const OGLColorRGB	teamColors[] =
 			scaleBasis,
 			scaleBasis,
 			rot,
-			INFOBAR_SPRITE_FLAGS,
-			setupInfo);
+			INFOBAR_SPRITE_FLAGS);
 	}
 
 	gGlobalColorFilter = (OGLColorRGB) {1,1,1};
@@ -519,7 +518,7 @@ static int LocalizeOrdinalSprite(int place, int sex)
 	}
 }
 
-static void Infobar_DrawPlace(const OGLSetupOutputType *setupInfo)
+static void Infobar_DrawPlace(void)
 {
 	int playerNum = GetPlayerNum(gCurrentSplitScreenPane);
 	int place = gPlayerInfo[playerNum].place;
@@ -543,7 +542,7 @@ static void Infobar_DrawPlace(const OGLSetupOutputType *setupInfo)
 
 /********************** DRAW WEAPON TYPE *************************/
 
-static void Infobar_DrawInventoryPOW(const OGLSetupOutputType *setupInfo)
+static void Infobar_DrawInventoryPOW(void)
 {
 int			n;
 short		powType,q;
@@ -598,7 +597,7 @@ float		x,y,scale, spacing, fontScale;
 
 /********************** DRAW WRONG WAY *************************/
 
-static void Infobar_DrawWrongWay(const OGLSetupOutputType *setupInfo)
+static void Infobar_DrawWrongWay(void)
 {
 Boolean	wrongWay;
 short	p;
@@ -620,7 +619,7 @@ short	p;
 
 /********************** DRAW STARTING LIGHT *************************/
 
-static void Infobar_DrawStartingLight(const OGLSetupOutputType *setupInfo)
+static void Infobar_DrawStartingLight(void)
 {
 int		oldTimer;
 
@@ -686,7 +685,7 @@ int		oldTimer;
 
 /********************** DRAW LAP *************************/
 
-static void Infobar_DrawLap(const OGLSetupOutputType *setupInfo)
+static void Infobar_DrawLap(void)
 {
 int	lap,playerNum;
 
@@ -714,7 +713,7 @@ int	lap,playerNum;
 
 /********************** DRAW TOKENS *************************/
 
-static void Infobar_DrawTokens(const OGLSetupOutputType *setupInfo)
+static void Infobar_DrawTokens(void)
 {
 short	playerNum, numTokens,i;
 float	x,y,scale,spacing;
@@ -740,7 +739,7 @@ float	x,y,scale,spacing;
 
 /********************* DRAW TIMER POWERUPS **************************/
 
-static void Infobar_DrawTimerPowerups(const OGLSetupOutputType *setupInfo)
+static void Infobar_DrawTimerPowerups(void)
 {
 short	p;
 float	timer,x,y,x2, scale, fontScale, spacing, lineSpacing;
@@ -792,7 +791,7 @@ static const OGLColorRGB noTint = {1,1,1};
 
 /********************* DRAW TAG TIMER **************************/
 
-static void Infobar_DrawTagTimer(const OGLSetupOutputType *setupInfo)
+static void Infobar_DrawTagTimer(void)
 {
 short	p,p2;
 float	timer,x,y, scale, spacing;
@@ -857,7 +856,7 @@ float	timer,x,y, scale, spacing;
 
 /********************* DRAW HEALTH **************************/
 
-static void Infobar_DrawHealth(const OGLSetupOutputType *setupInfo)
+static void Infobar_DrawHealth(void)
 {
 short	p,p2;
 float	timer,x,y, scale, spacing, dist;
@@ -925,7 +924,7 @@ float	timer,x,y, scale, spacing, dist;
 
 /********************* DRAW FLAGS **************************/
 
-static void Infobar_DrawFlags(const OGLSetupOutputType *setupInfo)
+static void Infobar_DrawFlags(void)
 {
 short	i,p,t;
 float	x,y, scale, spacing;
@@ -1029,7 +1028,7 @@ short	sex;
 		.moveCall	= MoveFinalPlace,
 		.scale		= 1.5,
 	};
-	gFinalPlaceObj = MakeSpriteObject(&def, gGameViewInfoPtr);
+	gFinalPlaceObj = MakeSpriteObject(&def);
 
 	gFinalPlaceObj->PlayerNum = playerNum;						// only show for this player
 
@@ -1037,7 +1036,7 @@ short	sex;
 
 	def.slot++;
 	def.type = LocalizeOrdinalSprite(place, sex);
-	ObjNode* ordinalObj = MakeSpriteObject(&def, gGameViewInfoPtr);
+	ObjNode* ordinalObj = MakeSpriteObject(&def);
 	ordinalObj->PlayerNum = playerNum;
 
 	gFinalPlaceObj->ChainNode = ordinalObj;

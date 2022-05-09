@@ -98,7 +98,7 @@ int StartMenu(
 		const MenuItem* menu,
 		const MenuStyle* style,
 		void (*updateRoutine)(void),
-		void (*backgroundDrawRoutine)(OGLSetupOutputType *));
+		void (*backgroundDrawRoutine)(void));
 
 void LayoutCurrentMenuAgain(void);
 int GetCurrentMenu(void);

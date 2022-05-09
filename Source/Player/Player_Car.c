@@ -1299,7 +1299,7 @@ int		pane;
 
 
 
-	fov = gGameViewInfoPtr->fov[pane];				// get current fov
+	fov = gGameView->fov[pane];				// get current fov
 
 	if (targetFOV > fov)
 	{
@@ -1315,7 +1315,7 @@ int		pane;
 			fov = targetFOV;
 	}
 
-	gGameViewInfoPtr->fov[pane] = fov;
+	gGameView->fov[pane] = fov;
 }
 
 

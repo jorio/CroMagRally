@@ -16,7 +16,7 @@
 /****************************/
 
 static void FlushObjectDeleteQueue(void);
-static void DrawShadow(ObjNode *theNode, OGLSetupOutputType *setupInfo);
+static void DrawShadow(ObjNode *theNode);
 
 
 /****************************/
@@ -441,7 +441,7 @@ float	dist;
 
 /******************* DRAW SHADOW ******************/
 
-static void DrawShadow(ObjNode *theNode, OGLSetupOutputType *setupInfo)
+static void DrawShadow(ObjNode *theNode)
 {
 int	shadowType = theNode->Kind;
 
@@ -455,7 +455,7 @@ int	shadowType = theNode->Kind;
 
 			/* SUBMIT SHADOW TEXTURE */
 
-	MO_DrawMaterial(gAtlases[SPRITE_GROUP_EFFECTS]->material, setupInfo);
+	MO_DrawMaterial(gAtlases[SPRITE_GROUP_EFFECTS]->material);
 
 
 			/* DRAW THE SHADOW */
@@ -678,7 +678,7 @@ void StopObjectStreamEffect(ObjNode *theNode)
 
 ObjNode* MakeBackgroundPictureObject(const char* imagePath)
 {
-	MOPictureObject* backgroundPicture = MO_CreateNewObjectOfType(MO_TYPE_PICTURE, (uintptr_t)gGameViewInfoPtr, (void*) imagePath);
+	MOPictureObject* backgroundPicture = MO_CreateNewObjectOfType(MO_TYPE_PICTURE, (uintptr_t)gGameView, (void*) imagePath);
 
 	NewObjectDefinitionType def =
 	{

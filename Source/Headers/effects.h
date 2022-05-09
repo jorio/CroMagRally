@@ -97,8 +97,8 @@ typedef struct
 #define	FULL_ALPHA	1.0f
 
 
-void InitEffects(OGLSetupOutputType *setupInfo);
-ObjNode* InitParticleSystem(OGLSetupOutputType *setupInfo);
+void InitEffects(void);
+ObjNode* InitParticleSystem(void);
 
 
 void DeleteAllParticleGroups(void);

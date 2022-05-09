@@ -17,20 +17,20 @@ void DisposePillarboxMaterial(void)
 	}
 }
 
-static void DrawPillarbox(ObjNode* objNode, OGLSetupOutputType* setupInfo)
+static void DrawPillarbox(ObjNode* objNode)
 {
 	// Get dimensions of 0th viewport
 	int vpx, vpy, vpw, vph;
-	OGL_GetCurrentViewport(setupInfo, &vpx, &vpy, &vpw, &vph, 0);
+	OGL_GetCurrentViewport(&vpx, &vpy, &vpw, &vph, 0);
 
-	if (!(setupInfo->pillarbox4x3 && (vpw != gGameWindowWidth || vph != gGameWindowHeight)))
+	if (!(gGameView->pillarbox4x3 && (vpw != gGameWindowWidth || vph != gGameWindowHeight)))
 	{
 		return;
 	}
 
 	// 2D state should have been set for us by STATUS_BITS_FOR_2D and ObjNode::Projection.
 
-	MO_DrawMaterial(gPillarboxMaterial, gGameViewInfoPtr);
+	MO_DrawMaterial(gPillarboxMaterial);
 
 	float shadowOpacity = 0.99f;
 	float shadowThickness = 0.11f;
@@ -39,7 +39,7 @@ static void DrawPillarbox(ObjNode* objNode, OGLSetupOutputType* setupInfo)
 
 	// See if pillarbox brightness should track global fade brightness
 	// (Force tracking if we're not at full brightness already)
-	if (gPillarboxBrightness < 1.0 || setupInfo->fadePillarbox)
+	if (gPillarboxBrightness < 1.0 || gGameView->fadePillarbox)
 		gPillarboxBrightness = gGammaFadePercent;
 
 	if (vph == gGameWindowHeight) // widescreen
@@ -193,11 +193,11 @@ static ObjNode* MakePillarboxObject(void)
 
 void InitPillarbox(void)
 {
-	if (gGameViewInfoPtr->pillarbox4x3)
+	if (gGameView->pillarbox4x3)
 	{
 		if (gPillarboxMaterial == nil)
 		{
-			gPillarboxMaterial = MO_GetTextureFromFile(":images:pillarbox.jpg", gGameViewInfoPtr, GL_RGB);
+			gPillarboxMaterial = MO_GetTextureFromFile(":images:pillarbox.jpg", GL_RGB);
 		}
 
 		MakePillarboxObject();

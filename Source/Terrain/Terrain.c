@@ -715,7 +715,7 @@ long	i;
 // This is the main call to update the screen.  It draws all ObjNode's and the terrain itself
 //
 
-void DrawTerrain(OGLSetupOutputType *setupInfo)
+void DrawTerrain(void)
 {
 int				r,c;
 uint16_t			i,unique;
@@ -762,7 +762,7 @@ uint32_t			pictRowBytes;
 
 		/* GET CURRENT CAMERA COORD */
 
-	cameraCoord = setupInfo->cameraPlacement[gCurrentSplitScreenPane].cameraLocation;
+	cameraCoord = gGameView->cameraPlacement[gCurrentSplitScreenPane].cameraLocation;
 
 
 		/* UPDATE CYCLORAMA COORD INFO */
@@ -869,7 +869,7 @@ uint32_t			pictRowBytes;
 
 					/* SUBMIT THE GEOMETRY */
 
-				MO_DrawGeometry_VertexArray(gSuperTileMemoryList[i].meshData, setupInfo);
+				MO_DrawGeometry_VertexArray(gSuperTileMemoryList[i].meshData);
 				gNumSuperTilesDrawn++;
 			}
 		}
@@ -881,7 +881,7 @@ uint32_t			pictRowBytes;
 		/* DRAW OBJECTS */
 
 	DrawSkidMarks();
-	DrawObjects(setupInfo);												// draw objNodes & fences
+	DrawObjects();														// draw objNodes & fences
 
 		/*********************************************/
 		/* PREPARE SUPERTILE GRID FOR THE NEXT FRAME */

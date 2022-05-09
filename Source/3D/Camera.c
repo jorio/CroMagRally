@@ -79,7 +79,7 @@ static const Byte	gFlareImageTable[]=
 
 /*********************** DRAW LENS FLARE ***************************/
 
-void DrawLensFlare(OGLSetupOutputType *setupInfo)
+void DrawLensFlare(void)
 {
 short			i;
 float			x,y,dot;
@@ -172,7 +172,7 @@ int				px,py,pw,ph;
 
 		gGlobalTransparency = transColor.a;
 
-		MO_DrawMaterial(gSpriteGroupList[SPRITE_GROUP_LENSFLARES][gFlareImageTable[i]].materialObject, setupInfo);		// activate material
+		MO_DrawMaterial(gSpriteGroupList[SPRITE_GROUP_LENSFLARES][gFlareImageTable[i]].materialObject);		// activate material
 
 
 
@@ -268,13 +268,13 @@ Boolean	changeMode;
 				{
 					SetCarStatusBits(i,STATUS_BIT_NOSHOWTHISPLAYER);
 					if (i == gMyNetworkPlayerNum)
-						gCycloramaObj->Scale.x = gCycloramaObj->Scale.y = gCycloramaObj->Scale.z = gGameViewInfoPtr->yon * .9f;	// hack to fix z-clip problem in this cam mode
+						gCycloramaObj->Scale.x = gCycloramaObj->Scale.y = gCycloramaObj->Scale.z = gGameView->yon * .9f;	// hack to fix z-clip problem in this cam mode
 				}
 				else
 				{
 					ClearCarStatusBits(i,STATUS_BIT_NOSHOWTHISPLAYER);
 					if (i == gMyNetworkPlayerNum)
-						gCycloramaObj->Scale.x = gCycloramaObj->Scale.y = gCycloramaObj->Scale.z = gGameViewInfoPtr->yon * .99f;
+						gCycloramaObj->Scale.x = gCycloramaObj->Scale.y = gCycloramaObj->Scale.z = gGameView->yon * .99f;
 				}
 				UpdateObjectTransforms(gCycloramaObj);
 			}
@@ -297,12 +297,12 @@ Boolean	changeMode;
 				if (gPlayerInfo[i].cameraMode == CAMERA_MODE_FIRSTPERSON)		// hide car if in 1st person mode
 				{
 					SetCarStatusBits(i,STATUS_BIT_NOSHOWTHISPLAYER);
-					gCycloramaObj->Scale.x = gCycloramaObj->Scale.y = gCycloramaObj->Scale.z = gGameViewInfoPtr->yon * .9f;	// hack to fix z-clip problem in this cam mode
+					gCycloramaObj->Scale.x = gCycloramaObj->Scale.y = gCycloramaObj->Scale.z = gGameView->yon * .9f;	// hack to fix z-clip problem in this cam mode
 				}
 				else
 				{
 					ClearCarStatusBits(i,STATUS_BIT_NOSHOWTHISPLAYER);
-					gCycloramaObj->Scale.x = gCycloramaObj->Scale.y = gCycloramaObj->Scale.z = gGameViewInfoPtr->yon * .99f;
+					gCycloramaObj->Scale.x = gCycloramaObj->Scale.y = gCycloramaObj->Scale.z = gGameView->yon * .99f;
 				}
 				UpdateObjectTransforms(gCycloramaObj);
 			}
@@ -464,9 +464,9 @@ update:
 	if (playerInfo->onThisMachine)										// see if this camera is on this machine
 	{
 		if (gNetGameInProgress)											// if network, then update context pane 0
-			OGL_UpdateCameraFromToUp(gGameViewInfoPtr,&from,&to,&up, 0);
+			OGL_UpdateCameraFromToUp(&from,&to,&up, 0);
 		else
-			OGL_UpdateCameraFromToUp(gGameViewInfoPtr,&from,&to,&up, playerInfo->splitPaneNum);	// otherwise, update context pane based on player/splitscreen #
+			OGL_UpdateCameraFromToUp(&from,&to,&up, playerInfo->splitPaneNum);	// otherwise, update context pane based on player/splitscreen #
 	}
 
 

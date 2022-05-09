@@ -7,7 +7,7 @@
 #define	TAG_TIME_LIMIT	((float)(gGamePrefs.tagDuration) * 60.0)			// n minutes
 
 
-void InitInfobar(OGLSetupOutputType *setupInfo);
+void InitInfobar(void);
 void DisposeInfobar(void);
 void ShowLapNum(short playerNum);
 void ShowFinalPlace(short playerNum);

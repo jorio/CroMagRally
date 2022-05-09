@@ -198,7 +198,7 @@ Boolean DoVehicleSelectScreen(short whichPlayer, Boolean allowAborting)
 		CalcFramesPerSecond();
 		ReadKeyboard();
 		MoveObjects();
-		OGL_DrawScene(gGameViewInfoPtr, DrawObjects);
+		OGL_DrawScene(DrawObjects);
 	}
 
 			/***********/
@@ -209,16 +209,16 @@ Boolean DoVehicleSelectScreen(short whichPlayer, Boolean allowAborting)
 
 	if (!bailed)
 	{
-		gGameViewInfoPtr->fadePillarbox = true;
+		gGameView->fadePillarbox = true;
 
 		if (whichPlayer == gNumRealPlayers-1)
 		{
-			gGameViewInfoPtr->fadeSound = true;
-			gGameViewInfoPtr->fadeDuration = .3f;
+			gGameView->fadeSound = true;
+			gGameView->fadeDuration = .3f;
 		}
 	}
 
-	OGL_FadeOutScene(gGameViewInfoPtr, DrawObjects, MoveObjects);
+	OGL_FadeOutScene(DrawObjects, MoveObjects);
 	FreeVehicleSelectArt();
 
 	if (bailed)
@@ -283,7 +283,7 @@ int					age;
 	viewDef.lights.fillColor[0] 	= fillColor1;
 	viewDef.lights.fillColor[1] 	= fillColor2;
 
-	OGL_SetupWindow(&viewDef, &gGameViewInfoPtr);
+	OGL_SetupGameView(&viewDef);
 
 
 
@@ -299,12 +299,12 @@ int					age;
 
 			/* LOAD SPRITES */
 
-	LoadSpriteGroup(SPRITE_GROUP_MAINMENU, "menus", 0, gGameViewInfoPtr);
+	LoadSpriteGroup(SPRITE_GROUP_MAINMENU, "menus", 0);
 
 			/* LOAD MODELS */
 
 	FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":models:carselect.bg3d", &spec);
-	ImportBG3D(&spec, MODEL_GROUP_CARSELECT, gGameViewInfoPtr);
+	ImportBG3D(&spec, MODEL_GROUP_CARSELECT);
 
 			/*****************/
 			/* BUILD OBJECTS */
@@ -369,11 +369,11 @@ int					age;
 			.moveCall = MoveUIArrow,
 			.scale = ARROW_SCALE,
 		};
-		gVehicleLeftArrow = MakeSpriteObject(&def, gGameViewInfoPtr);
+		gVehicleLeftArrow = MakeSpriteObject(&def);
 
 		def.type = MENUS_SObjType_RightArrow;
 		def.coord.x = RIGHT_ARROW_X;
-		gVehicleRightArrow = MakeSpriteObject(&def, gGameViewInfoPtr);
+		gVehicleRightArrow = MakeSpriteObject(&def);
 	}
 
 	{
@@ -386,7 +386,7 @@ int					age;
 			.moveCall = MoveUIPadlock,
 			.scale = ARROW_SCALE,
 		};
-		gVehiclePadlock = MakeSpriteObject(&def, gGameViewInfoPtr);
+		gVehiclePadlock = MakeSpriteObject(&def);
 	}
 
 
@@ -453,7 +453,7 @@ static void FreeVehicleSelectArt(void)
 {
 	DeleteAllObjects();
 	DisposeAllBG3DContainers();
-	OGL_DisposeWindowSetup(&gGameViewInfoPtr);
+	OGL_DisposeGameView();
 }
 
 

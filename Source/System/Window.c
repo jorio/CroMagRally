@@ -51,7 +51,7 @@ void InitWindowStuff(void)
 
 /****************  DRAW FADE OVERLAY *******************/
 
-static void DrawFadePane(ObjNode* theNode, OGLSetupOutputType* setupInfo)
+static void DrawFadePane(ObjNode* theNode)
 {
 	OGL_PushState();
 
@@ -156,10 +156,7 @@ float	fps = gFramesPerSecondFrac;
 
 /***************** FREEZE-FRAME FADE OUT ********************/
 
-void OGL_FadeOutScene(
-	OGLSetupOutputType* setupInfo,
-	void (*drawRoutine)(OGLSetupOutputType*),
-	void (*updateRoutine)(void))
+void OGL_FadeOutScene(void (*drawCall)(void), void (*moveCall)(void))
 {
 	if (gDebugMode)
 	{
@@ -178,20 +175,20 @@ void OGL_FadeOutScene(
 	};
 	MakeNewObject(&newObjDef);
 
-	float timer = setupInfo->fadeDuration;
+	float timer = gGameView->fadeDuration;
 	while (timer >= 0)
 	{
-		gGammaFadePercent = 1.0f * timer / (setupInfo->fadeDuration + .01f);
+		gGammaFadePercent = 1.0f * timer / (gGameView->fadeDuration + .01f);
 
 		CalcFramesPerSecond();
 		DoSDLMaintenance();
 
-		if (updateRoutine)
-			updateRoutine();
+		if (moveCall)
+			moveCall();
 
-		OGL_DrawScene(setupInfo, drawRoutine);
+		OGL_DrawScene(drawCall);
 
-		if (setupInfo->fadeSound)
+		if (gGameView->fadeSound)
 		{
 			FadeSound(gGammaFadePercent);
 		}
@@ -203,9 +200,9 @@ void OGL_FadeOutScene(
 
 	CalcFramesPerSecond();
 	DoSDLMaintenance();
-	OGL_DrawScene(setupInfo, drawRoutine);
+	OGL_DrawScene(drawCall);
 
-	if (setupInfo->fadeSound)
+	if (gGameView->fadeSound)
 	{
 		FadeSound(0);
 		KillSong();

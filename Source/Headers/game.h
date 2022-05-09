@@ -127,7 +127,7 @@ extern OGLMatrix4x4				gViewToFrustumMatrix;
 extern OGLMatrix4x4				gWorldToWindowMatrix[MAX_VIEWPORTS];
 extern OGLPoint3D				gCoord;
 extern OGLPoint3D				gEarCoords[MAX_LOCAL_PLAYERS];
-extern OGLSetupOutputType		*gGameViewInfoPtr;
+extern OGLSetupOutputType		*gGameView;
 extern OGLVector3D				gDelta;
 extern OGLVector3D				gPreCollisionDelta;
 extern OGLVector3D				gRecentTerrainNormal;

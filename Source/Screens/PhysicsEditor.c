@@ -108,7 +108,7 @@ void DoPhysicsEditor(void)
 			/* CLEANUP */
 
 	DeleteAllObjects();
-	OGL_DisposeWindowSetup(&gGameViewInfoPtr);
+	OGL_DisposeGameView();
 }
 
 
@@ -148,7 +148,7 @@ OGLVector3D			fillDirection2 = { -1, -.2, -.5 };
 	viewDef.lights.fillColor[0] 	= fillColor1;
 	viewDef.lights.fillColor[1] 	= fillColor2;
 
-	OGL_SetupWindow(&viewDef, &gGameViewInfoPtr);
+	OGL_SetupGameView(&viewDef);
 
 
 				/************/

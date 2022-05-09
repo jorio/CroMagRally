@@ -20,12 +20,10 @@
 static void SetupConqueredScreen(void);
 static void FreeConqueredScreen(void);
 static void MoveCup(ObjNode *theNode);
-static void DrawConqueredCallback(OGLSetupOutputType *info);
 
 static void SetupWinScreen(void);
 static void MoveWinCups(ObjNode *theNode);
 static void FreeWinScreen(void);
-static void DrawWinCallback(OGLSetupOutputType *info);
 static void MoveWinGuy(ObjNode *theNode);
 
 static void SetupCreditsScreen(void);
@@ -42,8 +40,6 @@ static void MoveCreditFadePane(ObjNode *theNode);
 /*********************/
 /*    VARIABLES      */
 /*********************/
-
-OGLSetupOutputType	*gScreenViewInfoPtr = nil;
 
 
 
@@ -80,7 +76,7 @@ float				keyTextFadeIn = -2.0f;		// fade in after a small delay
 	viewDef.view.pillarbox4x3		= true;
 	viewDef.view.fontName			= "rockfont";
 
-	OGL_SetupWindow(&viewDef, &gGameViewInfoPtr);
+	OGL_SetupGameView(&viewDef);
 
 
 			/* CREATE BACKGROUND OBJECT */
@@ -116,7 +112,7 @@ float				keyTextFadeIn = -2.0f;		// fade in after a small delay
 		int	i;
 
 		for (i = 0; i < 10; i++)
-			OGL_DrawScene(gGameViewInfoPtr, DrawObjects);
+			OGL_DrawScene(DrawObjects);
 
 		// TODO: Fade in, I guess?
 	}
@@ -133,7 +129,7 @@ float				keyTextFadeIn = -2.0f;		// fade in after a small delay
 		{
 			CalcFramesPerSecond();
 			MoveObjects();
-			OGL_DrawScene(gGameViewInfoPtr, DrawObjects);
+			OGL_DrawScene(DrawObjects);
 
 			ReadKeyboard();
 			if (UserWantsOut())
@@ -150,14 +146,14 @@ float				keyTextFadeIn = -2.0f;		// fade in after a small delay
 
 				/* FADE OUT */
 
-		OGL_FadeOutScene(gGameViewInfoPtr, DrawObjects, NULL);
+		OGL_FadeOutScene(DrawObjects, NULL);
 	}
 
 			/* CLEANUP */
 
 	DeleteAllObjects();
 
-	OGL_DisposeWindowSetup(&gGameViewInfoPtr);
+	OGL_DisposeGameView();
 }
 
 #pragma mark -
@@ -219,13 +215,13 @@ void DoWarmUpScreen(void)
 	viewDef.view.pillarbox4x3		= false;
 	viewDef.view.fontName			= "rockfont";
 
-	OGL_SetupWindow(&viewDef, &gGameViewInfoPtr);
+	OGL_SetupGameView(&viewDef);
 
 			/* SHOW IT */
 
 	for (int i = 0; i < 8; i++)
 	{
-		OGL_DrawScene(gGameViewInfoPtr, DrawObjects);
+		OGL_DrawScene(DrawObjects);
 		DoSDLMaintenance();
 	}
 
@@ -233,7 +229,7 @@ void DoWarmUpScreen(void)
 
 	DeleteAllObjects();
 
-	OGL_DisposeWindowSetup(&gGameViewInfoPtr);
+	OGL_DisposeGameView();
 }
 
 
@@ -264,7 +260,7 @@ void DoAgeConqueredScreen(void)
 		ReadKeyboard();
 		MoveObjects();
 		MoveParticleGroups();
-		OGL_DrawScene(gGameViewInfoPtr, DrawConqueredCallback);
+		OGL_DrawScene(DrawObjects);
 
 		if (UserWantsOut())
 			break;
@@ -272,19 +268,12 @@ void DoAgeConqueredScreen(void)
 
 			/* FADE OUT */
 
-	OGL_FadeOutScene(gGameViewInfoPtr, DrawConqueredCallback, MoveObjects);
+	OGL_FadeOutScene(DrawObjects, MoveObjects);
 
 
 			/* CLEANUP */
 
 	FreeConqueredScreen();
-}
-
-/***************** DRAW CONQUERED CALLBACK *******************/
-
-static void DrawConqueredCallback(OGLSetupOutputType *info)
-{
-	DrawObjects(info);
 }
 
 
@@ -320,7 +309,7 @@ static const char* names[] =
 	viewDef.camera.from[0].y		= 0;
 	viewDef.view.pillarbox4x3		= true;
 
-	OGL_SetupWindow(&viewDef, &gGameViewInfoPtr);
+	OGL_SetupGameView(&viewDef);
 
 
 				/************/
@@ -336,12 +325,12 @@ static const char* names[] =
 			/* LOAD MODELS */
 
 	FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":models:winners.bg3d", &spec);
-	ImportBG3D(&spec, MODEL_GROUP_WINNERS, gGameViewInfoPtr);
+	ImportBG3D(&spec, MODEL_GROUP_WINNERS);
 
 
 			/* LOAD SPRITES */
 
-	InitParticleSystem(gGameViewInfoPtr);
+	InitParticleSystem();
 
 
 			/* CUP MODEL */
@@ -387,7 +376,7 @@ static void FreeConqueredScreen(void)
 	DeleteAllObjects();
 	DisposeParticleSystem();
 	DisposeAllBG3DContainers();
-	OGL_DisposeWindowSetup(&gGameViewInfoPtr);
+	OGL_DisposeGameView();
 }
 
 
@@ -443,7 +432,7 @@ float	timer = 0;
 		ReadKeyboard();
 		MoveObjects();
 		MoveParticleGroups();
-		OGL_DrawScene(gGameViewInfoPtr, DrawWinCallback);
+		OGL_DrawScene(DrawObjects);
 
 		timer += gFramesPerSecondFrac;
 		if (timer > 10.0f && UserWantsOut())
@@ -455,17 +444,8 @@ float	timer = 0;
 
 			/* CLEANUP */
 
-	OGL_FadeOutScene(gGameViewInfoPtr, DrawWinCallback, MoveObjects);
+	OGL_FadeOutScene(DrawObjects, MoveObjects);
 	FreeWinScreen();
-
-}
-
-
-/***************** DRAW WIN CALLBACK *******************/
-
-static void DrawWinCallback(OGLSetupOutputType *info)
-{
-	DrawObjects(info);
 }
 
 
@@ -494,7 +474,7 @@ OGLSetupInputType	viewDef;
 	viewDef.camera.from[0].y		= 0;
 	viewDef.view.pillarbox4x3		= true;
 
-	OGL_SetupWindow(&viewDef, &gGameViewInfoPtr);
+	OGL_SetupGameView(&viewDef);
 
 
 				/************/
@@ -506,19 +486,19 @@ OGLSetupInputType	viewDef;
 	MakeBackgroundPictureObject(":images:Conquered:GameCompleted.png");
 
 
-	LoadASkeleton(SKELETON_TYPE_MALESTANDING, gGameViewInfoPtr);
-	LoadASkeleton(SKELETON_TYPE_FEMALESTANDING, gGameViewInfoPtr);
+	LoadASkeleton(SKELETON_TYPE_MALESTANDING);
+	LoadASkeleton(SKELETON_TYPE_FEMALESTANDING);
 
 
 			/* LOAD MODELS */
 
 	FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":models:winners.bg3d", &spec);
-	ImportBG3D(&spec, MODEL_GROUP_WINNERS, gGameViewInfoPtr);
+	ImportBG3D(&spec, MODEL_GROUP_WINNERS);
 
 
 			/* LOAD SPRITES */
 
-	InitParticleSystem(gGameViewInfoPtr);
+	InitParticleSystem();
 
 
 			/**************/
@@ -600,7 +580,7 @@ static void FreeWinScreen(void)
 	DisposeParticleSystem();
 	FreeAllSkeletonFiles(-1);
 	DisposeAllBG3DContainers();
-	OGL_DisposeWindowSetup(&gGameViewInfoPtr);
+	OGL_DisposeGameView();
 }
 
 
@@ -715,7 +695,7 @@ float	timer = 60.0f;
 		ReadKeyboard();
 		MoveObjects();
 		MoveParticleGroups();
-		OGL_DrawScene(gGameViewInfoPtr, DrawObjects);
+		OGL_DrawScene(DrawObjects);
 
 		if (UserWantsOut())
 			break;
@@ -723,15 +703,15 @@ float	timer = 60.0f;
 		timer -= gFramesPerSecondFrac;
 	}
 
-	gGameViewInfoPtr->fadeDuration = .5f;
-	OGL_FadeOutScene(gGameViewInfoPtr, DrawObjects, MoveObjects);
+	gGameView->fadeDuration = .5f;
+	OGL_FadeOutScene(DrawObjects, MoveObjects);
 
 
 			/* CLEANUP */
 
 	DeleteAllObjects();
 	DisposeAllBG3DContainers();
-	OGL_DisposeWindowSetup(&gGameViewInfoPtr);
+	OGL_DisposeGameView();
 }
 
 
@@ -842,7 +822,7 @@ static const float sizes[] =
 	viewDef.view.pillarbox4x3		= true;
 	viewDef.view.fontName			= "rockfont";
 
-	OGL_SetupWindow(&viewDef, &gGameViewInfoPtr);
+	OGL_SetupGameView(&viewDef);
 
 
 				/************/
@@ -903,7 +883,7 @@ static const float sizes[] =
 		.moveCall = MoveCreditFadePane
 	};
 
-	ObjNode* pane = MakeSpriteObject(&def, gGameViewInfoPtr);
+	ObjNode* pane = MakeSpriteObject(&def);
 	pane->ColorFilter = (OGLColorRGBA) {0, 0, 0, 0};
 	pane->Scale.x = 1.6f;
 	pane->Scale.y = 250;

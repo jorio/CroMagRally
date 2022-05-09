@@ -13,4 +13,4 @@ enum
 
 void InitCameras(void);
 void UpdateCameras(Boolean priming);
-void DrawLensFlare(OGLSetupOutputType *setupInfo);
+void DrawLensFlare(void);

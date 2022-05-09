@@ -438,7 +438,7 @@ next:
 
 /**************************** DRAW OBJECTS ***************************/
 
-void DrawObjects(OGLSetupOutputType *setupInfo)
+void DrawObjects(void)
 {
 ObjNode		*theNode;
 short		i,numTriMeshes;
@@ -474,8 +474,8 @@ short			skelType, playerNum;
 
 			/* GET CAMERA COORDS */
 
-	cameraX = setupInfo->cameraPlacement[gCurrentSplitScreenPane].cameraLocation.x;
-	cameraZ = setupInfo->cameraPlacement[gCurrentSplitScreenPane].cameraLocation.z;
+	cameraX = gGameView->cameraPlacement[gCurrentSplitScreenPane].cameraLocation.x;
+	cameraZ = gGameView->cameraPlacement[gCurrentSplitScreenPane].cameraLocation.z;
 
 			/***********************/
 			/* MAIN NODE TASK LOOP */
@@ -809,14 +809,14 @@ short			skelType, playerNum;
 							}
 						}
 
-						MO_DrawGeometry_VertexArray(&gLocalTriMeshesOfSkelType[skelType][i], setupInfo);
+						MO_DrawGeometry_VertexArray(&gLocalTriMeshesOfSkelType[skelType][i]);
 					}
 					break;
 
 			case	DISPLAY_GROUP_GENRE:
 					if (theNode->BaseGroup)
 					{
-						MO_DrawObject(theNode->BaseGroup, setupInfo);
+						MO_DrawObject(theNode->BaseGroup);
 					}
 					break;
 
@@ -828,7 +828,7 @@ short			skelType, playerNum;
 						theNode->SpriteMO->objectData.scaleX = theNode->Scale.x;
 						theNode->SpriteMO->objectData.scaleY = theNode->Scale.y;
 
-						MO_DrawObject(theNode->SpriteMO, setupInfo);
+						MO_DrawObject(theNode->SpriteMO);
 					}
 					break;
 
@@ -836,7 +836,7 @@ short			skelType, playerNum;
 			case	TEXTMESH_GENRE:
 					if (theNode->BaseGroup)
 					{
-						MO_DrawObject(theNode->BaseGroup, setupInfo);
+						MO_DrawObject(theNode->BaseGroup);
 
 						if (gDebugMode >= 2)
 						{
@@ -849,7 +849,7 @@ short			skelType, playerNum;
 			case	CUSTOM_GENRE:
 					if (theNode->CustomDrawFunction)
 					{
-						theNode->CustomDrawFunction(theNode, setupInfo);
+						theNode->CustomDrawFunction(theNode);
 					}
 					break;
 		}

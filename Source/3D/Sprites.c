@@ -77,7 +77,7 @@ const AtlasGlyph* GetSpriteInfo(int groupNum, int spriteNum)
 //			because all imported textures are named with OpenGL and loaded into OpenGL!
 //
 
-void LoadSpriteGroup(int groupNum, const char* atlasName, int flags, OGLSetupOutputType* setupInfo)
+void LoadSpriteGroup(int groupNum, const char* atlasName, int flags)
 {
 	if (gAtlases[groupNum])
 	{
@@ -96,14 +96,14 @@ void LoadSpriteGroup(int groupNum, const char* atlasName, int flags, OGLSetupOut
 	}
 
 	GAME_ASSERT_MESSAGE(!gAtlases[groupNum], "Sprite group already loaded!");
-	gAtlases[groupNum] = Atlas_Load(atlasName, flags, setupInfo);
+	gAtlases[groupNum] = Atlas_Load(atlasName, flags);
 }
 
 
 
 /************* MAKE NEW SRITE OBJECT *************/
 
-ObjNode *MakeSpriteObject(NewObjectDefinitionType *newObjDef, OGLSetupOutputType *setupInfo)
+ObjNode *MakeSpriteObject(NewObjectDefinitionType *newObjDef)
 {
 ObjNode				*newObj;
 MOSpriteObject		*spriteMO;
@@ -129,7 +129,7 @@ MOSpriteSetupData	spriteData;
 	spriteData.group	= newObjDef->group;
 	spriteData.type		= newObjDef->type;
 
-	spriteMO = MO_CreateNewObjectOfType(MO_TYPE_SPRITE, (uintptr_t) setupInfo, &spriteData);
+	spriteMO = MO_CreateNewObjectOfType(MO_TYPE_SPRITE, 0, &spriteData);
 	GAME_ASSERT(spriteMO);
 
 
@@ -149,7 +149,7 @@ MOSpriteSetupData	spriteData;
 
 /*********************** MODIFY SPRITE OBJECT IMAGE ******************************/
 
-void ModifySpriteObjectFrame(ObjNode *theNode, short type, OGLSetupOutputType *setupInfo)
+void ModifySpriteObjectFrame(ObjNode *theNode, short type)
 {
 MOSpriteSetupData	spriteData;
 MOSpriteObject		*spriteMO;
@@ -168,7 +168,7 @@ MOSpriteObject		*spriteMO;
 	spriteData.group	= theNode->Group;							// set group
 	spriteData.type 	= type;										// set group subtype
 
-	spriteMO = MO_CreateNewObjectOfType(MO_TYPE_SPRITE, (uintptr_t) setupInfo, &spriteData);
+	spriteMO = MO_CreateNewObjectOfType(MO_TYPE_SPRITE, 0, &spriteData);
 	GAME_ASSERT(spriteMO);
 
 
@@ -195,9 +195,8 @@ void DrawSprite2(
 		float scaleX,
 		float scaleY,
 		float rot,
-		uint32_t flags,
-		const OGLSetupOutputType *setupInfo)
+		uint32_t flags)
 {
 	char text[2] = { spriteNo, 0 };
-	Atlas_DrawString2(group, text, x, y, scaleX, scaleY, rot, flags, setupInfo);
+	Atlas_DrawString2(group, text, x, y, scaleX, scaleY, rot, flags);
 }

@@ -50,7 +50,7 @@ Byte				gDebugMode = 0;				// 0 == none, 1 = fps, 2 = all
 uint32_t				gAutoFadeStatusBits;
 short				gMainAppRezFile;
 
-OGLSetupOutputType		*gGameViewInfoPtr = nil;
+OGLSetupOutputType	*gGameView = nil;
 
 PrefsType			gGamePrefs;
 
@@ -743,7 +743,7 @@ Boolean	done = false;
 							.slot 		= SPRITE_SLOT,
 							.scale		= 1.5,
 						};
-						MakeSpriteObject(&def, gGameViewInfoPtr);
+						MakeSpriteObject(&def);
 						break;
 				}
 
@@ -764,7 +764,7 @@ Boolean	done = false;
 							.slot		= SPRITE_SLOT,
 							.scale		= 1.5,
 						};
-						MakeSpriteObject(&def, gGameViewInfoPtr);
+						MakeSpriteObject(&def);
 						break;
 				}
 
@@ -811,7 +811,7 @@ Boolean	done = false;
 		CalcFramesPerSecond();
 		ReadKeyboard();
 		DoPlayerTerrainUpdate();							// need to call this to keep supertiles active
-		OGL_DrawScene(gGameViewInfoPtr, DrawTerrain);
+		OGL_DrawScene(DrawTerrain);
 
 
 	}
@@ -929,7 +929,7 @@ static void PlayArea(void)
 			/* DRAW IT ALL */
 			/***************/
 
-		OGL_DrawScene(gGameViewInfoPtr,DrawTerrain);
+		OGL_DrawScene(DrawTerrain);
 
 
 
@@ -1020,9 +1020,9 @@ void FadeOutArea(void)
 {
 			/* FADE OUT */
 
-	gGameViewInfoPtr->fadeSound = true;
-	gGameViewInfoPtr->fadeDuration = .3f;
-	OGL_FadeOutScene(gGameViewInfoPtr, DrawTerrain, DoPlayerTerrainUpdate);		// need to keep supertiles alive
+	gGameView->fadeSound = true;
+	gGameView->fadeDuration = .3f;
+	OGL_FadeOutScene(DrawTerrain, DoPlayerTerrainUpdate);		// need to keep supertiles alive
 }
 
 /******************** MOVE EVERYTHING ************************/
@@ -1291,13 +1291,13 @@ short				numPanes;
 	}
 
 
-	OGL_SetupWindow(&viewDef, &gGameViewInfoPtr);
+	OGL_SetupGameView(&viewDef);
 
 
 			/* SET AUTO-FADE INFO */
 
-	gAutoFadeStartDist	= gGameViewInfoPtr->yon * .80f;
-	gAutoFadeEndDist	= gGameViewInfoPtr->yon * .92f;
+	gAutoFadeStartDist	= gGameView->yon * .80f;
+	gAutoFadeEndDist	= gGameView->yon * .92f;
 	gAutoFadeRange_Frac	= 1.0 / (gAutoFadeEndDist - gAutoFadeStartDist);
 
 	if (gAutoFadeStartDist != 0.0f)
@@ -1316,13 +1316,13 @@ short				numPanes;
 			// NOTE: only call this *after* draw context is created!
 			//
 
-	LoadLevelArt(gGameViewInfoPtr);
-	InitInfobar(gGameViewInfoPtr);
+	LoadLevelArt();
+	InitInfobar();
 
 
 			/* INIT OTHER MANAGERS */
 
-	InitEffects(gGameViewInfoPtr);
+	InitEffects();
 	InitItemsManager();
 	InitSkidMarks();
 
@@ -1363,7 +1363,7 @@ static void CleanupLevel(void)
 
 	DisposeAllBG3DContainers();
 
-	OGL_DisposeWindowSetup(&gGameViewInfoPtr);	// do this last!
+	OGL_DisposeGameView();	// do this last!
 	DisposeSoundBank(SOUNDBANK_LEVELSPECIFIC);
 
 	gNumRealPlayers = 1;					// reset at end of level to be safe
@@ -1589,7 +1589,7 @@ void GameMain(void)
 	}
 
 	DoWarmUpScreen();
-	PreloadGameArt(gGameViewInfoPtr);
+	PreloadGameArt();
 	PlaySong(SONG_THEME, true);
 
 

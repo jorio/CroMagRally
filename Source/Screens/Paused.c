@@ -126,12 +126,6 @@ static void UpdatePausedMenuCallback(void)
 		PlayerBroadcastNullPacket();
 }
 
-static void DrawPausedMenuCallback(OGLSetupOutputType* setupInfo)
-{
-
-	DrawTerrain(setupInfo);
-}
-
 void DoPaused(void)
 {
 	Boolean	oldMute = gMuteMusicFlag;
@@ -156,7 +150,7 @@ void DoPaused(void)
 	CalcFramesPerSecond();
 	ReadKeyboard();
 
-	int outcome = StartMenu(gPauseMenuTree, &style, UpdatePausedMenuCallback, DrawPausedMenuCallback);
+	int outcome = StartMenu(gPauseMenuTree, &style, UpdatePausedMenuCallback, DrawTerrain);
 
 	gGamePaused = false;
 	gHideInfobar = false;

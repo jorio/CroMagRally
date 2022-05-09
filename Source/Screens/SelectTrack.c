@@ -135,7 +135,7 @@ Boolean SelectSingleTrack(void)
 		CalcFramesPerSecond();
 		ReadKeyboard();
 		MoveObjects();
-		OGL_DrawScene(gGameViewInfoPtr, DrawObjects);
+		OGL_DrawScene(DrawObjects);
 	}
 
 
@@ -143,11 +143,11 @@ Boolean SelectSingleTrack(void)
 			/* CLEANUP */
 			/***********/
 
-	OGL_FadeOutScene(gGameViewInfoPtr, DrawObjects, NULL);
+	OGL_FadeOutScene(DrawObjects, NULL);
 
 	DeleteAllObjects();
 	DisposeSpriteGroup(SPRITE_GROUP_TRACKSELECTSCREEN);
-	OGL_DisposeWindowSetup(&gGameViewInfoPtr);
+	OGL_DisposeGameView();
 
 	if (gSelectedTrackIndex == -1)								// see if bail
 		return(true);
@@ -177,7 +177,7 @@ OGLSetupInputType	viewDef;
 	OGL_NewViewDef(&viewDef);
 	viewDef.view.pillarbox4x3		= true;
 	viewDef.view.clearColor 		= (OGLColorRGBA) {.76f, .61f, .45f, 1.0f};
-	OGL_SetupWindow(&viewDef, &gGameViewInfoPtr);
+	OGL_SetupGameView(&viewDef);
 
 
 
@@ -197,16 +197,16 @@ OGLSetupInputType	viewDef;
 		case	GAME_MODE_MULTIPLAYERRACE:
 				gNumTracksInSelection = NUM_PRACTICE_TRACKS;
 				gBaseTrack = 0;
-				LoadSpriteGroup(SPRITE_GROUP_TRACKSELECTSCREEN, "trackselectsp", 0, gGameViewInfoPtr);
+				LoadSpriteGroup(SPRITE_GROUP_TRACKSELECTSCREEN, "trackselectsp", 0);
 				break;
 
 		default:
 				gNumTracksInSelection = NUM_BATTLE_TRACKS;
 				gBaseTrack = 9;
-				LoadSpriteGroup(SPRITE_GROUP_TRACKSELECTSCREEN, "trackselectmp", 0, gGameViewInfoPtr);
+				LoadSpriteGroup(SPRITE_GROUP_TRACKSELECTSCREEN, "trackselectmp", 0);
 	}
 
-	LoadSpriteGroup(SPRITE_GROUP_MAINMENU, "menus", 0, gGameViewInfoPtr);
+	LoadSpriteGroup(SPRITE_GROUP_MAINMENU, "menus", 0);
 
 
 
@@ -227,7 +227,7 @@ OGLSetupInputType	viewDef;
 			.scale = LEVEL_IMAGE_SCALE,
 		};
 
-		gTrackImageIcon = MakeSpriteObject(&def, gGameViewInfoPtr);
+		gTrackImageIcon = MakeSpriteObject(&def);
 	}
 
 	{
@@ -240,11 +240,11 @@ OGLSetupInputType	viewDef;
 			.moveCall = MoveUIArrow,
 			.scale = ARROW_SCALE,
 		};
-		gTrackLeftArrow = MakeSpriteObject(&def, gGameViewInfoPtr);
+		gTrackLeftArrow = MakeSpriteObject(&def);
 
 		def.type = MENUS_SObjType_RightArrow;
 		def.coord.x = RIGHT_ARROW_X;
-		gTrackRightArrow = MakeSpriteObject(&def, gGameViewInfoPtr);
+		gTrackRightArrow = MakeSpriteObject(&def);
 	}
 
 	{
@@ -257,7 +257,7 @@ OGLSetupInputType	viewDef;
 			.moveCall = MoveUIPadlock,
 			.scale = ARROW_SCALE,
 		};
-		gTrackPadlock = MakeSpriteObject(&def, gGameViewInfoPtr);
+		gTrackPadlock = MakeSpriteObject(&def);
 	}
 
 
@@ -302,7 +302,7 @@ static void UpdateSelectedTrack(void)
 {
 		/* SET TRACK SCREENSHOT */
 
-	ModifySpriteObjectFrame(gTrackImageIcon, TRACKSELECT_SObjType__Level0 + gBaseTrack + gSelectedTrackIndex, gGameViewInfoPtr);
+	ModifySpriteObjectFrame(gTrackImageIcon, TRACKSELECT_SObjType__Level0 + gBaseTrack + gSelectedTrackIndex);
 
 		/* MAKE TRACK NAME */
 

@@ -109,8 +109,8 @@ static Boolean	beenHere = false;
 
 		ShutdownSkeletonManager();
 
-		if (gGameViewInfoPtr)							// see if need to dispose this
-			OGL_DisposeWindowSetup(&gGameViewInfoPtr);
+		if (gGameView)							// see if need to dispose this
+			OGL_DisposeGameView();
 
 		OGL_Shutdown();									// nuke draw context
 

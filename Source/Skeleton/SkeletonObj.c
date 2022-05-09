@@ -65,7 +65,7 @@ void ShutdownSkeletonManager(void)
 
 /******************** LOAD A SKELETON ****************************/
 
-void LoadASkeleton(Byte num, OGLSetupOutputType *setupInfo)
+void LoadASkeleton(Byte num)
 {
 short	i,numDecomp;
 
@@ -73,7 +73,7 @@ short	i,numDecomp;
 		DoFatalAlert("LoadASkeleton: MAX_SKELETON_TYPES exceeded!");
 
 	if (gLoadedSkeletonsList[num] == nil)					// check if already loaded
-		gLoadedSkeletonsList[num] = LoadSkeletonFile(num, setupInfo);
+		gLoadedSkeletonsList[num] = LoadSkeletonFile(num);
 
 
 		/* MAKE LOCAL COPY OF DECOMPOSED TRIMESH */

@@ -18,7 +18,7 @@
 /*    PROTOTYPES            */
 /****************************/
 
-static void ReadDataFromSkeletonFile(SkeletonDefType *skeleton, FSSpec *fsSpec, int skeletonType, OGLSetupOutputType *setupInfo);
+static void ReadDataFromSkeletonFile(SkeletonDefType *skeleton, FSSpec *fsSpec, int skeletonType);
 static void ReadDataFromPlayfieldFile(FSSpec *specPtr);
 static void LoadTerrainSuperTileTextures(short fRefNum);
 static void LoadTerrainSuperTileTexturesSeamless(short fRefNum);
@@ -120,7 +120,7 @@ void SetDefaultDirectory(void)
 // OUTPUT:	Ptr to skeleton data
 //
 
-SkeletonDefType *LoadSkeletonFile(short skeletonType, OGLSetupOutputType *setupInfo)
+SkeletonDefType *LoadSkeletonFile(short skeletonType)
 {
 QDErr		iErr;
 short		fRefNum;
@@ -240,7 +240,7 @@ SkeletonDefType	*skeleton;
 
 			/* READ SKELETON RESOURCES */
 
-	ReadDataFromSkeletonFile(skeleton,&fsSpec,skeletonType,setupInfo);
+	ReadDataFromSkeletonFile(skeleton,&fsSpec,skeletonType);
 	PrimeBoneData(skeleton);
 
 			/* CLOSE REZ FILE */
@@ -257,7 +257,7 @@ SkeletonDefType	*skeleton;
 // Current rez file is set to the file.
 //
 
-static void ReadDataFromSkeletonFile(SkeletonDefType *skeleton, FSSpec *fsSpec, int skeletonType, OGLSetupOutputType *setupInfo)
+static void ReadDataFromSkeletonFile(SkeletonDefType *skeleton, FSSpec *fsSpec, int skeletonType)
 {
 Handle				hand;
 int					i,k,j;
@@ -312,7 +312,7 @@ SkeletonFile_AnimHeader_Type	*animHeaderPtr;
 	{
 		iErr = ResolveAlias(fsSpec, alias, &target, &wasChanged);	// try to resolve alias
 		if (!iErr)
-			LoadBonesReferenceModel(&target,skeleton, skeletonType, setupInfo);
+			LoadBonesReferenceModel(&target,skeleton, skeletonType);
 		else
 			DoFatalAlert("ReadDataFromSkeletonFile: Cannot find Skeleton's 3DMF file!");
 		ReleaseResource((Handle)alias);
@@ -670,7 +670,7 @@ void SetPlayerProgression(int numTracksCompleted)
 #pragma mark -
 
 
-void LoadCavemanSkins(OGLSetupOutputType *setupInfo)
+void LoadCavemanSkins(void)
 {
 	char skinPath[256];
 
@@ -683,7 +683,7 @@ void LoadCavemanSkins(OGLSetupOutputType *setupInfo)
 			if (!gCavemanSkins[sex][j])
 			{
 				snprintf(skinPath, sizeof(skinPath), ":sprites:skins:%s%d.png", characterName, j);
-				gCavemanSkins[sex][j] = MO_GetTextureFromFile(skinPath, setupInfo, GL_RGBA);
+				gCavemanSkins[sex][j] = MO_GetTextureFromFile(skinPath, GL_RGBA);
 			}
 		}
 	}
@@ -707,18 +707,18 @@ void DisposeCavemanSkins(void)
 
 #pragma mark -
 
-void PreloadGameArt(OGLSetupOutputType *setupInfo)
+void PreloadGameArt(void)
 {
-	LoadCavemanSkins(setupInfo);
-	LoadSpriteGroup(SPRITE_GROUP_INFOBAR, "infobar", 0, setupInfo);
-	LoadSpriteGroup(SPRITE_GROUP_EFFECTS, "effects", 0, setupInfo);
+	LoadCavemanSkins();
+	LoadSpriteGroup(SPRITE_GROUP_INFOBAR, "infobar", 0);
+	LoadSpriteGroup(SPRITE_GROUP_EFFECTS, "effects", 0);
 	LoadSoundBank(SOUNDBANK_MAIN);
 	LoadSoundBank(SOUNDBANK_ANNOUNCER);
 }
 
 /************************** LOAD LEVEL ART ***************************/
 
-void LoadLevelArt(OGLSetupOutputType *setupInfo)
+void LoadLevelArt(void)
 {
 FSSpec	spec;
 
@@ -818,71 +818,71 @@ static const char*	levelModelFiles[NUM_TRACKS] =
 			/* LOAD BG3D GEOMETRY */
 
 	FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":models:global.bg3d", &spec);
-	ImportBG3D(&spec, MODEL_GROUP_GLOBAL, setupInfo);
+	ImportBG3D(&spec, MODEL_GROUP_GLOBAL);
 
 	FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":models:carparts.bg3d", &spec);
-	ImportBG3D(&spec, MODEL_GROUP_CARPARTS, setupInfo);
+	ImportBG3D(&spec, MODEL_GROUP_CARPARTS);
 
 	FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":models:weapons.bg3d", &spec);
-	ImportBG3D(&spec, MODEL_GROUP_WEAPONS, setupInfo);
+	ImportBG3D(&spec, MODEL_GROUP_WEAPONS);
 
 	FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, levelModelFiles[gTrackNum], &spec);
-	ImportBG3D(&spec, MODEL_GROUP_LEVELSPECIFIC, setupInfo);
+	ImportBG3D(&spec, MODEL_GROUP_LEVELSPECIFIC);
 
 
 			/* LOAD SKELETONS */
 
-	LoadASkeleton(SKELETON_TYPE_PLAYER_MALE, setupInfo);
-	LoadASkeleton(SKELETON_TYPE_PLAYER_FEMALE, setupInfo);
+	LoadASkeleton(SKELETON_TYPE_PLAYER_MALE);
+	LoadASkeleton(SKELETON_TYPE_PLAYER_FEMALE);
 
-	LoadASkeleton(SKELETON_TYPE_BIRDBOMB, setupInfo);
+	LoadASkeleton(SKELETON_TYPE_BIRDBOMB);
 
 	switch(gTrackNum)
 	{
 		case	TRACK_NUM_DESERT:
-				LoadASkeleton(SKELETON_TYPE_BRONTONECK, setupInfo);
+				LoadASkeleton(SKELETON_TYPE_BRONTONECK);
 				break;
 
 		case	TRACK_NUM_JUNGLE:
-				LoadASkeleton(SKELETON_TYPE_PTERADACTYL, setupInfo);
-				LoadASkeleton(SKELETON_TYPE_FLOWER, setupInfo);
+				LoadASkeleton(SKELETON_TYPE_PTERADACTYL);
+				LoadASkeleton(SKELETON_TYPE_FLOWER);
 				break;
 
 		case	TRACK_NUM_ICE:
-				LoadASkeleton(SKELETON_TYPE_YETI, setupInfo);
-				LoadASkeleton(SKELETON_TYPE_POLARBEAR, setupInfo);
+				LoadASkeleton(SKELETON_TYPE_YETI);
+				LoadASkeleton(SKELETON_TYPE_POLARBEAR);
 				break;
 
 		case	TRACK_NUM_CHINA:
-				LoadASkeleton(SKELETON_TYPE_DRAGON, setupInfo);
+				LoadASkeleton(SKELETON_TYPE_DRAGON);
 				break;
 
 		case	TRACK_NUM_EGYPT:
-				LoadASkeleton(SKELETON_TYPE_BEETLE, setupInfo);
-				LoadASkeleton(SKELETON_TYPE_CAMEL, setupInfo);
-				LoadASkeleton(SKELETON_TYPE_MUMMY, setupInfo);
+				LoadASkeleton(SKELETON_TYPE_BEETLE);
+				LoadASkeleton(SKELETON_TYPE_CAMEL);
+				LoadASkeleton(SKELETON_TYPE_MUMMY);
 				break;
 
 		case	TRACK_NUM_EUROPE:
-				LoadASkeleton(SKELETON_TYPE_CATAPULT, setupInfo);
-				LoadASkeleton(SKELETON_TYPE_FLAG, setupInfo);
+				LoadASkeleton(SKELETON_TYPE_CATAPULT);
+				LoadASkeleton(SKELETON_TYPE_FLAG);
 				break;
 
 		case	TRACK_NUM_SCANDINAVIA:
-				LoadASkeleton(SKELETON_TYPE_TROLL, setupInfo);
-				LoadASkeleton(SKELETON_TYPE_VIKING, setupInfo);
+				LoadASkeleton(SKELETON_TYPE_TROLL);
+				LoadASkeleton(SKELETON_TYPE_VIKING);
 				break;
 
 		case	TRACK_NUM_ATLANTIS:
-				LoadASkeleton(SKELETON_TYPE_SHARK, setupInfo);
+				LoadASkeleton(SKELETON_TYPE_SHARK);
 				break;
 
 		case	TRACK_NUM_STONEHENGE:
-				LoadASkeleton(SKELETON_TYPE_DRUID, setupInfo);
+				LoadASkeleton(SKELETON_TYPE_DRUID);
 				break;
 
 		case	TRACK_NUM_CELTIC:
-				LoadASkeleton(SKELETON_TYPE_FLAG, setupInfo);
+				LoadASkeleton(SKELETON_TYPE_FLAG);
 				break;
 
 	}
@@ -897,7 +897,7 @@ static const char*	levelModelFiles[NUM_TRACKS] =
 
 
 	// Ensure sprite groups are preloaded
-	PreloadGameArt(setupInfo);
+PreloadGameArt();
 
 
 			/* LOAD TERRAIN */

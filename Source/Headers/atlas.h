@@ -61,12 +61,12 @@ typedef struct Atlas
 	bool isASCIIFont;
 } Atlas;
 
-Atlas* Atlas_Load(const char* atlasName, int flags, OGLSetupOutputType* setupInfo);
+Atlas* Atlas_Load(const char* atlasName, int flags);
 void Atlas_Dispose(Atlas* atlas);
 
 const AtlasGlyph* Atlas_GetGlyph(const Atlas* atlas, uint32_t codepoint);
 
-void LoadSpriteGroup(int groupNum, const char* atlasName, int flags, OGLSetupOutputType* setupInfo);
+void LoadSpriteGroup(int groupNum, const char* atlasName, int flags);
 void DisposeSpriteGroup(int groupNum);
 void DisposeAllSpriteGroups(void);
 const AtlasGlyph* GetSpriteInfo(int groupNum, int spriteNum);
@@ -85,11 +85,10 @@ void Atlas_DrawString2(
 	float scaleX,
 	float scaleY,
 	float rot,
-	uint32_t flags,
-	const OGLSetupOutputType *setupInfo);
+	uint32_t flags);
 
 #define Atlas_DrawString(group, text, x, y, scale, flags) \
-	Atlas_DrawString2(group, text, x, y, scale, scale, 0, flags, gGameViewInfoPtr)
+	Atlas_DrawString2(group, text, x, y, scale, scale, 0, flags)
 
 void DrawSprite2(
 	int groupNum,
@@ -99,8 +98,7 @@ void DrawSprite2(
 	float scaleX,
 	float scaleY,
 	float rot,
-	uint32_t flags,
-	const OGLSetupOutputType *setupInfo);
+	uint32_t flags);
 
 #define DrawSprite(group, sprite, x, y, scale, flags) \
-	DrawSprite2(group, sprite, x, y, scale, scale, 0, flags, gGameViewInfoPtr)
+	DrawSprite2(group, sprite, x, y, scale, scale, 0, flags)

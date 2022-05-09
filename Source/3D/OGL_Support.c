@@ -186,17 +186,16 @@ static OGLVector3D			fillDirection2 = { -1, -.3, -.3 };
 
 /************** SETUP OGL WINDOW *******************/
 
-void OGL_SetupWindow(OGLSetupInputType *setupDefPtr, OGLSetupOutputType **outputHandle)
+void OGL_SetupGameView(OGLSetupInputType *setupDefPtr)
 {
-OGLSetupOutputType	*outputPtr;
-
 	SDL_ShowCursor(0);	// do this just as a safety precaution to make sure no cursor lingering around
+
+	GAME_ASSERT_MESSAGE(gGameView == NULL, "gGameView overwritten");
 
 			/* ALLOC MEMORY FOR OUTPUT DATA */
 
-	outputPtr = (OGLSetupOutputType *)AllocPtrClear(sizeof(OGLSetupOutputType));
-	if (outputPtr == nil)
-		DoFatalAlert("OGL_SetupWindow: AllocPtr failed");
+	gGameView = (OGLSetupOutputType *)AllocPtrClear(sizeof(OGLSetupOutputType));
+	GAME_ASSERT(gGameView);
 
 
 			/* SET SOME PANE INFO */
@@ -222,7 +221,7 @@ OGLSetupOutputType	*outputPtr;
 				break;
 
 		default:
-			DoFatalAlert("OGL_SetupWindow: # panes not implemented");
+			DoFatalAlert("OGL_SetupGameView: # panes not implemented");
 	}
 
 
@@ -251,32 +250,30 @@ OGLSetupOutputType	*outputPtr;
 
 				/* PASS BACK INFO */
 
-//	outputPtr->drawContext 		= gAGLContext;
-	outputPtr->clip 			= setupDefPtr->view.clip;
-	outputPtr->hither 			= setupDefPtr->camera.hither;			// remember hither/yon
-	outputPtr->yon 				= setupDefPtr->camera.yon;
-	outputPtr->useFog 			= setupDefPtr->styles.useFog;
-	outputPtr->clearBackBuffer 	= setupDefPtr->view.clearBackBuffer;
-	outputPtr->pillarbox4x3		= setupDefPtr->view.pillarbox4x3;
-	outputPtr->fadePillarbox	= false;
-	outputPtr->fadeDuration		= .15f;
+//	gGameView->drawContext 		= gAGLContext;
+	gGameView->clip 			= setupDefPtr->view.clip;
+	gGameView->hither 			= setupDefPtr->camera.hither;			// remember hither/yon
+	gGameView->yon 				= setupDefPtr->camera.yon;
+	gGameView->useFog 			= setupDefPtr->styles.useFog;
+	gGameView->clearBackBuffer 	= setupDefPtr->view.clearBackBuffer;
+	gGameView->pillarbox4x3		= setupDefPtr->view.pillarbox4x3;
+	gGameView->fadePillarbox	= false;
+	gGameView->fadeDuration		= .15f;
 
-	outputPtr->isActive = true;											// it's now an active structure
+//	gGameView->isActive = true;											// it's now an active structure
 
-	outputPtr->lightList = setupDefPtr->lights;							// copy lights
+	gGameView->lightList = setupDefPtr->lights;							// copy lights
 
 	for (int i = 0; i < MAX_VIEWPORTS; i++)
 	{
-		outputPtr->fov[i] = setupDefPtr->camera.fov;					// each camera will have its own fov so we can change it for special effects
-		OGL_UpdateCameraFromTo(outputPtr, &setupDefPtr->camera.from[i], &setupDefPtr->camera.to[i], i);
+		gGameView->fov[i] = setupDefPtr->camera.fov;					// each camera will have its own fov so we can change it for special effects
+		OGL_UpdateCameraFromTo(&setupDefPtr->camera.from[i], &setupDefPtr->camera.to[i], i);
 	}
-
-	*outputHandle = outputPtr;											// return value to caller
 
 
 			/* LOAD FONT */
 
-	LoadSpriteGroup(SPRITE_GROUP_FONT, setupDefPtr->view.fontName, kAtlasLoadFont, outputPtr);
+	LoadSpriteGroup(SPRITE_GROUP_FONT, setupDefPtr->view.fontName, kAtlasLoadFont);
 	OGL_InitFont();
 
 
@@ -293,7 +290,7 @@ OGLSetupOutputType	*outputPtr;
 
 	{
 		int x, y, w, h;
-		OGL_GetCurrentViewport(outputPtr, &x, &y, &w, &h, 0);
+		OGL_GetCurrentViewport(&x, &y, &w, &h, 0);
 
 		gCurrentAspectRatio = (float) w / (float) (h == 0? 1: h);
 		OGL_Update2DLogicalSize();
@@ -301,26 +298,22 @@ OGLSetupOutputType	*outputPtr;
 }
 
 
-/***************** OGL_DisposeWindowSetup ***********************/
+/***************** OGL_DisposeGameView ***********************/
 //
-// Disposes of all data created by OGL_SetupWindow
+// Disposes of all data created by OGL_SetupGameView
 //
 // Source port note: The original used to kill the draw context here,
 // but we keep one DC throughout the lifetime of the program.
 //
 
-void OGL_DisposeWindowSetup(OGLSetupOutputType **dataHandle)
+void OGL_DisposeGameView(void)
 {
-OGLSetupOutputType	*data;
-
-	data = *dataHandle;
-	GAME_ASSERT(data);										// see if this setup exists
+	GAME_ASSERT(gGameView);									// see if this setup exists
 
 		/* FREE MEMORY & NIL POINTER */
 
-	data->isActive = false;									// now inactive
-	SafeDisposePtr((Ptr)data);
-	*dataHandle = nil;
+	SafeDisposePtr((Ptr) gGameView);
+	gGameView = nil;
 }
 
 
@@ -525,12 +518,9 @@ GLfloat	ambient[4];
 
 /******************* OGL DRAW SCENE *********************/
 
-void OGL_DrawScene(OGLSetupOutputType *setupInfo, void (*drawRoutine)(OGLSetupOutputType *))
+void OGL_DrawScene(void (*drawRoutine)(void))
 {
-	if (setupInfo == nil)										// make sure it's legit
-		DoFatalAlert("OGL_DrawScene setupInfo == nil");
-	if (!setupInfo->isActive)
-		DoFatalAlert("OGL_DrawScene isActive == false");
+	GAME_ASSERT(gGameView);										// make sure it's legit
 
 	int makeCurrentRC = SDL_GL_MakeCurrent(gSDLWindow, gAGLContext);		// make context active
 	if (makeCurrentRC != 0)
@@ -575,7 +565,7 @@ void OGL_DrawScene(OGLSetupOutputType *setupInfo, void (*drawRoutine)(OGLSetupOu
 				/* CLEAR BUFFERS */
 				/*****************/
 
-	if (setupInfo->clearBackBuffer || (gDebugMode == 3))
+	if (gGameView->clearBackBuffer || (gDebugMode == 3))
 	{
 		glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 	}
@@ -601,7 +591,7 @@ void OGL_DrawScene(OGLSetupOutputType *setupInfo, void (*drawRoutine)(OGLSetupOu
 		gDrawingOverlayPane = gCurrentSplitScreenPane == numPasses-1;
 
 		int x, y, w, h;
-		OGL_GetCurrentViewport(setupInfo, &x, &y, &w, &h, gCurrentSplitScreenPane);
+		OGL_GetCurrentViewport(&x, &y, &w, &h, gCurrentSplitScreenPane);
 
 		glViewport(x, y, w, h);
 		gCurrentAspectRatio = (float) w / (float) (h == 0? 1: h);
@@ -611,13 +601,13 @@ void OGL_DrawScene(OGLSetupOutputType *setupInfo, void (*drawRoutine)(OGLSetupOu
 
 				/* GET UPDATED GLOBAL COPIES OF THE VARIOUS MATRICES */
 
-		OGL_Camera_SetPlacementAndUpdateMatrices(setupInfo, gCurrentSplitScreenPane);
+		OGL_Camera_SetPlacementAndUpdateMatrices(gCurrentSplitScreenPane);
 
 
 				/* CALL INPUT DRAW FUNCTION */
 
 		if (drawRoutine != nil)
-			drawRoutine(setupInfo);
+			drawRoutine();
 	}
 
 
@@ -693,15 +683,15 @@ void OGL_DrawScene(OGLSetupOutputType *setupInfo, void (*drawRoutine)(OGLSetupOu
 // may look upside down.
 //
 
-void OGL_GetCurrentViewport(const OGLSetupOutputType *setupInfo, int *x, int *y, int *w, int *h, Byte whichPane)
+void OGL_GetCurrentViewport(int *x, int *y, int *w, int *h, Byte whichPane)
 {
 int	t,b,l,r;
 
 
-	t = setupInfo->clip.top;
-	b = setupInfo->clip.bottom;
-	l = setupInfo->clip.left;
-	r = setupInfo->clip.right;
+	t = gGameView->clip.top;
+	b = gGameView->clip.bottom;
+	l = gGameView->clip.left;
+	r = gGameView->clip.right;
 
 	int clippedWidth = gGameWindowWidth - l - r;
 	int clippedHeight = gGameWindowHeight - t - b;
@@ -724,7 +714,7 @@ int	t,b,l,r;
 		*h = clippedHeight;
 	}
 	else
-	if (setupInfo->pillarbox4x3)
+	if (gGameView->pillarbox4x3)
 	{
 		int widescreenAdjustedWidth = gGameWindowHeight * 640 / 480;
 
@@ -1002,51 +992,51 @@ void OGL_Texture_SetOpenGLTexture(GLuint textureName)
 
 /*************** OGL_MoveCameraFromTo ***************/
 
-void OGL_MoveCameraFromTo(OGLSetupOutputType *setupInfo, float fromDX, float fromDY, float fromDZ, float toDX, float toDY, float toDZ, int camNum)
+void OGL_MoveCameraFromTo(float fromDX, float fromDY, float fromDZ, float toDX, float toDY, float toDZ, int camNum)
 {
 
 			/* SET CAMERA COORDS */
 
-	setupInfo->cameraPlacement[camNum].cameraLocation.x += fromDX;
-	setupInfo->cameraPlacement[camNum].cameraLocation.y += fromDY;
-	setupInfo->cameraPlacement[camNum].cameraLocation.z += fromDZ;
+	gGameView->cameraPlacement[camNum].cameraLocation.x += fromDX;
+	gGameView->cameraPlacement[camNum].cameraLocation.y += fromDY;
+	gGameView->cameraPlacement[camNum].cameraLocation.z += fromDZ;
 
-	setupInfo->cameraPlacement[camNum].pointOfInterest.x += toDX;
-	setupInfo->cameraPlacement[camNum].pointOfInterest.y += toDY;
-	setupInfo->cameraPlacement[camNum].pointOfInterest.z += toDZ;
+	gGameView->cameraPlacement[camNum].pointOfInterest.x += toDX;
+	gGameView->cameraPlacement[camNum].pointOfInterest.y += toDY;
+	gGameView->cameraPlacement[camNum].pointOfInterest.z += toDZ;
 
-	UpdateListenerLocation(setupInfo);
+	UpdateListenerLocation();
 }
 
 
 /*************** OGL_UpdateCameraFromTo ***************/
 
-void OGL_UpdateCameraFromTo(OGLSetupOutputType *setupInfo, OGLPoint3D *from, OGLPoint3D *to, int camNum)
+void OGL_UpdateCameraFromTo(OGLPoint3D *from, OGLPoint3D *to, int camNum)
 {
 static const OGLVector3D up = {0,1,0};
 
 	if ((camNum < 0) || (camNum >= MAX_VIEWPORTS))
 		DoFatalAlert("OGL_UpdateCameraFromTo: illegal camNum");
 
-	setupInfo->cameraPlacement[camNum].upVector 		= up;
-	setupInfo->cameraPlacement[camNum].cameraLocation 	= *from;
-	setupInfo->cameraPlacement[camNum].pointOfInterest 	= *to;
+	gGameView->cameraPlacement[camNum].upVector 		= up;
+	gGameView->cameraPlacement[camNum].cameraLocation 	= *from;
+	gGameView->cameraPlacement[camNum].pointOfInterest 	= *to;
 
-	UpdateListenerLocation(setupInfo);
+	UpdateListenerLocation();
 }
 
 /*************** OGL_UpdateCameraFromToUp ***************/
 
-void OGL_UpdateCameraFromToUp(OGLSetupOutputType *setupInfo, OGLPoint3D *from, OGLPoint3D *to, OGLVector3D *up, int camNum)
+void OGL_UpdateCameraFromToUp(OGLPoint3D *from, OGLPoint3D *to, OGLVector3D *up, int camNum)
 {
 	if ((camNum < 0) || (camNum >= MAX_VIEWPORTS))
 		DoFatalAlert("OGL_UpdateCameraFromToUp: illegal camNum");
 
-	setupInfo->cameraPlacement[camNum].upVector 		= *up;
-	setupInfo->cameraPlacement[camNum].cameraLocation 	= *from;
-	setupInfo->cameraPlacement[camNum].pointOfInterest 	= *to;
+	gGameView->cameraPlacement[camNum].upVector 		= *up;
+	gGameView->cameraPlacement[camNum].cameraLocation 	= *from;
+	gGameView->cameraPlacement[camNum].pointOfInterest 	= *to;
 
-	UpdateListenerLocation(setupInfo);
+	UpdateListenerLocation();
 }
 
 
@@ -1059,7 +1049,7 @@ void OGL_UpdateCameraFromToUp(OGLSetupOutputType *setupInfo, OGLPoint3D *from, O
 // Assumes gCurrentAspectRatio is set!
 //
 
-void OGL_Camera_SetPlacementAndUpdateMatrices(OGLSetupOutputType *setupInfo, int camNum)
+void OGL_Camera_SetPlacementAndUpdateMatrices(int camNum)
 {
 OGLLightDefType	*lights;
 
@@ -1068,10 +1058,10 @@ OGLLightDefType	*lights;
 
 	OGL_SetGluPerspectiveMatrix(
 			&gViewToFrustumMatrix,
-			setupInfo->fov[camNum],
+			gGameView->fov[camNum],
 			gCurrentAspectRatio,
-			setupInfo->hither,
-			setupInfo->yon);
+			gGameView->hither,
+			gGameView->yon);
 
 
 
@@ -1079,10 +1069,9 @@ OGLLightDefType	*lights;
 
 	OGL_SetGluLookAtMatrix(
 			&gLocalToViewMatrix,
-			&setupInfo->cameraPlacement[camNum].cameraLocation,
-			&setupInfo->cameraPlacement[camNum].pointOfInterest,
-			&setupInfo->cameraPlacement[camNum].upVector);
-	
+			&gGameView->cameraPlacement[camNum].cameraLocation,
+			&gGameView->cameraPlacement[camNum].pointOfInterest,
+			&gGameView->cameraPlacement[camNum].upVector);
 
 
 			/* ENABLE THOSE MATRICES */
@@ -1093,7 +1082,7 @@ OGLLightDefType	*lights;
 
 		/* UPDATE LIGHT POSITIONS */
 
-	lights =  &setupInfo->lightList;						// point to light list
+	lights =  &gGameView->lightList;						// point to light list
 	for (int i = 0; i < lights->numFillLights; i++)
 	{
 		GLfloat lightVec[4];
@@ -1110,10 +1099,10 @@ OGLLightDefType	*lights;
 
 	OGLMatrix4x4_Multiply(&gLocalToViewMatrix, &gViewToFrustumMatrix, &gLocalToFrustumMatrix);
 
-	OGLMatrix4x4_GetFrustumToWindow(setupInfo, &gFrustumToWindowMatrix[camNum], camNum);
+	OGLMatrix4x4_GetFrustumToWindow(&gFrustumToWindowMatrix[camNum], camNum);
 	OGLMatrix4x4_Multiply(&gLocalToFrustumMatrix, &gFrustumToWindowMatrix[camNum], &gWorldToWindowMatrix[camNum]);
 
-	UpdateListenerLocation(setupInfo);
+	UpdateListenerLocation();
 }
 
 

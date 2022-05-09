@@ -77,8 +77,6 @@ typedef struct
 
 typedef struct
 {
-	OGLSetupOutputType *setupInfo;					// materials are draw context relative, so remember which context we're using now
-
 	uint32_t		flags;
 	OGLColorRGBA	diffuseColor;					// rgba diffuse color
 
@@ -196,19 +194,19 @@ MetaObjectPtr MO_CreateNewObjectOfType(uint32_t type, uintptr_t subType, void *d
 MetaObjectPtr MO_GetNewReference(MetaObjectPtr mo);
 void MO_AppendToGroup(MOGroupObject *group, MetaObjectPtr newObject);
 void MO_AttachToGroupStart(MOGroupObject *group, MetaObjectPtr newObject);
-void MO_DrawGeometry_VertexArray(const MOVertexArrayData *data, const OGLSetupOutputType *setupInfo);
-void MO_DrawGroup(const MOGroupObject *object, const OGLSetupOutputType *setupInfo);
-void MO_DrawObject(const MetaObjectPtr object, const OGLSetupOutputType *setupInfo);
-void MO_DrawMaterial(MOMaterialObject *matObj, const OGLSetupOutputType *setupInfo);
-void MO_DrawMatrix(const MOMatrixObject *matObj, const OGLSetupOutputType *setupInfo);
-void MO_DrawPicture(const MOPictureObject *picObj, const OGLSetupOutputType *setupInfo);
+void MO_DrawGeometry_VertexArray(const MOVertexArrayData *data);
+void MO_DrawGroup(const MOGroupObject *object);
+void MO_DrawObject(const MetaObjectPtr object);
+void MO_DrawMaterial(MOMaterialObject *matObj);
+void MO_DrawMatrix(const MOMatrixObject *matObj);
+void MO_DrawPicture(const MOPictureObject *picObj);
 void MO_DisposeObjectReference(MetaObjectPtr obj);
 void MO_DuplicateVertexArrayData(MOVertexArrayData *inData, MOVertexArrayData *outData);
 void MO_DisposeObject_Geometry_VertexArray(MOVertexArrayData *data);
 void MO_CalcBoundingBox(MetaObjectPtr object, OGLBoundingBox *bBox);
-MOMaterialObject *MO_GetTextureFromFile(const char* path, OGLSetupOutputType *setupInfo, int destPixelFormat);
+MOMaterialObject *MO_GetTextureFromFile(const char* path, int destPixelFormat);
 //void MO_SetPictureObjectCoordsToMouse(OGLSetupOutputType *info, MOPictureObject *obj);
 
-void MO_DrawSprite(const MOSpriteObject *spriteObj, const OGLSetupOutputType *setupInfo);
+void MO_DrawSprite(const MOSpriteObject *spriteObj);
 void MO_VertexArray_OffsetUVs(MetaObjectPtr object, float du, float dv);
 void MO_Object_OffsetUVs(MetaObjectPtr object, float du, float dv);

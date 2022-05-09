@@ -91,13 +91,13 @@ typedef struct
 
 //=================================================
 
-SkeletonDefType *LoadSkeletonFile(short skeletonType, OGLSetupOutputType *setupInfo);
+SkeletonDefType *LoadSkeletonFile(short skeletonType);
 OSErr LoadPrefs(void);
 void SavePrefs(void);
 void LoadPlayfield(FSSpec *specPtr);
-void PreloadGameArt(OGLSetupOutputType *setupInfo);
-void LoadLevelArt(OGLSetupOutputType *setupInfo);
-void LoadCavemanSkins(OGLSetupOutputType *setupInfo);
+void PreloadGameArt(void);
+void LoadLevelArt(void);
+void LoadCavemanSkins(void);
 void DisposeCavemanSkins(void);
 void SetDefaultDirectory(void);
 

@@ -32,10 +32,10 @@ static void MO_DisposeObject_Material(MOMaterialObject *obj);
 static void MO_GetNewGroupReference(MOGroupObject *obj);
 static void MO_GetNewVertexArrayReference(MOVertexArrayObject *obj);
 static void MO_CalcBoundingBox_Recurse(MetaObjectPtr object, OGLBoundingBox *bBox);
-static void SetMetaObjectToPicture(MOPictureObject *pictObj, OGLSetupOutputType *setupInfo, const char *inData, int destPixelFormat);
+static void SetMetaObjectToPicture(MOPictureObject *pictObj, const char *inData, int destPixelFormat);
 static void MO_DisposeObject_Picture(MOPictureObject *obj);
 
-static void SetMetaObjectToSprite(MOSpriteObject *spriteObj, OGLSetupOutputType *setupInfo, MOSpriteSetupData *inData);
+static void SetMetaObjectToSprite(MOSpriteObject *spriteObj, MOSpriteSetupData *inData);
 static void MO_DisposeObject_Sprite(MOSpriteObject *obj);
 
 
@@ -162,11 +162,11 @@ MetaObjectPtr	mo;
 				break;
 
 		case	MO_TYPE_PICTURE:
-				SetMetaObjectToPicture(mo, (OGLSetupOutputType*)subType, data, GL_RGBA);
+				SetMetaObjectToPicture(mo, data, GL_RGBA);
 				break;
 
 		case	MO_TYPE_SPRITE:
-				SetMetaObjectToSprite(mo, (OGLSetupOutputType *)subType, data);
+				SetMetaObjectToSprite(mo, data);
 				break;
 
 		default:
@@ -376,7 +376,7 @@ static void SetMetaObjectToMatrix(MOMatrixObject *matObj, OGLMatrix4x4 *inData)
 // This takes the given input data and copies it.
 //
 
-static void SetMetaObjectToPicture(MOPictureObject *pictObj, OGLSetupOutputType *setupInfo, const char *inData, int destPixelFormat)
+static void SetMetaObjectToPicture(MOPictureObject *pictObj, const char *inData, int destPixelFormat)
 {
 int			width,height;
 MOPictureData	*picData = &pictObj->objectData;
@@ -405,7 +405,7 @@ MOMaterialData	matData;
 			/* CREATE A TEXTURE OBJECT */
 			/***************************/
 
-	matData.setupInfo		= setupInfo;
+//	matData.setupInfo		= setupInfo;
 	matData.flags			= BG3D_MATERIALFLAG_TEXTURED|BG3D_MATERIALFLAG_CLAMP_U|BG3D_MATERIALFLAG_CLAMP_V;
 	matData.diffuseColor	= (OGLColorRGBA) {1,1,1,1};
 	matData.numMipmaps		= 1;
@@ -427,7 +427,7 @@ MOMaterialData	matData;
 // This takes the given input data and copies it.
 //
 
-static void SetMetaObjectToSprite(MOSpriteObject *spriteObj, OGLSetupOutputType *setupInfo, MOSpriteSetupData *inData)
+static void SetMetaObjectToSprite(MOSpriteObject *spriteObj, MOSpriteSetupData *inData)
 {
 MOSpriteData	*spriteData = &spriteObj->objectData;
 
@@ -537,7 +537,7 @@ int	i,j;
 // This recursive function will draw any objects submitted and parses groups.
 //
 
-void MO_DrawObject(const MetaObjectPtr object, const OGLSetupOutputType *setupInfo)
+void MO_DrawObject(const MetaObjectPtr object)
 {
 MetaObjectHeader	*objHead = object;
 MOVertexArrayObject	*vObj;
@@ -557,7 +557,7 @@ MOVertexArrayObject	*vObj;
 				{
 					case	MO_GEOMETRY_SUBTYPE_VERTEXARRAY:
 							vObj = object;
-							MO_DrawGeometry_VertexArray(&vObj->objectData, setupInfo);
+							MO_DrawGeometry_VertexArray(&vObj->objectData);
 							break;
 
 					default:
@@ -566,23 +566,23 @@ MOVertexArrayObject	*vObj;
 				break;
 
 		case	MO_TYPE_MATERIAL:
-				MO_DrawMaterial(object, setupInfo);
+				MO_DrawMaterial(object);
 				break;
 
 		case	MO_TYPE_GROUP:
-				MO_DrawGroup(object, setupInfo);
+				MO_DrawGroup(object);
 				break;
 
 		case	MO_TYPE_MATRIX:
-				MO_DrawMatrix(object, setupInfo);
+				MO_DrawMatrix(object);
 				break;
 
 		case	MO_TYPE_PICTURE:
-				MO_DrawPicture(object, setupInfo);
+				MO_DrawPicture(object);
 				break;
 
 		case	MO_TYPE_SPRITE:
-				MO_DrawSprite(object, setupInfo);
+				MO_DrawSprite(object);
 				break;
 
 		default:
@@ -593,7 +593,7 @@ MOVertexArrayObject	*vObj;
 
 /******************** MO_DRAW GROUP *************************/
 
-void MO_DrawGroup(const MOGroupObject *object, const OGLSetupOutputType *setupInfo)
+void MO_DrawGroup(const MOGroupObject *object)
 {
 int	numChildren,i;
 
@@ -619,7 +619,7 @@ int	numChildren,i;
 
 	for (i = 0; i < numChildren; i++)
 	{
-		MO_DrawObject(object->objectData.groupContents[i], setupInfo);
+		MO_DrawObject(object->objectData.groupContents[i]);
 	}
 
 
@@ -633,7 +633,7 @@ int	numChildren,i;
 
 /******************** MO: DRAW GEOMETRY - VERTEX ARRAY *************************/
 
-void MO_DrawGeometry_VertexArray(const MOVertexArrayData *data, const OGLSetupOutputType *setupInfo)
+void MO_DrawGeometry_VertexArray(const MOVertexArrayData *data)
 {
 Boolean		useTexture = false;
 
@@ -674,7 +674,7 @@ Boolean		useTexture = false;
 
 	if (data->numMaterials > 0)									// are there any materials?
 	{
-		MO_DrawMaterial(data->materials[0], setupInfo);			// submit material #0
+		MO_DrawMaterial(data->materials[0]);					// submit material #0
 
 			/* IF TEXTURED, THEN ALSO ACTIVATE UV ARRAY */
 
@@ -760,7 +760,7 @@ use_current:
 
 /************************ DRAW MATERIAL **************************/
 
-void MO_DrawMaterial(MOMaterialObject *matObj, const OGLSetupOutputType *setupInfo)
+void MO_DrawMaterial(MOMaterialObject *matObj)
 {
 MOMaterialData		*matData;
 OGLColorRGBA		*diffuseColor,diffColor2;
@@ -883,7 +883,7 @@ uint32_t				matFlags;
 
 /************************ DRAW MATRIX **************************/
 
-void MO_DrawMatrix(const MOMatrixObject *matObj, const OGLSetupOutputType *setupInfo)
+void MO_DrawMatrix(const MOMatrixObject *matObj)
 {
 const OGLMatrix4x4		*m;
 
@@ -900,7 +900,7 @@ const OGLMatrix4x4		*m;
 
 /************************ MO: DRAW PICTURE **************************/
 
-void MO_DrawPicture(const MOPictureObject *picObj, const OGLSetupOutputType *setupInfo)
+void MO_DrawPicture(const MOPictureObject *picObj)
 {
 int				w,h;
 float			x,y,z,xadj,yadj;
@@ -915,7 +915,7 @@ float			screenScaleX,screenScaleY;
 
 			/* SET STATE */
 
-	if (setupInfo->useFog)
+	if (gGameView->useFog)
 		glDisable(GL_FOG);
 	OGL_DisableLighting();
 	glEnable(GL_CULL_FACE);
@@ -925,7 +925,7 @@ float			screenScaleX,screenScaleY;
 
 	w = picData->fullWidth;
 	h = picData->fullHeight;
-	OGL_GetCurrentViewport(setupInfo, &px, &py, &pw, &ph, 0);
+	OGL_GetCurrentViewport(&px, &py, &pw, &ph, 0);
 
 	screenScaleX = pw/(float)PICTURE_FULL_SCREEN_SIZE_X;
 	screenScaleY = ph/(float)PICTURE_FULL_SCREEN_SIZE_Y;
@@ -941,7 +941,7 @@ float			screenScaleX,screenScaleY;
 
 			/* ACTIVATE THE MATERIAL */
 
-	MO_DrawMaterial(picData->material, setupInfo);			// submit material #0
+	MO_DrawMaterial(picData->material);							// submit material
 
 	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -970,7 +970,7 @@ float			screenScaleX,screenScaleY;
 // Also, assume that the projection matrix is already the identity matrix.
 //
 
-void MO_DrawSprite(const MOSpriteObject *spriteObj, const OGLSetupOutputType *setupInfo)
+void MO_DrawSprite(const MOSpriteObject *spriteObj)
 {
 const MOSpriteData	*spriteData = &spriteObj->objectData;
 
@@ -982,8 +982,7 @@ const MOSpriteData	*spriteData = &spriteObj->objectData;
 		spriteData->scaleX,
 		spriteData->scaleY,
 		spriteData->rot,
-		kTextMeshAlignCenter | kTextMeshAlignMiddle | kTextMeshKeepCurrentProjection,
-		setupInfo
+		kTextMeshAlignCenter | kTextMeshAlignMiddle | kTextMeshKeepCurrentProjection
 	);
 }
 
@@ -1447,7 +1446,7 @@ int					numChildren,i;
 
 /******************* MO: GET TEXTURE FROM FILE ************************/
 
-MOMaterialObject *MO_GetTextureFromFile(const char* path, OGLSetupOutputType *setupInfo, int destPixelFormat)
+MOMaterialObject *MO_GetTextureFromFile(const char* path, int destPixelFormat)
 {
 MetaObjectPtr	obj;
 MOMaterialData	matData;
@@ -1517,7 +1516,7 @@ printf("MO_GetTextureFromFile: %s\n", path);
 
 			/* CREATE NEW TEXTURE OBJECT */
 
-	matData.setupInfo		= setupInfo;
+//	matData.setupInfo		= setupInfo;
 	matData.flags			= BG3D_MATERIALFLAG_TEXTURED;
 	matData.diffuseColor.r	= 1;
 	matData.diffuseColor.g	= 1;

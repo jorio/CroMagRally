@@ -1389,7 +1389,7 @@ static ObjNode* MakeDarkenPane(void)
 		.coord = {0,16,0},
 	};
 
-	pane = MakeSpriteObject(&def, gGameViewInfoPtr);
+	pane = MakeSpriteObject(&def);
 	pane->ColorFilter = (OGLColorRGBA) {0, 0, 0, 0};
 	pane->Scale.x = 480;
 	pane->Scale.y = 1;
@@ -1810,11 +1810,12 @@ static const MenuItem* LookUpMenu(int menuID)
 	return NULL;
 }
 
+// TODO: harmonize order of update/draw params with rest of game
 int StartMenu(
 		const MenuItem* menu,
 		const MenuStyle* style,
 		void (*update)(void),
-		void (*draw)(OGLSetupOutputType *))
+		void (*draw)(void))
 {
 	int cursorStateBeforeMenu = SDL_ShowCursor(-1);
 	SDL_ShowCursor(1);
@@ -1920,7 +1921,7 @@ int StartMenu(
 		else
 			MoveObjects();
 
-		OGL_DrawScene(gGameViewInfoPtr, draw);
+		OGL_DrawScene(draw);
 	}
 
 
@@ -1928,7 +1929,7 @@ int StartMenu(
 
 	if (gNav->style.fadeOutSceneOnExit)
 	{
-		OGL_FadeOutScene(gGameViewInfoPtr, draw, NULL);
+		OGL_FadeOutScene(draw, NULL);
 	}
 
 

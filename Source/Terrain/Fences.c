@@ -14,8 +14,8 @@
 /*    PROTOTYPES            */
 /****************************/
 
-static void DrawFences(ObjNode *theNode, OGLSetupOutputType *setupInfo);
-static void SubmitFence(int f, OGLSetupOutputType *setupInfo, float camX, float camZ);
+static void DrawFences(ObjNode *theNode);
+static void SubmitFence(int f, float camX, float camZ);
 static void MakeFenceGeometry(void);
 
 
@@ -160,7 +160,7 @@ static void LoadFenceMaterial(int type)
 	char fencePath[256];
 	snprintf(fencePath, sizeof(fencePath), ":sprites:fences:%s.png", kFenceNames[type]);
 
-	gFenceMaterials[type] = MO_GetTextureFromFile(fencePath, gGameViewInfoPtr, /*GL_RGB5_A1*/ GL_RGBA);
+	gFenceMaterials[type] = MO_GetTextureFromFile(fencePath, /*GL_RGB5_A1*/ GL_RGBA);
 	gFenceMaterials[type]->objectData.flags |= BG3D_MATERIALFLAG_CLAMP_V;		// don't wrap v, only u
 }
 
@@ -484,7 +484,7 @@ float					minX,minY,minZ,maxX,maxY,maxZ;
 
 /********************* DRAW FENCES ***********************/
 
-static void DrawFences(ObjNode *theNode, OGLSetupOutputType *setupInfo)
+static void DrawFences(ObjNode *theNode)
 {
 long			f,type;
 float			cameraX, cameraZ;
@@ -508,8 +508,8 @@ float			cameraX, cameraZ;
 
 			/* GET CAMERA COORDS */
 
-	cameraX = setupInfo->cameraPlacement[gCurrentSplitScreenPane].cameraLocation.x;
-	cameraZ = setupInfo->cameraPlacement[gCurrentSplitScreenPane].cameraLocation.z;
+	cameraX = gGameView->cameraPlacement[gCurrentSplitScreenPane].cameraLocation.x;
+	cameraZ = gGameView->cameraPlacement[gCurrentSplitScreenPane].cameraLocation.z;
 
 
 			/* SET GLOBAL MATERIAL FLAGS */
@@ -535,7 +535,7 @@ float			cameraX, cameraZ;
 		{
 				/* SUBMIT GEOMETRY */
 
-			SubmitFence(f, setupInfo, cameraX, cameraZ);
+			SubmitFence(f, cameraX, cameraZ);
 			gNumFencesDrawn++;
 		}
 	}
@@ -548,7 +548,7 @@ float			cameraX, cameraZ;
 // Visibility checks have already been done, so there's a good chance the fence is visible
 //
 
-static void SubmitFence(int f, OGLSetupOutputType *setupInfo, float camX, float camZ)
+static void SubmitFence(int f, float camX, float camZ)
 {
 float					dist,alpha = 1.0f;
 long					i,numNubs,j;
@@ -609,7 +609,7 @@ OGLPoint3D				*nubs;
 		gFenceTriMeshData[f].materials[0] = gFenceMaterials[FENCE_TYPE_SEAWEED + gSeaweedFrame];	// set illegal temporary ref to material
 	}
 
-	MO_DrawGeometry_VertexArray(&gFenceTriMeshData[f], setupInfo);
+	MO_DrawGeometry_VertexArray(&gFenceTriMeshData[f]);
 }
 
 

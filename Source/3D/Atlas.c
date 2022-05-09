@@ -267,7 +267,7 @@ static void ParseKerningFile(Atlas* atlas, const char* data)
 /*                       INIT/SHUTDOWN                         */
 /***************************************************************/
 
-Atlas* Atlas_Load(const char* fontName, int flags, OGLSetupOutputType* setupInfo)
+Atlas* Atlas_Load(const char* fontName, int flags)
 {
 	Atlas* atlas = AllocPtrClear(sizeof(Atlas));
 
@@ -308,7 +308,7 @@ Atlas* Atlas_Load(const char* fontName, int flags, OGLSetupOutputType* setupInfo
 		GAME_ASSERT_MESSAGE(!atlas->material, "atlas material already created");
 		MOMaterialData matData;
 		memset(&matData, 0, sizeof(matData));
-		matData.setupInfo		= setupInfo;
+//		matData.setupInfo		= setupInfo;
 		matData.flags			= BG3D_MATERIALFLAG_ALWAYSBLEND | BG3D_MATERIALFLAG_TEXTURED | BG3D_MATERIALFLAG_CLAMP_U | BG3D_MATERIALFLAG_CLAMP_V;
 		matData.diffuseColor	= (OGLColorRGBA) {1, 1, 1, 1};
 		matData.numMipmaps		= 1;
@@ -765,8 +765,7 @@ void Atlas_DrawString2(
 	float scaleX,
 	float scaleY,
 	float rot,
-	uint32_t flags,
-	const OGLSetupOutputType *setupInfo)
+	uint32_t flags)
 {
 	GAME_ASSERT((size_t)groupNum < (size_t)MAX_SPRITE_GROUPS);
 
@@ -796,7 +795,7 @@ void Atlas_DrawString2(
 
 		/* ACTIVATE THE MATERIAL */
 
-	MO_DrawMaterial(font->material, setupInfo);
+	MO_DrawMaterial(font->material);
 
 
 			/* DRAW IT */

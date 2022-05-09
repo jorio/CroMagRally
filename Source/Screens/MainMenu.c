@@ -170,7 +170,7 @@ static void UpdateMainMenuScreen(void)
 	if (GetCurrentMenu() == 'TITL' &&
 		(GetMenuIdleTime() > DEMO_DELAY || IsCheatKeyComboDown()))
 	{
-		gGameViewInfoPtr->fadePillarbox = true;
+		gGameView->fadePillarbox = true;
 		KillMenu(MENU_EXITCODE_SELFRUNDEMO);
 	}
 }
@@ -199,7 +199,7 @@ do_again:
 			/* CLEANUP */
 
 	DeleteAllObjects();
-	OGL_DisposeWindowSetup(&gGameViewInfoPtr);
+	OGL_DisposeGameView();
 
 
 	switch (outcome)
@@ -309,7 +309,7 @@ OGLVector3D			fillDirection2 = { -1, -.2, -.5 };
 	viewDef.lights.fillColor[0] 	= fillColor1;
 	viewDef.lights.fillColor[1] 	= fillColor2;
 
-	OGL_SetupWindow(&viewDef, &gGameViewInfoPtr);
+	OGL_SetupGameView(&viewDef);
 
 
 				/************/
@@ -344,9 +344,9 @@ OGLVector3D			fillDirection2 = { -1, -.2, -.5 };
 
 static void OnPickQuitApplication(const MenuItem* mi)
 {
-	gGameViewInfoPtr->fadeSound = true;
-	gGameViewInfoPtr->fadePillarbox = true;
-	gGameViewInfoPtr->fadeDuration = .3f;
+	gGameView->fadeSound = true;
+	gGameView->fadePillarbox = true;
+	gGameView->fadeDuration = .3f;
 }
 
 static void OnConfirmPlayMenu(const MenuItem* mi)

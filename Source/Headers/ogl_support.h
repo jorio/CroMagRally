@@ -206,9 +206,6 @@ typedef struct
 
 typedef struct
 {
-	Boolean					isActive;
-//	AGLContext				drawContext;
-	WindowPtr				window;
 	Rect					clip;				// not pane size, but clip:  left = amount to clip off left
 	OGLLightDefType			lightList;
 	OGLCameraPlacement		cameraPlacement[MAX_VIEWPORTS];	// 2 cameras, one for each viewport/player
@@ -286,13 +283,13 @@ enum
 void OGL_Boot(void);
 void OGL_Shutdown(void);
 void OGL_NewViewDef(OGLSetupInputType *viewDef);
-void OGL_SetupWindow(OGLSetupInputType *setupDefPtr, OGLSetupOutputType **outputHandle);
-void OGL_DisposeWindowSetup(OGLSetupOutputType **dataHandle);
-void OGL_DrawScene(OGLSetupOutputType *setupInfo, void (*drawRoutine)(OGLSetupOutputType *));
-void OGL_Camera_SetPlacementAndUpdateMatrices(OGLSetupOutputType *setupInfo, int camNum);
-void OGL_MoveCameraFromTo(OGLSetupOutputType *setupInfo, float fromDX, float fromDY, float fromDZ, float toDX, float toDY, float toDZ, int camNum);
-void OGL_UpdateCameraFromToUp(OGLSetupOutputType *setupInfo, OGLPoint3D *from, OGLPoint3D *to, OGLVector3D *up, int camNum);
-void OGL_UpdateCameraFromTo(OGLSetupOutputType *setupInfo, OGLPoint3D *from, OGLPoint3D *to, int camNum);
+void OGL_SetupGameView(OGLSetupInputType *setupDefPtr);
+void OGL_DisposeGameView(void);
+void OGL_DrawScene(void (*drawRoutine)(void));
+void OGL_Camera_SetPlacementAndUpdateMatrices(int camNum);
+void OGL_MoveCameraFromTo(float fromDX, float fromDY, float fromDZ, float toDX, float toDY, float toDZ, int camNum);
+void OGL_UpdateCameraFromToUp(OGLPoint3D *from, OGLPoint3D *to, OGLVector3D *up, int camNum);
+void OGL_UpdateCameraFromTo(OGLPoint3D *from, OGLPoint3D *to, int camNum);
 void OGL_Texture_SetOpenGLTexture(GLuint textureName);
 GLuint OGL_TextureMap_Load(void *imageMemory, int width, int height,
 							GLint srcFormat,  GLint destFormat, GLint dataType);
@@ -300,7 +297,7 @@ GLuint OGL_TextureMap_LoadImageFile(const char* path, int* width, int* height);
 GLenum _OGL_CheckError(const char* file, int line);
 #define OGL_CheckError() _OGL_CheckError(__FILE__, __LINE__)
 
-void OGL_GetCurrentViewport(const OGLSetupOutputType *setupInfo, int *x, int *y, int *w, int *h, Byte whichPane);
+void OGL_GetCurrentViewport(int *x, int *y, int *w, int *h, Byte whichPane);
 
 void OGL_PushState(void);
 void OGL_PopState(void);

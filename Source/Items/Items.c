@@ -72,7 +72,7 @@ ObjNode* CreateCyclorama(void)
 		.slot		= CYCLORAMA_SLOT,
 		.moveCall	= nil,
 		.rot		= 0,
-		.scale		= gGameViewInfoPtr->yon * .99f,
+		.scale		= gGameView->yon * .99f,
 	};
 
 	return MakeNewDisplayGroupObject(&def);

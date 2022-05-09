@@ -26,7 +26,7 @@ static void MoveShockwave(ObjNode *theNode);
 static void MoveConeBlast(ObjNode *theNode);
 
 static void MakeSnowParticleGroup(void);
-static void DrawParticleGroup(ObjNode *theNode, OGLSetupOutputType *setupInfo);
+static void DrawParticleGroup(ObjNode *theNode);
 static void MoveSnowShockwave(ObjNode *theNode);
 
 static void MoveLavaGenerator(ObjNode *theNode);
@@ -65,10 +65,9 @@ short			gNumActiveParticleGroups = 0;
 
 /************************* INIT EFFECTS ***************************/
 
-void InitEffects(OGLSetupOutputType *setupInfo)
+void InitEffects(void)
 {
-
-	InitParticleSystem(setupInfo);
+	InitParticleSystem();
 
 		/* SET TEXTURE WRAPPING & BLENDING MODES ON SOME MATERIALS */
 
@@ -144,7 +143,7 @@ float	fps = gFramesPerSecondFrac;
 
 /************************ INIT PARTICLE SYSTEM **************************/
 
-ObjNode* InitParticleSystem(OGLSetupOutputType *setupInfo)
+ObjNode* InitParticleSystem(void)
 {
 			/* INIT GROUP ARRAY */
 
@@ -584,7 +583,7 @@ OGLVector3D	*delta;
 
 /**************** DRAW PARTICLE GROUPS *********************/
 
-static void DrawParticleGroup(ObjNode *theNode, OGLSetupOutputType *setupInfo)
+static void DrawParticleGroup(ObjNode *theNode)
 {
 float				scale,baseScale;
 long				g,p,n,i;
@@ -602,7 +601,7 @@ OGLBoundingBox	bbox;
 	glEnable(GL_BLEND);
 	glColor4f(1,1,1,1);										// full white & alpha to start with
 
-	camCoords = &gGameViewInfoPtr->cameraPlacement[gCurrentSplitScreenPane].cameraLocation;
+	camCoords = &gGameView->cameraPlacement[gCurrentSplitScreenPane].cameraLocation;
 
 	for (g = 0; g < MAX_PARTICLE_GROUPS; g++)
 	{
@@ -720,7 +719,7 @@ OGLBoundingBox	bbox;
 					/* DRAW IT */
 
 				glBlendFunc(gParticleGroups[g]->srcBlend, gParticleGroups[g]->dstBlend);		// set blending mode
-				MO_DrawObject(gParticleGroups[g]->geometryObj, setupInfo);						// draw geometry
+				MO_DrawObject(gParticleGroups[g]->geometryObj);									// draw geometry
 			}
 		}
 	}
