@@ -283,13 +283,21 @@ void DoSDLMaintenance(void)
 					mouseWheelDelta += event.wheel.x;
 					break;
 
-				case SDL_JOYDEVICEADDED:	 // event.jdevice.which is the joy's INDEX (not an instance id!)
+				case SDL_CONTROLLERDEVICEADDED:
+					// event.cdevice.which is the joystick's DEVICE INDEX (not an instance id!)
 					TryOpenControllerFromJoystick(event.cdevice.which);
 					break;
 
-				case SDL_JOYDEVICEREMOVED:	// event.jdevice.which is the joy's UNIQUE INSTANCE ID (not an index!)
-					OnJoystickRemoved(event.jdevice.which);
+				case SDL_CONTROLLERDEVICEREMOVED:
+					// event.cdevice.which is the joystick's UNIQUE INSTANCE ID (not an index!)
+					OnJoystickRemoved(event.cdevice.which);
 					break;
+
+				/*
+				case SDL_CONTROLLERDEVICEREMAPPED:
+					printf("C-Device remapped! %d\n", event.cdevice.which);
+					break;
+				*/
 
 				case SDL_KEYDOWN:
 					gUserPrefersGamepad = false;

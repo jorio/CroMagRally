@@ -167,7 +167,7 @@ static void Boot()
 
 	// Init joystick subsystem
 	{
-		SDL_Init(SDL_INIT_JOYSTICK);
+		SDL_Init(SDL_INIT_GAMECONTROLLER);
 		auto gamecontrollerdbPath8 = (dataPath / "System" / "gamecontrollerdb.txt").u8string();
 		if (-1 == SDL_GameControllerAddMappingsFromFile((const char*)gamecontrollerdbPath8.c_str()))
 		{
