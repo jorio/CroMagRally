@@ -33,7 +33,7 @@ static const MenuItem gPauseMenuTree[] =
 
 	{kMIPick, STR_RESUME_GAME, .id='resu', .next='EXIT' },
 
-	{kMIPick, STR_RETIRE_GAME, .id='bail', .next='EXIT' },
+	{kMIPick, STR_SETTINGS, .callback=RegisterSettingsMenu, .next='sett' },
 
 	// 2P split-screen mode chooser
 	{
@@ -71,7 +71,8 @@ static const MenuItem gPauseMenuTree[] =
 		},
 	},
 
-	{kMIPick, STR_SETTINGS, .callback=RegisterSettingsMenu, .next='sett' },
+
+	{kMIPick, STR_RETIRE_GAME, .id='bail', .next='EXIT' },
 
 	{kMIPick, STR_QUIT_APPLICATION, .id='quit', .next='EXIT' },
 
