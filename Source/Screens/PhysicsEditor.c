@@ -16,7 +16,10 @@
 /*    PROTOTYPES            */
 /****************************/
 
+static void MoveCarModel(ObjNode* theNode);
+
 static void OnPickResetPhysics(const MenuItem* mi);
+static void OnChangeCar(const MenuItem* mi);
 static void SetupPhysicsEditorScreen(void);
 
 
@@ -37,7 +40,21 @@ enum
 /*    VARIABLES      */
 /*********************/
 
+#define CAR_METER_CHOICES \
+	{ \
+	{STR_CAR_STAT_METER_0, 0}, \
+	{STR_CAR_STAT_METER_1, 1}, \
+	{STR_CAR_STAT_METER_2, 2}, \
+	{STR_CAR_STAT_METER_3, 3}, \
+	{STR_CAR_STAT_METER_4, 4}, \
+	{STR_CAR_STAT_METER_5, 5}, \
+	{STR_CAR_STAT_METER_6, 6}, \
+	{STR_CAR_STAT_METER_7, 7}, \
+	}
+
 static Byte gSelectedCarPhysics = 0;
+static Byte gSelectedCarStats[NUM_VEHICLE_PARAMETERS];
+static ObjNode* gCarPhysicsModel = nil;
 
 static const MenuItem gPhysicsMenuTree[] =
 {
@@ -49,8 +66,12 @@ static const MenuItem gPhysicsMenuTree[] =
 	{kMIPick, STR_PHYSICS_RESET, .callback=OnPickResetPhysics, .next='EXIT' },
 
 	{.id='stat'},
+	{kMISpacer, .customHeight=3.0f},
 	{
-			kMICycler1,    STR_CAR, .cycler =
+		kMICycler1,
+		STR_NULL,
+		.callback = OnChangeCar,
+		.cycler =
 		{
 			.valuePtr = &gSelectedCarPhysics, .choices =
 			{
@@ -67,11 +88,52 @@ static const MenuItem gPhysicsMenuTree[] =
 				//{STR_CAR_MODEL_11, 1},	// don't expose submarine
 			}
 		},
+		.customHeight = 1,
 	},
-	{ kMIPick, .text=STR_CAR_STAT_1,	},
-	{ kMIPick, .text=STR_CAR_STAT_2,	},
-	{ kMIPick, .text=STR_CAR_STAT_3,	},
-	{ kMIPick, .text=STR_CAR_STAT_4,	},
+
+	{
+		kMICycler2,
+		.text=STR_CAR_STAT_1,
+		.customHeight = 0.5f,
+		.cycler=
+		{
+				.valuePtr = &gSelectedCarStats[0],
+				.choices = CAR_METER_CHOICES
+		}
+	},
+
+	{
+		kMICycler2,
+		.text=STR_CAR_STAT_2,
+		.customHeight = 0.5f,
+		.cycler=
+		{
+			.valuePtr = &gSelectedCarStats[1],
+			.choices = CAR_METER_CHOICES
+		}
+	},
+
+	{
+		kMICycler2,
+		.text=STR_CAR_STAT_3,
+		.customHeight = 0.5f,
+		.cycler=
+		{
+			.valuePtr = &gSelectedCarStats[2],
+			.choices = CAR_METER_CHOICES
+		}
+	},
+
+	{
+		kMICycler2,
+		.text=STR_CAR_STAT_4,
+		.customHeight = 0.5f,
+		.cycler=
+		{
+			.valuePtr = &gSelectedCarStats[3],
+			.choices = CAR_METER_CHOICES
+		}
+	},
 
 	{.id='cons'},
 	{ kMIFloatRange, STR_PHYSICS_CONSTANT_STEERING_RESPONSIVENESS,	.floatRange={.valuePtr=&gSteeringResponsiveness }	},
@@ -101,7 +163,6 @@ void DoPhysicsEditor(void)
 
 	MenuStyle physicsEditorMenuStyle = kDefaultMenuStyle;
 	physicsEditorMenuStyle.canBackOutOfRootMenu = true;
-	physicsEditorMenuStyle.standardScale = .3f;
 
 	StartMenu(gPhysicsMenuTree, &physicsEditorMenuStyle, MoveObjects, DrawObjects);
 
@@ -130,9 +191,11 @@ OGLVector3D			fillDirection2 = { -1, -.2, -.5 };
 
 	OGL_NewViewDef(&viewDef);
 
-	viewDef.camera.fov 				= 1.0;
+	viewDef.camera.fov 				= 1;
 	viewDef.camera.hither 			= 10;
 	viewDef.camera.yon 				= 3000;
+	viewDef.camera.from[0].z		= 700;
+	viewDef.camera.from[0].y		= 250;
 	viewDef.view.clearColor 		= (OGLColorRGBA) {0,0,0, 1.0f};
 	viewDef.styles.useFog			= false;
 	viewDef.view.pillarbox4x3		= true;
@@ -161,7 +224,31 @@ OGLVector3D			fillDirection2 = { -1, -.2, -.5 };
 //	MakeBackgroundPictureObject(":images:MainMenuBackground.jpg");
 
 
+
+			/* LOAD MODELS */
+
+	FSSpec spec;
+	FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":models:carselect.bg3d", &spec);
+	ImportBG3D(&spec, MODEL_GROUP_CARSELECT);
+
+
 			/* SETUP TITLE MENU */
+
+				/* VEHICLE MODEL */
+
+	NewObjectDefinitionType modelDef =
+	{
+		.group = MODEL_GROUP_CARSELECT,
+		.type = 0,
+		.coord = {0, 125, 0},
+		.slot = 100,
+		.moveCall =  MoveCarModel,
+		.scale = 0.85f,
+		.rot = 0,
+	};
+	gCarPhysicsModel = MakeNewDisplayGroupObject(&modelDef);
+	//gCarPhysicsModel->Rot.x = PI/2;
+
 
 	MakeFadeEvent(true);
 }
@@ -173,3 +260,17 @@ static void OnPickResetPhysics(const MenuItem* mi)
 	SetDefaultPhysics();
 }
 
+static void MoveCarModel(ObjNode* theNode)
+{
+	theNode->Rot.y += gFramesPerSecondFrac;
+	UpdateObjectTransforms(theNode);
+}
+
+
+static void OnChangeCar(const MenuItem* mi)
+{
+	printf("Car: %d\n", gSelectedCarPhysics);
+
+	gCarPhysicsModel->Type = gSelectedCarPhysics;
+	ResetDisplayGroupObject(gCarPhysicsModel);
+}

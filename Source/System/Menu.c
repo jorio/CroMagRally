@@ -28,11 +28,11 @@ static ObjNode* MakeText(const char* text, int row, int col, int flags);
 static const MenuItem* LookUpMenu(int menuID);
 static void LayOutMenu(int menuID);
 
-static ObjNode* LayOutCyclerValueText(int row);
+static ObjNode* LayOutCycler2ValueText(int row);
 static ObjNode* LayOutFloatRangeValueText(int row);
 
-static ObjNode* LayOutCMRCycler(int row, float sweepFactor);
-static ObjNode* LayOutCycler(int row, float sweepFactor);
+static ObjNode* LayOutCycler1(int row, float sweepFactor);
+static ObjNode* LayOutCycler2(int row, float sweepFactor);
 static ObjNode* LayOutPick(int row, float sweepFactor);
 static ObjNode* LayOutLabel(int row, float sweepFactor);
 static ObjNode* LayOutKeyBinding(int row, float sweepFactor);
@@ -118,9 +118,9 @@ static const MenuItemClass kMenuItemClasses[kMI_COUNT] =
 	[kMISENTINEL]		= {0.0f, NULL, NULL },
 	[kMILabel]			= {0.5f, LayOutLabel, NULL },
 	[kMISpacer]			= {0.5f, NULL, NULL },
-	[kMICycler1]		= {1.0f, LayOutCMRCycler, NavigateCycler },
-	[kMICycler2]		= {1.0f, LayOutCycler, NavigateCycler },
-	[kMIFloatRange]		= {1.0f, LayOutFloatRange, NavigateFloatRange },
+	[kMICycler1]		= {1.0f, LayOutCycler1, NavigateCycler },
+	[kMICycler2]		= {1.0f, LayOutCycler2, NavigateCycler },
+	[kMIFloatRange]		= {0.5f, LayOutFloatRange, NavigateFloatRange },
 	[kMIPick]			= {1.0f, LayOutPick, NavigatePick },
 	[kMIKeyBinding]		= {0.5f, LayOutKeyBinding, NavigateKeyBinding },
 	[kMIPadBinding]		= {0.5f, LayOutPadBinding, NavigatePadBinding },
@@ -890,7 +890,6 @@ static void NavigateCycler(const MenuItem* entry)
 	if (delta != 0)
 	{
 		gNav->idleTime = 0;
-		PlayEffect_Parms(kSfxCycle, FULL_CHANNEL_VOLUME, FULL_CHANNEL_VOLUME, NORMAL_CHANNEL_RATE * 2/3 + (RandomFloat2() * 0x3000));
 
 		if (entry->cycler.valuePtr && !entry->cycler.callbackSetsValue)
 		{
@@ -900,15 +899,20 @@ static void NavigateCycler(const MenuItem* entry)
 			else
 				index = 0;
 			*entry->cycler.valuePtr = entry->cycler.choices[index].value;
+			PlayEffect_Parms(kSfxCycle, FULL_CHANNEL_VOLUME, FULL_CHANNEL_VOLUME, NORMAL_CHANNEL_RATE /2 + 4096 * index);
+		}
+		else
+		{
+			PlayEffect_Parms(kSfxCycle, FULL_CHANNEL_VOLUME, FULL_CHANNEL_VOLUME, NORMAL_CHANNEL_RATE * 2/3 + (RandomFloat2() * 0x3000));
 		}
 
 		if (entry->callback)
 			entry->callback(entry);
 
 		if (entry->type == kMICycler1)
-			LayOutCMRCycler(gNav->menuRow, 0);
+			LayOutCycler1(gNav->menuRow, 0);
 		else
-			LayOutCyclerValueText(gNav->menuRow);
+			LayOutCycler2ValueText(gNav->menuRow);
 
 		RepositionArrows();
 	}
@@ -1473,16 +1477,7 @@ static ObjNode* MakeText(const char* text, int row, int desiredCol, int textMesh
 
 static const char* GetMenuItemLabel(const MenuItem* entry)
 {
-#if 0
-	if (entry->rawText)
-		return entry->rawText;
-	else if (entry->generateText)
-		return entry->generateText();
-	else
-		return Localize(entry->text);
-#else
 	return Localize(entry->text);
-#endif
 }
 
 static const char* GetCyclerValueText(int row)
@@ -1518,14 +1513,14 @@ static ObjNode* LayOutPick(int row, float sweepFactor)
 	return node;
 }
 
-static ObjNode* LayOutCyclerValueText(int row)
+static ObjNode* LayOutCycler2ValueText(int row)
 {
 	ObjNode* node2 = MakeText(GetCyclerValueText(row), row, 1, 0);
 	node2->MoveCall = MoveAction;
 	return node2;
 }
 
-static ObjNode* LayOutCycler(int row, float sweepFactor)
+static ObjNode* LayOutCycler2(int row, float sweepFactor)
 {
 	DECLARE_WORKBUF(buf, bufSize);
 
@@ -1533,23 +1528,28 @@ static ObjNode* LayOutCycler(int row, float sweepFactor)
 
 	snprintf(buf, bufSize, "%s:", GetMenuItemLabel(entry));
 
-	ObjNode* node1 = MakeText(buf, row, 0, 0);
+	ObjNode* node1 = MakeText(buf, row, 0, kTextMeshAlignLeft);
+	node1->Coord.x -= 120;
 	node1->MoveCall = MoveAction;
 	node1->SpecialSweepTimer = sweepFactor;
 
-	ObjNode* node2 = LayOutCyclerValueText(row);
+	ObjNode* node2 = LayOutCycler2ValueText(row);
 	node2->SpecialSweepTimer = sweepFactor;
+	node2->Coord.x += 100;
 
 	return node1;
 }
 
-static ObjNode* LayOutCMRCycler(int row, float sweepFactor)
+static ObjNode* LayOutCycler1(int row, float sweepFactor)
 {
 	DECLARE_WORKBUF(buf, bufSize);
 
 	const MenuItem* entry = &gNav->menu[row];
 
-	snprintf(buf, bufSize, "%s: %s", GetMenuItemLabel(entry), GetCyclerValueText(row));
+	if (entry->text == STR_NULL)
+		snprintf(buf, bufSize, "%s", GetCyclerValueText(row));
+	else
+		snprintf(buf, bufSize, "%s: %s", GetMenuItemLabel(entry), GetCyclerValueText(row));
 
 	ObjNode* node = MakeText(buf, row, 0, 0);
 	node->MoveCall = MoveAction;
@@ -1577,9 +1577,12 @@ static ObjNode* LayOutFloatRange(int row, float sweepFactor)
 	ObjNode* node1 = MakeText(buf, row, 0, kTextMeshAlignLeft);
 	node1->MoveCall = MoveAction;
 	node1->SpecialSweepTimer = sweepFactor;
+	node1->Coord.x -= 300;
 
 	ObjNode* node2 = LayOutFloatRangeValueText(row);
 	node2->SpecialSweepTimer = sweepFactor;
+	node2->Coord.x += 300;
+	UpdateObjectTransforms(node2);
 
 	return node1;
 }
