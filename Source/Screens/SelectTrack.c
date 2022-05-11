@@ -59,6 +59,7 @@ enum
 #define	LEFT_ARROW_X	-208
 #define RIGHT_ARROW_X	208
 #define	ARROW_Y			0
+#define	PADLOCK_Y		-32
 #define	ARROW_SCALE		.5
 
 #define	LEVEL_IMAGE_X		0
@@ -252,7 +253,7 @@ OGLSetupInputType	viewDef;
 		{
 			.group = SPRITE_GROUP_MAINMENU,
 			.type = MENUS_SObjType_Padlock,
-			.coord = { 0, ARROW_Y, 0 },
+			.coord = { 0, PADLOCK_Y, 0 },
 			.slot = SPRITE_SLOT,
 			.moveCall = MoveUIPadlock,
 			.scale = ARROW_SCALE,
@@ -293,6 +294,33 @@ static void MakeTrackName(void)
 
 		default:
 				gTrackName = TextMesh_New(Localize(STR_MPLEVEL_1 + gSelectedTrackIndex), kTextMeshAlignCenter, &def);
+	}
+
+
+			/* MAKE SUBTITLE */
+
+	def.coord.y = 58;
+	def.scale = .25f;
+	def.slot++;
+	ObjNode *subtitle = NULL;
+
+	if (IsSelectedTrackLocked())
+	{
+		switch (gSelectedTrackIndex / TRACKS_PER_AGE)
+		{
+			case BRONZE_AGE:
+				subtitle = TextMesh_New(Localize(STR_COMPLETE_STONE_AGE_TO_UNLOCK_TRACK), kTextMeshAlignTop, &def);
+				break;
+
+			case IRON_AGE:
+				subtitle = TextMesh_New(Localize(STR_COMPLETE_BRONZE_AGE_TO_UNLOCK_TRACK), kTextMeshAlignTop, &def);
+				break;
+		}
+	}
+
+	if (subtitle != NULL)
+	{
+		gTrackName->ChainNode = subtitle;
 	}
 }
 
