@@ -76,7 +76,7 @@ Boolean DoFailedMenu(const char* headerString)
 	MenuStyle failedMenuStyle = kDefaultMenuStyle;
 	failedMenuStyle.standardScale = FAILED_ICON_SCALE;
 	failedMenuStyle.rowHeight = 28;
-	failedMenuStyle.yOffset = 215;
+	failedMenuStyle.yOffset = 200;
 	failedMenuStyle.fadeOutSceneOnExit = false;
 
 
