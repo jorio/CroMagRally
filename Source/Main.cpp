@@ -75,7 +75,6 @@ static fs::path FindGameData()
 static void ParseCommandLine(int argc, char** argv)
 {
 	memset(&gCommandLine, 0, sizeof(gCommandLine));
-	gCommandLine.msaa = 0;
 	gCommandLine.vsync = 1;
 
 	for (int i = 1; i < argc; i++)
@@ -97,14 +96,6 @@ static void ParseCommandLine(int argc, char** argv)
 			gCommandLine.vsync = 1;
 		else if (argument == "--adaptive-vsync")
 			gCommandLine.vsync = -1;
-		else if (argument == "--msaa2x")
-			gCommandLine.msaa = 2;
-		else if (argument == "--msaa4x")
-			gCommandLine.msaa = 4;
-		else if (argument == "--msaa8x")
-			gCommandLine.msaa = 8;
-		else if (argument == "--msaa16x")
-			gCommandLine.msaa = 16;
 #if 0
 		else if (argument == "--fullscreen-resolution")
 		{
@@ -128,18 +119,25 @@ static void Boot()
 	// Start our "machine"
 	Pomme::Init();
 
+	// Load game prefs before starting
+	InitDefaultPrefs();
+	LoadPrefs();
+
+retryVideo:
 	// Initialize SDL video subsystem
 	if (0 != SDL_Init(SDL_INIT_VIDEO))
+	{
 		throw std::runtime_error("Couldn't initialize SDL video subsystem.");
+	}
 
 	// Create window
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_COMPATIBILITY);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
-	if (gCommandLine.msaa != 0)
+	if (gGamePrefs.antialiasingLevel != 0)
 	{
 		SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
-		SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, gCommandLine.msaa);
+		SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 1 << gGamePrefs.antialiasingLevel);
 	}
 
 	int display = 0;
@@ -159,7 +157,19 @@ static void Boot()
 
 	if (!gSDLWindow)
 	{
-		throw std::runtime_error("Couldn't create SDL window.");
+		if (gGamePrefs.antialiasingLevel != 0)
+		{
+			printf("Couldn't create SDL window with the requested MSAA level. Retrying without MSAA...\n");
+
+			// retry without MSAA
+			gGamePrefs.antialiasingLevel = 0;
+			SDL_QuitSubSystem(SDL_INIT_VIDEO);
+			goto retryVideo;
+		}
+		else
+		{
+			throw std::runtime_error("Couldn't create SDL window.");
+		}
 	}
 
 	// Find path to game data folder

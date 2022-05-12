@@ -51,6 +51,29 @@ static void OnPickResetGamepadBindings(const MenuItem* mi)
 	LayoutCurrentMenuAgain();
 }
 
+static void OnChangeMSAA(const MenuItem* mi)
+{
+	ObjNode* object = GetCurrentMenuItemObject();
+
+	if (GetChainTailNode(object)->Special[0] == 'msaa')
+	{
+		return;
+	}
+
+	NewObjectDefinitionType def =
+	{
+		.coord = {0, 200, 0},
+		.scale = 0.2f,
+		.slot = object->Slot + 1,
+	};
+
+	ObjNode* warning = TextMesh_New(Localize(STR_ANTIALIASING_CHANGE_WARNING), 0, &def);
+	warning->ColorFilter = (OGLColorRGBA){ 1, 0, 0, 1 };
+	warning->Special[0] = 'msaa';
+	
+	GetChainTailNode(object)->ChainNode = warning;
+}
+
 const MenuItem gSettingsMenuTree[] =
 {
 	{.id='sett'},
@@ -93,7 +116,7 @@ const MenuItem gSettingsMenuTree[] =
 		.customHeight=.75f
 	},
 	{
-			kMICycler1, STR_FULLSCREEN,
+		kMICycler1, STR_FULLSCREEN,
 		.callback=OnToggleFullscreen,
 		.cycler=
 		{
@@ -101,6 +124,22 @@ const MenuItem gSettingsMenuTree[] =
 			.choices={ {STR_OFF, 0}, {STR_ON, 1} },
 		},
 		.customHeight=.75f
+	},
+	{
+		kMICycler1, STR_ANTIALIASING,
+		.callback = OnChangeMSAA,
+		.cycler =
+		{
+			.valuePtr = &gGamePrefs.antialiasingLevel,
+			.choices =
+			{
+				{STR_OFF, 0},
+				{STR_MSAA_2X, 1},
+				{STR_MSAA_4X, 2},
+				{STR_MSAA_8X, 3},
+			},
+		},
+		.customHeight = .75f
 	},
 	{
 			kMICycler1, STR_LANGUAGE, .cycler=

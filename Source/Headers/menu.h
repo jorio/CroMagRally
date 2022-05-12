@@ -100,5 +100,6 @@ int StartMenu(
 
 void LayoutCurrentMenuAgain(void);
 int GetCurrentMenu(void);
+ObjNode* GetCurrentMenuItemObject(void);
 float GetMenuIdleTime(void);
 void KillMenu(int returnCode);

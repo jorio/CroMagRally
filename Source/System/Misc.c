@@ -345,7 +345,7 @@ uint32_t* cookiePtr;
 
 /******************* VERIFY SYSTEM ******************/
 
-void VerifySystem(void)
+void InitPrefsFolder(bool createIt)
 {
 OSErr iErr;
 long createdDirID;
@@ -357,7 +357,10 @@ long createdDirID;
 	if (iErr != noErr)
 		DoAlert("Warning: Cannot locate the Preferences folder.");
 
-	iErr = DirCreate(gPrefsFolderVRefNum,gPrefsFolderDirID,PREFS_FOLDER_NAME,&createdDirID);		// make folder in there
+	if (createIt)
+	{
+		iErr = DirCreate(gPrefsFolderVRefNum, gPrefsFolderDirID, PREFS_FOLDER_NAME, &createdDirID);		// make folder in there
+	}
 }
 
 

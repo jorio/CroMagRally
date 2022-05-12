@@ -108,7 +108,7 @@ OSErr		iErr;
 
 		/* FIRST VERIFY SYSTEM BEFORE GOING TOO FAR */
 
-	VerifySystem();
+	InitPrefsFolder(false);
 
 
 			/* BOOT OGL */

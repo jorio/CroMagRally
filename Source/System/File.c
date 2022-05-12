@@ -506,6 +506,8 @@ long		count;
 long		eof = 0;
 char		magic[sizeof(PREFS_MAGIC)];
 
+	InitPrefsFolder(false);
+
 				/*************/
 				/* READ FILE */
 				/*************/
@@ -586,6 +588,8 @@ long				count;
 
 	puts("Saving prefs");
 #endif
+
+	InitPrefsFolder(true);
 
 				/* CREATE BLANK FILE */
 

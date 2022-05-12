@@ -266,6 +266,11 @@ static void SetHandMouseCursor(void)
 	}
 }
 
+ObjNode* GetCurrentMenuItemObject(void)
+{
+	return gNav->menuObjects[gNav->menuRow];
+}
+
 /****************************/
 /*    MENU UTILITIES        */
 /****************************/
@@ -633,7 +638,7 @@ static void GoBackInHistory(void)
 static void RepositionArrows(void)
 {
 	ObjNode* snapTo = NULL;
-	ObjNode* chainRoot = gNav->menuObjects[gNav->menuRow];
+	ObjNode* chainRoot = GetCurrentMenuItemObject();
 
 	switch (gNav->menu[gNav->menuRow].type)
 	{

@@ -16,7 +16,7 @@ extern	void *AllocPtr(long size);
 void *AllocPtrClear(long size);
 extern	void InitMyRandomSeed(void);
 int PositiveModulo(int value, unsigned int m);
-extern	void VerifySystem(void);
+void InitPrefsFolder(bool createIt);
 extern	float RandomFloat(void);
 uint16_t	RandomRange(unsigned short min, unsigned short max);
 extern	void ShowSystemErr_NonFatal(long err);

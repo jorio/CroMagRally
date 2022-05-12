@@ -105,4 +105,4 @@ void SetObjectVisible(ObjNode* theNode, bool visible);
 
 int GetNodeChainLength(ObjNode* start);
 ObjNode* GetNthChainedNode(ObjNode* start, int targetIndex, ObjNode** outPrevNode);
-
+ObjNode* GetChainTailNode(ObjNode* start);

@@ -1482,3 +1482,17 @@ ObjNode* GetNthChainedNode(ObjNode* start, int targetIndex, ObjNode** outPrevNod
 	return node;
 }
 
+ObjNode* GetChainTailNode(ObjNode* start)
+{
+	ObjNode* pNode = NULL;
+	ObjNode* node = start;
+
+	while (node != NULL)
+	{
+		pNode = node;
+		node = pNode->ChainNode;
+	}
+
+	return pNode;
+}
+

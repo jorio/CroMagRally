@@ -84,7 +84,6 @@ typedef struct
 
 typedef struct
 {
-	int		msaa;
 	int		vsync;
 	int		bootToTrack;
 } CommandLineOptions;
