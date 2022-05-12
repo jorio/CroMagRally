@@ -19,6 +19,8 @@
 
 #define MAX_LINEBREAKS_PER_OBJNODE	8
 
+#define MAX_IMMEDIATEMODE_QUADS		1024
+
 /****************************/
 /*    PROTOTYPES            */
 /****************************/
@@ -27,14 +29,20 @@ typedef struct
 {
 	int numQuads;
 	int numLines;
+	float bbWidth;
+	float bbHeight;
 	float lineWidths[MAX_LINEBREAKS_PER_OBJNODE];
 	float lineHeights[MAX_LINEBREAKS_PER_OBJNODE];
-	float longestLineWidth;
+	float lineOffsetX[MAX_LINEBREAKS_PER_OBJNODE];
+	float lineOffsetY[MAX_LINEBREAKS_PER_OBJNODE];
 } TextMetrics;
 
 /****************************/
 /*    VARIABLES             */
 /****************************/
+
+static OGLPoint3D gImmediateModePoints[MAX_IMMEDIATEMODE_QUADS * 4];
+static OGLTextureCoord gImmediateModeUVs[MAX_IMMEDIATEMODE_QUADS * 4];
 
 #pragma mark -
 
@@ -424,6 +432,18 @@ static void TextMesh_ReallocateMesh(MOVertexArrayData* mesh, int numQuads)
 		mesh->points = (OGLPoint3D *) AllocPtr(sizeof(OGLPoint3D) * numPoints);
 		mesh->uvs = (OGLTextureCoord *) AllocPtr(sizeof(OGLTextureCoord) * numPoints);
 		mesh->triangles = (MOTriangleIndecies *) AllocPtr(sizeof(MOTriangleIndecies) * numTriangles);
+
+		// Prep triangle-vertex assignments, which never change
+		int t = 0;
+		for (int p = 0; p < numPoints; p += 4, t += 2)
+		{
+			mesh->triangles[t + 0].vertexIndices[0] = p + 0;
+			mesh->triangles[t + 0].vertexIndices[1] = p + 1;
+			mesh->triangles[t + 0].vertexIndices[2] = p + 2;
+			mesh->triangles[t + 1].vertexIndices[0] = p + 2;
+			mesh->triangles[t + 1].vertexIndices[1] = p + 3;
+			mesh->triangles[t + 1].vertexIndices[2] = p + 0;
+		}
 	}
 }
 
@@ -455,16 +475,18 @@ static float Kern(const Atlas* font, const AtlasGlyph* glyph, const char* utftex
 	return 1;
 }
 
-static void ComputeMetrics(const Atlas* atlas, const char* text, int flags, TextMetrics* metrics)
+static void ComputeMetrics(const Atlas* atlas, const char* text, int flags, TextMetrics* m)
 {
-	float spacing = 0;
+	int currentLine = 0;
 
 	// Compute number of quads and line width
-	metrics->numLines = 1;
-	metrics->numQuads = 0;
-	metrics->lineWidths[0] = 0;
-	metrics->lineHeights[0] = 0;
-	metrics->longestLineWidth = 0;
+	m->numLines = 1;
+	m->numQuads = 0;
+	m->lineWidths[0] = 0;
+	m->lineHeights[0] = 0;
+	m->bbWidth = 0;
+	m->bbHeight = 0;
+
 	for (const char* utftext = text; *utftext; )
 	{
 		uint32_t codepoint = ReadNextCodepointFromUTF8(&utftext, flags);
@@ -473,20 +495,19 @@ static void ComputeMetrics(const Atlas* atlas, const char* text, int flags, Text
 		{
 			if (codepoint == '\n')
 			{
-				GAME_ASSERT(metrics->numLines < MAX_LINEBREAKS_PER_OBJNODE);
+				m->bbWidth = GAME_MAX(m->bbWidth, m->lineWidths[currentLine]);
+				m->bbHeight += m->lineHeights[currentLine];
 
-				if (metrics->lineWidths[metrics->numLines - 1] > metrics->longestLineWidth)
-					metrics->longestLineWidth = metrics->lineWidths[metrics->numLines - 1];
+				currentLine++;
+				GAME_ASSERT(currentLine < MAX_LINEBREAKS_PER_OBJNODE);
 
-				metrics->numLines++;
-
-				metrics->lineWidths[metrics->numLines - 1] = 0;  // init next line
-				metrics->lineHeights[metrics->numLines - 1] = 0;
+				m->lineWidths[currentLine] = 0;  // init next line
+				m->lineHeights[currentLine] = 0;
 				continue;
 			}
 			else if (codepoint == '\t')
 			{
-				metrics->lineWidths[metrics->numLines - 1] = TAB_STOP * ceilf((metrics->lineWidths[metrics->numLines - 1] + 1.0f) / TAB_STOP);
+				m->lineWidths[currentLine] = TAB_STOP * ceilf((m->lineWidths[currentLine] + 1.0f) / TAB_STOP);
 				continue;
 			}
 		}
@@ -495,55 +516,162 @@ static void ComputeMetrics(const Atlas* atlas, const char* text, int flags, Text
 		if (!glyph)
 			continue;
 
-		float kernFactor = 1;
+		float kernFactor;
+		float glyphHeight;
 
 		if (atlas->isASCIIFont)
 		{
 			kernFactor = Kern(atlas, glyph, utftext, flags);
+			glyphHeight = atlas->lineHeight;
+		}
+		else
+		{
+			kernFactor = 1;
+			glyphHeight = glyph->yadv;
 		}
 
-		metrics->lineWidths[metrics->numLines-1] += (glyph->xadv * kernFactor + spacing);
+		m->lineWidths[currentLine] += (glyph->xadv * kernFactor);
+		m->lineHeights[currentLine] = GAME_MAX(m->lineHeights[currentLine], glyphHeight);
 
-		float gh = glyph->yadv;
-		if (gh > metrics->lineHeights[metrics->numLines-1])
-			metrics->lineHeights[metrics->numLines-1] = gh;
-
-		if (glyph->w > 0)
-			metrics->numQuads++;
+		if (glyph->w > 0)		// zero-width glyphs don't produce a quad (e.g. space)
+		{
+			m->numQuads++;
+		}
 	}
 
-	if (metrics->lineWidths[metrics->numLines - 1] > metrics->longestLineWidth)
-		metrics->longestLineWidth = metrics->lineWidths[metrics->numLines - 1];
-}
+	// Commit last line
+	m->bbWidth = GAME_MAX(m->bbWidth, m->lineWidths[currentLine]);
+	m->bbHeight += m->lineHeights[currentLine];
 
-static float GetLineStartX(int align, float lineWidth)
-{
-	switch (align & (kTextMeshAlignCenter | kTextMeshAlignLeft | kTextMeshAlignRight))
+	// Commit line count
+	m->numLines = currentLine+1;
+
+	//---------------------------------
+
+	switch (flags & (kTextMeshAlignCenter | kTextMeshAlignLeft | kTextMeshAlignRight))
 	{
 		case kTextMeshAlignLeft:
-			return 0;
+			memset(m->lineOffsetX, 0, sizeof(m->lineOffsetX));
+			break;
 
 		case kTextMeshAlignRight:
-			return -lineWidth;
-		
+			for (int i = 0; i < m->numLines; i++)
+				m->lineOffsetX[i] = -m->lineWidths[i];
+			break;
+
 		default:
-			return -lineWidth * .5f;
+			for (int i = 0; i < m->numLines; i++)
+				m->lineOffsetX[i] = -m->lineWidths[i] * .5f;
+			break;
+	}
+
+	//---------------------------------
+
+
+	float startY = 0;
+	switch (flags & (kTextMeshAlignMiddle | kTextMeshAlignTop | kTextMeshAlignBottom))
+	{
+		case kTextMeshAlignTop:
+			startY = 0;
+			break;
+
+		case kTextMeshAlignBottom:
+			startY = -m->bbHeight;
+			break;
+
+		default:
+			startY = -m->bbHeight * .5f;
+			break;
+	}
+
+	for (int i = 0; i < m->numLines; i++)
+	{
+		m->lineOffsetY[i] = startY;
+		startY += m->lineHeights[i];
 	}
 }
 
-static float GetLineStartY(int align, float lineHeight)
+static void PrepVertices(
+		const Atlas* atlas,
+		const char* text,
+		int flags,
+		const TextMetrics* metrics,
+		OGLPoint3D* points,
+		OGLTextureCoord* uvs)
 {
-	switch (align & (kTextMeshAlignMiddle | kTextMeshAlignTop | kTextMeshAlignBottom))
-	{
-		case kTextMeshAlignTop:
-			return 0;
+	float x = 0;
+	float y = 0;
+	float z = 0;
 
-		case kTextMeshAlignBottom:
-			return -lineHeight;
-		
-		default:
-			return -lineHeight * .5f;
+	// Get top-left corner of text
+	x = metrics->lineOffsetX[0];
+	y = metrics->lineOffsetY[0];
+
+	int p = 0;		// point counter
+	int currentLine = 0;
+	for (const char* utftext = text; *utftext; )
+	{
+		uint32_t codepoint = ReadNextCodepointFromUTF8(&utftext, flags);
+
+		if (atlas->isASCIIFont)
+		{
+			if (codepoint == '\n')
+			{
+				currentLine++;
+				x = metrics->lineOffsetX[currentLine];
+				y = metrics->lineOffsetY[currentLine];
+				continue;
+			}
+			else if (codepoint == '\t')
+			{
+				x = TAB_STOP * ceilf((x + 1.0f) / TAB_STOP);
+				continue;
+			}
+		}
+
+		const AtlasGlyph* g = Atlas_GetGlyph(atlas, codepoint);
+		if (!g)
+			continue;
+
+		if (g->w <= 0.0f)	// e.g. space codepoint
+		{
+			x += (g->xadv);
+			continue;
+		}
+
+		float left   = x + g->xoff;
+		float top    = y + g->yoff;
+		float right  = left + g->w;
+		float bottom = top  + g->h;
+
+		uvs[p+0] = (OGLTextureCoord) {g->u1, g->v2};
+		uvs[p+1] = (OGLTextureCoord) {g->u2, g->v2};
+		uvs[p+2] = (OGLTextureCoord) {g->u2, g->v1};
+		uvs[p+3] = (OGLTextureCoord) {g->u1, g->v1};
+		points[p+0] = (OGLPoint3D) { left , bottom, z };
+		points[p+1] = (OGLPoint3D) { right, bottom, z };
+		points[p+2] = (OGLPoint3D) { right, top   , z };
+		points[p+3] = (OGLPoint3D) { left , top   , z };
+
+		float xadv = g->xadv;
+
+		if (atlas->isASCIIFont)
+			xadv *= Kern(atlas, g, utftext, flags);
+
+		x += xadv;
+		p += 4;
 	}
+}
+
+static OGLRect GetExtentsFromMetrics(const TextMetrics* metrics)
+{
+	return (OGLRect)
+	{
+			.left	= metrics->lineOffsetX[0],
+			.top	= metrics->lineOffsetY[0],
+			.right	= metrics->lineOffsetX[0] + metrics->bbWidth,
+			.bottom	= metrics->lineOffsetY[0] + metrics->bbHeight,
+	};
 }
 
 void TextMesh_Update(const char* text, int flags, ObjNode* textNode)
@@ -566,25 +694,18 @@ void TextMesh_Update(const char* text, int flags, ObjNode* textNode)
 	GAME_ASSERT(metaObjectHeader->type == MO_TYPE_GEOMETRY);
 	GAME_ASSERT(metaObjectHeader->subType == MO_GEOMETRY_SUBTYPE_VERTEXARRAY);
 
-	//-----------------------------------
-
-	float x = 0;
-	float y = 0;
-	float z = 0;
-	float spacing = 0;
-
 	// Compute number of quads and line width
 	TextMetrics metrics;
 	ComputeMetrics(font, text, flags, &metrics);
 
-	// Move y to top edge of text
-	y -= 0.5f * font->lineHeight * metrics.numLines;
-
 	// Save extents
-	textNode->LeftOff	= GetLineStartX(flags, metrics.longestLineWidth);
-	textNode->RightOff	= textNode->LeftOff + metrics.longestLineWidth;
-	textNode->TopOff	= y;
-	textNode->BottomOff	= textNode->TopOff + font->lineHeight * metrics.numLines;
+	{
+		OGLRect extents = GetExtentsFromMetrics(&metrics);
+		textNode->LeftOff	= extents.left;
+		textNode->TopOff	= extents.top;
+		textNode->RightOff	= extents.right;
+		textNode->BottomOff	= extents.bottom;
+	}
 
 	// Ensure mesh has capacity for quads
 	if (textNode->TextQuadCapacity < metrics.numQuads)
@@ -608,79 +729,8 @@ void TextMesh_Update(const char* text, int flags, ObjNode* textNode)
 	GAME_ASSERT(mesh->numMaterials == 1);
 	GAME_ASSERT(mesh->materials[0]);
 
-	// Create a quad for each character
-	int t = 0;		// triangle counter
-	int p = 0;		// point counter
-	int currentLine = 0;
-	x = GetLineStartX(flags, metrics.lineWidths[0]);
-	for (const char* utftext = text; *utftext; )
-	{
-		uint32_t codepoint = ReadNextCodepointFromUTF8(&utftext, flags);
-
-		if (font->isASCIIFont)
-		{
-			if (codepoint == '\n')
-			{
-				currentLine++;
-				x = GetLineStartX(flags, metrics.lineWidths[currentLine]);
-				y += font->lineHeight;
-				continue;
-			}
-			else if (codepoint == '\t')
-			{
-				x = TAB_STOP * ceilf((x + 1.0f) / TAB_STOP);
-				continue;
-			}
-		}
-
-		if (flags & kTextMeshAllCaps)
-		{
-			codepoint = toupper(codepoint);
-		}
-
-		const AtlasGlyph* gptr = Atlas_GetGlyph(font, codepoint);
-		if (!gptr)
-			continue;
-		const AtlasGlyph g = *gptr;
-
-		if (g.w <= 0.0f)	// e.g. space codepoint
-		{
-			x += (g.xadv + spacing);
-			continue;
-		}
-
-		float left   = x + g.xoff;
-		float top    = y + g.yoff;
-		float right  = left + g.w;
-		float bottom = top  + g.h;
-
-		mesh->triangles[t + 0].vertexIndices[0] = p + 0;
-		mesh->triangles[t + 0].vertexIndices[1] = p + 2;
-		mesh->triangles[t + 0].vertexIndices[2] = p + 1;
-		mesh->triangles[t + 1].vertexIndices[0] = p + 0;
-		mesh->triangles[t + 1].vertexIndices[1] = p + 3;
-		mesh->triangles[t + 1].vertexIndices[2] = p + 2;
-		mesh->points[p + 0] = (OGLPoint3D) { left , top   , z };
-		mesh->points[p + 1] = (OGLPoint3D) { right, top   , z };
-		mesh->points[p + 2] = (OGLPoint3D) { right, bottom, z };
-		mesh->points[p + 3] = (OGLPoint3D) { left , bottom, z };
-		mesh->uvs[p + 0] = (OGLTextureCoord) { g.u1, g.v1 };
-		mesh->uvs[p + 1] = (OGLTextureCoord) { g.u2, g.v1 };
-		mesh->uvs[p + 2] = (OGLTextureCoord) { g.u2, g.v2 };
-		mesh->uvs[p + 3] = (OGLTextureCoord) { g.u1, g.v2 };
-
-		float kernFactor;
-		if (font->isASCIIFont)
-			kernFactor = Kern(font, &g, utftext, flags);
-		else
-			kernFactor = 1;
-
-		x += (g.xadv*kernFactor + spacing);
-		t += 2;
-		p += 4;
-	}
-
-	GAME_ASSERT(p == mesh->numPoints);
+	// Lay out triangles
+	PrepVertices(font, text, flags, &metrics, mesh->points, mesh->uvs);
 }
 
 /***************************************************************/
@@ -736,6 +786,24 @@ OGLRect TextMesh_GetExtents(ObjNode* textNode)
 	};
 }
 
+static void DrawExtents(OGLRect extents, float z)
+{
+	OGL_PushState();								// keep state
+//	SetInfobarSpriteState(true);
+	glDisable(GL_TEXTURE_2D);
+
+	glColor4f(1,1,1,1);
+	glBegin(GL_LINE_LOOP);
+	glVertex3f(extents.left,		extents.top,	z);
+	glVertex3f(extents.right,		extents.top,	z);
+	glColor4f(0,.5,1,1);
+	glVertex3f(extents.right,		extents.bottom,	z);
+	glVertex3f(extents.left,		extents.bottom,	z);
+	glEnd();
+
+	OGL_PopState();
+}
+
 void TextMesh_DrawExtents(ObjNode* textNode)
 {
 	GAME_ASSERT(textNode->Genre == TEXTMESH_GENRE);
@@ -769,6 +837,7 @@ void Atlas_DrawString2(
 	float rot,
 	uint32_t flags)
 {
+
 	GAME_ASSERT((size_t)groupNum < (size_t)MAX_SPRITE_GROUPS);
 
 	const Atlas* font = gAtlases[groupNum];
@@ -799,61 +868,37 @@ void Atlas_DrawString2(
 	TextMetrics metrics;
 	ComputeMetrics(font, text, flags, &metrics);
 
-	// Get top-left corner of text
-	x = GetLineStartX(flags, metrics.longestLineWidth);
-	y = GetLineStartY(flags, metrics.lineHeights[0]);	// single-quad hack...
+	GAME_ASSERT_MESSAGE(metrics.numQuads < MAX_IMMEDIATEMODE_QUADS,
+						"Can't draw this many quads in immediate mode!");
+
+	PrepVertices(font, text, flags, &metrics, gImmediateModePoints, gImmediateModeUVs);
 
 			/* DRAW BOUNDING RECT */
 
 	if (gDebugMode >= 2)
 	{
-		glDisable(GL_TEXTURE_2D);		// MO_DrawMaterial will reset this
-		glEnable(GL_LINE_STIPPLE);
-		glLineStipple(1, 0b1010101010101010);
-		glBegin(GL_LINE_LOOP);
-		glVertex3f(x, y, 0);
-		glVertex3f(x + metrics.longestLineWidth, y, 0);
-		glVertex3f(x + metrics.longestLineWidth, y + metrics.lineHeights[0], 0);
-		glVertex3f(x, y + metrics.lineHeights[0], 0);
-		glEnd();
-		glDisable(GL_LINE_STIPPLE);
+		OGLRect extents = GetExtentsFromMetrics(&metrics);
+		DrawExtents(extents, 0);
 	}
 
 			/* ACTIVATE THE MATERIAL */
-	
+
 	MO_DrawMaterial(font->material);
 
 			/* DRAW IT */
 
 	glBegin(GL_QUADS);
-	for (const char* utftext = text; *utftext; )
+	const OGLPoint3D* pt = gImmediateModePoints;
+	const OGLTextureCoord* uv = gImmediateModeUVs;
+	for (int p = 0; p < 4*metrics.numQuads; p += 4)
 	{
-		uint32_t codepoint = ReadNextCodepointFromUTF8(&utftext, flags);
-		const AtlasGlyph* gptr = Atlas_GetGlyph(font, codepoint);
-		if (!gptr)
-			continue;
-		const AtlasGlyph g = *gptr;
-
-		float left   = x + g.xoff;
-		float top    = y + g.yoff;
-		float right  = left + g.w;
-		float bottom = top  + g.h;
-
-		glTexCoord2f(g.u1, g.v2);	glVertex3f(left , bottom, 0);
-		glTexCoord2f(g.u2, g.v2);	glVertex3f(right, bottom, 0);
-		glTexCoord2f(g.u2, g.v1);	glVertex3f(right, top   , 0);
-		glTexCoord2f(g.u1, g.v1);	glVertex3f(left , top   , 0);
-
-		float xadv = g.xadv;
-
-		if (font->isASCIIFont)
-			xadv *= Kern(font, &g, utftext, flags);
-
-		x += xadv;
-
-		gPolysThisFrame += 2;						// 2 tris drawn
+		glTexCoord2f(uv[p+0].u, uv[p+0].v);	glVertex3f(pt[p+0].x, pt[p+0].y, 0);
+		glTexCoord2f(uv[p+1].u, uv[p+1].v);	glVertex3f(pt[p+1].x, pt[p+1].y, 0);
+		glTexCoord2f(uv[p+2].u, uv[p+2].v);	glVertex3f(pt[p+2].x, pt[p+2].y, 0);
+		glTexCoord2f(uv[p+3].u, uv[p+3].v);	glVertex3f(pt[p+3].x, pt[p+3].y, 0);
 	}
 	glEnd();
+	gPolysThisFrame += 2*metrics.numQuads;						// 2 tris drawn per quad
 
 		/* CLEAN UP */
 

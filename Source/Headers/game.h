@@ -1,5 +1,8 @@
 #pragma once
 
+#include <stddef.h>
+#include <stdbool.h>
+
 #include "globals.h"
 #include "3dmath.h"
 #include "objects.h"
