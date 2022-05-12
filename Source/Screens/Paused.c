@@ -131,8 +131,6 @@ static void UpdatePausedMenuCallback(void)
 
 void DoPaused(void)
 {
-	Boolean	oldMute = gMuteMusicFlag;
-
 	MenuStyle style = kDefaultMenuStyle;
 	style.canBackOutOfRootMenu = true;
 	style.fadeOutSceneOnExit = false;
@@ -140,8 +138,7 @@ void DoPaused(void)
 
 	PushKeys();										// save key state so things dont get de-synced during net games
 
-	if (!gMuteMusicFlag)							// see if pause music
-		ToggleMusic();
+	Pomme_PauseAllChannels(true);
 
 	gGamePaused = true;
 	gHideInfobar = true;
@@ -160,8 +157,7 @@ void DoPaused(void)
 	
 	PopKeys();										// restore key state
 
-	if (!oldMute)									// see if restart music
-		ToggleMusic();
+	Pomme_PauseAllChannels(false);
 
 	switch (outcome)
 	{
