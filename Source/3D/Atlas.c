@@ -577,16 +577,13 @@ void TextMesh_Update(const char* text, int flags, ObjNode* textNode)
 	TextMetrics metrics;
 	ComputeMetrics(font, text, flags, &metrics);
 
-	// Adjust y for ascender
-	y += 0.5f * font->lineHeight;
-
-	// Center vertically
-	y -= 0.5f * font->lineHeight * (metrics.numLines - 1);
+	// Move y to top edge of text
+	y -= 0.5f * font->lineHeight * metrics.numLines;
 
 	// Save extents
 	textNode->LeftOff	= GetLineStartX(flags, metrics.longestLineWidth);
 	textNode->RightOff	= textNode->LeftOff + metrics.longestLineWidth;
-	textNode->TopOff	= y - font->lineHeight;
+	textNode->TopOff	= y;
 	textNode->BottomOff	= textNode->TopOff + font->lineHeight * metrics.numLines;
 
 	// Ensure mesh has capacity for quads
@@ -652,10 +649,10 @@ void TextMesh_Update(const char* text, int flags, ObjNode* textNode)
 			continue;
 		}
 
-		float hw = .5f * g.w;
-		float hh = .5f * g.h;
-		float qx = x + (g.xoff + hw);
-		float qy = y - (g.yoff + hh);
+		float left   = x + g.xoff;
+		float top    = y + g.yoff;
+		float right  = left + g.w;
+		float bottom = top  + g.h;
 
 		mesh->triangles[t + 0].vertexIndices[0] = p + 0;
 		mesh->triangles[t + 0].vertexIndices[1] = p + 2;
@@ -663,16 +660,21 @@ void TextMesh_Update(const char* text, int flags, ObjNode* textNode)
 		mesh->triangles[t + 1].vertexIndices[0] = p + 0;
 		mesh->triangles[t + 1].vertexIndices[1] = p + 3;
 		mesh->triangles[t + 1].vertexIndices[2] = p + 2;
-		mesh->points[p + 0] = (OGLPoint3D) { qx - hw, qy - hh, z };
-		mesh->points[p + 1] = (OGLPoint3D) { qx + hw, qy - hh, z };
-		mesh->points[p + 2] = (OGLPoint3D) { qx + hw, qy + hh, z };
-		mesh->points[p + 3] = (OGLPoint3D) { qx - hw, qy + hh, z };
+		mesh->points[p + 0] = (OGLPoint3D) { left , top   , z };
+		mesh->points[p + 1] = (OGLPoint3D) { right, top   , z };
+		mesh->points[p + 2] = (OGLPoint3D) { right, bottom, z };
+		mesh->points[p + 3] = (OGLPoint3D) { left , bottom, z };
 		mesh->uvs[p + 0] = (OGLTextureCoord) { g.u1, g.v1 };
 		mesh->uvs[p + 1] = (OGLTextureCoord) { g.u2, g.v1 };
 		mesh->uvs[p + 2] = (OGLTextureCoord) { g.u2, g.v2 };
 		mesh->uvs[p + 3] = (OGLTextureCoord) { g.u1, g.v2 };
 
-		float kernFactor = Kern(font, &g, utftext, flags);
+		float kernFactor;
+		if (font->isASCIIFont)
+			kernFactor = Kern(font, &g, utftext, flags);
+		else
+			kernFactor = 1;
+
 		x += (g.xadv*kernFactor + spacing);
 		t += 2;
 		p += 4;
@@ -792,22 +794,38 @@ void Atlas_DrawString2(
 	if (rot != 0.0f)
 		glRotatef(OGLMath_RadiansToDegrees(rot), 0, 0, 1);											// remember:  rotation is in degrees, not radians!
 
-
-		/* ACTIVATE THE MATERIAL */
-
-	MO_DrawMaterial(font->material);
-
-
-			/* DRAW IT */
-
-	glBegin(GL_QUADS);
+			/* GET TEXT METRICS*/
 
 	TextMetrics metrics;
 	ComputeMetrics(font, text, flags, &metrics);
 
-	float cx = GetLineStartX(flags, metrics.longestLineWidth);
-	float cy = GetLineStartY(flags, metrics.lineHeights[0]);	// single-quad hack...
+	// Get top-left corner of text
+	x = GetLineStartX(flags, metrics.longestLineWidth);
+	y = GetLineStartY(flags, metrics.lineHeights[0]);	// single-quad hack...
 
+			/* DRAW BOUNDING RECT */
+
+	if (gDebugMode >= 2)
+	{
+		glDisable(GL_TEXTURE_2D);		// MO_DrawMaterial will reset this
+		glEnable(GL_LINE_STIPPLE);
+		glLineStipple(1, 0b1010101010101010);
+		glBegin(GL_LINE_LOOP);
+		glVertex3f(x, y, 0);
+		glVertex3f(x + metrics.longestLineWidth, y, 0);
+		glVertex3f(x + metrics.longestLineWidth, y + metrics.lineHeights[0], 0);
+		glVertex3f(x, y + metrics.lineHeights[0], 0);
+		glEnd();
+		glDisable(GL_LINE_STIPPLE);
+	}
+
+			/* ACTIVATE THE MATERIAL */
+	
+	MO_DrawMaterial(font->material);
+
+			/* DRAW IT */
+
+	glBegin(GL_QUADS);
 	for (const char* utftext = text; *utftext; )
 	{
 		uint32_t codepoint = ReadNextCodepointFromUTF8(&utftext, flags);
@@ -816,22 +834,22 @@ void Atlas_DrawString2(
 			continue;
 		const AtlasGlyph g = *gptr;
 
-		float halfw = .5f * g.w;
-		float halfh = .5f * g.h;
-		float qx = cx + (g.xoff + halfw);
-		float qy = cy + (g.yoff + halfh);
+		float left   = x + g.xoff;
+		float top    = y + g.yoff;
+		float right  = left + g.w;
+		float bottom = top  + g.h;
 
-		glTexCoord2f(g.u1, g.v2);	glVertex3f(qx - halfw, qy + halfh, 0);
-		glTexCoord2f(g.u2, g.v2);	glVertex3f(qx + halfw, qy + halfh, 0);
-		glTexCoord2f(g.u2, g.v1);	glVertex3f(qx + halfw, qy - halfh, 0);
-		glTexCoord2f(g.u1, g.v1);	glVertex3f(qx - halfw, qy - halfh, 0);
+		glTexCoord2f(g.u1, g.v2);	glVertex3f(left , bottom, 0);
+		glTexCoord2f(g.u2, g.v2);	glVertex3f(right, bottom, 0);
+		glTexCoord2f(g.u2, g.v1);	glVertex3f(right, top   , 0);
+		glTexCoord2f(g.u1, g.v1);	glVertex3f(left , top   , 0);
 
 		float xadv = g.xadv;
 
 		if (font->isASCIIFont)
 			xadv *= Kern(font, &g, utftext, flags);
 
-		cx += xadv;
+		x += xadv;
 
 		gPolysThisFrame += 2;						// 2 tris drawn
 	}

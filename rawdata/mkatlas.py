@@ -5,9 +5,9 @@
 #
 # Requirements: Python 3, Python Imaging Library, rectpack (https://github.com/secnot/rectpack)
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from PIL import Image
-import argparse, html, os,  rectpack
+import argparse, html, os,  rectpack, unicodedata
 
 @dataclass
 class Glyph:
@@ -17,7 +17,6 @@ class Glyph:
     yoff: int
     xadv: int
     yadv: int
-    #aliases: list[int] = field(default_factory=list)
     alias_of: int = -1
     atlas_x: int = 0
     atlas_y: int = 0
@@ -104,7 +103,15 @@ for filename in sorted(os.listdir(fontname)):
         num_master_glyphs += 1
 
     if IS_FONT:
-        yoff = ( BASE_H//2 + int(raw_image.height/2 - cy2) )
+        # The position of the baseline is defined by the bottom edge
+        # of a 64x64 rectangle placed in the center of the image.
+        baseline = BASE_H//2 + int(raw_image.height/2)
+
+        ascender = cy1 - baseline
+        descender = cy2 - baseline
+        yoff = int(BASE_H + ascender)
+        print(chr(codepoint), baseline, ascender, yoff)
+        #yoff = ( BASE_H//2 + int(raw_image.height/2 - cy2) )
         yadv = raw_image.height  # perhaps BASE_H would be better here?  the game doesn't use yadv for fonts anyway
         if fixw:
             xoff = int(raw_image.width - slice_image.width)//2
@@ -196,8 +203,10 @@ for codepoint in sorted(glyphs):
         f"\t{glyph.yoff}"
         f"\t{glyph.xadv}"
         f"\t{glyph.yadv}"
-        f"\n"
         )
+    if IS_FONT:
+        atlas_text += F"\t{unicodedata.name(chr(codepoint))}"
+    atlas_text += "\n"
 
 # Save png & txt files
 atlas.save(f"{outpath}.png")
