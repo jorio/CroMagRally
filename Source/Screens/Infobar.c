@@ -98,7 +98,7 @@ static const IconPlacement gIconInfo[NUM_INFOBAR_ICONTYPES] =
 	[ICON_WEAPON_BATTLE]= { kAnchorTopLeft,		  32,  36, 0.9,  42,  0 },
 	[ICON_TIMER]		= { kAnchorTopRight,	-118,  36, 1.0, 125,  0 },
 	[ICON_TIMERINDEX]	= { kAnchorTopRight,	-166,  36, 0.6, 106,  0 },
-	[ICON_POWTIMER]		= { kAnchorTopLeft,		  29, 144, 0.8,  45, 46 },
+	[ICON_POWTIMER]		= { kAnchorTopLeft,		  29, 144, 0.8,  37, 46 },
 	[ICON_FIRE]			= { kAnchorTopLeft,		  19,  36, 0.5,  32,  0 },
 };
 
@@ -601,7 +601,8 @@ float		x,y,scale, spacing, fontScale;
 	snprintf(s, sizeof(s), "%d", q);
 
 	x += spacing;
-	Atlas_DrawString(SPRITE_GROUP_FONT, s, x, y, fontScale, INFOBAR_SPRITE_FLAGS);
+	x -= 24;
+	Atlas_DrawString(SPRITE_GROUP_FONT, s, x, y, fontScale, INFOBAR_SPRITE_FLAGS | kTextMeshAlignLeft);
 
 
 	gGlobalColorFilter.r = 1;
@@ -796,7 +797,7 @@ static const OGLColorRGB noTint = {1,1,1};
 		snprintf(s, sizeof(s), "%d", (int) (timer+.5f));
 
 		x2 = x + spacing;
-		Atlas_DrawString(SPRITE_GROUP_FONT, s, x2, y, fontScale, INFOBAR_SPRITE_FLAGS);
+		Atlas_DrawString(SPRITE_GROUP_FONT, s, x2, y, fontScale, INFOBAR_SPRITE_FLAGS | kTextMeshAlignLeft);
 
 		y += lineSpacing;												// move down to prep for next item
 

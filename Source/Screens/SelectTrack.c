@@ -299,7 +299,7 @@ static void MakeTrackName(void)
 
 			/* MAKE SUBTITLE */
 
-	def.coord.y = 58;
+	def.coord.y = 60;
 	def.scale = .25f;
 	def.slot++;
 	ObjNode *subtitle = NULL;
@@ -309,11 +309,11 @@ static void MakeTrackName(void)
 		switch (gSelectedTrackIndex / TRACKS_PER_AGE)
 		{
 			case BRONZE_AGE:
-				subtitle = TextMesh_New(Localize(STR_COMPLETE_STONE_AGE_TO_UNLOCK_TRACK), kTextMeshAlignTop, &def);
+				subtitle = TextMesh_New(Localize(STR_COMPLETE_STONE_AGE_TO_UNLOCK_TRACK), 0, &def);
 				break;
 
 			case IRON_AGE:
-				subtitle = TextMesh_New(Localize(STR_COMPLETE_BRONZE_AGE_TO_UNLOCK_TRACK), kTextMeshAlignTop, &def);
+				subtitle = TextMesh_New(Localize(STR_COMPLETE_BRONZE_AGE_TO_UNLOCK_TRACK), 0, &def);
 				break;
 		}
 	}
