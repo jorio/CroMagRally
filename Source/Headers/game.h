@@ -87,6 +87,7 @@ extern FSSpec					gDataSpec;
 extern GLuint					gSuperTileTextureNames[MAX_SUPERTILE_TEXTURES];
 extern int						gCurrentSplitScreenPane;
 extern int						gDefaultVehicleParameters[NUM_CAR_TYPES_TOTAL][NUM_VEHICLE_PARAMETERS];
+extern int						gLoadTextureFlags;
 extern int						gGameMode;
 extern int						gGameWindowHeight;
 extern int						gGameWindowWidth;

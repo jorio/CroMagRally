@@ -162,8 +162,17 @@ MetaObjectPtr	mo;
 				break;
 
 		case	MO_TYPE_PICTURE:
+		{
+				// In the PPC Mac original, background pictures don't appear to be gamma-corrected.
+				// This way, wallfont pops against the main menu's background.
+				int oldTextureFlags = gLoadTextureFlags;
+				gLoadTextureFlags |= kLoadTextureFlags_NoGammaFix;
+
 				SetMetaObjectToPicture(mo, data, GL_RGBA);
+
+				gLoadTextureFlags = oldTextureFlags;
 				break;
+		}
 
 		case	MO_TYPE_SPRITE:
 				SetMetaObjectToSprite(mo, data);
@@ -863,6 +872,9 @@ uint32_t				matFlags;
 	diffColor2.r *= gGlobalColorFilter.r;
 	diffColor2.g *= gGlobalColorFilter.g;
 	diffColor2.b *= gGlobalColorFilter.b;
+
+	OGL_FixColorGamma(&diffColor2);
+
 	glColor4fv((GLfloat *)&diffColor2);				// set current diffuse color
 
 

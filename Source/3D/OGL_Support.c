@@ -42,6 +42,8 @@ static void OGL_CreateLights(OGLLightDefType *lightDefPtr);
 
 #define SPLITSCREEN_DIVIDER_THICKNESS 2			// relative to 640x480
 
+#define GAMMA_CORRECTION	1.5
+
 
 /*********************/
 /*    VARIABLES      */
@@ -87,6 +89,11 @@ int			gMyState_ProjectionType = kProjectionType3D;
 static ObjNode* gDebugText;
 static char gDebugTextBuffer[256];
 
+int			gLoadTextureFlags = 0;
+static uint8_t		gGammaRampB[256];
+static float		gGammaRampF[256];
+
+
 
 /******************** OGL BOOT *****************/
 //
@@ -102,6 +109,16 @@ void OGL_Boot(void)
 	OGL_CheckError();
 
 
+
+		/* INITIALIZE GAMMA RAMP */
+
+	for (int i = 0; i < 256; i++)
+	{
+		double v = (double)i / 255.0;
+		double corrected = pow(v, 1.0 / GAMMA_CORRECTION);
+		gGammaRampF[i] = corrected;
+		gGammaRampB[i] = (uint8_t) (corrected * 255.0);
+	}
 
 
 		/***************************/
@@ -858,6 +875,60 @@ int	t,b,l,r;
 
 #pragma mark -
 
+void OGL_FixColorGamma(OGLColorRGBA* color)
+{
+	color->r = gGammaRampF[(uint8_t)(color->r * 255.0f)];
+	color->g = gGammaRampF[(uint8_t)(color->g * 255.0f)];
+	color->b = gGammaRampF[(uint8_t)(color->b * 255.0f)];
+}
+
+static void OGL_FixTextureGamma(uint8_t* imageMemory, int width, int height, GLint srcFormat, GLint dataType)
+{
+	GAME_ASSERT_MESSAGE(gGammaRampB[255] != 0, "Gamma ramp wasn't initialized");
+
+	switch (srcFormat)
+	{
+		case GL_RGB:
+			if (dataType == GL_UNSIGNED_BYTE)
+			{
+				for (int i = 0; i < 3 * width * height; i++)
+				{
+					imageMemory[i] = gGammaRampB[imageMemory[i]];
+				}
+				return;
+			}
+			break;
+
+		case GL_RGBA:
+			if (dataType == GL_UNSIGNED_BYTE)
+			{
+				for (int i = 0; i < 4 * width * height; i += 4)
+				{
+					imageMemory[i + 0] = gGammaRampB[imageMemory[i + 0]];
+					imageMemory[i + 1] = gGammaRampB[imageMemory[i + 1]];
+					imageMemory[i + 2] = gGammaRampB[imageMemory[i + 2]];
+				}
+				return;
+			}
+			break;
+
+		case GL_BGRA:
+			if (dataType == GL_UNSIGNED_BYTE)
+			{
+				for (int i = 0; i < 4 * width * height; i += 4)
+				{
+					imageMemory[i+1] = gGammaRampB[imageMemory[i+1]];
+					imageMemory[i+2] = gGammaRampB[imageMemory[i+2]];
+					imageMemory[i+3] = gGammaRampB[imageMemory[i+3]];
+				}
+				return;
+			}
+			break;
+	}
+
+	printf("Gamma correction not supported for srcFormat $%x / dataType $%x\n", srcFormat, dataType);
+}
+
 
 /***************** OGL TEXTUREMAP LOAD **************************/
 
@@ -877,8 +948,16 @@ GLuint	textureName;
 	if (OGL_CheckError())
 		DoFatalAlert("OGL_TextureMap_Load: glBindTexture failed!");
 
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	GLint filter = gLoadTextureFlags & kLoadTextureFlags_NearestNeighbor
+			? GL_NEAREST
+			: GL_LINEAR;
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, filter);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, filter);
+
+	if (!(gLoadTextureFlags & kLoadTextureFlags_NoGammaFix))
+	{
+		OGL_FixTextureGamma(imageMemory, width, height, srcFormat, dataType);
+	}
 
 	glTexImage2D(GL_TEXTURE_2D,
 				0,										// mipmap level

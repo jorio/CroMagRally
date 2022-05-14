@@ -1463,7 +1463,7 @@ static void LoadTerrainSuperTileTextures(short fRefNum)
 				/* LOAD IT IN */
 
 		gSuperTileTextureNames[i] = OGL_TextureMap_Load(pixels, SUPERTILE_TEXMAP_SIZE, SUPERTILE_TEXMAP_SIZE,
-														GL_BGRA_EXT, GL_RGB, GL_UNSIGNED_SHORT_1_5_5_5_REV);
+														GL_BGRA, GL_RGB, GL_UNSIGNED_SHORT_1_5_5_5_REV);
 
 		OGL_Texture_SetOpenGLTexture(gSuperTileTextureNames[i]);
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);		// set clamp mode after each texture set since OGL just likes it that way
@@ -1594,7 +1594,7 @@ static void LoadTerrainSuperTileTexturesSeamless(short fRefNum)
 
 		// Now load texture
 		gSuperTileTextureNames[unique] = OGL_TextureMap_Load(canvas, canvasW, canvasH,
-														GL_BGRA_EXT, GL_RGB, GL_UNSIGNED_SHORT_1_5_5_5_REV);
+														GL_BGRA, GL_RGB, GL_UNSIGNED_SHORT_1_5_5_5_REV);
 
 		// Clamp to edge
 		OGL_Texture_SetOpenGLTexture(gSuperTileTextureNames[unique]);
