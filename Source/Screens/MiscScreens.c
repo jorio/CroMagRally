@@ -73,7 +73,7 @@ float				keyTextFadeIn = -2.0f;		// fade in after a small delay
 	viewDef.view.clearColor.g 		= 0;
 	viewDef.view.clearColor.b		= 0;
 	viewDef.styles.useFog			= false;
-	viewDef.view.pillarbox4x3		= true;
+	viewDef.view.pillarboxRatio		= PILLARBOX_RATIO_4_3;
 	viewDef.view.fontName			= "rockfont";
 
 	OGL_SetupGameView(&viewDef);
@@ -212,7 +212,7 @@ void DoWarmUpScreen(void)
 			/* SETUP VIEW */
 
 	OGL_NewViewDef(&viewDef);
-	viewDef.view.pillarbox4x3		= false;
+	viewDef.view.pillarboxRatio		= PILLARBOX_RATIO_FULLSCREEN;
 	viewDef.view.fontName			= "rockfont";
 
 	OGL_SetupGameView(&viewDef);
@@ -307,7 +307,7 @@ static const char* names[] =
 	viewDef.camera.yon 				= 2000;
 	viewDef.camera.from[0].z		= 1200;
 	viewDef.camera.from[0].y		= 0;
-	viewDef.view.pillarbox4x3		= true;
+	viewDef.view.pillarboxRatio	= PILLARBOX_RATIO_4_3;
 
 	OGL_SetupGameView(&viewDef);
 
@@ -472,7 +472,7 @@ OGLSetupInputType	viewDef;
 	viewDef.camera.yon 				= 2000;
 	viewDef.camera.from[0].z		= 1200;
 	viewDef.camera.from[0].y		= 0;
-	viewDef.view.pillarbox4x3		= true;
+	viewDef.view.pillarboxRatio	= PILLARBOX_RATIO_4_3;
 
 	OGL_SetupGameView(&viewDef);
 
@@ -819,7 +819,7 @@ static const float sizes[] =
 	viewDef.camera.from[0].z		= 1200;
 	viewDef.camera.from[0].y		= 0;
 	viewDef.view.clearColor 		= (OGLColorRGBA) { .49f, .39f, .29f, 0 };
-	viewDef.view.pillarbox4x3		= true;
+	viewDef.view.pillarboxRatio	= PILLARBOX_RATIO_4_3;
 	viewDef.view.fontName			= "rockfont";
 
 	OGL_SetupGameView(&viewDef);

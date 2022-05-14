@@ -1152,7 +1152,7 @@ short				numPanes;
 	viewDef.view.clearColor.b		= 0;
 	viewDef.view.clearBackBuffer	= true;
 	viewDef.view.numPanes			= numPanes;
-	viewDef.view.pillarbox4x3		= false;
+	viewDef.view.pillarboxRatio		= PILLARBOX_RATIO_FULLSCREEN;
 	viewDef.view.fontName			= "rockfont";
 
 	viewDef.styles.useFog			= false;

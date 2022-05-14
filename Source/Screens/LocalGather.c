@@ -169,7 +169,7 @@ OGLVector3D			fillDirection1 = { .9, -.3, -1 };
 
 	viewDef.view.clearColor 		= (OGLColorRGBA) { 0, 0, 0, 1 };
 	viewDef.styles.useFog			= false;
-	viewDef.view.pillarbox4x3		= true;
+	viewDef.view.pillarboxRatio		= PILLARBOX_RATIO_4_3;
 
 	viewDef.lights.ambientColor 	= ambientColor;
 	viewDef.lights.numFillLights 	= 1;

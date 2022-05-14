@@ -297,7 +297,7 @@ OGLVector3D			fillDirection2 = { -1, -.2, -.5 };
 	viewDef.camera.yon 				= 3000;
 	viewDef.view.clearColor 		= (OGLColorRGBA) {.76f, .61f, .45f, 1.0f};
 	viewDef.styles.useFog			= false;
-	viewDef.view.pillarbox4x3		= true;
+	viewDef.view.pillarboxRatio		= PILLARBOX_RATIO_4_3;
 
 	OGLVector3D_Normalize(&fillDirection1, &fillDirection1);
 	OGLVector3D_Normalize(&fillDirection2, &fillDirection2);

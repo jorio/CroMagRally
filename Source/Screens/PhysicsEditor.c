@@ -198,7 +198,7 @@ OGLVector3D			fillDirection2 = { -1, -.2, -.5 };
 	viewDef.camera.from[0].y		= 250;
 	viewDef.view.clearColor 		= (OGLColorRGBA) {0,0,0, 1.0f};
 	viewDef.styles.useFog			= false;
-	viewDef.view.pillarbox4x3		= true;
+	viewDef.view.pillarboxRatio	= PILLARBOX_RATIO_4_3;
 	viewDef.view.fontName			= "rockfont";
 
 	OGLVector3D_Normalize(&fillDirection1, &fillDirection1);

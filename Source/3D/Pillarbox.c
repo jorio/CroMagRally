@@ -23,7 +23,9 @@ static void DrawPillarbox(ObjNode* objNode)
 	int vpx, vpy, vpw, vph;
 	OGL_GetCurrentViewport(&vpx, &vpy, &vpw, &vph, 0);
 
-	if (!(gGameView->pillarbox4x3 && (vpw != gGameWindowWidth || vph != gGameWindowHeight)))
+	// Don't draw if it's not gonna be visible
+	if (gGameView->pillarboxRatio <= 0
+		|| (vpw == gGameWindowWidth && vph == gGameWindowHeight))
 	{
 		return;
 	}
@@ -193,7 +195,7 @@ static ObjNode* MakePillarboxObject(void)
 
 void InitPillarbox(void)
 {
-	if (gGameView->pillarbox4x3)
+	if (gGameView->pillarboxRatio > 0)
 	{
 		if (gPillarboxMaterial == nil)
 		{

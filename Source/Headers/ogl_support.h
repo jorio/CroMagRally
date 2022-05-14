@@ -155,7 +155,7 @@ typedef	struct
 	OGLColorRGBA			clearColor;
 	Rect					clip;			// left = amount to clip off left, etc.
 	int						numPanes;
-	Boolean					pillarbox4x3;
+	float					pillarboxRatio;
 	const char*				fontName;
 }OGLViewDefType;
 
@@ -212,11 +212,17 @@ typedef struct
 	float					fov[MAX_VIEWPORTS],hither,yon;
 	Boolean					useFog;
 	Boolean					clearBackBuffer;
-	Boolean					pillarbox4x3;
+	float					pillarboxRatio;
 	Boolean					fadePillarbox;		// if true, pillarbox border brightness tracks global gamma fade
 	Boolean					fadeSound;			// if true, global sound volume will track global gamma fade
 	float					fadeDuration;
 }OGLSetupOutputType;
+
+
+
+#define PILLARBOX_RATIO_FULLSCREEN	(0.0)
+#define PILLARBOX_RATIO_4_3			(4.0/3.0)
+#define PILLARBOX_RATIO_16_9		(16.0/9.0)
 
 
 

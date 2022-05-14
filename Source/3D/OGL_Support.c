@@ -171,7 +171,7 @@ static OGLVector3D			fillDirection2 = { -1, -.3, -.3 };
 	viewDef->view.clip.bottom 	= 0;
 	viewDef->view.numPanes	 	= 1;				// assume only 1 pane
 	viewDef->view.clearBackBuffer = true;
-	viewDef->view.pillarbox4x3	= true;
+	viewDef->view.pillarboxRatio= PILLARBOX_RATIO_4_3;
 	viewDef->view.fontName		= "wallfont";
 
 	for (int i = 0; i < MAX_VIEWPORTS; i++)
@@ -273,7 +273,7 @@ void OGL_SetupGameView(OGLSetupInputType *setupDefPtr)
 	gGameView->yon 				= setupDefPtr->camera.yon;
 	gGameView->useFog 			= setupDefPtr->styles.useFog;
 	gGameView->clearBackBuffer 	= setupDefPtr->view.clearBackBuffer;
-	gGameView->pillarbox4x3		= setupDefPtr->view.pillarbox4x3;
+	gGameView->pillarboxRatio	= setupDefPtr->view.pillarboxRatio;
 	gGameView->fadePillarbox	= false;
 	gGameView->fadeDuration		= .15f;
 
@@ -731,9 +731,9 @@ int	t,b,l,r;
 		*h = clippedHeight;
 	}
 	else
-	if (gGameView->pillarbox4x3)
+	if (gGameView->pillarboxRatio > 0)
 	{
-		int widescreenAdjustedWidth = gGameWindowHeight * 640 / 480;
+		int widescreenAdjustedWidth = gGameWindowHeight * gGameView->pillarboxRatio;
 
 		if (widescreenAdjustedWidth <= gGameWindowWidth)
 		{
@@ -747,7 +747,7 @@ int	t,b,l,r;
 		{
 			// keep width
 			*w = gGameWindowWidth;
-			*h = gGameWindowWidth * 480 / 640;
+			*h = gGameWindowWidth / gGameView->pillarboxRatio;
 			*x = 0;
 			*y = (gGameWindowHeight - *h) / 2;
 		}
