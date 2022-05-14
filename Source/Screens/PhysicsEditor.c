@@ -44,24 +44,40 @@ enum
 /*    VARIABLES      */
 /*********************/
 
-#define CAR_METER_CHOICES \
-	{ \
-	{STR_CAR_STAT_METER_1, 0}, \
-	{STR_CAR_STAT_METER_2, 1}, \
-	{STR_CAR_STAT_METER_3, 2}, \
-	{STR_CAR_STAT_METER_4, 3}, \
-	{STR_CAR_STAT_METER_5, 4}, \
-	{STR_CAR_STAT_METER_6, 5}, \
-	{STR_CAR_STAT_METER_7, 6}, \
-	{STR_CAR_STAT_METER_8, 7}, \
-	}
-
 static Byte gCurrentCar = 0;
 static Byte gShadowCarStats[NUM_VEHICLE_PARAMETERS];
 static ObjNode* gCarModel = nil;
 
 static Byte gLastWoahCar = -1;
 static Byte gLastCrappyCar = -1;
+
+#define MI_CARSTAT(strID, n) 	\
+	{ \
+		kMICycler2, \
+		.text = strID, \
+		.callback = OnTweakCarStat, \
+		.customHeight = 0.5f, \
+		.cycler = \
+		{ \
+			.valuePtr = &gShadowCarStats[n], \
+			.choices = \
+			{ \
+				{STR_CAR_STAT_METER_1, 0}, \
+				{STR_CAR_STAT_METER_2, 1}, \
+				{STR_CAR_STAT_METER_3, 2}, \
+				{STR_CAR_STAT_METER_4, 3}, \
+				{STR_CAR_STAT_METER_5, 4}, \
+				{STR_CAR_STAT_METER_6, 5}, \
+				{STR_CAR_STAT_METER_7, 6}, \
+				{STR_CAR_STAT_METER_8, 7}, \
+			} \
+		} \
+	}
+
+#define MI_PHYSCONST(strID, varName) \
+	{ \
+		kMIFloatRange, strID, .floatRange={&gPhysicsConsts.varName, &kDefaultPhysicsConsts.varName}	\
+	}
 
 static const MenuItem gPhysicsMenuTree[] =
 {
@@ -97,47 +113,19 @@ static const MenuItem gPhysicsMenuTree[] =
 		},
 		.customHeight = 1,
 	},
-
-	{
-		kMICycler2,
-		.text = STR_CAR_STAT_1,
-		.callback = OnTweakCarStat,
-		.customHeight = 0.5f,
-		.cycler = {.valuePtr = &gShadowCarStats[0], .choices = CAR_METER_CHOICES }
-	},
-
-	{
-		kMICycler2,
-		.text = STR_CAR_STAT_2,
-		.callback = OnTweakCarStat,
-		.customHeight = 0.5f,
-		.cycler = {.valuePtr = &gShadowCarStats[1], .choices = CAR_METER_CHOICES }
-	},
-
-	{
-		kMICycler2,
-		.text = STR_CAR_STAT_3,
-		.callback = OnTweakCarStat,
-		.customHeight = 0.5f,
-		.cycler = {.valuePtr = &gShadowCarStats[2], .choices = CAR_METER_CHOICES }
-	},
-
-	{
-		kMICycler2,
-		.text = STR_CAR_STAT_4,
-		.callback = OnTweakCarStat,
-		.customHeight = 0.5f,
-		.cycler = {.valuePtr = &gShadowCarStats[3], .choices = CAR_METER_CHOICES }
-	},
+	MI_CARSTAT(STR_CAR_STAT_1, 0),
+	MI_CARSTAT(STR_CAR_STAT_2, 1),
+	MI_CARSTAT(STR_CAR_STAT_3, 2),
+	MI_CARSTAT(STR_CAR_STAT_4, 3),
 
 	{.id='cons'},
-	{ kMIFloatRange, STR_PHYSICS_CONSTANT_STEERING_RESPONSIVENESS,	.floatRange={.valuePtr=&gSteeringResponsiveness }	},
-	{ kMIFloatRange, STR_PHYSICS_CONSTANT_MAX_TIGHT_TURN,			.floatRange={.valuePtr=&gCarMaxTightTurn}	},
-	{ kMIFloatRange, STR_PHYSICS_CONSTANT_TURNING_RADIUS,			.floatRange={.valuePtr=&gCarTurningRadius} },
-	{ kMIFloatRange, STR_PHYSICS_CONSTANT_TIRE_TRACTION,			.floatRange={.valuePtr=&gTireTractionConstant}	},
-	{ kMIFloatRange, STR_PHYSICS_CONSTANT_TIRE_FRICTION,			.floatRange={.valuePtr=&gTireFrictionConstant}	},
-	{ kMIFloatRange, STR_PHYSICS_CONSTANT_GRAVITY,					.floatRange={.valuePtr=&gCarGravity}	},
-	{ kMIFloatRange, STR_PHYSICS_CONSTANT_SLOPE_RATIO_ADJUSTER,		.floatRange={.valuePtr=&gSlopeRatioAdjuster}	},
+	MI_PHYSCONST(STR_PHYSICS_CONSTANT_STEERING_RESPONSIVENESS,	SteeringResponsiveness),
+	MI_PHYSCONST(STR_PHYSICS_CONSTANT_MAX_TIGHT_TURN,			CarMaxTightTurn),
+	MI_PHYSCONST(STR_PHYSICS_CONSTANT_TURNING_RADIUS,			CarTurningRadius),
+	MI_PHYSCONST(STR_PHYSICS_CONSTANT_TIRE_TRACTION,			TireTraction),
+	MI_PHYSCONST(STR_PHYSICS_CONSTANT_TIRE_FRICTION,			TireFriction),
+	MI_PHYSCONST(STR_PHYSICS_CONSTANT_GRAVITY,					CarGravity),
+	MI_PHYSCONST(STR_PHYSICS_CONSTANT_SLOPE_RATIO_ADJUSTER,		SlopeRatioAdjuster),
 
 	{ 0 },
 };

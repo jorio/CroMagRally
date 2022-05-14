@@ -110,13 +110,31 @@ short	gPlayerMultiPassCount = 0;
 
 		/* USER EDITABLE */
 
-float	gSteeringResponsiveness = 8.0;
-float	gCarMaxTightTurn = 2000.0f;				// bigger == more responsive steering at high speeds
-float	gCarTurningRadius = 0.0016f;			// bigger == tighter turns, smaller = wider turns
-float	gTireTractionConstant = .028f;			// amount of grip the tires have when turning
-float	gTireFrictionConstant = 10000.0f;		// when travelling perpendicular to motion
-float	gCarGravity = 6500.0f;
-float	gSlopeRatioAdjuster = .7f;				// bigger == able to climb steep hills easier, smaller == bounce off walls more.
+const PhysicsConsts kDefaultPhysicsConsts =
+{
+	.SteeringResponsiveness = 7.0,
+	.CarMaxTightTurn 		= 2000.0f,
+	.CarTurningRadius 		= 0.0016f,
+	.TireTraction			= .028f,
+	.TireFriction			= 10000.0,
+	.CarGravity				= 6500.0f,
+	.SlopeRatioAdjuster		= .7f,
+};
+
+#if 0	// from iOS version
+const PhysicsConsts kiOSPhysicsConsts =
+{
+	.CPUSteeringResponsiveness = 8.0,		// for CPU cars only!
+	.CarMaxTightTurn		= 1200.0,			// bigger == more responsive steering at high speeds
+	.CarTurningRadius		= 0.0017,			// bigger == tighter turns, smaller = wider turns
+	.TireTraction			= .027,				// amount of grip the tires have when turning
+	.TireFriction			= 5000.0,			// when travelling perpendicular to motion
+	.CarGravity				= 9000.0,
+	.SlopeRatioAdjuster		= .7,				// bigger == able to climb steep hills easier, smaller == bounce off walls more.
+};
+#endif
+
+PhysicsConsts gPhysicsConsts = kDefaultPhysicsConsts;
 
 
 /********************** SET DEFAULT PHYSICS ***********************/
@@ -125,13 +143,7 @@ void SetDefaultPhysics(void)
 {
 int	i,j;
 
-	gSteeringResponsiveness = 7.0;
-	gCarMaxTightTurn 		= 2000.0f;
-	gCarTurningRadius 		= 0.0016f;
-	gTireTractionConstant 	= .028f;
-	gTireFrictionConstant 	= 10000.0;
-	gCarGravity 			= 6500.0f;
-	gSlopeRatioAdjuster 	= .7f;
+	memcpy(&gPhysicsConsts, &kDefaultPhysicsConsts, sizeof(PhysicsConsts));
 
 			/* COPY CAR DEFAULTS */
 
@@ -556,7 +568,7 @@ Boolean		onWater;
 		/* DO GRAVITY & ROTATION */
 
 	oldDeltaY = gDelta.y;
-	gDelta.y -= gCarGravity * fps;							// gravity
+	gDelta.y -= gPhysicsConsts.CarGravity * fps;			// gravity
 	RotateCar(theNode);										// rotate it
 	r = r2 = theNode->Rot.y;
 
@@ -652,12 +664,12 @@ Boolean		onWater;
 				/* CALC TRACTION & FRICTION */
 
 		traction = gPlayerInfo[playerNum].groundTraction * info->tireTraction;	// use both ground and tire values
-		traction *= dot * gTireTractionConstant;								// better traction as dot == 1.0 (when not skidding)
+		traction *= dot * gPhysicsConsts.TireTraction;							// better traction as dot == 1.0 (when not skidding)
 		traction *= cpuTweakFactor;
 
 
 		friction = gPlayerInfo[playerNum].groundFriction * info->tireTraction;	// friction based on tire traction and ground friction
-		friction *= (1.0f - dot) * gTireFrictionConstant;						// skid friction gets greater as dot == 0 (when doing more skidding)
+		friction *= (1.0f - dot) * gPhysicsConsts.TireFriction;					// skid friction gets greater as dot == 0 (when doing more skidding)
 		friction *= cpuTweakFactor;
 
 
@@ -945,7 +957,7 @@ short			playerNum = theNode->PlayerNum;
 
 					/* CALC FINAL VECTOR AS RATIO OF UPHILL AND BOUNCE */
 
-				ratio = gRecentTerrainNormal.y + gSlopeRatioAdjuster;				// base it on the normal's y.  The steep ther the terrain, the more the bounce is used
+				ratio = gRecentTerrainNormal.y + gPhysicsConsts.SlopeRatioAdjuster;	// base it on the normal's y.  The steep ther the terrain, the more the bounce is used
 				ratio *= gPlayerInfo[playerNum].carStats.suspension;				// adjust for suspension
 
 				if (ratio > 1.0f)
@@ -1492,7 +1504,7 @@ float		friction;
 		turnSpeed = 1000.0f;
 		tireTraction = .3f;
 
-		targetDeltaY = turnSpeed * -gCarTurningRadius * steering;			// calc delta Y if we had perfect traction
+		targetDeltaY = turnSpeed * -gPhysicsConsts.CarTurningRadius * steering;	// calc delta Y if we had perfect traction
 
 		if (theNode->DeltaRot.y < targetDeltaY)
 		{
@@ -1519,14 +1531,14 @@ float		friction;
 		if (!gPlayerInfo[playerNum].isPlaning)									// if we're planing then we have no steering control
 		{
 			speed = theNode->Speed2D;											// get current speed of vehicle
-			if (speed < gCarMaxTightTurn)										// pin the max value
+			if (speed < gPhysicsConsts.CarMaxTightTurn)										// pin the max value
 				turnSpeed = speed;
 			else
-				turnSpeed = gCarMaxTightTurn;
+				turnSpeed = gPhysicsConsts.CarMaxTightTurn;
 
 			steering *= fabs(gPlayerInfo[playerNum].skidDot);					// steering has less effect as skid gets worse (max skid when dot == 0.0)
 
-			targetDeltaY = turnSpeed * -gCarTurningRadius * steering;		// calc delta Y if we had perfect traction
+			targetDeltaY = turnSpeed * -gPhysicsConsts.CarTurningRadius * steering;		// calc delta Y if we had perfect traction
 
 
 					/* ACCEL THE DELTA INTO POSITION */
@@ -2881,14 +2893,14 @@ float			steering,analogSteering;
 	{
 		if (analogSteering == -1.0f)
 		{
-			steering -= gSteeringResponsiveness * fps;
+			steering -= gPhysicsConsts.SteeringResponsiveness * fps;
 			if (steering < -1.0f)
 				steering = -1.0f;
 		}
 		else
 		if (analogSteering == 1.0f)
 		{
-			steering += gSteeringResponsiveness * fps;
+			steering += gPhysicsConsts.SteeringResponsiveness * fps;
 			if (steering > 1.0f)
 				steering = 1.0f;
 		}
@@ -2898,14 +2910,14 @@ float			steering,analogSteering;
 		{
 			if (steering < 0.0f)
 			{
-				steering += gSteeringResponsiveness * fps;
+				steering += gPhysicsConsts.SteeringResponsiveness * fps;
 				if (steering > 0.0f)
 					steering = 0.0f;
 			}
 			else
 			if (steering > 0.0f)
 			{
-				steering -= gSteeringResponsiveness * fps;
+				steering -= gPhysicsConsts.SteeringResponsiveness * fps;
 				if (steering < 0.0f)
 					steering = 0.0f;
 			}

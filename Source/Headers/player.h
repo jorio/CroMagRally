@@ -2,9 +2,7 @@
 // player.h
 //
 
-#ifndef __PLAYER_H__
-#define __PLAYER_H__
-
+#pragma once
 
 #include "checkpoints.h"
 
@@ -242,6 +240,16 @@ typedef struct
 }PlayerInfoType;
 
 
+typedef struct
+{
+	float	SteeringResponsiveness;
+	float	CarMaxTightTurn;			// bigger == more responsive steering at high speeds
+	float	CarTurningRadius;			// bigger == tighter turns, smaller = wider turns
+	float	TireTraction;				// amount of grip the tires have when turning
+	float	TireFriction;				// when travelling perpendicular to motion
+	float	CarGravity;
+	float	SlopeRatioAdjuster;			// bigger == able to climb steep hills easier, smaller == bounce off walls more.
+}PhysicsConsts;
 
 
 //=======================================================
@@ -303,6 +311,3 @@ void StretchSkidMark(ObjNode *owner, short subID, float x, float z, float dx, fl
 void DetachOwnerFromSkid(ObjNode *owner);
 void MakeSkidSmoke(short p, OGLPoint3D *coord);
 
-
-
-#endif

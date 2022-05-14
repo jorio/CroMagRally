@@ -33,8 +33,7 @@ typedef struct
 typedef struct
 {
 	float*			valuePtr;
-	float			rangeMin;
-	float			rangeMax;
+	const float*	equilibriumPtr;
 } MenuFloatRangeData;
 
 typedef struct MenuItem
