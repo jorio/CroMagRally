@@ -395,21 +395,6 @@ MOMaterialData	matData;
 
 	GLuint textureName = OGL_TextureMap_LoadImageFile(inData, &width, &height);
 
-	float scale = 480.0f / height;
-
-			/********************************/
-			/* SET SOME PICTURE OBJECT DATA */
-			/********************************/
-
-	picData->drawCoord.x	= -1.0;						// assume upper left corner
-	picData->drawCoord.y	= 1.0;
-	picData->drawCoord.z	= .999;						// assume in back
-	picData->drawScaleX		= scale;
-	picData->drawScaleY		= scale;
-
-	picData->fullWidth 		= width;
-	picData->fullHeight		= height;
-
 			/***************************/
 			/* CREATE A TEXTURE OBJECT */
 			/***************************/
@@ -914,55 +899,26 @@ const OGLMatrix4x4		*m;
 
 void MO_DrawPicture(const MOPictureObject *picObj)
 {
-int				w,h;
-float			x,y,z,xadj,yadj;
 const MOPictureData	*picData = &picObj->objectData;
-int				px,py,pw,ph;
-float			screenScaleX,screenScaleY;
 
 			/* INIT MATRICES */
 
 	OGL_PushState();
-	OGL_SetProjection(kProjectionType2DNDC);
 
-			/* SET STATE */
+	// Projection should be kProjectionType2DNDC
+	// 2D state should be set by STATUS_BITS_FOR_2D
 
-	if (gGameView->useFog)
-		glDisable(GL_FOG);
-	OGL_DisableLighting();
-	glEnable(GL_CULL_FACE);
-
-
-			/* GET DIMENSIONAL DATA */
-
-	w = picData->fullWidth;
-	h = picData->fullHeight;
-	OGL_GetCurrentViewport(&px, &py, &pw, &ph, 0);
-
-	screenScaleX = pw/(float)PICTURE_FULL_SCREEN_SIZE_X;
-	screenScaleY = ph/(float)PICTURE_FULL_SCREEN_SIZE_Y;
-
-	xadj = (float)w/(float)pw * (picData->drawScaleX * (screenScaleX * 2.0f));
-	yadj = (float)h/(float)ph * (picData->drawScaleY * (screenScaleY * 2.0f));
-
-
-	z = picData->drawCoord.z;
-	y = picData->drawCoord.y - yadj;
-
-	x = picData->drawCoord.x;
+	float z = 0;
 
 			/* ACTIVATE THE MATERIAL */
 
 	MO_DrawMaterial(picData->material);							// submit material
 
-	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-
 	glBegin(GL_QUADS);
-	glTexCoord2f(0, 1);	glVertex3f(x, y, z);
-	glTexCoord2f(1, 1);	glVertex3f(x + xadj, y,z);
-	glTexCoord2f(1, 0);	glVertex3f(x + xadj, y + yadj, z);
-	glTexCoord2f(0, 0);	glVertex3f(x, y + yadj, z);
+	glTexCoord2f(0, 1);	glVertex3f(-1, -1, z);
+	glTexCoord2f(1, 1);	glVertex3f( 1, -1, z);
+	glTexCoord2f(1, 0);	glVertex3f( 1,  1, z);
+	glTexCoord2f(0, 0);	glVertex3f(-1,  1, z);
 	glEnd();
 
 	gPolysThisFrame += 2;										// 2 more triangles
@@ -970,9 +926,6 @@ float			screenScaleX,screenScaleY;
 			/* RESTORE STATE */
 
 	OGL_PopState();
-
-	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 }
 
 /************************ MO: DRAW SPRITE **************************/

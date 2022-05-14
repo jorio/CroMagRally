@@ -834,8 +834,9 @@ static const float sizes[] =
 
 	ObjNode* artwork = MakeBackgroundPictureObject(":images:Credits.jpg");
 
-	MOPictureObject* po = (MOPictureObject *) artwork->BaseGroup->objectData.groupContents[0];
-	po->objectData.drawScaleX *= 1.333/1.777;  // hack - preserve aspect ratio of 4:3 picture in 16:9 viewport
+	artwork->Scale.x = (4.0/3.0) / viewDef.view.pillarboxRatio;  // hack - preserve aspect ratio of 4:3 picture in 16:9 viewport
+	artwork->Coord.x = -.25f;
+	UpdateObjectTransforms(artwork);
 
 
 

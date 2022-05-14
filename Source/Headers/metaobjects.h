@@ -142,15 +142,9 @@ typedef struct
 		/* PICTURE OBJECT */
 		/******************/
 
-#define PICTURE_FULL_SCREEN_SIZE_X	640				// use this as scaling reference base
-#define PICTURE_FULL_SCREEN_SIZE_Y	480
-
 
 typedef struct
 {
-	OGLPoint3D			drawCoord;
-	float				drawScaleX,drawScaleY;
-	int					fullWidth,fullHeight;
 	MOMaterialObject	*material;
 }MOPictureData;
 

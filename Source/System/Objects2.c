@@ -684,10 +684,14 @@ ObjNode* MakeBackgroundPictureObject(const char* imagePath)
 	{
 		.genre = DISPLAY_GROUP_GENRE,
 		.slot = BGPIC_SLOT,
-		.scale = 1,
+		.scale = 1.0f,
+		.flags = STATUS_BITS_FOR_2D,
+		.projection = kProjectionType2DNDC,
 	};
+
 	ObjNode* obj = MakeNewObject(&def);
-	obj->BaseGroup = MO_CreateNewObjectOfType(MO_TYPE_GROUP, 0, nil);
+
+	CreateBaseGroup(obj);
 	MO_AppendToGroup(obj->BaseGroup, backgroundPicture);
 
 	MO_DisposeObjectReference(backgroundPicture);
