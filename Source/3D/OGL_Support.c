@@ -252,7 +252,10 @@ void OGL_SetupGameView(OGLSetupInputType *setupDefPtr)
 	OGL_InitDrawContext();
 	OGL_CheckError();
 
-	glClearColor(setupDefPtr->view.clearColor.r, setupDefPtr->view.clearColor.g, setupDefPtr->view.clearColor.b, 1.0);
+	OGLColorRGBA clearColor = setupDefPtr->view.clearColor;
+	OGL_FixColorGamma(&clearColor);
+
+	glClearColor(clearColor.r, clearColor.g, clearColor.b, 1.0);
 	OGL_CheckError();
 
 	OGL_SetStyles(setupDefPtr);
