@@ -97,6 +97,14 @@ typedef struct
 
 typedef struct
 {
+	uint16_t b : 5;
+	uint16_t g : 5;
+	uint16_t r : 5;
+	uint16_t a : 1;
+} OGLColorBGRA16;
+
+typedef struct
+{
 	GLfloat	value[16];
 }OGLMatrix4x4;
 

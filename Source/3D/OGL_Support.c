@@ -20,6 +20,8 @@
 extern SDL_Window*		gSDLWindow;
 //extern	GWorldPtr		gTerrainDebugGWorld;
 
+_Static_assert(sizeof(OGLColorBGRA16) == 2, "OGLColorBGRA16 must fit on 2 bytes");
+
 
 /****************************/
 /*    PROTOTYPES            */
@@ -43,6 +45,7 @@ static void OGL_CreateLights(OGLLightDefType *lightDefPtr);
 #define SPLITSCREEN_DIVIDER_THICKNESS 2			// relative to 640x480
 
 #define GAMMA_CORRECTION	1.5
+
 
 
 /*********************/
@@ -90,7 +93,8 @@ static ObjNode* gDebugText;
 static char gDebugTextBuffer[256];
 
 int			gLoadTextureFlags = 0;
-static uint8_t		gGammaRampB[256];
+static uint8_t		gGammaRamp8[256];
+static uint16_t		gGammaRamp5[32];
 static float		gGammaRampF[256];
 
 
@@ -117,7 +121,14 @@ void OGL_Boot(void)
 		double v = (double)i / 255.0;
 		double corrected = pow(v, 1.0 / GAMMA_CORRECTION);
 		gGammaRampF[i] = corrected;
-		gGammaRampB[i] = (uint8_t) (corrected * 255.0);
+		gGammaRamp8[i] = (uint8_t) (corrected * 255.0);
+	}
+
+	for (int i = 0; i < 32; i++)	// 5-bit gamma ramp (for 16-bit packed BGRA)
+	{
+		double v = (double)i / 31.0;
+		double corrected = pow(v, 1.0 / GAMMA_CORRECTION);
+		gGammaRamp5[i] = (uint16_t) (corrected * 31.0);
 	}
 
 
@@ -887,7 +898,7 @@ void OGL_FixColorGamma(OGLColorRGBA* color)
 
 static void OGL_FixTextureGamma(uint8_t* imageMemory, int width, int height, GLint srcFormat, GLint dataType)
 {
-	GAME_ASSERT_MESSAGE(gGammaRampB[255] != 0, "Gamma ramp wasn't initialized");
+	GAME_ASSERT_MESSAGE(gGammaRamp8[255] != 0, "Gamma ramp wasn't initialized");
 
 	switch (srcFormat)
 	{
@@ -896,7 +907,7 @@ static void OGL_FixTextureGamma(uint8_t* imageMemory, int width, int height, GLi
 			{
 				for (int i = 0; i < 3 * width * height; i++)
 				{
-					imageMemory[i] = gGammaRampB[imageMemory[i]];
+					imageMemory[i] = gGammaRamp8[imageMemory[i]];
 				}
 				return;
 			}
@@ -907,9 +918,9 @@ static void OGL_FixTextureGamma(uint8_t* imageMemory, int width, int height, GLi
 			{
 				for (int i = 0; i < 4 * width * height; i += 4)
 				{
-					imageMemory[i + 0] = gGammaRampB[imageMemory[i + 0]];
-					imageMemory[i + 1] = gGammaRampB[imageMemory[i + 1]];
-					imageMemory[i + 2] = gGammaRampB[imageMemory[i + 2]];
+					imageMemory[i + 0] = gGammaRamp8[imageMemory[i + 0]];
+					imageMemory[i + 1] = gGammaRamp8[imageMemory[i + 1]];
+					imageMemory[i + 2] = gGammaRamp8[imageMemory[i + 2]];
 				}
 				return;
 			}
@@ -920,9 +931,21 @@ static void OGL_FixTextureGamma(uint8_t* imageMemory, int width, int height, GLi
 			{
 				for (int i = 0; i < 4 * width * height; i += 4)
 				{
-					imageMemory[i+1] = gGammaRampB[imageMemory[i+1]];
-					imageMemory[i+2] = gGammaRampB[imageMemory[i+2]];
-					imageMemory[i+3] = gGammaRampB[imageMemory[i+3]];
+					imageMemory[i+1] = gGammaRamp8[imageMemory[i+1]];
+					imageMemory[i+2] = gGammaRamp8[imageMemory[i+2]];
+					imageMemory[i+3] = gGammaRamp8[imageMemory[i+3]];
+				}
+				return;
+			}
+			else if (dataType == GL_UNSIGNED_SHORT_1_5_5_5_REV)
+			{
+				OGLColorBGRA16* colorPtr = ((OGLColorBGRA16*) imageMemory);
+				for (int i = 0; i < width * height; i++)
+				{
+					colorPtr->b = gGammaRamp5[colorPtr->b];
+					colorPtr->g = gGammaRamp5[colorPtr->g];
+					colorPtr->r = gGammaRamp5[colorPtr->r];
+					colorPtr++;
 				}
 				return;
 			}
