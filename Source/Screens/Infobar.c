@@ -1070,9 +1070,9 @@ short	sex;
 
 static void MoveFinalPlace(ObjNode *theNode)
 {
-	theNode->Rot.z = sin(theNode->SpecialF[0]) * .2f;
+//	theNode->Rot.z = sin(theNode->SpecialF[0]) * .2f;
 	theNode->SpecialF[0] += gFramesPerSecondFrac * 5.0f;
-	UpdateObjectTransforms(theNode);
+//	UpdateObjectTransforms(theNode);
 }
 
 #pragma mark -
