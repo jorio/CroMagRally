@@ -23,6 +23,7 @@
 static void SetupMainMenuScreen(void);
 
 static void OnPickQuitApplication(const MenuItem* mi);
+static void OnPickCredits(const MenuItem* mi);
 static void OnConfirmPlayMenu(const MenuItem* mi);
 static void OnPickGameMode(const MenuItem* mi);
 static void OnPickTournamentAge(const MenuItem* mi);
@@ -90,7 +91,7 @@ static const MenuItem gMainMenuTree[] =
 
 	{ .id='xtra' },
 	{kMIPick, STR_HELP,				.id=MENU_EXITCODE_HELP,		.next='EXIT' },
-	{kMIPick, STR_CREDITS,			.id=MENU_EXITCODE_CREDITS,	.next='EXIT' },
+	{kMIPick, STR_CREDITS,			.id=MENU_EXITCODE_CREDITS,	.next='EXIT', .callback=OnPickCredits },
 	{kMIPick, STR_PHYSICS_EDITOR,	.id=MENU_EXITCODE_PHYSICS,	.next='EXIT' },
 
 	{ .id='mpgm' },
@@ -347,6 +348,11 @@ static void OnPickQuitApplication(const MenuItem* mi)
 	gGameView->fadeSound = true;
 	gGameView->fadePillarbox = true;
 	gGameView->fadeDuration = .3f;
+}
+
+static void OnPickCredits(const MenuItem* mi)
+{
+	gGameView->fadePillarbox = true;
 }
 
 static void OnConfirmPlayMenu(const MenuItem* mi)

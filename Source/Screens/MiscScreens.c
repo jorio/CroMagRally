@@ -673,7 +673,7 @@ OGLMatrix4x4			m,m3,m2;
 
 void DoCreditsScreen(void)
 {
-float	timer = 60.0f;
+float	timer = 51.5f;
 
 			/* SETUP */
 
@@ -773,16 +773,14 @@ static const CreditLine lines[] =
 	{1, 1, .text="[C] 2000 PANGEA SOFTWARE, INC."},
 	{1, 1, .loca=STR_CREDITS_ALL_RIGHTS_RESERVED},
 	{1, 4, .text=""},
-	{1, 1, .text="CRO-MAG RALLY IS A REGISTERED"},
-	{1, 1, .text="TRADEMARK OF PANGEA SOFTWARE, INC."},
-	{1, 4, .text=""},
-	{1, 4, .text=""},
-	{1, 4, .text=""},
-	{2, 1, .text="WWW.PANGEASOFT.NET"},
-	{1, 4, .text=""},
-	{1, 4, .text=""},
-	{1, 4, .text=""},
-	{2, 1, .text="GITHUB.COM/JORIO/CROMAGRALLY"},
+	{1, 1, .text="''CRO-MAG RALLY''"},
+	{1, 1, .text="IS A REGISTERED TRADEMARK"},
+	{1, 1, .text="OF PANGEA SOFTWARE, INC."},
+	{0, 3, .text=""},
+	{2, 0, .text="WWW.PANGEASOFT.NET"},
+	{0, 2, .text=""},
+	{2, 0, .text="GITHUB.COM/"},
+	{2, 0, .text="JORIO/CROMAGRALLY"},
 	{-1,0, .text=""},
 };
 
@@ -796,11 +794,11 @@ static const OGLColorRGBA	colors[] =
 
 static const float sizes[] =
 {
-	.3,
-	.2,
-	.4,
-	1.8,	// large spacing
-	.2,	// small spacing
+	.3,		// names
+	.2,		// small print
+	.4,		// headings
+	1.5,	// large spacing
+	.2,		// small spacing
 };
 
 
@@ -818,11 +816,13 @@ static const float sizes[] =
 	viewDef.camera.yon 				= 2000;
 	viewDef.camera.from[0].z		= 1200;
 	viewDef.camera.from[0].y		= 0;
-	viewDef.view.clearColor 		= (OGLColorRGBA) { .49f, .39f, .29f, 0 };
-	viewDef.view.pillarboxRatio	= PILLARBOX_RATIO_4_3;
-	viewDef.view.fontName			= "rockfont";
+	viewDef.view.clearColor 		= (OGLColorRGBA) { 0, 0, 0, 1 };
+	viewDef.view.pillarboxRatio		= PILLARBOX_RATIO_16_9;
+	viewDef.view.fontName			= "wallfont";
 
 	OGL_SetupGameView(&viewDef);
+
+	gGameView->fadePillarbox = true;
 
 
 				/************/
@@ -832,7 +832,10 @@ static const float sizes[] =
 			/* MAKE BACKGROUND PICTURE OBJECT */
 
 
-	MakeBackgroundPictureObject(":images:Credits.jpg");
+	ObjNode* artwork = MakeBackgroundPictureObject(":images:Credits.jpg");
+
+	MOPictureObject* po = (MOPictureObject *) artwork->BaseGroup->objectData.groupContents[0];
+	po->objectData.drawScaleX *= 1.333/1.777;  // hack - preserve aspect ratio of 4:3 picture in 16:9 viewport
 
 
 
@@ -840,14 +843,14 @@ static const float sizes[] =
 			/* BUILD CREDITS */
 			/*****************/
 
-	float y = 1.3 * 240.0f;
+	float y = 1.2 * 240.0f;
 	for (int i = 0; lines[i].color != -1; i++)
 	{
 		NewObjectDefinitionType def =
 		{
-			.coord		= {-200,y,0},
+			.coord		= {315, y, 0},
 			.moveCall	= MoveCredit,
-			.scale		= .66 * sizes[lines[i].size],
+			.scale		= .8 * sizes[lines[i].size],
 			.slot 		= PARTICLE_SLOT-1,		// in this rare case we want to draw text before particles
 		};
 
@@ -879,13 +882,12 @@ static const float sizes[] =
 		.scale = 1,
 		.group = SPRITE_GROUP_INFOBAR,
 		.type = INFOBAR_SObjType_OverlayBackgroundH,
-		.coord = {-200,0,0},
-		.moveCall = MoveCreditFadePane
+		.coord = {270,0,0},
 	};
 
 	ObjNode* pane = MakeSpriteObject(&def);
-	pane->ColorFilter = (OGLColorRGBA) {0, 0, 0, 0};
-	pane->Scale.x = 1.6f;
+	pane->ColorFilter = (OGLColorRGBA) {0, 0, 0, 1};
+	pane->Scale.x = 1.0f;
 	pane->Scale.y = 250;
 }
 
@@ -894,51 +896,8 @@ static const float sizes[] =
 
 static void MoveCredit(ObjNode *theNode)
 {
-	theNode->Coord.y -= .1f * gFramesPerSecondFrac * 240.0f;
+	theNode->Coord.y -= .13f * gFramesPerSecondFrac * 240.0f;
 	UpdateObjectTransforms(theNode);
-}
-
-
-static float EaseInOutSine	(float x) { return -(cosf(PI*x) - 1) / 2; }
-
-static void MoveCreditFadePane(ObjNode* theNode)
-{
-	float maxAlpha = .55f;
-
-	float stateAge = theNode->SpecialF[0];
-	float stateDuration = 1000000;
-
-	switch (theNode->Special[0])
-	{
-		case 0:
-			stateDuration = 1.5;
-			break;
-
-		case 1:
-			stateDuration = 1.5f;
-			theNode->ColorFilter.a = maxAlpha * EaseInOutSine(stateAge / stateDuration);
-			break;
-
-		case 2:
-			stateDuration = 55;
-			break;
-
-		case 3:
-			stateDuration = 1;
-			theNode->ColorFilter.a = maxAlpha * EaseInOutSine(1.0f - stateAge / stateDuration);
-			break;
-	}
-
-	stateAge += gFramesPerSecondFrac;
-	if (stateAge > stateDuration)
-	{
-		theNode->Special[0]++;
-		theNode->SpecialF[0] = 0;
-	}
-	else
-	{
-		theNode->SpecialF[0] = stateAge;
-	}
 }
 
 
