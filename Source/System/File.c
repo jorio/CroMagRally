@@ -122,99 +122,42 @@ void SetDefaultDirectory(void)
 
 SkeletonDefType *LoadSkeletonFile(short skeletonType)
 {
-QDErr		iErr;
+static const char* kSkeletonNames[MAX_SKELETON_TYPES] =
+{
+	[SKELETON_TYPE_PLAYER_MALE]		= "brog",
+	[SKELETON_TYPE_PLAYER_FEMALE]	= "grag",
+	[SKELETON_TYPE_BIRDBOMB]		= "birdbomb",
+	[SKELETON_TYPE_YETI]			= "yeti",
+	[SKELETON_TYPE_BEETLE]			= "beetle",
+	[SKELETON_TYPE_CAMEL]			= "camel",
+	[SKELETON_TYPE_CATAPULT]		= "catapult",
+	[SKELETON_TYPE_BRONTONECK]		= "brontoneck",
+	[SKELETON_TYPE_SHARK]			= "shark",
+	[SKELETON_TYPE_FLAG]			= "flag",
+	[SKELETON_TYPE_PTERADACTYL]		= "pteradactyl",
+	[SKELETON_TYPE_MALESTANDING]	= "brogstanding",
+	[SKELETON_TYPE_FEMALESTANDING]	= "gragstanding",
+	[SKELETON_TYPE_DRAGON]			= "dragon",
+	[SKELETON_TYPE_MUMMY]			= "mummy",
+	[SKELETON_TYPE_TROLL]			= "troll",
+	[SKELETON_TYPE_DRUID]			= "druid",
+	[SKELETON_TYPE_POLARBEAR]		= "polarbear",
+	[SKELETON_TYPE_FLOWER]			= "flower",
+	[SKELETON_TYPE_VIKING]			= "viking",
+};
+
+OSErr		iErr;
 short		fRefNum;
 FSSpec		fsSpec;
 SkeletonDefType	*skeleton;
 
 				/* SET CORRECT FILENAME */
 
-	switch(skeletonType)
-	{
-		case	SKELETON_TYPE_PLAYER_MALE:
-				FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":Skeletons:Brog.skeleton", &fsSpec);
-				break;
+	GAME_ASSERT(skeletonType >= 0 && skeletonType < MAX_SKELETON_TYPES);
 
-		case	SKELETON_TYPE_PLAYER_FEMALE:
-				FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":Skeletons:Grag.skeleton", &fsSpec);
-				break;
-
-		case	SKELETON_TYPE_YETI:
-				FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":Skeletons:Yeti.skeleton", &fsSpec);
-				break;
-
-		case	SKELETON_TYPE_BIRDBOMB:
-				FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":Skeletons:BirdBomb.skeleton", &fsSpec);
-				break;
-
-		case	SKELETON_TYPE_BEETLE:
-				FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":Skeletons:Beetle.skeleton", &fsSpec);
-				break;
-
-		case	SKELETON_TYPE_CAMEL:
-				FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":Skeletons:Camel.skeleton", &fsSpec);
-				break;
-
-		case	SKELETON_TYPE_CATAPULT:
-				FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":Skeletons:Catapult.skeleton", &fsSpec);
-				break;
-
-		case	SKELETON_TYPE_BRONTONECK:
-				FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":Skeletons:BrontoNeck.skeleton", &fsSpec);
-				break;
-
-		case	SKELETON_TYPE_SHARK:
-				FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":Skeletons:Shark.skeleton", &fsSpec);
-				break;
-
-		case	SKELETON_TYPE_FLAG:
-				FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":Skeletons:Flag.skeleton", &fsSpec);
-				break;
-
-		case	SKELETON_TYPE_PTERADACTYL:
-				FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":Skeletons:Pteradactyl.skeleton", &fsSpec);
-				break;
-
-		case	SKELETON_TYPE_MALESTANDING:
-				FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":Skeletons:BrogStanding.skeleton", &fsSpec);
-				break;
-
-		case	SKELETON_TYPE_FEMALESTANDING:
-				FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":Skeletons:GragStanding.skeleton", &fsSpec);
-				break;
-
-		case	SKELETON_TYPE_DRAGON:
-				FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":Skeletons:Dragon.skeleton", &fsSpec);
-				break;
-
-		case	SKELETON_TYPE_MUMMY:
-				FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":Skeletons:Mummy.skeleton", &fsSpec);
-				break;
-
-		case	SKELETON_TYPE_TROLL:
-				FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":Skeletons:Troll.skeleton", &fsSpec);
-				break;
-
-		case	SKELETON_TYPE_DRUID:
-				FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":Skeletons:Druid.skeleton", &fsSpec);
-				break;
-
-		case	SKELETON_TYPE_POLARBEAR:
-				FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":Skeletons:PolarBear.skeleton", &fsSpec);
-				break;
-
-		case	SKELETON_TYPE_FLOWER:
-				FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":Skeletons:Flower.skeleton", &fsSpec);
-				break;
-
-		case	SKELETON_TYPE_VIKING:
-				FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":Skeletons:Viking.skeleton", &fsSpec);
-				break;
-
-		default:
-				DoFatalAlert("LoadSkeleton: Unknown skeletonType!");
-	}
-
+	char path[256];
+	snprintf(path, sizeof(path), ":skeletons:%s.skeleton", kSkeletonNames[skeletonType]);
+	FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, path, &fsSpec);
 
 			/* OPEN THE FILE'S REZ FORK */
 
