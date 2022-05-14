@@ -107,7 +107,7 @@ ObjNode *MakeSpriteObject(NewObjectDefinitionType *newObjDef)
 {
 ObjNode				*newObj;
 MOSpriteObject		*spriteMO;
-MOSpriteSetupData	spriteData;
+MOSpriteData		spriteData;
 
 			/* ERROR CHECK */
 
@@ -124,6 +124,8 @@ MOSpriteSetupData	spriteData;
 	if (newObj == nil)
 		return(nil);
 
+	CreateBaseGroup(newObj);
+
 			/* MAKE SPRITE META-OBJECT */
 
 	spriteData.group	= newObjDef->group;
@@ -133,16 +135,10 @@ MOSpriteSetupData	spriteData;
 	GAME_ASSERT(spriteMO);
 
 
-			/* SET SPRITE MO INFO */
-
-	spriteMO->objectData.scaleX =
-	spriteMO->objectData.scaleY = newObj->Scale.x;
-	spriteMO->objectData.coord = newObj->Coord;
-
-
 			/* ATTACH META OBJECT TO OBJNODE */
 
-	newObj->SpriteMO = spriteMO;
+	MO_AppendToGroup(newObj->BaseGroup, spriteMO);
+	MO_DisposeObjectReference(spriteMO);
 
 	return(newObj);
 }
@@ -151,37 +147,32 @@ MOSpriteSetupData	spriteData;
 
 void ModifySpriteObjectFrame(ObjNode *theNode, short type)
 {
-MOSpriteSetupData	spriteData;
-MOSpriteObject		*spriteMO;
+MOSpriteObject		*spriteMO = NULL;
+
+	GAME_ASSERT(theNode->Genre == SPRITE_GENRE);
+
+	if (type == theNode->Type)		// see if it is the same
+		return;						// (Type should have been set in ObjNode ctor via NewObjectDefinitionType.type)
 
 
-	if (type == theNode->Type)										// see if it is the same
-		return;
+			/* FIND SPRITE MO */
 
-		/* DISPOSE OF OLD TYPE */
+	for (int i = 0; i < theNode->BaseGroup->objectData.numObjectsInGroup; i++)
+	{
+		if (theNode->BaseGroup->objectData.groupContents[i]->type == MO_TYPE_SPRITE)
+		{
+			spriteMO = (MOSpriteObject*) theNode->BaseGroup->objectData.groupContents[i];
+			break;
+		}
+	}
 
-	MO_DisposeObjectReference(theNode->SpriteMO);
+	GAME_ASSERT_MESSAGE(spriteMO, "MOSpriteObject not found");
 
+			/* UPDATE INFO */
 
-		/* MAKE NEW SPRITE MO */
+	spriteMO->objectData.group	= theNode->Group;							// set group
+	spriteMO->objectData.type 	= type;										// set group subtype
 
-	spriteData.group	= theNode->Group;							// set group
-	spriteData.type 	= type;										// set group subtype
-
-	spriteMO = MO_CreateNewObjectOfType(MO_TYPE_SPRITE, 0, &spriteData);
-	GAME_ASSERT(spriteMO);
-
-
-			/* SET SPRITE MO INFO */
-
-	spriteMO->objectData.scaleX =
-	spriteMO->objectData.scaleY = theNode->Scale.x;
-	spriteMO->objectData.coord = theNode->Coord;
-
-
-			/* ATTACH META OBJECT TO OBJNODE */
-
-	theNode->SpriteMO = spriteMO;
 	theNode->Type = type;
 }
 

@@ -197,7 +197,6 @@ OGLVector3D			fillDirection1 = { .9, -.3, -1 };
 
 	NewObjectDefinitionType def2 =
 	{
-		.genre = TEXTMESH_GENRE,
 		.scale = 0.4f,
 		.coord = {0, 0, 0},
 		.slot = SPRITE_SLOT,
@@ -205,7 +204,6 @@ OGLVector3D			fillDirection1 = { .9, -.3, -1 };
 	};
 
 	gGatherPrompt = TextMesh_NewEmpty(256, &def2);
-
 }
 
 

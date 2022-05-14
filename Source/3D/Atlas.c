@@ -827,41 +827,12 @@ void TextMesh_DrawExtents(ObjNode* textNode)
 	OGL_PopState();
 }
 
-void Atlas_DrawString2(
-	int groupNum,
-	const char* text,
-	float x,
-	float y,
-	float scaleX,
-	float scaleY,
-	float rot,
-	uint32_t flags)
+void Atlas_ImmediateDraw(int groupNum, const char* text, uint32_t flags)
 {
-
 	GAME_ASSERT((size_t)groupNum < (size_t)MAX_SPRITE_GROUPS);
 
 	const Atlas* font = gAtlases[groupNum];
 	GAME_ASSERT(font);
-
-			/* SET STATE */
-
-	OGL_PushState();								// keep state
-
-	if (!(flags & kTextMeshKeepCurrentProjection))
-		OGL_SetProjection(kProjectionType2DOrthoCentered);
-
-	OGL_DisableLighting();
-	glDisable(GL_CULL_FACE);
-	glDisable(GL_DEPTH_TEST);
-
-	if (flags & kTextMeshGlow)
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE);
-
-	glTranslatef(x,y,0);
-	glScalef(scaleX, scaleY, 1);					// Assume ortho projection
-
-	if (rot != 0.0f)
-		glRotatef(OGLMath_RadiansToDegrees(rot), 0, 0, 1);											// remember:  rotation is in degrees, not radians!
 
 			/* GET TEXT METRICS*/
 
@@ -900,8 +871,41 @@ void Atlas_DrawString2(
 	glEnd();
 	gPolysThisFrame += 2*metrics.numQuads;						// 2 tris drawn per quad
 
+}
+
+void Atlas_DrawString2(
+	int groupNum,
+	const char* text,
+	float x,
+	float y,
+	float scaleX,
+	float scaleY,
+	float rot,
+	uint32_t flags)
+{
+			/* SET STATE */
+
+	OGL_PushState();								// keep state
+
+	if (!(flags & kTextMeshKeepCurrentProjection))
+		OGL_SetProjection(kProjectionType2DOrthoCentered);
+
+	OGL_DisableLighting();
+	glDisable(GL_CULL_FACE);
+	glDisable(GL_DEPTH_TEST);
+
+	if (flags & kTextMeshGlow)
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+
+	glTranslatef(x,y,0);
+	glScalef(scaleX, scaleY, 1);					// Assume ortho projection
+
+	if (rot != 0.0f)
+		glRotatef(OGLMath_RadiansToDegrees(rot), 0, 0, 1);											// remember:  rotation is in degrees, not radians!
+
+	Atlas_ImmediateDraw(groupNum, text, flags);
+
 		/* CLEAN UP */
 
 	OGL_PopState();									// restore state
 }
-

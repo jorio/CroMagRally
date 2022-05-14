@@ -813,25 +813,13 @@ short			skelType, playerNum;
 					}
 					break;
 
-			case	DISPLAY_GROUP_GENRE:
+			case	SPRITE_GENRE:
+			case	DISPLAY_GROUP_GENRE:		// This also encompasses sprites now -IJ
 					if (theNode->BaseGroup)
 					{
 						MO_DrawObject(theNode->BaseGroup);
 					}
 					break;
-
-
-			case	SPRITE_GENRE:
-					if (theNode->SpriteMO)
-					{
-						theNode->SpriteMO->objectData.coord = theNode->Coord;	// update Meta Object's coord info
-						theNode->SpriteMO->objectData.scaleX = theNode->Scale.x;
-						theNode->SpriteMO->objectData.scaleY = theNode->Scale.y;
-
-						MO_DrawObject(theNode->SpriteMO);
-					}
-					break;
-
 
 			case	TEXTMESH_GENRE:
 					if (theNode->BaseGroup)
@@ -844,7 +832,6 @@ short			skelType, playerNum;
 						}
 					}
 					break;
-
 
 			case	CUSTOM_GENRE:
 					if (theNode->CustomDrawFunction)
@@ -1107,11 +1094,6 @@ void DeleteObject(ObjNode	*theNode)
 		case	SKELETON_GENRE:
 				FreeSkeletonBaseData(theNode->Skeleton);		// purge all alloced memory for skeleton data
 				theNode->Skeleton = nil;
-				break;
-
-		case	SPRITE_GENRE:
-				MO_DisposeObjectReference(theNode->SpriteMO);	// dispose reference to sprite meta object
-		   		theNode->SpriteMO = nil;
 				break;
 	}
 

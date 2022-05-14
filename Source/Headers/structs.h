@@ -325,8 +325,6 @@ struct ObjNode
 	short				ParticleGroup;
 	uint32_t			ParticleMagicNum;
 
-	MOSpriteObject		*SpriteMO;				// ref to sprite meta object for sprite genre.
-
 	// TextMesh
 	int					TextQuadCapacity;
 

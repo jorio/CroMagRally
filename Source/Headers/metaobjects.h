@@ -161,9 +161,6 @@ typedef struct
 
 typedef struct
 {
-	OGLPoint3D			coord;
-	float				scaleX,scaleY;
-	float				rot;
 	int					group;
 	int					type;
 }MOSpriteData;
@@ -173,13 +170,6 @@ typedef struct
 	MetaObjectHeader	objectHeader;
 	MOSpriteData		objectData;
 }MOSpriteObject;
-
-
-typedef struct
-{
-	int					group;
-	int					type;
-} MOSpriteSetupData;
 
 //-----------------------------
 

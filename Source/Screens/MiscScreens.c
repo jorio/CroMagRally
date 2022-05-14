@@ -878,7 +878,6 @@ static const float sizes[] =
 
 	NewObjectDefinitionType def =
 	{
-		.genre = SPRITE_GENRE,
 		.slot = PARTICLE_SLOT-2,
 		.scale = 1,
 		.group = SPRITE_GROUP_INFOBAR,
@@ -890,6 +889,7 @@ static const float sizes[] =
 	pane->ColorFilter = (OGLColorRGBA) {0, 0, 0, 1};
 	pane->Scale.x = 1.0f;
 	pane->Scale.y = 250;
+	UpdateObjectTransforms(pane);
 }
 
 

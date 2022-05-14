@@ -35,7 +35,7 @@ static void MO_CalcBoundingBox_Recurse(MetaObjectPtr object, OGLBoundingBox *bBo
 static void SetMetaObjectToPicture(MOPictureObject *pictObj, const char *inData, int destPixelFormat);
 static void MO_DisposeObject_Picture(MOPictureObject *obj);
 
-static void SetMetaObjectToSprite(MOSpriteObject *spriteObj, MOSpriteSetupData *inData);
+static void SetMetaObjectToSprite(MOSpriteObject *spriteObj, MOSpriteData *inData);
 static void MO_DisposeObject_Sprite(MOSpriteObject *obj);
 
 
@@ -421,18 +421,12 @@ MOMaterialData	matData;
 // This takes the given input data and copies it.
 //
 
-static void SetMetaObjectToSprite(MOSpriteObject *spriteObj, MOSpriteSetupData *inData)
+static void SetMetaObjectToSprite(MOSpriteObject *spriteObj, MOSpriteData *inData)
 {
 MOSpriteData	*spriteData = &spriteObj->objectData;
 
 	spriteData->group = inData->group;
 	spriteData->type = inData->type;
-	spriteData->coord.x		= -1.0;								// assume upper left corner
-	spriteData->coord.y		= 1.0;
-	spriteData->coord.z		= 0;								// assume in front
-	spriteData->scaleX		= 1.0;								// scale is normal
-	spriteData->scaleY		= 1.0;
-	spriteData->rot			= 0;								// rot
 }
 
 
@@ -938,17 +932,10 @@ const MOPictureData	*picData = &picObj->objectData;
 void MO_DrawSprite(const MOSpriteObject *spriteObj)
 {
 const MOSpriteData	*spriteData = &spriteObj->objectData;
+char text[2] = { spriteData->type, 0 };
 
-	DrawSprite2(
-		spriteData->group,
-		spriteData->type,
-		spriteData->coord.x,
-		spriteData->coord.y,
-		spriteData->scaleX,
-		spriteData->scaleY,
-		spriteData->rot,
-		kTextMeshAlignCenter | kTextMeshAlignMiddle | kTextMeshKeepCurrentProjection
-	);
+	Atlas_ImmediateDraw(spriteData->group, text,
+						kTextMeshAlignCenter | kTextMeshAlignMiddle | kTextMeshKeepCurrentProjection);
 }
 
 
