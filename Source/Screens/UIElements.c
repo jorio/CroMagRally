@@ -155,7 +155,7 @@ ObjNode* MakeScrollingBackgroundPattern(void)
 
 			/* PATTERN TEXTURE */
 
-	MOMaterialObject* patternMaterial = MO_GetTextureFromFile(":sprites:bgcollage.png", GL_RGB);
+	MOMaterialObject* patternMaterial = MO_GetTextureFromFile(":images:BoneCollage.png", GL_RGB);
 
 			/* PATTERN OBJECT */
 
