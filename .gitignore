@@ -8,3 +8,4 @@ dist/
 # IDEs and OS-specific stuff
 .vs/
 .DS_Store
+*.user
