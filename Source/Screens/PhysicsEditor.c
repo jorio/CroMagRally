@@ -19,8 +19,11 @@
 
 static void MoveCarModel(ObjNode* theNode);
 
+static void UpdateShadowCarStats(void);
+
 static void OnPickResetPhysics(const MenuItem* mi);
 static void OnChangeCar(const MenuItem* mi);
+static void OnTweakCarStat(const MenuItem* mi);
 static void SetupPhysicsEditorScreen(void);
 
 
@@ -53,9 +56,12 @@ enum
 	{STR_CAR_STAT_METER_8, 7}, \
 	}
 
-static Byte gSelectedCarPhysics = 0;
-static Byte gSelectedCarStats[NUM_VEHICLE_PARAMETERS];
-static ObjNode* gCarPhysicsModel = nil;
+static Byte gCurrentCar = 0;
+static Byte gShadowCarStats[NUM_VEHICLE_PARAMETERS];
+static ObjNode* gCarModel = nil;
+
+static Byte gLastWoahCar = -1;
+static Byte gLastCrappyCar = -1;
 
 static const MenuItem gPhysicsMenuTree[] =
 {
@@ -74,7 +80,7 @@ static const MenuItem gPhysicsMenuTree[] =
 		.callback = OnChangeCar,
 		.cycler =
 		{
-			.valuePtr = &gSelectedCarPhysics, .choices =
+			.valuePtr = &gCurrentCar, .choices =
 			{
 				{STR_CAR_MODEL_1, 0},
 				{STR_CAR_MODEL_2, 1},
@@ -94,46 +100,34 @@ static const MenuItem gPhysicsMenuTree[] =
 
 	{
 		kMICycler2,
-		.text=STR_CAR_STAT_1,
+		.text = STR_CAR_STAT_1,
+		.callback = OnTweakCarStat,
 		.customHeight = 0.5f,
-		.cycler=
-		{
-				.valuePtr = &gSelectedCarStats[0],
-				.choices = CAR_METER_CHOICES
-		}
+		.cycler = {.valuePtr = &gShadowCarStats[0], .choices = CAR_METER_CHOICES }
 	},
 
 	{
 		kMICycler2,
-		.text=STR_CAR_STAT_2,
+		.text = STR_CAR_STAT_2,
+		.callback = OnTweakCarStat,
 		.customHeight = 0.5f,
-		.cycler=
-		{
-			.valuePtr = &gSelectedCarStats[1],
-			.choices = CAR_METER_CHOICES
-		}
+		.cycler = {.valuePtr = &gShadowCarStats[1], .choices = CAR_METER_CHOICES }
 	},
 
 	{
 		kMICycler2,
-		.text=STR_CAR_STAT_3,
+		.text = STR_CAR_STAT_3,
+		.callback = OnTweakCarStat,
 		.customHeight = 0.5f,
-		.cycler=
-		{
-			.valuePtr = &gSelectedCarStats[2],
-			.choices = CAR_METER_CHOICES
-		}
+		.cycler = {.valuePtr = &gShadowCarStats[2], .choices = CAR_METER_CHOICES }
 	},
 
 	{
 		kMICycler2,
-		.text=STR_CAR_STAT_4,
+		.text = STR_CAR_STAT_4,
+		.callback = OnTweakCarStat,
 		.customHeight = 0.5f,
-		.cycler=
-		{
-			.valuePtr = &gSelectedCarStats[3],
-			.choices = CAR_METER_CHOICES
-		}
+		.cycler = {.valuePtr = &gShadowCarStats[3], .choices = CAR_METER_CHOICES }
 	},
 
 	{.id='cons'},
@@ -231,14 +225,14 @@ OGLVector3D			fillDirection2 = { -1, -.2, -.5 };
 	NewObjectDefinitionType modelDef =
 	{
 		.group = MODEL_GROUP_CARSELECT,
-		.type = 0,
+		.type = gCurrentCar,
 		.coord = {0, 125, 0},
 		.slot = SPRITE_SLOT,
 		.moveCall =  MoveCarModel,
 		.scale = 0.85f,
 		.rot = 0,
 	};
-	gCarPhysicsModel = MakeNewDisplayGroupObject(&modelDef);
+	gCarModel = MakeNewDisplayGroupObject(&modelDef);
 
 			/* BACKGROUND */
 
@@ -247,6 +241,9 @@ OGLVector3D			fillDirection2 = { -1, -.2, -.5 };
 			/* FADE IN */
 
 	MakeFadeEvent(true);
+
+
+	UpdateShadowCarStats();
 }
 
 #pragma mark -
@@ -262,11 +259,60 @@ static void MoveCarModel(ObjNode* theNode)
 	UpdateObjectTransforms(theNode);
 }
 
+static void UpdateShadowCarStats(void)
+{
+	for (int i = 0; i < NUM_VEHICLE_PARAMETERS; i++)
+	{
+		gShadowCarStats[i] = gVehicleParameters[gCurrentCar][i];
+	}
+}
 
 static void OnChangeCar(const MenuItem* mi)
 {
-	printf("Car: %d\n", gSelectedCarPhysics);
+	gCarModel->Type = gCurrentCar;
+	ResetDisplayGroupObject(gCarModel);
 
-	gCarPhysicsModel->Type = gSelectedCarPhysics;
-	ResetDisplayGroupObject(gCarPhysicsModel);
+	UpdateShadowCarStats();
+	LayoutCurrentMenuAgain();
 }
+
+static void OnTweakCarStat(const MenuItem* mi)
+{
+	int totalBones = 0;
+
+	// Commit temp car stats to global car stats
+	for (int i = 0; i < NUM_VEHICLE_PARAMETERS; i++)
+	{
+		int parm = gShadowCarStats[i];
+		gVehicleParameters[gCurrentCar][i] = parm;
+		totalBones += parm;
+	}
+
+	// Announcer feedback if the car is awesome or crappy
+	if (totalBones >= 7*NUM_VEHICLE_PARAMETERS
+		&& gLastWoahCar != gCurrentCar)
+	{
+		gLastWoahCar = gCurrentCar;
+		gLastCrappyCar = -1;
+		PlayEffect_Parms(EFFECT_OHYEAH, 3 * FULL_CHANNEL_VOLUME, 3 * FULL_CHANNEL_VOLUME, NORMAL_CHANNEL_RATE);
+	}
+	else if (totalBones == 0
+		&& gLastCrappyCar != gCurrentCar)
+	{
+		gLastCrappyCar = gCurrentCar;
+		gLastWoahCar = -1;
+		PlayEffect_Parms(EFFECT_YOULOSE, 3 * FULL_CHANNEL_VOLUME, 3 * FULL_CHANNEL_VOLUME, NORMAL_CHANNEL_RATE);
+	}
+}
+
+static void OnPickResetCar(const MenuItem* mi)
+{
+	for (int i = 0; i < NUM_VEHICLE_PARAMETERS; i++)
+	{
+		gVehicleParameters[gCurrentCar][i] = gDefaultVehicleParameters[gCurrentCar][i];
+		gShadowCarStats[i] = gVehicleParameters[gCurrentCar][i];
+	}
+
+	PlayEffect(EFFECT_BOOM);
+	LayoutCurrentMenuAgain();
+ }
