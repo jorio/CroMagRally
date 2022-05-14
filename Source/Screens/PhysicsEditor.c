@@ -56,6 +56,8 @@ static Byte gSelectedCarPhysics = 0;
 static Byte gSelectedCarStats[NUM_VEHICLE_PARAMETERS];
 static ObjNode* gCarPhysicsModel = nil;
 
+static MOMaterialObject* gCollageMaterial;
+
 static const MenuItem gPhysicsMenuTree[] =
 {
 	{.id='phys'},
@@ -147,13 +149,30 @@ static const MenuItem gPhysicsMenuTree[] =
 	{ 0 },
 };
 
+static void DrawCollageScroller(ObjNode* node)
+{
+	float s = 4;
+	float sx = s * 1.333;
+	float sy = s;
+
+	float dx = node->SpecialF[0] -= gFramesPerSecondFrac * 0.05f;
+	float dy = node->SpecialF[1] -= gFramesPerSecondFrac * 0.05f;
+
+	OGL_PushState();
+	MO_DrawMaterial(gCollageMaterial);
+	glBegin(GL_QUADS);
+	glTexCoord2f(sx + dx, sy + dy); glVertex3f( 1.0f,  1.0f, 0.0f);
+	glTexCoord2f(     dx, sy + dy); glVertex3f(-1.0f,  1.0f, 0.0f);
+	glTexCoord2f(     dx,      dy); glVertex3f(-1.0f, -1.0f, 0.0f);
+	glTexCoord2f(sx + dx,      dy); glVertex3f( 1.0f, -1.0f, 0.0f);
+	glEnd();
+	OGL_PopState();
+}
 
 
 void DoPhysicsEditor(void)
 {
 	SetupPhysicsEditorScreen();
-
-
 
 				/*************/
 				/* MAIN LOOP */
@@ -167,6 +186,9 @@ void DoPhysicsEditor(void)
 	StartMenu(gPhysicsMenuTree, &physicsEditorMenuStyle, MoveObjects, DrawObjects);
 
 			/* CLEANUP */
+
+	MO_DisposeObjectReference(gCollageMaterial);
+	gCollageMaterial = NULL;
 
 	DeleteAllObjects();
 	OGL_DisposeGameView();
@@ -219,12 +241,6 @@ OGLVector3D			fillDirection2 = { -1, -.2, -.5 };
 				/************/
 
 
-			/* MAKE BACKGROUND PICTURE OBJECT */
-
-//	MakeBackgroundPictureObject(":images:MainMenuBackground.jpg");
-
-
-
 			/* LOAD MODELS */
 
 	FSSpec spec;
@@ -232,23 +248,40 @@ OGLVector3D			fillDirection2 = { -1, -.2, -.5 };
 	ImportBG3D(&spec, MODEL_GROUP_CARSELECT);
 
 
-			/* SETUP TITLE MENU */
-
-				/* VEHICLE MODEL */
+			/* VEHICLE MODEL */
 
 	NewObjectDefinitionType modelDef =
 	{
 		.group = MODEL_GROUP_CARSELECT,
 		.type = 0,
 		.coord = {0, 125, 0},
-		.slot = 100,
+		.slot = SPRITE_SLOT,
 		.moveCall =  MoveCarModel,
 		.scale = 0.85f,
 		.rot = 0,
 	};
 	gCarPhysicsModel = MakeNewDisplayGroupObject(&modelDef);
-	//gCarPhysicsModel->Rot.x = PI/2;
 
+			/* BACKGROUND */
+
+	ObjNode* vignette = MakeBackgroundPictureObject(":images:Vignette.png");
+	vignette->ColorFilter = (OGLColorRGBA) {0,0,0,1};
+
+	gCollageMaterial = MO_GetTextureFromFile(":sprites:bgcollage.png", GL_RGB);
+
+	NewObjectDefinitionType collageDef =
+	{
+		.scale	=1,
+		.slot =  BGPIC_SLOT-1,
+		.drawCall = DrawCollageScroller,
+		.genre = CUSTOM_GENRE,
+		.flags = STATUS_BITS_FOR_2D & ~STATUS_BIT_NOTEXTUREWRAP,
+		.projection = kProjectionType2DNDC,
+	};
+
+	MakeNewObject(&collageDef);
+
+			/* FADE IN */
 
 	MakeFadeEvent(true);
 }
