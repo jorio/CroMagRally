@@ -42,14 +42,14 @@ enum
 
 #define CAR_METER_CHOICES \
 	{ \
-	{STR_CAR_STAT_METER_0, 0}, \
-	{STR_CAR_STAT_METER_1, 1}, \
-	{STR_CAR_STAT_METER_2, 2}, \
-	{STR_CAR_STAT_METER_3, 3}, \
-	{STR_CAR_STAT_METER_4, 4}, \
-	{STR_CAR_STAT_METER_5, 5}, \
-	{STR_CAR_STAT_METER_6, 6}, \
-	{STR_CAR_STAT_METER_7, 7}, \
+	{STR_CAR_STAT_METER_1, 0}, \
+	{STR_CAR_STAT_METER_2, 1}, \
+	{STR_CAR_STAT_METER_3, 2}, \
+	{STR_CAR_STAT_METER_4, 3}, \
+	{STR_CAR_STAT_METER_5, 4}, \
+	{STR_CAR_STAT_METER_6, 5}, \
+	{STR_CAR_STAT_METER_7, 6}, \
+	{STR_CAR_STAT_METER_8, 7}, \
 	}
 
 static Byte gSelectedCarPhysics = 0;

@@ -503,9 +503,13 @@ static const char* GetBoneString(int n)
 	if (n > NUM_PARAM_BONES-1)
 		n = NUM_PARAM_BONES-1;
 
+	n++;		// Always draw an extra bone
+
 	int i = 0;
-	for (i = 0; i < n; i++)
+
+	for (; i < n; i++)
 		boneString[i] = '\\';
+
 	for (; i < NUM_PARAM_BONES; i++)
 		boneString[i] = '`';
 
