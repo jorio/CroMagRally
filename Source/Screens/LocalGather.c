@@ -189,6 +189,7 @@ OGLVector3D			fillDirection1 = { .9, -.3, -1 };
 			/* MAKE BACKGROUND PICTURE OBJECT */
 
 //	MakeBackgroundPictureObject(":images:CharSelectScreen.jpg");
+	MakeScrollingBackgroundPattern();
 
 
 			/*****************/

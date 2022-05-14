@@ -110,3 +110,69 @@ void WiggleUIPadlock(ObjNode* theNode)
 	theNode->PadlockWiggleTimer = PADLOCK_WIGGLE_DURATION;
 	theNode->PadlockWiggleSign = -theNode->PadlockWiggleSign;	// alternate sign everytime we wiggle anew
 }
+
+#pragma mark -
+
+/************** SCROLLING BACKGROUND PATTERN *********************/
+
+static void DestroyScrollingBackgroundPattern(ObjNode* theNode)
+{
+	if (theNode->SpecialPtr[0])
+	{
+		MO_DisposeObjectReference(theNode->SpecialPtr[0]);
+		theNode->SpecialPtr[0] = NULL;
+	}
+}
+
+static void DrawScrollingBackgroundPattern(ObjNode* theNode)
+{
+	float s = 4;
+	float sx = s * gCurrentAspectRatio;
+	float sy = s;
+
+	MOMaterialObject* patternMaterial = (MOMaterialObject*) theNode->SpecialPtr[0];
+
+	float dx = theNode->SpecialF[0] -= gFramesPerSecondFrac * 0.05f;
+	float dy = theNode->SpecialF[1] -= gFramesPerSecondFrac * 0.05f;
+
+	OGL_PushState();
+	MO_DrawMaterial(patternMaterial);
+	glBegin(GL_QUADS);
+	glTexCoord2f(sx + dx, sy + dy); glVertex3f( 1.0f,  1.0f, 0.0f);
+	glTexCoord2f(     dx, sy + dy); glVertex3f(-1.0f,  1.0f, 0.0f);
+	glTexCoord2f(     dx,      dy); glVertex3f(-1.0f, -1.0f, 0.0f);
+	glTexCoord2f(sx + dx,      dy); glVertex3f( 1.0f, -1.0f, 0.0f);
+	glEnd();
+	OGL_PopState();
+}
+
+ObjNode* MakeScrollingBackgroundPattern(void)
+{
+			/* VIGNETTE EFFECT */
+
+	ObjNode* vignette = MakeBackgroundPictureObject(":images:Vignette.png");
+	vignette->ColorFilter = (OGLColorRGBA) {0,0,0,1};
+
+			/* PATTERN TEXTURE */
+
+	MOMaterialObject* patternMaterial = MO_GetTextureFromFile(":sprites:bgcollage.png", GL_RGB);
+
+			/* PATTERN OBJECT */
+
+	NewObjectDefinitionType collageDef =
+	{
+		.scale		= 1,
+		.slot		= vignette->Slot-1,
+		.drawCall	= DrawScrollingBackgroundPattern,
+		.genre		= CUSTOM_GENRE,
+		.flags		= STATUS_BITS_FOR_2D & ~STATUS_BIT_NOTEXTUREWRAP,
+		.projection	= kProjectionType2DNDC,
+	};
+
+	ObjNode* collageObj = MakeNewObject(&collageDef);
+
+	collageObj->SpecialPtr[0] = (Ptr) patternMaterial;
+	collageObj->Destructor = DestroyScrollingBackgroundPattern;
+
+	return collageObj;
+}

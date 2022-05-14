@@ -11,6 +11,7 @@
 #include "game.h"
 #include "menu.h"
 #include "miscscreens.h"
+#include "uielements.h"
 
 /****************************/
 /*    PROTOTYPES            */
@@ -55,8 +56,6 @@ enum
 static Byte gSelectedCarPhysics = 0;
 static Byte gSelectedCarStats[NUM_VEHICLE_PARAMETERS];
 static ObjNode* gCarPhysicsModel = nil;
-
-static MOMaterialObject* gCollageMaterial;
 
 static const MenuItem gPhysicsMenuTree[] =
 {
@@ -149,25 +148,6 @@ static const MenuItem gPhysicsMenuTree[] =
 	{ 0 },
 };
 
-static void DrawCollageScroller(ObjNode* node)
-{
-	float s = 4;
-	float sx = s * 1.333;
-	float sy = s;
-
-	float dx = node->SpecialF[0] -= gFramesPerSecondFrac * 0.05f;
-	float dy = node->SpecialF[1] -= gFramesPerSecondFrac * 0.05f;
-
-	OGL_PushState();
-	MO_DrawMaterial(gCollageMaterial);
-	glBegin(GL_QUADS);
-	glTexCoord2f(sx + dx, sy + dy); glVertex3f( 1.0f,  1.0f, 0.0f);
-	glTexCoord2f(     dx, sy + dy); glVertex3f(-1.0f,  1.0f, 0.0f);
-	glTexCoord2f(     dx,      dy); glVertex3f(-1.0f, -1.0f, 0.0f);
-	glTexCoord2f(sx + dx,      dy); glVertex3f( 1.0f, -1.0f, 0.0f);
-	glEnd();
-	OGL_PopState();
-}
 
 
 void DoPhysicsEditor(void)
@@ -187,15 +167,13 @@ void DoPhysicsEditor(void)
 
 			/* CLEANUP */
 
-	MO_DisposeObjectReference(gCollageMaterial);
-	gCollageMaterial = NULL;
-
 	DeleteAllObjects();
 	OGL_DisposeGameView();
 }
 
 
 /********************* SETUP PHYSICS EDITOR SCREEN **********************/
+
 
 static void SetupPhysicsEditorScreen(void)
 {
@@ -264,22 +242,7 @@ OGLVector3D			fillDirection2 = { -1, -.2, -.5 };
 
 			/* BACKGROUND */
 
-	ObjNode* vignette = MakeBackgroundPictureObject(":images:Vignette.png");
-	vignette->ColorFilter = (OGLColorRGBA) {0,0,0,1};
-
-	gCollageMaterial = MO_GetTextureFromFile(":sprites:bgcollage.png", GL_RGB);
-
-	NewObjectDefinitionType collageDef =
-	{
-		.scale	=1,
-		.slot =  BGPIC_SLOT-1,
-		.drawCall = DrawCollageScroller,
-		.genre = CUSTOM_GENRE,
-		.flags = STATUS_BITS_FOR_2D & ~STATUS_BIT_NOTEXTUREWRAP,
-		.projection = kProjectionType2DNDC,
-	};
-
-	MakeNewObject(&collageDef);
+	MakeScrollingBackgroundPattern();
 
 			/* FADE IN */
 

@@ -31,3 +31,4 @@ Boolean DoLocalGatherScreen(void);
 void DoPhysicsEditor(void);
 
 void RegisterSettingsMenu(const MenuItem* junk);
+

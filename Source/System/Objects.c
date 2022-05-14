@@ -1073,6 +1073,11 @@ void DeleteObject(ObjNode	*theNode)
 		DoFatalAlert("Attempted to Double Delete an Object.  Object was already deleted! genre=%d group=%d type=%d", theNode->Genre, theNode->Group, theNode->Type);
 	}
 
+			/* CALL CUSTOM DESTRUCTOR */
+
+	if (theNode->Destructor)
+		theNode->Destructor(theNode);
+
 			/* RECURSIVE DELETE OF CHAIN NODE & SHADOW NODE */
 			//
 			// should do these first so that base node will have appropriate nextnode ptr
