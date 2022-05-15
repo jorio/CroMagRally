@@ -1595,7 +1595,10 @@ void GameMain(void)
 
 		/* SHOW TITLE SCREEN */
 
-	DoTitleScreen();
+	if (gDebugMode == 0)		// in debug mode, skip title
+	{
+		DoTitleScreen();
+	}
 
 
 		/* MAIN LOOP */
