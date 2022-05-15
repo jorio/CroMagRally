@@ -42,8 +42,6 @@ static void OGL_CreateLights(OGLLightDefType *lightDefPtr);
 
 #define	STATE_STACK_SIZE	20
 
-#define SPLITSCREEN_DIVIDER_THICKNESS 2			// relative to 640x480
-
 #define GAMMA_CORRECTION	1.5
 
 

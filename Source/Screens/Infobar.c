@@ -45,6 +45,8 @@ static void MovePressAnyKey(ObjNode *theNode);
 
 #define INFOBAR_SPRITE_FLAGS (kTextMeshAlignCenter | kTextMeshAlignMiddle | kTextMeshKeepCurrentProjection)
 
+#define MAX_PANEDIVIDER_QUADS		4
+
 enum
 {
 	ICON_PLACE	 = 0,
@@ -180,6 +182,108 @@ static float GetIconY(int iconID)
 
 #pragma mark -
 
+/********************* PANE DIVIDER MESH **************************/
+
+static void MovePaneDivider(ObjNode* theNode)
+{
+	if (theNode->Special[0] == gActiveSplitScreenMode
+		&& theNode->SpecialF[0] == g2DLogicalWidth
+		&& theNode->SpecialF[0] == g2DLogicalHeight)
+	{
+		// Layout didn't change since last time
+		return;
+	}
+
+	// Save params for which we are laying out the pane dividers
+	theNode->Special[0] = gActiveSplitScreenMode;
+	theNode->SpecialF[0] = g2DLogicalWidth;
+	theNode->SpecialF[1] = g2DLogicalHeight;
+
+	bool hideMe = (gActiveSplitScreenMode == SPLITSCREEN_MODE_NONE);
+	SetObjectVisible(theNode, !hideMe);
+	if (hideMe)
+	{
+		return;
+	}
+
+	MOVertexArrayData* mesh = GetQuadMeshWithin(theNode);
+	GAME_ASSERT(mesh->pointCapacity == 4 * MAX_PANEDIVIDER_QUADS);
+	GAME_ASSERT(mesh->triangleCapacity == 2 * MAX_PANEDIVIDER_QUADS);
+
+	int p = 0;
+	float halfThickness = (SPLITSCREEN_DIVIDER_THICKNESS + 1.0f) / 2.0f;
+	float halfLW = g2DLogicalWidth * 0.5f + 10;
+	float halfLH = g2DLogicalHeight * 0.5f + 10;
+
+	// Divider quad types
+	enum { EmptyDivider = 0, HAcross, VAcross, HLeftHalf, VUpperHalf };
+
+	static const Byte kPaneDividerQuadDefs[NUM_SPLITSCREEN_MODES][MAX_PANEDIVIDER_QUADS] =
+	{
+		[SPLITSCREEN_MODE_NONE] = {EmptyDivider},
+		[SPLITSCREEN_MODE_2P_WIDE] = {HAcross},
+		[SPLITSCREEN_MODE_2P_TALL] = {VAcross},
+		[SPLITSCREEN_MODE_3P_WIDE] = {HAcross, VUpperHalf},
+		[SPLITSCREEN_MODE_3P_TALL] = {VAcross, HLeftHalf},
+		[SPLITSCREEN_MODE_4P_GRID] = {HAcross, VAcross},
+	};
+
+	for (int i = 0; i < MAX_PANEDIVIDER_QUADS; i++)
+	{
+		switch (kPaneDividerQuadDefs[gActiveSplitScreenMode][i])
+		{
+			case	HAcross:
+				mesh->points[p++] = (OGLPoint3D) { -halfLW, -halfThickness, 0 };
+				mesh->points[p++] = (OGLPoint3D) { -halfLW, +halfThickness, 0 };
+				mesh->points[p++] = (OGLPoint3D) { +halfLW, +halfThickness, 0 };
+				mesh->points[p++] = (OGLPoint3D) { +halfLW, -halfThickness, 0 };
+				break;
+
+			case	VAcross:
+				mesh->points[p++] = (OGLPoint3D) { -halfThickness, -halfLH, 0 };
+				mesh->points[p++] = (OGLPoint3D) { -halfThickness, +halfLH, 0 };
+				mesh->points[p++] = (OGLPoint3D) { +halfThickness, +halfLH, 0 };
+				mesh->points[p++] = (OGLPoint3D) { +halfThickness, -halfLH, 0 };
+				break;
+
+			case	VUpperHalf:
+				mesh->points[p++] = (OGLPoint3D) { -halfThickness, -halfLH, 0  };
+				mesh->points[p++] = (OGLPoint3D) { -halfThickness, 0, 0  };
+				mesh->points[p++] = (OGLPoint3D) { +halfThickness, 0, 0  };
+				mesh->points[p++] = (OGLPoint3D) { +halfThickness, -halfLH, 0  };
+				break;
+
+			case	HLeftHalf:
+				mesh->points[p++] = (OGLPoint3D) { -halfLW, -halfThickness, 0  };
+				mesh->points[p++] = (OGLPoint3D) { -halfLW, +halfThickness, 0  };
+				mesh->points[p++] = (OGLPoint3D) { 0, +halfThickness, 0  };
+				mesh->points[p++] = (OGLPoint3D) { 0, -halfThickness, 0  };
+				break;
+		}
+	}
+
+	mesh->numPoints = p;
+	mesh->numTriangles = p/2;
+}
+
+static ObjNode* MakePaneDivider(void)
+{
+	NewObjectDefinitionType def =
+	{
+		.scale		= 1,
+		.slot		= PANEDIVIDER_SLOT,
+		.projection	= kProjectionType2DOrthoCentered,
+		.flags		= STATUS_BITS_FOR_2D | STATUS_BIT_OVERLAYPANE | STATUS_BIT_MOVEINPAUSE,
+		.moveCall	= MovePaneDivider,
+	};
+	ObjNode* paneDivider = MakeQuadMeshObject(&def, MAX_PANEDIVIDER_QUADS, NULL);
+	paneDivider->ColorFilter = (OGLColorRGBA) {0,0,0,1};
+	return paneDivider;
+}
+
+
+#pragma mark -
+
 /********************* INIT INFOBAR ****************************/
 //
 // Called at beginning of level
@@ -282,6 +386,11 @@ static const char*	maps[] =
 
 		bottomTextY -= 32;
 	}
+
+
+			/* PANE DIVIDER */
+
+	MakePaneDivider();
 }
 
 

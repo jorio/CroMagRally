@@ -234,6 +234,7 @@ typedef struct
 #define PILLARBOX_RATIO_16_9		(16.0/9.0)
 
 
+#define SPLITSCREEN_DIVIDER_THICKNESS 2			// relative to 640x480
 
 enum
 {
