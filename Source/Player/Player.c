@@ -206,7 +206,6 @@ Boolean	taken[NUM_LAND_CAR_TYPES];
 		else
 			InitPlayer_Car(i, &gPlayerInfo[i].coord, gPlayerInfo[i].startRotY);
 
-		gPlayerInfo[i].objNode->Damage 			= .5;
 		gPlayerInfo[i].objNode->InvincibleTimer = 0;
 
 		gPlayerInfo[i].controlBits		= 0;

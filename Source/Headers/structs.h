@@ -307,8 +307,6 @@ struct ObjNode
 	Ptr				SpecialPtr[6];
 
 	float			Health;				// health 0..1
-	float			Damage;				// damage
-
 
 	OGLMatrix4x4		BaseTransformMatrix;	// matrix which contains all of the transforms for the object as a whole
 	MOMatrixObject		*BaseTransformObject;	// extra LEGAL object ref to BaseTransformMatrix (other legal ref is kept in BaseGroup)
