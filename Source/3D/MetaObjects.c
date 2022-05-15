@@ -771,6 +771,8 @@ uint32_t				matFlags;
 				/* SEE IF TEXTURED MATERIAL */
 				/****************************/
 
+	matFlags = matData->flags | gGlobalMaterialFlags;				// check flags of material & global
+
 	if (matData->flags & BG3D_MATERIALFLAG_TEXTURED)
 	{
 //		if (matData->setupInfo != setupInfo)						// make sure texture is loaded for this draw context
@@ -810,23 +812,24 @@ uint32_t				matFlags;
 
 			}
 		}
+
+
+					/* SET TEXTURE WRAPPING MODE */
+
+		if (matFlags & BG3D_MATERIALFLAG_CLAMP_U)
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		else
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+
+		if (matFlags & BG3D_MATERIALFLAG_CLAMP_V)
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		else
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 	}
 	else
 		glDisable(GL_TEXTURE_2D);									// not textured, so disable textures
 
 
-			/* SET TEXTURE WRAPPING MODE */
-
-	matFlags = matData->flags | gGlobalMaterialFlags;				// check flags of material & global
-	if (matFlags & BG3D_MATERIALFLAG_CLAMP_U)
-	    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	else
-	    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-
-	if (matFlags & BG3D_MATERIALFLAG_CLAMP_V)
-	    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	else
-	    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
 
 			/********************/
