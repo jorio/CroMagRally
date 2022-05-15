@@ -259,7 +259,8 @@ static const char*	maps[] =
 			.moveCall	= MovePressAnyKey,
 		};
 
-		TextMesh_New(Localize(STR_PRESS_ANY_KEY), 0, &def);
+		int strKey = gUserPrefersGamepad ? STR_PRESS_START : STR_PRESS_SPACE;
+		TextMesh_New(Localize(strKey), 0, &def);
 
 		bottomTextY -= 32;
 	}

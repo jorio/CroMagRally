@@ -56,6 +56,7 @@ extern Boolean					gNetGameInProgress;
 extern Boolean					gNoCarControls;
 extern Boolean					gSongPlayingFlag;
 extern Boolean					gTrackCompleted;
+extern Boolean					gUserPrefersGamepad;
 extern Boolean					gUserTamperedWithPhysics;
 extern Byte						gActiveSplitScreenMode;
 extern Byte						gDebugMode;

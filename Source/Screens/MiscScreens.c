@@ -96,7 +96,8 @@ float				keyTextFadeIn = -2.0f;		// fade in after a small delay
 			.slot		= SPRITE_SLOT,
 		};
 
-		keyText = TextMesh_New(Localize(STR_PRESS_ANY_KEY), kTextMeshAlignCenter, &def);
+		int strKey = gUserPrefersGamepad ? STR_PRESS_START : STR_PRESS_SPACE;
+		keyText = TextMesh_New(Localize(strKey), kTextMeshAlignCenter, &def);
 		keyText->ColorFilter.a = 0;
 	}
 
