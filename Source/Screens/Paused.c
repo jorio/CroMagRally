@@ -135,6 +135,7 @@ void DoPaused(void)
 	style.canBackOutOfRootMenu = true;
 	style.fadeOutSceneOnExit = false;
 	style.darkenPaneOpacity = .7f;
+	style.startButtonExits = true;
 
 	PushKeys();										// save key state so things dont get de-synced during net games
 
