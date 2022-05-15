@@ -82,24 +82,6 @@ static ObjNode	*gVehiclePadlock = nil;
 
 static int		gNumVehiclesToChooseFrom;
 
-int		gVehicleParameters[NUM_CAR_TYPES_TOTAL][NUM_VEHICLE_PARAMETERS];					// parameter values 0..7
-int		gDefaultVehicleParameters[NUM_CAR_TYPES_TOTAL][NUM_VEHICLE_PARAMETERS] =			// parameter values 0..7
-{
-	//							Spd Acc Tra Sus
-	[CAR_TYPE_MAMMOTH]		= {  4,  2,  4,  7 },
-	[CAR_TYPE_BONEBUGGY]	= {  5,  4,  4,  2 },
-	[CAR_TYPE_GEODE]		= {  3,  5,  6,  7 },
-	[CAR_TYPE_LOG]			= {  6,  5,  2,  3 },
-	[CAR_TYPE_TURTLE]		= {  3,  6,  4,  3 },
-	[CAR_TYPE_ROCK]			= {  4,  3,  5,  2 },
-	[CAR_TYPE_TROJANHORSE]	= {  4,  5,  6,  4 },
-	[CAR_TYPE_OBELISK]		= {  5,  3,  6,  7 },
-	[CAR_TYPE_CATAPULT]		= {  6,  7,  5,  4 },
-	[CAR_TYPE_CHARIOT]		= {  7,  7,  4,  3 },
-	[CAR_TYPE_SUB]			= {  0,  7,  0,  0 },
-};
-
-
 
 
 /******************* DO MULTIPLAYER VEHICLE SELECTIONS ********************/
@@ -348,7 +330,7 @@ int					age;
 			TextMesh_New(Localize(STR_CAR_STAT_1 + i), kTextMeshAlignLeft, &def);
 
 			def.coord.x += 320;
-			gBoneMeters[i] = TextMesh_New(GetBoneString(gVehicleParameters[gSelectedVehicleIndex][i]), kTextMeshAlignLeft, &def);
+			gBoneMeters[i] = TextMesh_New(GetBoneString(i), kTextMeshAlignLeft, &def);
 	
 			def.coord = leftCoord;
 			def.coord.y += LINE_SPACING;
@@ -469,8 +451,7 @@ static void UpdateSelectedVehicle(void)
 
 	for (int i = 0; i < NUM_VEHICLE_PARAMETERS; i++)
 	{
-		int n = gVehicleParameters[gSelectedVehicleIndex][i];
-		TextMesh_Update(GetBoneString(n), kTextMeshAlignLeft, gBoneMeters[i]);
+		TextMesh_Update(GetBoneString(i), kTextMeshAlignLeft, gBoneMeters[i]);
 	}
 
 			/* FOR LOCKED CARS SHOW OUTLINE ONLY */
@@ -494,8 +475,10 @@ static void UpdateSelectedVehicle(void)
 
 /*********** GET "BONE METER" STRING TO DISPLAY VEHICLE STATS **********/
 
-static const char* GetBoneString(int n)
+static const char* GetBoneString(int statID)
 {
+	int n = gUserPhysics.carStats[gSelectedVehicleIndex].params[statID];
+
 	static char boneString[NUM_PARAM_BONES+1];
 
 	if (n < 1 || n > 7)

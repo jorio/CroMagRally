@@ -75,8 +75,8 @@ static const float kOneF = 1;
 		strID, \
 		.floatRange = \
 		{ \
-			.valuePtr = &gPhysicsConsts.varName, \
-			.equilibriumPtr = &kDefaultPhysicsConsts.varName, \
+			.valuePtr = &gUserPhysics.varName, \
+			.equilibriumPtr = &kDefaultPhysics.varName, \
 			.incrementFrac = 5.0f / 100.0f, \
 			.xSpread = 200, \
 		}	\
@@ -124,13 +124,13 @@ static const MenuItem gPhysicsMenuTree[] =
 	{kMIPick, STR_RESET_THIS_CAR, .callback=OnPickResetCar, .customHeight=.6f },
 
 	{.id='cons'},
-	MI_PHYSCONST(STR_PHYSICS_CONSTANT_STEERING_RESPONSIVENESS,	SteeringResponsiveness),
-	MI_PHYSCONST(STR_PHYSICS_CONSTANT_MAX_TIGHT_TURN,			CarMaxTightTurn),
-	MI_PHYSCONST(STR_PHYSICS_CONSTANT_TURNING_RADIUS,			CarTurningRadius),
-	MI_PHYSCONST(STR_PHYSICS_CONSTANT_TIRE_TRACTION,			TireTraction),
-	MI_PHYSCONST(STR_PHYSICS_CONSTANT_TIRE_FRICTION,			TireFriction),
-	MI_PHYSCONST(STR_PHYSICS_CONSTANT_GRAVITY,					CarGravity),
-	MI_PHYSCONST(STR_PHYSICS_CONSTANT_SLOPE_RATIO_ADJUSTER,		SlopeRatioAdjuster),
+	MI_PHYSCONST(STR_PHYSICS_CONSTANT_STEERING_RESPONSIVENESS,	steeringResponsiveness),
+	MI_PHYSCONST(STR_PHYSICS_CONSTANT_MAX_TIGHT_TURN,			carMaxTightTurn),
+	MI_PHYSCONST(STR_PHYSICS_CONSTANT_TURNING_RADIUS,			carTurningRadius),
+	MI_PHYSCONST(STR_PHYSICS_CONSTANT_TIRE_TRACTION,			tireTraction),
+	MI_PHYSCONST(STR_PHYSICS_CONSTANT_TIRE_FRICTION,			tireFriction),
+	MI_PHYSCONST(STR_PHYSICS_CONSTANT_GRAVITY,					carGravity),
+	MI_PHYSCONST(STR_PHYSICS_CONSTANT_SLOPE_RATIO_ADJUSTER,		slopeRatioAdjuster),
 
 	{ 0 },
 };
@@ -257,7 +257,9 @@ static void UpdateShadowCarStats(void)
 {
 	for (int i = 0; i < NUM_VEHICLE_PARAMETERS; i++)
 	{
-		gShadowCarStats[i] = gVehicleParameters[gCurrentCar][i] / 7.0f;
+		int n = gUserPhysics.carStats[gCurrentCar].params[i];
+
+		gShadowCarStats[i] = n / 7.0f;
 	}
 }
 
@@ -280,7 +282,7 @@ static void OnTweakCarStat(const MenuItem* mi)
 	{
 		float parm = gShadowCarStats[i];
 		int intParm = (int) roundf(parm * 7.0f);
-		gVehicleParameters[gCurrentCar][i] = intParm;
+		gUserPhysics.carStats[gCurrentCar].params[i] = intParm;
 
 		if (intParm == 7)
 			awesomeness++;
@@ -308,7 +310,7 @@ static void OnPickResetCar(const MenuItem* mi)
 {
 	for (int i = 0; i < NUM_VEHICLE_PARAMETERS; i++)
 	{
-		gVehicleParameters[gCurrentCar][i] = gDefaultVehicleParameters[gCurrentCar][i];
+		gUserPhysics.carStats[gCurrentCar].params[i] = kDefaultPhysics.carStats[gCurrentCar].params[i];
 	}
 	UpdateShadowCarStats();
 

@@ -240,16 +240,30 @@ typedef struct
 }PlayerInfoType;
 
 
+typedef union
+{
+	struct
+	{
+		int8_t	speed;
+		int8_t	acceleration;
+		int8_t	traction;
+		int8_t	suspension;
+	};
+
+	int8_t params[NUM_VEHICLE_PARAMETERS];
+} UserCarStats;
+
 typedef struct
 {
-	float	SteeringResponsiveness;
-	float	CarMaxTightTurn;			// bigger == more responsive steering at high speeds
-	float	CarTurningRadius;			// bigger == tighter turns, smaller = wider turns
-	float	TireTraction;				// amount of grip the tires have when turning
-	float	TireFriction;				// when travelling perpendicular to motion
-	float	CarGravity;
-	float	SlopeRatioAdjuster;			// bigger == able to climb steep hills easier, smaller == bounce off walls more.
-}PhysicsConsts;
+	float		steeringResponsiveness;
+	float		carMaxTightTurn;			// bigger == more responsive steering at high speeds
+	float		carTurningRadius;			// bigger == tighter turns, smaller = wider turns
+	float		tireTraction;				// amount of grip the tires have when turning
+	float		tireFriction;				// when travelling perpendicular to motion
+	float		carGravity;
+	float		slopeRatioAdjuster;			// bigger == able to climb steep hills easier, smaller == bounce off walls more.
+	UserCarStats	carStats[NUM_CAR_TYPES_TOTAL];
+} UserPhysics;
 
 
 //=======================================================
