@@ -168,7 +168,7 @@ static void UpdateMainMenuScreen(void)
 {
 	MoveObjects();
 
-	if (GetCurrentMenu() == 'TITL' &&
+	if (GetCurrentMenu() == 'titl' &&
 		(GetMenuIdleTime() > DEMO_DELAY || IsCheatKeyComboDown()))
 	{
 		gGameView->fadePillarbox = true;
