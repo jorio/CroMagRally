@@ -160,9 +160,8 @@ void InitDefaultPrefs(void)
 	gGamePrefs.monitorNum			= 0;			// main monitor by default
 	gGamePrefs.fullscreen			= true;
 	gGamePrefs.tagDuration 			= 3;
-	gGamePrefs.musicVolumePercent	= 60;
-	gGamePrefs.sfxVolumePercent		= 60;
-	gGamePrefs.music				= true;
+	gGamePrefs.musicVolumePercent	= 60;			// careful to set these two volumes to one of the
+	gGamePrefs.sfxVolumePercent		= 60;			// the predefined values allowed in the settings menu
 
 	memcpy(&gGamePrefs.keys, kDefaultKeyBindings, sizeof(kDefaultKeyBindings));
 }

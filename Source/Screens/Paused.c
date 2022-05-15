@@ -138,7 +138,7 @@ void DoPaused(void)
 
 	PushKeys();										// save key state so things dont get de-synced during net games
 
-	Pomme_PauseAllChannels(true);
+	PauseAllChannels(true);
 
 	gGamePaused = true;
 	gHideInfobar = true;
@@ -157,12 +157,11 @@ void DoPaused(void)
 	
 	PopKeys();										// restore key state
 
-	Pomme_PauseAllChannels(false);
-
 	switch (outcome)
 	{
 		case	'resu':								// RESUME
 		default:
+			PauseAllChannels(false);
 			break;
 
 		case	'bail':								// EXIT

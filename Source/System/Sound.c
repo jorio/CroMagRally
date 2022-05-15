@@ -27,14 +27,13 @@ static void Calc3DEffectVolume(short effectNum, const OGLPoint3D *where, float v
 /****************************/
 
 #define	ANNOUNCER_VOLUME	(FULL_CHANNEL_VOLUME * 4)
-#define	SONG_VOLUME		1.6f
+#define	FULL_SONG_VOLUME	0.4f
+#define FULL_EFFECTS_VOLUME	0.3f
 
 #define FloatToFixed16(a)      ((Fixed)((float)(a) * 0x000100L))		// convert float to 16bit fixed pt
 
 
 #define		MAX_CHANNELS			20
-
-#define		MAX_EFFECTS				50
 
 typedef struct
 {
@@ -68,9 +67,9 @@ short						gRecentAnnouncerEffect = -1, gDelayedAnnouncerEffect;
 short						gRecentAnnouncerChannel = -1;
 float						gAnnouncerDelay = -1;
 
-static float				gGlobalVolumeFade = 1.0f;
-static float				gEffectsVolume = .4;
-static float				gMusicVolume = .4;
+static float				gGlobalVolumeFade = 1.0f;				// multiplier applied to sfx/song volumes
+static float				gEffectsVolume = FULL_EFFECTS_VOLUME;
+static float				gMusicVolume = FULL_SONG_VOLUME;
 static float				gMusicVolumeTweak = 1.0f;
 
 OGLPoint3D					gEarCoords[MAX_LOCAL_PLAYERS];			// coord of camera plus a tad to get pt in front of camera
@@ -87,11 +86,7 @@ static short				gMaxChannels = 0;
 Boolean						gSongPlayingFlag = false;
 Boolean						gLoopSongFlag = true;
 
-
-Boolean				gMuteMusicFlag = false;
 static short				gCurrentSong = -1;
-
-Boolean						gFadeOutMusic = false;
 
 
 		/*****************/
@@ -496,7 +491,7 @@ short	musicFileRefNum;
 
 		/* ENFORCE MUTE PREF */
 
-	gMuteMusicFlag = !gGamePrefs.music;
+//	gMuteMusicFlag = !gGamePrefs.music;
 
 			/******************************/
 			/* OPEN APPROPRIATE AIFF FILE */
@@ -508,17 +503,17 @@ short	musicFileRefNum;
 		float volumeTweak;
 	} songs[MAX_SONGS] =
 	{
-		[SONG_WIN]		= {":audio:WinSong.aiff", 1.9f},
-		[SONG_DESERT]	= {":audio:DesertSong.aiff", 1.0f},
-		[SONG_JUNGLE]	= {":audio:JungleSong.aiff", 1.5f},
-		[SONG_THEME]	= {":audio:ThemeSong.aiff", 1.5f},
-		[SONG_ATLANTIS]	= {":audio:AtlantisSong.aiff", 1.5f},
-		[SONG_CHINA]	= {":audio:ChinaSong.aiff", 1.5f},
-		[SONG_CRETE]	= {":audio:CreteSong.aiff", 1.5f},
-		[SONG_EUROPE]	= {":audio:EuroSong.aiff", 1.5f},
-		[SONG_ICE]		= {":audio:IceSong.aiff", 1.5f},
-		[SONG_EGYPT]	= {":audio:EgyptSong.aiff", 1.5f},
-		[SONG_VIKING]	= {":audio:VikingSong.aiff", 1.5f},
+		[SONG_WIN]		= {":audio:WinSong.aiff",		1.25f},
+		[SONG_DESERT]	= {":audio:DesertSong.aiff",	1.0f},
+		[SONG_JUNGLE]	= {":audio:JungleSong.aiff",	1.25f},
+		[SONG_THEME]	= {":audio:ThemeSong.aiff",		1.25f},
+		[SONG_ATLANTIS]	= {":audio:AtlantisSong.aiff",	1.25f},
+		[SONG_CHINA]	= {":audio:ChinaSong.aiff",		1.25f},
+		[SONG_CRETE]	= {":audio:CreteSong.aiff",		1.25f},
+		[SONG_EUROPE]	= {":audio:EuroSong.aiff",		1.25f},
+		[SONG_ICE]		= {":audio:IceSong.aiff",		1.25f},
+		[SONG_EGYPT]	= {":audio:EgyptSong.aiff",		1.25f},
+		[SONG_VIKING]	= {":audio:VikingSong.aiff",	1.25f},
 	};
 
 	if (songNum < 0 || songNum >= MAX_SONGS)
@@ -579,16 +574,6 @@ short	musicFileRefNum;
 	iErr = SndDoImmediate(gMusicChannel, &mySndCmd);
 	if (iErr)
 		DoFatalAlert("PlaySong: SndDoImmediate (volumeCmd) failed!");
-
-
-
-
-
-			/* SEE IF WANT TO MUTE THE MUSIC */
-
-	if (gMuteMusicFlag)
-		SndPauseFilePlay(gMusicChannel);						// pause it	
-
 }
 
 
@@ -606,18 +591,6 @@ void KillSong(void)
 	gSongPlayingFlag = false;											// tell callback to do nothing
 
 	SndStopFilePlay(gMusicChannel, true);								// stop it
-}
-
-/******************** TOGGLE MUSIC *********************/
-
-void ToggleMusic(void)
-{
-	gMuteMusicFlag = !gMuteMusicFlag;
-
-	if (gSongPlayingFlag)
-	{
-		SndPauseFilePlay(gMusicChannel);			// pause it
-	}
 }
 
 
@@ -989,7 +962,7 @@ uint32_t		lv2,rv2;
 
 void UpdateGlobalVolume(void)
 {
-	gEffectsVolume = 0.25f * (0.01f * gGamePrefs.sfxVolumePercent) * gGlobalVolumeFade;
+	gEffectsVolume = FULL_EFFECTS_VOLUME * (0.01f * gGamePrefs.sfxVolumePercent) * gGlobalVolumeFade;
 
 			/* ADJUST VOLUMES OF ALL CHANNELS REGARDLESS IF THEY ARE PLAYING OR NOT */
 
@@ -1001,17 +974,37 @@ void UpdateGlobalVolume(void)
 
 			/* UPDATE SONG VOLUME */
 
-	gMusicVolume = 0.4f * (0.01f * gGamePrefs.musicVolumePercent) * gGlobalVolumeFade;
+	// First, resume song playback if it was paused --
+	// e.g. when we're adjusting the volume via pause menu
+	SndCommand cmd1 = { .cmd = pommeResumePlaybackCmd };
+	SndDoImmediate(gMusicChannel, &cmd1);
+
+	// Now update song channel volume
+	gMusicVolume = FULL_SONG_VOLUME * (0.01f * gGamePrefs.musicVolumePercent) * gGlobalVolumeFade;
 	uint32_t lv2 = kFullVolume * gMusicVolumeTweak * gMusicVolume;
 	uint32_t rv2 = kFullVolume * gMusicVolumeTweak * gMusicVolume;
-	SndCommand cmd =
-			{
-			.cmd = volumeCmd,
-			.param1 = 0,
-			.param2 = (rv2<<16) | lv2,
+	SndCommand cmd2 =
+	{
+		.cmd = volumeCmd,
+		.param1 = 0,
+		.param2 = (rv2 << 16) | lv2,
 	};
-	SndDoImmediate(gMusicChannel, &cmd);
+	SndDoImmediate(gMusicChannel, &cmd2);
+}
 
+
+/*************** PAUSE ALL SOUND CHANNELS **************/
+
+void PauseAllChannels(Boolean pause)
+{
+	SndCommand cmd = { .cmd = pause ? pommePausePlaybackCmd : pommeResumePlaybackCmd };
+
+	for (int c = 0; c < gMaxChannels; c++)
+	{
+		SndDoImmediate(gSndChannel[c], &cmd);
+	}
+
+	SndDoImmediate(gMusicChannel, &cmd);
 }
 
 /*************** CHANGE CHANNEL VOLUME **************/
@@ -1081,6 +1074,8 @@ static	SndChannelPtr	chanPtr;
 
 void DoSoundMaintenance(void)
 {
+#if 0
+
 				/* SEE IF TOGGLE MUSIC */
 
 	if (GetNewNeedStateAnyP(kNeed_ToggleMusic))
@@ -1089,7 +1084,6 @@ void DoSoundMaintenance(void)
 	}
 
 
-#if 0
 			/* SEE IF CHANGE VOLUME */
 
 	if (GetNewKeyState_Real(kKey_RaiseVolume))

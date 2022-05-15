@@ -57,7 +57,6 @@ enum
 
 	kNeed_Left = NUM_CONTROL_BITS,
 	kNeed_Right,
-	kNeed_ToggleMusic,
 	NUM_REMAPPABLE_NEEDS,
 
 	kNeed_UILeft = NUM_REMAPPABLE_NEEDS,

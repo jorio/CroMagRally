@@ -17,14 +17,6 @@ static void OnToggleFullscreen(const MenuItem* mi)
 	SetFullscreenMode(true);
 }
 
-static void OnToggleMusic(const MenuItem* mi)
-{
-	if ((!gMuteMusicFlag) != gGamePrefs.music)
-	{
-		ToggleMusic();
-	}
-}
-
 static void OnAdjustMusicVolume(const MenuItem* mi)
 {
 	UpdateGlobalVolume();
