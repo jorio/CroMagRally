@@ -87,7 +87,7 @@ static const MenuItem gMainMenuTree[] =
 		}
 	},
 	{kMIPick, STR_SETTINGS, .callback=RegisterSettingsMenu, .next='sett' },
-	{kMIPick, STR_CLEAR_SAVED_GAME, .next='clrs', .getLayoutFlags=IsClearSavedGameAvailable },
+	{kMIPick, STR_CLEAR_SAVED_GAME, .next='clrs', .getLayoutFlags=IsClearSavedGameAvailable, .customHeight=.7 },
 
 	{ .id='xtra' },
 	{kMIPick, STR_HELP,				.id=MENU_EXITCODE_HELP,		.next='EXIT' },
@@ -118,11 +118,11 @@ static const MenuItem gMainMenuTree[] =
 
 	{ .id='clrs' },
 	{kMILabel, .text=STR_CLEAR_SAVED_GAME_TEXT_1 },
-	{kMISpacer, .text=STR_NULL, .customHeight=1 },
+	{kMISpacer, .text=STR_NULL, .customHeight=0.5 },
 	{kMILabel, .text=STR_CLEAR_SAVED_GAME_TEXT_2 },
 	{kMISpacer, .text=STR_NULL, .customHeight=1 },
 	{kMIPick, .text=STR_CLEAR_SAVED_GAME_CANCEL, .next='BACK' },
-	{kMIPick, .text=STR_CLEAR_SAVED_GAME, .callback=OnPickClearSavedGame, .next='BACK' },
+	{kMIPick, .text=STR_CLEAR_SAVED_GAME, .callback=OnPickClearSavedGame, .next='BACK', .customHeight=.7, },
 
 	{ .id='tag1' },
 	{kMILabel, .text=STR_KEEPAWAYTAG_HELP },

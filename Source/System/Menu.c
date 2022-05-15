@@ -103,7 +103,7 @@ const MenuStyle kDefaultMenuStyle =
 
 	.highlightColor		= {0.3f, 0.5f, 0.2f, 1.0f},
 	.idleColor			= {1.0f, 1.0f, 1.0f, 1.0f},
-	.labelColor			= {0.5f, 0.5f, 0.5f, 1.0f},
+	.labelColor			= {0.4f, 0.4f, 0.4f, 1.0f},
 };
 
 typedef struct
