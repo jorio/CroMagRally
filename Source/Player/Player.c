@@ -210,7 +210,8 @@ Boolean	taken[NUM_LAND_CAR_TYPES];
 
 		gPlayerInfo[i].controlBits		= 0;
 		gPlayerInfo[i].controlBits_New	= 0;
-		gPlayerInfo[i].analogSteering	= 0;
+		gPlayerInfo[i].analogSteering.x	= 0;
+		gPlayerInfo[i].analogSteering.y	= 0;
 
 		gPlayerInfo[i].distToFloor				= 0;
 		gPlayerInfo[i].skidDot					= 0;

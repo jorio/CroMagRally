@@ -104,7 +104,8 @@ Boolean GetNeedStateAnyP(int needID);
 Boolean GetNewNeedState(int needID, int playerID);
 Boolean GetNewNeedStateAnyP(int needID);
 
-float GetAnalogSteering(int playerID);
+float GetAnalogSteeringX(int playerID);
+float GetAnalogSteeringY(int playerID);
 
 Boolean UserWantsOut(void);
 Boolean IsCheatKeyComboDown(void);

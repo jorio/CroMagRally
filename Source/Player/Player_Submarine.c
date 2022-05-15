@@ -10,6 +10,7 @@
 /****************************/
 
 #include "game.h"
+#include <SDL_scancode.h>
 
 /****************************/
 /*    PROTOTYPES            */
@@ -152,10 +153,13 @@ float				oldFPS,oldFPSFrac;
 	gFramesPerSecond *= 1.0f / (float)numPasses;
 
 
-//	if (GetNewKeyState_Real(KEY_F11))	//---------- hack to make player a CPU
-//	{
-//		gAutoPilot = true;
-//	}
+	if (GetKeyState(SDL_SCANCODE_C)
+		&& GetKeyState(SDL_SCANCODE_P)
+		&& GetKeyState(SDL_SCANCODE_U))	//---------- hack to make player a CPU
+	{
+		puts("Engage submarine autopilot");
+		gAutoPilot = true;
+	}
 
 
 			/* DO IT IN PASSES */
@@ -585,9 +589,9 @@ short			avoidTurn;
 	if (avoidTurn != 0)
 	{
 		if (avoidTurn == -1)
-			gPlayerInfo[player].analogSteering = -1.0f;
+			gPlayerInfo[player].analogSteering.x = -1.0f;
 		else
-			gPlayerInfo[player].analogSteering = 1.0f;
+			gPlayerInfo[player].analogSteering.x = 1.0f;
 	}
 
 			/********************/
@@ -610,10 +614,10 @@ short			avoidTurn;
 
     		if (r > (PI/14))								// see if outside of tolerance
     		{
-			    if (cross > 0.0f)
-                    gPlayerInfo[player].analogSteering = -1.0f;
-		        else
-		            gPlayerInfo[player].analogSteering = 1.0f;
+				if (cross > 0.0f)
+					gPlayerInfo[player].analogSteering.x = -1.0f;
+				else
+					gPlayerInfo[player].analogSteering.x = 1.0f;
             }
 		}
 		else
@@ -626,17 +630,17 @@ short			avoidTurn;
 
 	}
 
-			/* SEE IF NEED TO GO UP */
+			/* SEE IF NEED TO GO UP TO SWIM OVER OBSTACLE */
 
 	if (gPlayerInfo[player].reverseTimer > 0.0f)						// see if going in reverse
 	{
-	    gPlayerInfo[player].controlBits |= (1L << kControlBit_Backward);
+		gPlayerInfo[player].analogSteering.y = 1.0f;
 		if ((gPlayerInfo[player].reverseTimer -= fps) < 0.0f)			// dec reverse timer
 			gPlayerInfo[player].reverseTimer = 0;
 	}
 //	else
 //	if ((gCoord.y - GetTerrainY(gCoord.x, gCoord.z)) > 4000.0f)			// keep from being too high
-//	    gPlayerInfo[player].controlBits |= (1L << kControlBit_Forward);	// go forward
+//		gPlayerInfo[player].analogSteering.y = -1.0f;
 
 
 				/* SEE IF CPU PLAYER SHOULD ATTACK */
@@ -709,16 +713,17 @@ float			fps = gFramesPerSecondFrac;
 			/* CHECK UP/DOWN */
 			/*****************/
 
-	if (GetControlState(playerNum, kControlBit_Backward))		// up
+	if (gPlayerInfo[playerNum].analogSteering.y > 0.3f || GetControlState(playerNum, kControlBit_Backward))		// up
 	{
+
 		theNode->Rot.x += SUB_TURNSPEED *fps;
 		if (theNode->Rot.x > (PI/3))
 			theNode->Rot.x = PI/3;
-
 	}
 	else
-	if (GetControlState(playerNum, kControlBit_Forward))		// down
+	if (gPlayerInfo[playerNum].analogSteering.y < -0.3f || GetControlState(playerNum, kControlBit_Forward))		// down
 	{
+
 		theNode->Rot.x -= SUB_TURNSPEED *fps;
 		if (theNode->Rot.x < (-PI/3))
 			theNode->Rot.x = -PI/3;
@@ -748,12 +753,12 @@ float			fps = gFramesPerSecondFrac;
 			/* SEE IF TURN LEFT/RIGHT */
 			/**************************/
 
-	if (gPlayerInfo[playerNum].analogSteering < -.3f)
+	if (gPlayerInfo[playerNum].analogSteering.x < -.3f)
 	{
 		theNode->Rot.y += SUB_TURNSPEED * fps;
 	}
 	else
-	if (gPlayerInfo[playerNum].analogSteering > .3f)
+	if (gPlayerInfo[playerNum].analogSteering.x > .3f)
 	{
 		theNode->Rot.y -= SUB_TURNSPEED * fps;
 	}

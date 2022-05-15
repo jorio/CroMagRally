@@ -464,7 +464,7 @@ Boolean IsCheatKeyComboDown(void)
 
 #pragma mark -
 
-float GetAnalogSteering(int playerID)
+float GetControllerAnalogSteering(int playerID, SDL_GameControllerAxis axis)
 {
 			/****************************/
 			/* SET PLAYER AXIS CONTROLS */
@@ -478,7 +478,7 @@ float GetAnalogSteering(int playerID)
 
 	if (sdlController)
 	{
-		Sint16 dxRaw = SDL_GameControllerGetAxis(sdlController, SDL_CONTROLLER_AXIS_LEFTX);
+		Sint16 dxRaw = SDL_GameControllerGetAxis(sdlController, axis);
 
 		steer = dxRaw / 32767.0f;
 		float steerMag = fabsf(steer);
@@ -504,6 +504,22 @@ float GetAnalogSteering(int playerID)
 		}
 	}
 
+	return steer;
+}
+
+
+float GetAnalogSteeringX(int playerID)
+{
+			/****************************/
+			/* SET PLAYER AXIS CONTROLS */
+			/****************************/
+
+	float steer = 0; 											// assume no control input
+
+			/* FIRST CHECK ANALOG AXES */
+
+	steer = GetControllerAnalogSteering(playerID, SDL_CONTROLLER_AXIS_LEFTX);
+
 			/* NEXT CHECK THE DIGITAL KEYS */
 
 	if (GetNeedState(kNeed_Left, playerID))					// is Left Key pressed?
@@ -511,6 +527,33 @@ float GetAnalogSteering(int playerID)
 		steer = -1.0f;
 	}
 	else if (GetNeedState(kNeed_Right, playerID))			// is Right Key pressed?
+	{
+		steer = 1.0f;
+	}
+
+	return steer;
+}
+
+
+float GetAnalogSteeringY(int playerID)
+{
+			/****************************/
+			/* SET PLAYER AXIS CONTROLS */
+			/****************************/
+
+	float steer = 0; 											// assume no control input
+
+			/* FIRST CHECK ANALOG AXES */
+
+	steer = GetControllerAnalogSteering(playerID, SDL_CONTROLLER_AXIS_LEFTY);
+
+			/* NEXT CHECK THE DIGITAL KEYS */
+
+	if (GetNeedState(kNeed_Forward, playerID))					// is Up Key pressed?  (up key makes submarine dive deeper)
+	{
+		steer = -1.0f;
+	}
+	else if (GetNeedState(kNeed_Backward, playerID))			// is Down Key pressed?  (down key makes submarine float up)
 	{
 		steer = 1.0f;
 	}

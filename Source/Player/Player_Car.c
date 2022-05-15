@@ -2143,9 +2143,9 @@ Boolean			onWater;
 		if (avoidTurn != 0)
 		{
 			if (avoidTurn == -1)
-				gPlayerInfo[player].analogSteering = -1.0f;
+				gPlayerInfo[player].analogSteering.x = -1.0f;
 			else
-				gPlayerInfo[player].analogSteering = 1.0f;
+				gPlayerInfo[player].analogSteering.x = 1.0f;
 		}
 
 				/********************/
@@ -2170,12 +2170,12 @@ Boolean			onWater;
 	    			cross = -cross;
 
 	    		if (pathVarianceAngle > (PI/14))								// see if outside of tolerance
-	    		{
-				    if (cross > 0.0f)
-	                    gPlayerInfo[player].analogSteering = -1.0f;
-			        else
-			            gPlayerInfo[player].analogSteering = 1.0f;
-	            }
+				{
+					if (cross > 0.0f)
+						gPlayerInfo[player].analogSteering.x = -1.0f;
+					else
+						gPlayerInfo[player].analogSteering.x = 1.0f;
+				}
 			}
 			else
 			{
@@ -2888,7 +2888,7 @@ float			steering,analogSteering;
 			/**************************/
 
 	steering = gPlayerInfo[playerNum].steering;
-	analogSteering = gPlayerInfo[playerNum].analogSteering;
+	analogSteering = gPlayerInfo[playerNum].analogSteering.x;
 
 			/* CHECK FOR DIGITAL STEERING */
 			//

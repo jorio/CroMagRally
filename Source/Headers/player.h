@@ -204,7 +204,7 @@ typedef struct
 
 	uint32_t			controlBits;
 	uint32_t			controlBits_New;
-	float				analogSteering;
+	OGLVector2D			analogSteering;
 
 			/* INVENTORY INFO */
 
