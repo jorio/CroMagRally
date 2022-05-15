@@ -93,6 +93,9 @@ static void UpdateFlaming(short p);
 #define	WATER_FRICTION			1600.0f
 
 
+#define	ENGINE_VOLUME			0.4f
+
+
 
 
 		/* USER EDITABLE */
@@ -1257,7 +1260,7 @@ float	fps = gFramesPerSecondFrac;
 	if (gPlayerInfo[p].engineChannel != -1)
 		Update3DSoundChannel(EFFECT_ENGINE, &gPlayerInfo[p].engineChannel, &gCoord);
 	else
-		gPlayerInfo[p].engineChannel = PlayEffect_Parms3D(EFFECT_ENGINE, &gCoord, NORMAL_CHANNEL_RATE, .4);
+		gPlayerInfo[p].engineChannel = PlayEffect_Parms3D(EFFECT_ENGINE, &gCoord, NORMAL_CHANNEL_RATE, ENGINE_VOLUME);
 
 
 			/* UPDATE FREQ */
