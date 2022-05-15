@@ -25,7 +25,10 @@ static void OnPickResetPhysics(const MenuItem* mi);
 static void OnChangeCar(const MenuItem* mi);
 static void OnTweakCarStat(const MenuItem* mi);
 static void OnPickResetCar(const MenuItem* mi);
+static void OnTweakPhysicsConst(const MenuItem* mi);
 static void SetupPhysicsEditorScreen(void);
+static Boolean RefreshUserTamperedWithPhysicsFlag(void);
+static int ShouldDisplayTamperWarning(const MenuItem* mi);
 
 
 /****************************/
@@ -73,6 +76,7 @@ static const float kOneF = 1;
 	{ \
 		kMIFloatRange, \
 		strID, \
+		.callback = OnTweakPhysicsConst, \
 		.floatRange = \
 		{ \
 			.valuePtr = &gUserPhysics.varName, \
@@ -85,8 +89,8 @@ static const float kOneF = 1;
 static const MenuItem gPhysicsMenuTree[] =
 {
 	{.id='phys'},
-	{kMILabel, .text=STR_PHYSICS_SETTINGS_RESET_INFO, .customHeight=.66f },
-	{kMISpacer, .customHeight=1.5f },
+	{kMILabel, .text=STR_PHYSICS_SETTINGS_RESET_INFO, .customHeight=.66f, .getLayoutFlags=ShouldDisplayTamperWarning },
+	{kMISpacer, .customHeight=1.5f, .getLayoutFlags=ShouldDisplayTamperWarning },
 	{kMIPick, STR_PHYSICS_EDIT_CAR_STATS, .next='stat', .customHeight=.8f },
 	{kMIPick, STR_PHYSICS_EDIT_CONSTANTS, .next='cons', .customHeight=.8f },
 	{kMIPick, STR_PHYSICS_RESET, .callback=OnPickResetPhysics, .next='EXIT', .customHeight=.8f },
@@ -304,6 +308,8 @@ static void OnTweakCarStat(const MenuItem* mi)
 		gLastWoahCar = -1;
 		PlayEffect_Parms(EFFECT_YOULOSE, 3 * FULL_CHANNEL_VOLUME, 3 * FULL_CHANNEL_VOLUME, NORMAL_CHANNEL_RATE);
 	}
+
+	RefreshUserTamperedWithPhysicsFlag();
 }
 
 static void OnPickResetCar(const MenuItem* mi)
@@ -317,3 +323,19 @@ static void OnPickResetCar(const MenuItem* mi)
 	PlayEffect(EFFECT_BOOM);
 	LayoutCurrentMenuAgain();
  }
+
+static void OnTweakPhysicsConst(const MenuItem* mi)
+{
+	RefreshUserTamperedWithPhysicsFlag();
+}
+
+static Boolean RefreshUserTamperedWithPhysicsFlag(void)
+{
+	gUserTamperedWithPhysics = 0 != memcmp(&gUserPhysics, &kDefaultPhysics, sizeof(UserPhysics));
+	return gUserTamperedWithPhysics;
+}
+
+static int ShouldDisplayTamperWarning(const MenuItem* mi)
+{
+	return gUserTamperedWithPhysics? 0: kMILayoutFlagHidden;
+}

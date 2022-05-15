@@ -244,19 +244,42 @@ static const char*	maps[] =
 
 
 
+
+	float bottomTextY = 225;
+
 			/* PUT SELF-RUNNING DEMO MESSAGE UP */
 
 	if (gIsSelfRunningDemo)
 	{
 		NewObjectDefinitionType def =
 		{
-			.coord		= {0, 225, 0},
+			.coord		= {0, bottomTextY, 0},
 			.scale		= .3,
 			.slot		= SPRITE_SLOT,
 			.moveCall	= MovePressAnyKey,
 		};
 
 		TextMesh_New(Localize(STR_PRESS_ANY_KEY), 0, &def);
+
+		bottomTextY -= 32;
+	}
+
+
+			/* TAMPER WARNING MESSAGE */
+
+	if (gUserTamperedWithPhysics)
+	{
+		NewObjectDefinitionType def =
+		{
+			.coord		= {0, bottomTextY, 0},
+			.scale		= .4,
+			.slot		= SPRITE_SLOT,
+			.moveCall	= MovePressAnyKey,
+		};
+		ObjNode* tamperedPhysicsText = TextMesh_New(Localize(STR_PHYSICS_EDITOR), 0, &def);
+		tamperedPhysicsText->ColorFilter = (OGLColorRGBA) {1,0.4,0,1};
+
+		bottomTextY -= 32;
 	}
 }
 

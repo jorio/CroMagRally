@@ -58,6 +58,7 @@ extern Boolean					gNoCarControls;
 extern Boolean					gResetSong;
 extern Boolean					gSongPlayingFlag;
 extern Boolean					gTrackCompleted;
+extern Boolean					gUserTamperedWithPhysics;
 extern Byte						gActiveSplitScreenMode;
 extern Byte						gDebugMode;
 extern CheckpointDefType		gCheckpointList[MAX_CHECKPOINTS];

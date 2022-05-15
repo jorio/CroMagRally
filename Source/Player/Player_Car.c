@@ -166,7 +166,8 @@ OGLVector3D				gPreCollisionDelta;
 
 short	gPlayerMultiPassCount = 0;
 
-UserPhysics gUserPhysics;
+UserPhysics		gUserPhysics;
+Boolean			gUserTamperedWithPhysics = false;
 
 
 /********************** SET DEFAULT PHYSICS ***********************/
@@ -174,6 +175,7 @@ UserPhysics gUserPhysics;
 void SetDefaultPhysics(void)
 {
 	memcpy(&gUserPhysics, &kDefaultPhysics, sizeof(UserPhysics));
+	gUserTamperedWithPhysics = false;
 }
 
 
