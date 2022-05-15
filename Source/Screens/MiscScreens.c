@@ -704,7 +704,7 @@ float	timer = 51.5f;
 		timer -= gFramesPerSecondFrac;
 	}
 
-	gGameView->fadeDuration = .5f;
+	gGameView->fadeOutDuration = .5f;
 	OGL_FadeOutScene(DrawObjects, MoveObjects);
 
 

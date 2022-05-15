@@ -326,9 +326,6 @@ struct ObjNode
 	short				ParticleGroup;
 	uint32_t			ParticleMagicNum;
 
-	// TextMesh
-	int					TextQuadCapacity;
-
 	OGLColorRGBA		ColorFilter;
 };
 typedef struct ObjNode ObjNode;

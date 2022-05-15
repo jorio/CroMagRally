@@ -289,6 +289,8 @@ MOTriangleIndecies		*t;
 			vertexArrayData.colorsFloat		= nil;
 			vertexArrayData.triangles		= (MOTriangleIndecies *)AllocPtr(sizeof(MOTriangleIndecies) * MAX_PARTICLES * 2);
 
+			vertexArrayData.pointCapacity	= MAX_PARTICLES * 4;
+			vertexArrayData.triangleCapacity= MAX_PARTICLES * 2;
 
 					/* GET ATLAS SLICE */
 

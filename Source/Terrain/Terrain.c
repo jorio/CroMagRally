@@ -350,6 +350,8 @@ int	u,v,i,j;
 		meshPtr->numMaterials	= -1;							// textures will be manually submitted in drawing function!
 		meshPtr->numPoints		= NUM_VERTICES_IN_SUPERTILE;
 		meshPtr->numTriangles 	= NUM_TRIS_IN_SUPERTILE;
+		meshPtr->pointCapacity	= NUM_VERTICES_IN_SUPERTILE;
+		meshPtr->triangleCapacity= NUM_TRIS_IN_SUPERTILE;
 
 		meshPtr->points			= coordPtr;
 		meshPtr->normals 		= nil;

@@ -289,7 +289,8 @@ void OGL_SetupGameView(OGLSetupInputType *setupDefPtr)
 	gGameView->clearBackBuffer 	= setupDefPtr->view.clearBackBuffer;
 	gGameView->pillarboxRatio	= setupDefPtr->view.pillarboxRatio;
 	gGameView->fadePillarbox	= false;
-	gGameView->fadeDuration		= .15f;
+	gGameView->fadeInDuration	= .25f;
+	gGameView->fadeOutDuration	= .15f;
 
 //	gGameView->isActive = true;											// it's now an active structure
 

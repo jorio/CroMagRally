@@ -22,6 +22,11 @@ extern SDL_Window* gSDLWindow;
 
 static void MoveFadeEvent(ObjNode *theNode);
 
+#define FaderMode				Flag[0]
+#define FaderDone				Flag[1]
+#define FaderSpeed				SpecialF[0]
+#define FaderFrameCounter		Special[0]
+
 /****************************/
 /*    CONSTANTS             */
 /****************************/
@@ -48,32 +53,6 @@ void InitWindowStuff(void)
 
 #pragma mark -
 
-
-/****************  DRAW FADE OVERLAY *******************/
-
-static void DrawFadePane(ObjNode* theNode)
-{
-	OGL_PushState();
-
-	// 2D state should have been set for us by STATUS_BITS_FOR_2D and ObjNode::Projection.
-	glEnable(GL_BLEND);
-	glDisable(GL_TEXTURE_2D);
-
-	glColor4f(0, 0, 0, 1.0f - gGammaFadePercent);
-	glBegin(GL_QUADS);
-	glVertex3f(-1, -1, 0);
-	glVertex3f(+1, -1, 0);
-	glVertex3f(+1, +1, 0);
-	glVertex3f(-1, +1, 0);
-	glEnd();
-	glDisable(GL_BLEND);
-
-	OGL_PopState();
-}
-
-
-
-
 /******************** MAKE FADE EVENT *********************/
 //
 // INPUT:	fadeIn = true if want fade IN, otherwise fade OUT.
@@ -98,7 +77,7 @@ ObjNode		*thisNodePtr;
 	{
 		if (thisNodePtr->MoveCall == MoveFadeEvent)
 		{
-			thisNodePtr->Flag[0] = fadeIn;								// set new mode
+			thisNodePtr->FaderMode = fadeIn;							// set new mode
 			return thisNodePtr;
 		}
 		thisNodePtr = thisNodePtr->NextNode;							// next node
@@ -109,16 +88,35 @@ ObjNode		*thisNodePtr;
 
 	NewObjectDefinitionType newObjDef =
 	{
-		.genre = CUSTOM_GENRE,
+		.genre = QUADMESH_GENRE,
 		.slot = FADE_SLOT,
 		.scale = 1,
-		.flags = STATUS_BITS_FOR_2D | STATUS_BIT_OVERLAYPANE,
+		.flags = STATUS_BITS_FOR_2D | STATUS_BIT_OVERLAYPANE | STATUS_BIT_MOVEINPAUSE,
 		.projection = kProjectionType2DNDC,
 		.moveCall = MoveFadeEvent,
-		.drawCall = DrawFadePane,
 	};
-	newObj = MakeNewObject(&newObjDef);
-	newObj->Flag[0] = fadeIn;
+
+	newObj = MakeQuadMeshObject(&newObjDef, 1, NULL);
+
+	float fadeDuration = fadeIn? gGameView->fadeInDuration: gGameView->fadeOutDuration;
+	if (fabsf(fadeDuration) < .01f)	// don't div/0
+		fadeDuration = .01f;
+
+	newObj->FaderMode = fadeIn;
+	newObj->FaderDone = false;
+	newObj->FaderSpeed = 1.0f / fadeDuration;
+	newObj->FaderFrameCounter = 0;
+
+	MOVertexArrayData* mesh = GetQuadMeshWithin(newObj);
+	mesh->numPoints = 4;
+	mesh->numTriangles = 2;
+	mesh->points[0] = (OGLPoint3D) { -1, -1, 0 };
+	mesh->points[1] = (OGLPoint3D) { +1, -1, 0 };
+	mesh->points[2] = (OGLPoint3D) { +1, +1, 0 };
+	mesh->points[3] = (OGLPoint3D) { -1, +1, 0 };
+
+	newObj->ColorFilter = (OGLColorRGBA) {0,0,0, fadeIn? 1: 0};
+
 	return newObj;
 }
 
@@ -129,27 +127,45 @@ static void MoveFadeEvent(ObjNode *theNode)
 {
 float	fps = gFramesPerSecondFrac;
 
+	theNode->FaderFrameCounter++;
+
 			/* SEE IF FADE IN */
 
-	if (theNode->Flag[0])
+	if (theNode->FaderMode)
 	{
-		gGammaFadePercent += 4.0f*fps;
+		gGammaFadePercent += fps * theNode->FaderSpeed;
 		if (gGammaFadePercent >= 1.0f)										// see if @ 100%
 		{
 			gGammaFadePercent = 1.0f;
-			DeleteObject(theNode);
+			theNode->FaderDone = true;
 		}
 	}
 
 			/* FADE OUT */
 	else
 	{
-		gGammaFadePercent -= 4.0f*fps;
+		gGammaFadePercent -= fps * theNode->FaderSpeed;
 		if (gGammaFadePercent <= 0.0f)													// see if @ 0%
 		{
 			gGammaFadePercent = 0;
-			DeleteObject(theNode);
+			theNode->FaderDone = true;
 		}
+	}
+
+
+	theNode->ColorFilter = (OGLColorRGBA) {0, 0, 0, 1.0f - gGammaFadePercent};
+
+	if (gGameView->fadeSound)
+	{
+		FadeSound(gGammaFadePercent);
+	}
+
+	if (theNode->FaderDone)
+	{
+		if (theNode->FaderMode)			// nuke it if fading in, hold it if fading out
+			DeleteObject(theNode);
+
+		theNode->MoveCall = NULL;		// don't run this again
 	}
 }
 
@@ -164,40 +180,31 @@ void OGL_FadeOutScene(void (*drawCall)(void), void (*moveCall)(void))
 		return;
 	}
 
-	NewObjectDefinitionType newObjDef =
-	{
-		.genre = CUSTOM_GENRE,
-		.slot = FADE_SLOT,
-		.scale = 1,
-		.flags = STATUS_BIT_OVERLAYPANE | STATUS_BITS_FOR_2D,
-		.drawCall = DrawFadePane,
-		.projection = kProjectionType2DNDC,
-	};
-	MakeNewObject(&newObjDef);
+	ObjNode* fader = MakeFadeEvent(false);
+	long pFaderFrameCount = fader->FaderFrameCounter;
 
-	float timer = gGameView->fadeDuration;
-	while (timer >= 0)
+	while (!fader->FaderDone)
 	{
-		gGammaFadePercent = 1.0f * timer / (gGameView->fadeDuration + .01f);
-
 		CalcFramesPerSecond();
 		DoSDLMaintenance();
 
 		if (moveCall)
-			moveCall();
-
-		OGL_DrawScene(drawCall);
-
-		if (gGameView->fadeSound)
 		{
-			FadeSound(gGammaFadePercent);
+			moveCall();
 		}
 
-		timer -= gFramesPerSecondFrac;
+		// Force fader object to move even if MoveObjects was skipped
+		if (fader->FaderFrameCounter == pFaderFrameCount)	// fader wasn't moved by moveCall
+		{
+			MoveFadeEvent(fader);
+			pFaderFrameCount = fader->FaderFrameCounter;
+		}
+
+		OGL_DrawScene(drawCall);
 	}
 
+	// Draw one more blank frame
 	gGammaFadePercent = 0;
-
 	CalcFramesPerSecond();
 	DoSDLMaintenance();
 	OGL_DrawScene(drawCall);
@@ -207,7 +214,7 @@ void OGL_FadeOutScene(void (*drawCall)(void), void (*moveCall)(void))
 		FadeSound(0);
 		KillSong();
 		StopAllEffectChannels();
-		FadeSound(1);
+		FadeSound(1);		// restore sound volume for new playback
 	}
 }
 

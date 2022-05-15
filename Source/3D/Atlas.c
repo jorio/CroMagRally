@@ -404,61 +404,6 @@ void Atlas_Dispose(Atlas* atlas)
 /*                MESH ALLOCATION/LAYOUT                       */
 /***************************************************************/
 
-static void TextMesh_ReallocateMesh(MOVertexArrayData* mesh, int numQuads)
-{
-	if (mesh->points)
-	{
-		SafeDisposePtr((Ptr) mesh->points);
-		mesh->points = nil;
-	}
-
-	if (mesh->uvs)
-	{
-		SafeDisposePtr((Ptr) mesh->uvs);
-		mesh->uvs = nil;
-	}
-
-	if (mesh->triangles)
-	{
-		SafeDisposePtr((Ptr) mesh->triangles);
-		mesh->triangles = nil;
-	}
-
-	int numPoints = numQuads * 4;
-	int numTriangles = numQuads * 2;
-
-	if (numQuads != 0)
-	{
-		mesh->points = (OGLPoint3D *) AllocPtr(sizeof(OGLPoint3D) * numPoints);
-		mesh->uvs = (OGLTextureCoord *) AllocPtr(sizeof(OGLTextureCoord) * numPoints);
-		mesh->triangles = (MOTriangleIndecies *) AllocPtr(sizeof(MOTriangleIndecies) * numTriangles);
-
-		// Prep triangle-vertex assignments, which never change
-		int t = 0;
-		for (int p = 0; p < numPoints; p += 4, t += 2)
-		{
-			mesh->triangles[t + 0].vertexIndices[0] = p + 0;
-			mesh->triangles[t + 0].vertexIndices[1] = p + 1;
-			mesh->triangles[t + 0].vertexIndices[2] = p + 2;
-			mesh->triangles[t + 1].vertexIndices[0] = p + 2;
-			mesh->triangles[t + 1].vertexIndices[1] = p + 3;
-			mesh->triangles[t + 1].vertexIndices[2] = p + 0;
-		}
-	}
-}
-
-static void TextMesh_InitMesh(MOVertexArrayData* mesh, int numQuads)
-{
-	memset(mesh, 0, sizeof(*mesh));
-	
-	GAME_ASSERT(gAtlases[SPRITE_GROUP_FONT]);
-
-	mesh->numMaterials = 1;
-	mesh->materials[0] = gAtlases[SPRITE_GROUP_FONT]->material;
-
-	TextMesh_ReallocateMesh(mesh, numQuads);
-}
-
 static float Kern(const Atlas* font, const AtlasGlyph* glyph, const char* utftext, int flags)
 {
 	if (!glyph || !glyph->numKernPairs)
@@ -682,17 +627,7 @@ void TextMesh_Update(const char* text, int flags, ObjNode* textNode)
 	//-----------------------------------
 	// Get mesh from ObjNode
 
-	GAME_ASSERT(textNode->Genre == TEXTMESH_GENRE);
-	GAME_ASSERT(textNode->BaseGroup);
-	GAME_ASSERT(textNode->BaseGroup->objectData.numObjectsInGroup >= 2);
-
-	MetaObjectPtr			metaObject			= textNode->BaseGroup->objectData.groupContents[1];
-	MetaObjectHeader*		metaObjectHeader	= metaObject;
-	MOVertexArrayObject*	vertexObject		= metaObject;
-	MOVertexArrayData*		mesh				= &vertexObject->objectData;
-
-	GAME_ASSERT(metaObjectHeader->type == MO_TYPE_GEOMETRY);
-	GAME_ASSERT(metaObjectHeader->subType == MO_GEOMETRY_SUBTYPE_VERTEXARRAY);
+	MOVertexArrayData*		mesh = GetQuadMeshWithin(textNode);
 
 	// Compute number of quads and line width
 	TextMetrics metrics;
@@ -708,10 +643,11 @@ void TextMesh_Update(const char* text, int flags, ObjNode* textNode)
 	}
 
 	// Ensure mesh has capacity for quads
-	if (textNode->TextQuadCapacity < metrics.numQuads)
+	int quadCapacity = mesh->triangleCapacity/2;
+	if (quadCapacity < metrics.numQuads)
 	{
-		textNode->TextQuadCapacity = metrics.numQuads * 2;		// avoid reallocating often if text keeps growing
-		TextMesh_ReallocateMesh(mesh, textNode->TextQuadCapacity);
+		quadCapacity = metrics.numQuads * 2;		// avoid reallocating often if text keeps growing
+		ReallocateQuadMesh(mesh, quadCapacity);
 	}
 
 	// Set # of triangles and points
@@ -744,26 +680,11 @@ ObjNode *TextMesh_NewEmpty(int capacity, NewObjectDefinitionType* newObjDef)
 	newObjDef->flags |= STATUS_BITS_FOR_2D;
 	newObjDef->projection = kProjectionType2DOrthoCentered;
 
-	// Create object
-	ObjNode* textNode = MakeNewObject(newObjDef);
-	textNode->TextQuadCapacity = capacity;
+	GAME_ASSERT(gAtlases[SPRITE_GROUP_FONT]);
+	MOMaterialObject* material = gAtlases[SPRITE_GROUP_FONT]->material;
 
-	// Create mesh
-	MOVertexArrayData mesh;
-	TextMesh_InitMesh(&mesh, capacity);
-	MetaObjectPtr meshMO = MO_CreateNewObjectOfType(MO_TYPE_GEOMETRY, MO_GEOMETRY_SUBTYPE_VERTEXARRAY, &mesh);
-
-	// Attach color mesh
-	CreateBaseGroup(textNode);
-	AttachGeometryToDisplayGroupObject(textNode, meshMO);
-
-	// Dispose of extra reference to mesh
-	MO_DisposeObjectReference(meshMO);
-	meshMO = NULL;
-
-	UpdateObjectTransforms(textNode);
-
-	return textNode;
+	// Create mesh object
+	return MakeQuadMeshObject(newObjDef, capacity, material);
 }
 
 ObjNode *TextMesh_New(const char *text, int align, NewObjectDefinitionType* newObjDef)

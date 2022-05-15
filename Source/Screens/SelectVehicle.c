@@ -196,7 +196,7 @@ Boolean DoVehicleSelectScreen(short whichPlayer, Boolean allowAborting)
 		if (whichPlayer == gNumRealPlayers-1)
 		{
 			gGameView->fadeSound = true;
-			gGameView->fadeDuration = .3f;
+			gGameView->fadeOutDuration = .3f;
 		}
 	}
 

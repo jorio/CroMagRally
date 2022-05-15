@@ -813,8 +813,9 @@ short			skelType, playerNum;
 					}
 					break;
 
+			case	DISPLAY_GROUP_GENRE:
 			case	SPRITE_GENRE:
-			case	DISPLAY_GROUP_GENRE:		// This also encompasses sprites now -IJ
+			case	QUADMESH_GENRE:
 					if (theNode->BaseGroup)
 					{
 						MO_DrawObject(theNode->BaseGroup);

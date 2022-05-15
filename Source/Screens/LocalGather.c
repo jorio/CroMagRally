@@ -46,7 +46,7 @@ static void UpdateGatherPrompt(int numControllersMissing)
 		gGatherPrompt->Scale.x = 1;
 		gGatherPrompt->Scale.y = 1;
 		UpdateObjectTransforms(gGatherPrompt);
-		gGameView->fadeDuration = .3f;
+		gGameView->fadeOutDuration = .3f;
 	}
 	else
 	{

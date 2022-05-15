@@ -223,7 +223,8 @@ typedef struct
 	float					pillarboxRatio;
 	Boolean					fadePillarbox;		// if true, pillarbox border brightness tracks global gamma fade
 	Boolean					fadeSound;			// if true, global sound volume will track global gamma fade
-	float					fadeDuration;
+	float					fadeInDuration;
+	float					fadeOutDuration;
 }OGLSetupOutputType;
 
 

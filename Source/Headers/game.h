@@ -33,6 +33,7 @@
 #include "liquids.h"
 #include "splineitems.h"
 #include "localization.h"
+#include "quadmesh.h"
 #include "atlas.h"
 #include "window.h"
 #include "pillarbox.h"

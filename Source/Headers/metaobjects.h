@@ -116,7 +116,10 @@ typedef struct
 	OGLTextureCoord		*uvs;								// ptr to array of vertex uv's
 	OGLColorRGBA_Byte	*colorsByte;						// ptr to array of vertex colors (byte & float versions)
 	OGLColorRGBA		*colorsFloat;
-	MOTriangleIndecies	*triangles;						// ptr to array of triangle triad indecies
+	MOTriangleIndecies	*triangles;							// ptr to array of triangle triad indecies
+
+	int					pointCapacity;						// size of point buffer. If 0, assume it's no larger than numPoints.
+	int					triangleCapacity;					// size of triangle buffer. If 0, assume it's no larger than numTriangles.
 }MOVertexArrayData;
 
 typedef struct

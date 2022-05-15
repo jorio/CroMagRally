@@ -347,7 +347,7 @@ static void OnPickQuitApplication(const MenuItem* mi)
 {
 	gGameView->fadeSound = true;
 	gGameView->fadePillarbox = true;
-	gGameView->fadeDuration = .3f;
+	gGameView->fadeOutDuration = .3f;
 }
 
 static void OnPickCredits(const MenuItem* mi)
