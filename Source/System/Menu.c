@@ -120,7 +120,7 @@ static const MenuItemClass kMenuItemClasses[kMI_COUNT] =
 	[kMISpacer]			= {0.5f, NULL, NULL },
 	[kMICycler1]		= {1.0f, LayOutCycler1, NavigateCycler },
 	[kMICycler2]		= {1.0f, LayOutCycler2, NavigateCycler },
-	[kMIFloatRange]		= {0.5f, LayOutFloatRange, NavigateFloatRange },
+	[kMIFloatRange]		= {0.6f, LayOutFloatRange, NavigateFloatRange },
 	[kMIPick]			= {1.0f, LayOutPick, NavigatePick },
 	[kMIKeyBinding]		= {0.5f, LayOutKeyBinding, NavigateKeyBinding },
 	[kMIPadBinding]		= {0.5f, LayOutPadBinding, NavigatePadBinding },
@@ -943,15 +943,21 @@ static void NavigateFloatRange(const MenuItem* entry)
 
 	if (delta != 0)
 	{
+		float deltaFrac = delta * entry->floatRange.incrementFrac;
+		float currentFrac = *entry->floatRange.valuePtr / *entry->floatRange.equilibriumPtr;
+		float newFrac = currentFrac + deltaFrac;
+		float newValue = newFrac * *entry->floatRange.equilibriumPtr;
+
 		gNav->idleTime = 0;
 		PlayEffect_Parms(kSfxCycle, FULL_CHANNEL_VOLUME, FULL_CHANNEL_VOLUME, NORMAL_CHANNEL_RATE * 2 / 3 + (RandomFloat2() * 0x3000));
 
-		*entry->floatRange.valuePtr = *entry->floatRange.valuePtr + delta;
+		*entry->floatRange.valuePtr = newValue;
 
 		if (entry->callback)
 			entry->callback(entry);
 
 		LayOutFloatRangeValueText(gNav->menuRow);
+		RepositionArrows();
 	}
 }
 
@@ -1568,8 +1574,12 @@ static ObjNode* LayOutFloatRangeValueText(int row)
 	const MenuItem* entry = &gNav->menu[row];
 	DECLARE_WORKBUF(buf, bufSize);
 
-	snprintf(buf, bufSize, "%.4f", *entry->floatRange.valuePtr);
+	float percent = *entry->floatRange.valuePtr / *entry->floatRange.equilibriumPtr;
+	percent *= 100.0f;
+
+	snprintf(buf, bufSize, "%d%%", (int)roundf(percent));
 	ObjNode* node2 = MakeText(buf, row, 1, kTextMeshAlignRight);
+	node2->MoveCall = MoveAction;
 	return node2;
 }
 
@@ -1582,11 +1592,11 @@ static ObjNode* LayOutFloatRange(int row, float sweepFactor)
 	ObjNode* node1 = MakeText(buf, row, 0, kTextMeshAlignLeft);
 	node1->MoveCall = MoveAction;
 	node1->SpecialSweepTimer = sweepFactor;
-	node1->Coord.x -= 300;
+	node1->Coord.x -= entry->floatRange.xSpread;
 
 	ObjNode* node2 = LayOutFloatRangeValueText(row);
 	node2->SpecialSweepTimer = sweepFactor;
-	node2->Coord.x += 300;
+	node2->Coord.x += entry->floatRange.xSpread;
 	UpdateObjectTransforms(node2);
 
 	return node1;

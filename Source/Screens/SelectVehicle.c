@@ -470,8 +470,6 @@ static void UpdateSelectedVehicle(void)
 	for (int i = 0; i < NUM_VEHICLE_PARAMETERS; i++)
 	{
 		int n = gVehicleParameters[gSelectedVehicleIndex][i];
-		if (n > 7)
-			n = 7;
 		TextMesh_Update(GetBoneString(n), kTextMeshAlignLeft, gBoneMeters[i]);
 	}
 
@@ -499,6 +497,13 @@ static void UpdateSelectedVehicle(void)
 static const char* GetBoneString(int n)
 {
 	static char boneString[NUM_PARAM_BONES+1];
+
+	if (n < 1 || n > 7)
+	{
+		// Show percentage for crazy values (most likely tweaked by user in physics sandbox)
+		snprintf(boneString, sizeof(boneString), "%d%%", (int) roundf(100.0f * n / 7.0f));
+		return boneString;
+	}
 
 	if (n > NUM_PARAM_BONES-1)
 		n = NUM_PARAM_BONES-1;
