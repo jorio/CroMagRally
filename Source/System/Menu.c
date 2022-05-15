@@ -1068,16 +1068,22 @@ static void NavigatePadBinding(const MenuItem* entry)
 		return;
 	}
 
-	if ( (GetNewNeedStateAnyP(kNeed_UIConfirm) && !GetNewKeyState(CLEAR_BINDING_SCANCODE))
+	if (GetNewNeedStateAnyP(kNeed_UIConfirm)
 		|| GetNewKeyState(SDL_SCANCODE_KP_ENTER)
 		|| (gNav->mouseHoverValid && GetNewClickState(SDL_BUTTON_LEFT)))
 	{
+		// Unlike keyboard bindings, don't call InvalidateAllInputs() here,
+		// because we don't keep a shadow array of all gamepad button states,
+		// so we have to query SDL for a new button directly.
+		// AwaitMetaGamepadPress will wait for the user to let go of kNeed_UIConfirm.
+
 		PlayEffect(EFFECT_MINE);
-		InvalidateAllInputs();
+
 		gNav->idleTime = 0;
 		gNav->menuState = kMenuStateAwaitingPadPress;
 
 		MakePbText(row, btnNo);			// It'll show "PRESS!" because we're in MenuStateAwaitingPadPress
+		RepositionArrows();
 
 		// Change subtitle to help message
 		ReplaceMenuText(STR_CONFIGURE_GAMEPAD_HELP, STR_CONFIGURE_GAMEPAD_HELP_CANCEL);
@@ -1322,6 +1328,12 @@ updateText:
 
 static void AwaitMetaGamepadPress(void)
 {
+	// Wait for user to let go of confirm button before accepting a new button binding.
+	if (GetNeedStateAnyP(kNeed_UIConfirm) && !GetNewNeedStateAnyP(kNeed_UIConfirm))
+	{
+		return;
+	}
+
 	bool anyGamepadFound = false;
 
 	for (int i = 0; i < MAX_LOCAL_PLAYERS; i++)
