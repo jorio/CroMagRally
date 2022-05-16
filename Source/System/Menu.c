@@ -1269,7 +1269,6 @@ static bool AwaitGamepadPress(SDL_GameController* controller)
 
 	for (int8_t button = 0; button < SDL_CONTROLLER_BUTTON_MAX; button++)
 	{
-#if 0
 		switch (button)
 		{
 			case SDL_CONTROLLER_BUTTON_DPAD_UP:			// prevent binding those
@@ -1278,7 +1277,6 @@ static bool AwaitGamepadPress(SDL_GameController* controller)
 			case SDL_CONTROLLER_BUTTON_DPAD_RIGHT:
 				continue;
 		}
-#endif
 
 		if (SDL_GameControllerGetButton(controller, button))
 		{

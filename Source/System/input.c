@@ -54,8 +54,7 @@ void ReadKeyboard(void)
 
 	for (int i = 0; i < gNumLocalPlayers; i++)
 	{
-		gPlayerInfo[i].analogSteering.x = GetAnalogSteeringX(i);
-		gPlayerInfo[i].analogSteering.y = GetAnalogSteeringY(i);
+		gPlayerInfo[i].analogSteering = GetAnalogSteering(i);
 	}
 }
 

@@ -5,6 +5,7 @@
 #pragma once
 
 #include "Pomme.h"
+#include "structs.h"
 
 		/* NEEDS */
 
@@ -104,8 +105,7 @@ Boolean GetNeedStateAnyP(int needID);
 Boolean GetNewNeedState(int needID, int playerID);
 Boolean GetNewNeedStateAnyP(int needID);
 
-float GetAnalogSteeringX(int playerID);
-float GetAnalogSteeringY(int playerID);
+OGLVector2D GetAnalogSteering(int playerID);
 
 Boolean UserWantsOut(void);
 Boolean IsCheatKeyComboDown(void);
