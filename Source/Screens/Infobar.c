@@ -1165,10 +1165,13 @@ short	sex;
 	place = gPlayerInfo[playerNum].place;
 	sex = gPlayerInfo[playerNum].sex;
 
+			/* ANNOUNCE PLACE */
 
-			/* MAKE SPRITE OBJECT */
+	PlayAnnouncerSound(EFFECT_1st + place, true, 1.0);
 
-	NewObjectDefinitionType def =
+			/* MAKE NUMBER SPRITE */
+
+	NewObjectDefinitionType spriteDef =
 	{
 		.group 		= SPRITE_GROUP_INFOBAR,
 		.type		= INFOBAR_SObjType_Place1+place,
@@ -1178,24 +1181,42 @@ short	sex;
 		.moveCall	= MoveFinalPlace,
 		.scale		= 1.5,
 	};
-	gFinalPlaceObj = MakeSpriteObject(&def);
+
+	if (gGamePrefs.language == LANGUAGE_FRENCH)					// french has shorter ordinals, keep sprite centered
+	{
+		spriteDef.coord.x += 18;
+	}
+
+	gFinalPlaceObj = MakeSpriteObject(&spriteDef);
 
 	gFinalPlaceObj->PlayerNum = playerNum;						// only show for this player
 
+			/* MAKE ORDINAL SPRITE ON TOP OF NUMBER */
 
-
-	def.slot++;
-	def.type = LocalizeOrdinalSprite(place, sex);
-	ObjNode* ordinalObj = MakeSpriteObject(&def);
+	spriteDef.slot++;
+	spriteDef.type = LocalizeOrdinalSprite(place, sex);
+	ObjNode* ordinalObj = MakeSpriteObject(&spriteDef);
 	ordinalObj->PlayerNum = playerNum;
 
-	gFinalPlaceObj->ChainNode = ordinalObj;
-	ordinalObj->ChainHead = gFinalPlaceObj;
+	AppendNodeToChain(gFinalPlaceObj, ordinalObj);
 
+			/* MAKE RACE TIME TEXT */
 
+	if (IsRaceMode())
+	{
+		char timeStr[64];
+		snprintf(timeStr, sizeof(timeStr), "%s: %s", Localize(STR_YOUR_TIME), FormatRaceTime(GetRaceTime(playerNum)));
 
-	PlayAnnouncerSound(EFFECT_1st + place, true, 1.0);
+		NewObjectDefinitionType textDef =
+		{
+			.slot = GetChainTailNode(gFinalPlaceObj)->Slot + 1,
+			.coord = {0,100,0},
+			.scale = 0.4,
+		};
+		ObjNode* yourTimeObj = TextMesh_New(timeStr, 0, &textDef);
 
+		AppendNodeToChain(gFinalPlaceObj, yourTimeObj);
+	}
 }
 
 

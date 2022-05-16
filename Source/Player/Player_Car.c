@@ -410,6 +410,12 @@ float				oldFPS,oldFPSFrac;
 long	oldLeft,oldRight,oldFront,oldBack,oldTop,oldBottom;
 
 
+		/* KEEP TRACK OF LAP TIMES */
+
+	TickLapTimes(theNode->PlayerNum);
+
+
+
 	/* SEE IF THE CAR IS BEING DRIVEN BY A PLAYER */
 
 	gCurrentPlayerNum = theNode->PlayerNum;			// get player #

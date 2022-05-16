@@ -672,6 +672,7 @@ void OGL_DrawScene(void (*drawRoutine)(void))
 			"\nPTRS: %d"
 			"\nTILES: %d/%d"
 			"\n%dX%d/%d"
+			"\n%s"
 			,
 			(int)(gFramesPerSecond + .5f),
 			gPolysThisFrame,
@@ -685,7 +686,8 @@ void OGL_DrawScene(void (*drawRoutine)(void))
 			MAX_SUPERTILES,
 			gGameWindowWidth,
 			gGameWindowHeight,
-			gNumSplitScreenPanes
+			gNumSplitScreenPanes,
+			FormatRaceTime(GetRaceTime(0))
 		);
 		TextMesh_Update(gDebugTextBuffer, kTextMeshAlignLeft, gDebugText);
 		gDebugText->StatusBits &= ~STATUS_BIT_HIDDEN;

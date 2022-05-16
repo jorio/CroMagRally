@@ -125,6 +125,9 @@ static void MovePlayer_Submarine(ObjNode *theNode)
 int					numPasses;
 float				oldFPS,oldFPSFrac;
 
+		/* KEEP TRACK OF LAP TIMES */
+
+	TickLapTimes(theNode->PlayerNum);
 
 
 	/* SEE IF THE SUB IS BEING DRIVEN BY A PLAYER */

@@ -237,6 +237,9 @@ typedef struct
 
 	short				engineChannel;
 
+			/* TIME ATTACK */
+
+	float				lapTimes[LAPS_PER_RACE];
 }PlayerInfoType;
 
 

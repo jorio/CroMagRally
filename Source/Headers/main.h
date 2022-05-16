@@ -45,6 +45,8 @@ enum
 
 #define	TRACKS_PER_AGE	3			// # tracks per age in tournament mode
 
+#define LAPS_PER_RACE	3
+
 enum
 {
 	TRACK_NUM_DESERT = 0,

@@ -57,21 +57,6 @@ int _i;																	\
 #define PI2					(2.0f*PI)
 
 
-#define	CHAR_RETURN			0x0d	/* ASCII code for Return key */
-#define CHAR_UP				0x1e
-#define CHAR_DOWN			0x1f
-#define	CHAR_LEFT			0x1c
-#define	CHAR_RIGHT			0x1d
-#define	CHAR_DELETE			0x08
-#define	CHAR_SPACE			0x20
-#define	CHAR_ESC			0x1b
-#define	CHAR_TAB			0x09
-
-
-
-
-
-
 							// COLLISION SIDE INFO
 							//=================================
 

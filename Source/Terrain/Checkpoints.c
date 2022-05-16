@@ -30,7 +30,7 @@
 long				gNumCheckpoints;
 CheckpointDefType	gCheckpointList[MAX_CHECKPOINTS];
 
-short				gNumLapsThisRace = 3;
+short				gNumLapsThisRace = LAPS_PER_RACE;
 
 short				gWorstHumanPlace;
 

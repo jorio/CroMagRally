@@ -1479,8 +1479,22 @@ ObjNode* GetChainTailNode(ObjNode* start)
 	{
 		pNode = node;
 		node = pNode->ChainNode;
+
+		if (node)
+			GAME_ASSERT(node->Slot > pNode->Slot);
 	}
 
 	return pNode;
 }
 
+void AppendNodeToChain(ObjNode* first, ObjNode* newTail)
+{
+	ObjNode* oldTail = GetChainTailNode(first);
+	oldTail->ChainNode = newTail;
+
+	newTail->ChainHead = first->ChainHead;
+	if (!newTail->ChainHead)
+		newTail->ChainHead = first;
+
+	GAME_ASSERT(newTail->Slot > oldTail->Slot);
+}

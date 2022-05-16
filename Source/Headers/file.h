@@ -55,7 +55,7 @@ typedef struct
 
 typedef struct
 {
-	char	playerName[64];
+	char	playerName[32];
 	Byte	numTracksCompleted;
 
 	Byte	difficulty;
@@ -77,6 +77,19 @@ typedef struct
 #define PREFS_FOLDER_NAME "CroMagRally"
 #define PREFS_FILE_PATH (":" PREFS_FOLDER_NAME ":Prefs")
 
+
+typedef struct
+{
+	uint64_t	timestamp;
+	float		lapTimes[LAPS_PER_RACE];
+	char		reserved1[32];		// make room for player name if we want to add this in a later version
+	char		reserved2[12];		// pad to 64 bytes
+} ScoreboardRecord;
+
+typedef struct
+{
+	ScoreboardRecord records[NUM_RACE_TRACKS];
+} Scoreboard;
 
 
 		/* COMMAND-LINE OPTIONS */
