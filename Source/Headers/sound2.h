@@ -2,8 +2,7 @@
 // Sound2.h
 //
 
-
-#define		BASE_EFFECT_RESOURCE	10000
+#define		MAX_CHANNELS			20
 
 #define		FULL_CHANNEL_VOLUME		kFullVolume
 #define		NORMAL_CHANNEL_RATE		0x10000
@@ -171,12 +170,12 @@ extern void	KillSong(void);
 extern	short PlayEffect(short effectNum);
 short PlayEffect_Parms3D(short effectNum, const OGLPoint3D *where, uint32_t rateMultiplier, float volumeAdjust);
 extern void	DoSoundMaintenance(void);
-extern	void WaitEffectsSilent(void);
 short PlayEffect_Parms(short effectNum, uint32_t leftVolume, uint32_t rightVolume, unsigned long rateMultiplier);
 void ChangeChannelVolume(short channel, uint32_t leftVol, uint32_t rightVol);
 short PlayEffect3D(short effectNum, const OGLPoint3D *where);
 void Update3DSoundChannel(short effectNum, short *channel, const OGLPoint3D *where);
 Boolean IsEffectChannelPlaying(short chanNum);
+int GetNumBusyEffectChannels(void);
 void UpdateListenerLocation(void);
 void ChangeChannelRate(short channel, long rateMult);
 void StopAChannelIfEffectNum(short *channelNum, short effectNum);

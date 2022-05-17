@@ -33,8 +33,6 @@ static void Calc3DEffectVolume(short effectNum, const OGLPoint3D *where, float v
 #define FloatToFixed16(a)      ((Fixed)((float)(a) * 0x000100L))		// convert float to 16bit fixed pt
 
 
-#define		MAX_CHANNELS			20
-
 typedef struct
 {
 	Byte	bank;
@@ -442,25 +440,6 @@ short		i;
 	}
 }
 
-
-/****************** WAIT EFFECTS SILENT *********************/
-
-void WaitEffectsSilent(void)
-{
-short	i;
-Boolean	isBusy;
-SCStatus				theStatus;
-
-	do
-	{
-		isBusy = 0;
-		for (i=0; i < gMaxChannels; i++)
-		{
-			SndChannelStatus(gSndChannel[i],sizeof(SCStatus),&theStatus);	// get channel info
-			isBusy |= theStatus.scChannelBusy;
-		}
-	}while(isBusy);
-}
 
 #pragma mark -
 
@@ -1206,9 +1185,12 @@ SCStatus	theStatus;
 
 Boolean IsEffectChannelPlaying(short chanNum)
 {
+OSErr		err; 
 SCStatus	theStatus;
 
-	SndChannelStatus(gSndChannel[chanNum],sizeof(SCStatus),&theStatus);	// get channel info
+	err = SndChannelStatus(gSndChannel[chanNum], sizeof(SCStatus), &theStatus);	// get channel info
+	GAME_ASSERT(!err);
+
 	return (theStatus.scChannelBusy);
 }
 
@@ -1233,6 +1215,27 @@ short	i,c;
 
 	StopAChannel(0);
 	return(0);
+}
+
+
+/****************** GET # OF EFFECT CHANNELS PLAYING *****************/
+
+int GetNumBusyEffectChannels(void)
+{
+OSErr		err;
+SCStatus	theStatus;
+int			count = 0;
+
+	for (int i = 0; i < gMaxChannels; i++)
+	{
+		err = SndChannelStatus(gSndChannel[i], sizeof(SCStatus), &theStatus);
+		if (err == noErr && theStatus.scChannelBusy)
+		{
+			count++;
+		}
+	}
+
+	return count;
 }
 
 

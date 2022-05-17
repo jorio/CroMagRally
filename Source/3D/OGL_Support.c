@@ -1328,6 +1328,7 @@ static char* UpdateDebugText(void)
 		"\nVRAM:\t%dK"
 		"\nPTRS:\t%d"
 		"\nTILES:\t%d/%d"
+		"\nCHAN:\t%d/%d"
 		"\n%dX%d/%d"
 		"\n%s"
 		,
@@ -1338,6 +1339,7 @@ static char* UpdateDebugText(void)
 		gNumPointers,
 		MAX_SUPERTILES - gNumFreeSupertiles,
 		MAX_SUPERTILES,
+		GetNumBusyEffectChannels(),
 		MAX_CHANNELS,
 		gGameWindowWidth,
 		gGameWindowHeight,
