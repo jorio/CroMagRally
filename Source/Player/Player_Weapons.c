@@ -106,7 +106,7 @@ short	playerNum = theNode->PlayerNum;
 
 static void VehicleActivatePOW(ObjNode *theVehicle, Boolean forwardThrow)
 {
-uint16_t		playerNum = theVehicle->PlayerNum;
+short		playerNum = theVehicle->PlayerNum;
 short		powType;
 
 			/* FIRST CHECK IF JUST DROP A FLAG */
@@ -151,7 +151,6 @@ short		powType;
 				PlayerLaunchTorpedo(playerNum);
 				break;
 
-
 		case	POW_TYPE_NITRO:
 				ActivateNitroPOW(playerNum);
 				break;
@@ -180,28 +179,42 @@ void ActivateNitroPOW(short playerNum)
 
 /*********************** PLAYER THROWS WEAPON **************************/
 //
-// Called to start the throwing animation
+// Called to start the throwing animation.
+// Bullet doesn't actually get created until anim raises HEAD_THROW_READY_FLAG!
 //
 
 static void PlayerThrowsWeapon(short playerNum, Boolean forwardThrow)
 {
-ObjNode	*head;
-
-	head = gPlayerInfo[playerNum].headObj;
+	PlayerInfoType* pinfo = &gPlayerInfo[playerNum];
+	ObjNode* head = pinfo->headObj;
 
 	head->HEAD_THROW_READY_FLAG = false;
 
 	if ((head->Skeleton->AnimNum != PLAYER_ANIM_THROWFORWARD) && (head->Skeleton->AnimNum != PLAYER_ANIM_THROWBACKWARD))
 	{
-		if (forwardThrow)
-	   		MorphToSkeletonAnim(head->Skeleton, PLAYER_ANIM_THROWFORWARD, 8.0);
-	   	else
-	   		MorphToSkeletonAnim(head->Skeleton, PLAYER_ANIM_THROWBACKWARD, 8.0);
+#if _DEBUG
+		GAME_ASSERT(pinfo->powTypeBeingThrown == POW_TYPE_NONE);
+#endif
 
-	   	if (gPlayerInfo[playerNum].sex)
+		if (forwardThrow)
+			MorphToSkeletonAnim(head->Skeleton, PLAYER_ANIM_THROWFORWARD, 8.0);
+		else
+			MorphToSkeletonAnim(head->Skeleton, PLAYER_ANIM_THROWBACKWARD, 8.0);
+
+		if (pinfo->sex)
 			PlayEffect_Parms3D(EFFECT_THROW1 + RandomRange(0,2), &gCoord, NORMAL_CHANNEL_RATE + 0x5000, 1.5);
 		else
 			PlayEffect_Parms3D(EFFECT_THROW1 + RandomRange(0,2), &gCoord, NORMAL_CHANNEL_RATE, 1.5);
+
+
+			/* REMEMBER POW TYPE UNTIL ANIM IS READY TO CREATE BULLET */
+
+		pinfo->powTypeBeingThrown = pinfo->powType;
+
+
+			/* DEC THE INVENTORY */
+
+		DecCurrentPOWQuantity(playerNum);
 	}
 }
 

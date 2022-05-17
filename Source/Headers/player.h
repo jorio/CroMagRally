@@ -208,7 +208,8 @@ typedef struct
 
 			/* INVENTORY INFO */
 
-	short				powType;
+	short				powType;									// powerup type in inventory
+	short				powTypeBeingThrown;							// used for delaying bullet creation until anim flag (bone/oil/bird/freeze)
 	short				powQuantity;
 	short				numTokens;
 

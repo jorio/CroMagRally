@@ -2773,10 +2773,15 @@ short		playerNum = head->PlayerNum;
 
 					head->HEAD_THROW_READY_FLAG = false;
 
-					powType = gPlayerInfo[playerNum].powType;			// get current weapon type
+
+							/* GET WEAPON TYPE TO THROW */
+
+					// Use powTypeBeingThrown rather than powType, because we may have
+					// picked up another POW since the animation started playing.
+					powType = gPlayerInfo[playerNum].powTypeBeingThrown;
 
 
-					/* THROW THE APPROPRIATE WEAPON */
+							/* THROW THE APPROPRIATE WEAPON */
 
 					switch(powType)
 					{
@@ -2797,9 +2802,9 @@ short		playerNum = head->PlayerNum;
 								break;
 					}
 
-							/* DEC THE INVENTORY */
 
-					DecCurrentPOWQuantity(playerNum);
+					gPlayerInfo[playerNum].powTypeBeingThrown = POW_TYPE_NONE;
+
 				}
 
 

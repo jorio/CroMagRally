@@ -301,8 +301,9 @@ Boolean	taken[NUM_LAND_CAR_TYPES];
 
 				/* WEAPON INFO */
 
-		gPlayerInfo[i].powType 		= POW_TYPE_NONE;
-		gPlayerInfo[i].powQuantity	= 0;
+		gPlayerInfo[i].powType				= POW_TYPE_NONE;
+		gPlayerInfo[i].powTypeBeingThrown	= POW_TYPE_NONE;
+		gPlayerInfo[i].powQuantity			= 0;
 
 				/* CAMERA */
 
