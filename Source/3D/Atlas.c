@@ -15,9 +15,9 @@
 /*    CONSTANTS             */
 /****************************/
 
-#define TAB_STOP 60.0f
+#define TAB_STOP 128.0f
 
-#define MAX_LINEBREAKS_PER_OBJNODE	8
+#define MAX_LINEBREAKS_PER_OBJNODE	16
 
 #define MAX_IMMEDIATEMODE_QUADS		1024
 
@@ -678,7 +678,12 @@ ObjNode *TextMesh_NewEmpty(int capacity, NewObjectDefinitionType* newObjDef)
 	// Patch newObjDef with bare minimum flags for TextMesh
 	newObjDef->genre = TEXTMESH_GENRE;
 	newObjDef->flags |= STATUS_BITS_FOR_2D;
-	newObjDef->projection = kProjectionType2DOrthoCentered;
+
+	// Fall back to 2D projection if standard projection (3D) is set
+	if (!newObjDef->projection)
+	{
+		newObjDef->projection = kProjectionType2DOrthoCentered;
+	}
 
 	GAME_ASSERT(gAtlases[SPRITE_GROUP_FONT]);
 	MOMaterialObject* material = gAtlases[SPRITE_GROUP_FONT]->material;

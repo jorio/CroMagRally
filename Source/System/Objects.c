@@ -1412,7 +1412,7 @@ MOMatrixObject	*mo = theNode->BaseTransformObject;
 
 /***************** TOGGLE OBJECT VISIBILITY *******************/
 
-void SetObjectVisible(ObjNode* theNode, bool visible)
+Boolean SetObjectVisible(ObjNode* theNode, bool visible)
 {
 	if (visible)
 	{
@@ -1422,6 +1422,8 @@ void SetObjectVisible(ObjNode* theNode, bool visible)
 	{
 		theNode->StatusBits |= STATUS_BIT_HIDDEN;
 	}
+
+	return visible;
 }
 
 int GetNodeChainLength(ObjNode* node)

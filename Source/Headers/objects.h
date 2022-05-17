@@ -104,7 +104,7 @@ void CreateCollisionBoxFromBoundingBox_Rotated(ObjNode *theNode, float tweakXZ, 
 extern	void StopObjectStreamEffect(ObjNode *theNode);
 extern	void KeepOldCollisionBoxes(ObjNode *theNode);
 ObjNode* MakeBackgroundPictureObject(const char* imagePath);
-void SetObjectVisible(ObjNode* theNode, bool visible);
+Boolean SetObjectVisible(ObjNode* theNode, bool visible);
 
 int GetNodeChainLength(ObjNode* start);
 ObjNode* GetNthChainedNode(ObjNode* start, int targetIndex, ObjNode** outPrevNode);

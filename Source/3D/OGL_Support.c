@@ -27,7 +27,7 @@ _Static_assert(sizeof(OGLColorBGRA16) == 2, "OGLColorBGRA16 must fit on 2 bytes"
 /*    PROTOTYPES            */
 /****************************/
 
-static void OGL_InitFont(void);
+static void InitDebugText(void);
 
 static void OGL_CreateDrawContext(void);
 static void OGL_DisposeDrawContext(void);
@@ -86,9 +86,6 @@ int			gVRAMUsedThisFrame = 0;
 
 Boolean		gMyState_Lighting;
 int			gMyState_ProjectionType = kProjectionType3D;
-
-static ObjNode* gDebugText;
-static char gDebugTextBuffer[256];
 
 int			gLoadTextureFlags = 0;
 static uint8_t		gGammaRamp8[256];
@@ -304,7 +301,7 @@ void OGL_SetupGameView(OGLSetupInputType *setupDefPtr)
 			/* LOAD FONT */
 
 	LoadSpriteGroup(SPRITE_GROUP_FONT, setupDefPtr->view.fontName, kAtlasLoadFont);
-	OGL_InitFont();
+	InitDebugText();
 
 
 			/* PRIME PILLARBOX */
@@ -655,48 +652,6 @@ void OGL_DrawScene(void (*drawRoutine)(void))
 		else
 			glPolygonMode(GL_FRONT_AND_BACK ,GL_FILL);
 	}
-
-				/* SHOW BASIC DEBUG INFO */
-
-	if (gDebugMode > 0)
-	{
-		extern short gNumFreeSupertiles;
-		snprintf(gDebugTextBuffer, sizeof(gDebugTextBuffer),
-			"FPS: %d"
-			"\nTRIS: %d"
-			//"\nTRI/SEC: %d"
-			//"\nPGROUPS: %d"
-			"\nOBJS: %d"
-			//"\nFENCES: %d"
-			"\nVRAM: %dK"
-			"\nPTRS: %d"
-			"\nTILES: %d/%d"
-			"\n%dX%d/%d"
-			"\n%s"
-			,
-			(int)(gFramesPerSecond + .5f),
-			gPolysThisFrame,
-			//(int)((float)gPolysThisFrame * gFramesPerSecond),
-			//gNumActiveParticleGroups,
-			gNumObjectNodes,
-			//gNumFencesDrawn,
-			gVRAMUsedThisFrame / 1024,
-			gNumPointers,
-			MAX_SUPERTILES-gNumFreeSupertiles,
-			MAX_SUPERTILES,
-			gGameWindowWidth,
-			gGameWindowHeight,
-			gNumSplitScreenPanes,
-			FormatRaceTime(GetRaceTime(0))
-		);
-		TextMesh_Update(gDebugTextBuffer, kTextMeshAlignLeft, gDebugText);
-		gDebugText->StatusBits &= ~STATUS_BIT_HIDDEN;
-	}
-	else
-	{
-		gDebugText->StatusBits |= STATUS_BIT_HIDDEN;
-	}
-
 
 
             /**************/
@@ -1359,22 +1314,64 @@ void OGL_DisableLighting(void)
 
 #pragma mark -
 
-/************************** OGL_INIT FONT **************************/
+/************************** DEBUG TEXT OBJECT **************************/
 
-static void OGL_InitFont(void)
+static char* UpdateDebugText(void)
+{
+	static char debugTextBuffer[256];
+	extern short gNumFreeSupertiles;
+
+	snprintf(debugTextBuffer, sizeof(debugTextBuffer),
+		"FPS:\t%d"
+		"\nTRIS:\t%d"
+		"\nOBJS:\t%d"
+		"\nVRAM:\t%dK"
+		"\nPTRS:\t%d"
+		"\nTILES:\t%d/%d"
+		"\n%dX%d/%d"
+		"\n%s"
+		,
+		(int)(gFramesPerSecond + .5f),
+		gPolysThisFrame,
+		gNumObjectNodes,
+		gVRAMUsedThisFrame / 1024,
+		gNumPointers,
+		MAX_SUPERTILES - gNumFreeSupertiles,
+		MAX_SUPERTILES,
+		MAX_CHANNELS,
+		gGameWindowWidth,
+		gGameWindowHeight,
+		gNumSplitScreenPanes,
+		FormatRaceTime(GetRaceTime(0))
+	);
+
+	return debugTextBuffer;
+}
+
+static void MoveDebugText(ObjNode* theNode)
+{
+	if (SetObjectVisible(theNode, gDebugMode != 0))
+	{
+		TextMesh_Update(UpdateDebugText(), kTextMeshAlignLeft, theNode);
+	}
+}
+
+static void InitDebugText(void)
 {
 	NewObjectDefinitionType newObjDef =
 	{
-		.flags = STATUS_BIT_HIDDEN | STATUS_BIT_OVERLAYPANE,
+		.flags = STATUS_BIT_HIDDEN | STATUS_BIT_OVERLAYPANE | STATUS_BIT_MOVEINPAUSE,
 		.slot = DEBUGTEXT_SLOT,
 		.scale = .25f,
 		.coord = (OGLPoint3D) { 0, 480.0f/2.0f, 0 },
+		.moveCall = MoveDebugText,
+		.projection = kProjectionType2DOrthoFullRect
 	};
-	gDebugText = TextMesh_NewEmpty(sizeof(gDebugTextBuffer), &newObjDef);
-	gDebugText->Projection = kProjectionType2DOrthoFullRect;
+	TextMesh_NewEmpty(256, &newObjDef);
 }
 
 
+#pragma mark -
 
 /***************** UPDATE 2D LOGICAL SIZE *******************/
 //
