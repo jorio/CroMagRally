@@ -103,6 +103,10 @@ typedef struct
 //=================================================
 
 SkeletonDefType *LoadSkeletonFile(short skeletonType);
+
+OSErr LoadUserDataFile(const char* path, const char* magic, long payloadLength, Ptr payloadPtr);
+OSErr SaveUserDataFile(const char* path, const char* magic, long payloadLength, Ptr payloadPtr);
+
 OSErr LoadPrefs(void);
 void SavePrefs(void);
 void LoadPlayfield(FSSpec *specPtr);

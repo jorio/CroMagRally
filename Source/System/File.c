@@ -433,6 +433,121 @@ SkeletonFile_AnimHeader_Type	*animHeaderPtr;
 
 #pragma mark -
 
+/********* LOAD STRUCT FROM USER FILE IN PREFS FOLDER ***********/
+
+OSErr LoadUserDataFile(const char* path, const char* magic, long payloadLength, Ptr payloadPtr)
+{
+OSErr		iErr;
+short		refNum;
+FSSpec		file;
+long		count;
+long		eof = 0;
+char		fileMagic[64];
+long		magicLength = strlen(magic) + 1;		// including null-terminator
+
+	GAME_ASSERT(magicLength < (long) sizeof(fileMagic));
+
+	InitPrefsFolder(false);
+
+
+				/*************/
+				/* READ FILE */
+				/*************/
+
+	FSMakeFSSpec(gPrefsFolderVRefNum, gPrefsFolderDirID, path, &file);
+	iErr = FSpOpenDF(&file, fsRdPerm, &refNum);
+	if (iErr)
+		return iErr;
+
+				/* CHECK FILE LENGTH */
+
+	GetEOF(refNum, &eof);
+
+	if (eof != magicLength + payloadLength)
+		goto fileIsCorrupt;
+
+				/* READ HEADER */
+
+	count = magicLength;
+	iErr = FSRead(refNum, &count, fileMagic);
+	if (iErr ||
+		count != magicLength ||
+		0 != strncmp(magic, fileMagic, magicLength-1))
+	{
+		goto fileIsCorrupt;
+	}
+
+				/* READ PAYLOAD */
+
+	count = payloadLength;
+	iErr = FSRead(refNum, &count, payloadPtr);
+	if (iErr || count != payloadLength)
+	{
+		goto fileIsCorrupt;
+	}
+
+	FSClose(refNum);
+	return noErr;
+
+fileIsCorrupt:
+	printf("File '%s' appears to be corrupt!\n", path);
+	FSClose(refNum);
+	return badFileFormat;
+}
+
+
+/********* SAVE STRUCT TO USER FILE IN PREFS FOLDER ***********/
+
+OSErr SaveUserDataFile(const char* path, const char* magic, long payloadLength, Ptr payloadPtr)
+{
+FSSpec				file;
+OSErr				iErr;
+short				refNum;
+long				count;
+
+	InitPrefsFolder(true);
+
+				/* CREATE BLANK FILE */
+
+	FSMakeFSSpec(gPrefsFolderVRefNum, gPrefsFolderDirID, path, &file);
+	FSpDelete(&file);															// delete any existing file
+	iErr = FSpCreate(&file, 'CavM', 'Pref', smSystemScript);					// create blank file
+	if (iErr)
+	{
+		return iErr;
+	}
+
+				/* OPEN FILE */
+
+	iErr = FSpOpenDF(&file, fsRdWrPerm, &refNum);
+	if (iErr)
+	{
+		FSpDelete(&file);
+		return iErr;
+	}
+
+				/* WRITE MAGIC */
+
+	count = strlen(magic) + 1;
+	iErr = FSWrite(refNum, &count, (Ptr) magic);
+	if (iErr)
+	{
+		FSClose(refNum);
+		return iErr;
+	}
+
+				/* WRITE DATA */
+
+	count = payloadLength;
+	iErr = FSWrite(refNum, &count, payloadPtr);
+	FSClose(refNum);
+
+	memcpy(&gDiskShadowPrefs, &gGamePrefs, sizeof(gGamePrefs));
+
+	printf("Wrote %s\n", path);
+
+	return iErr;
+}
 
 
 /******************** LOAD PREFS **********************/
@@ -442,86 +557,25 @@ SkeletonFile_AnimHeader_Type	*animHeaderPtr;
 
 OSErr LoadPrefs(void)
 {
-OSErr		iErr;
-short		refNum;
-FSSpec		file;
-long		count;
-long		eof = 0;
-char		magic[sizeof(PREFS_MAGIC)];
+	OSErr err = LoadUserDataFile(PREFS_FILE_PATH, PREFS_MAGIC, sizeof(PrefsType), (Ptr) &gGamePrefs);
 
-	InitPrefsFolder(false);
-
-				/*************/
-				/* READ FILE */
-				/*************/
-
-	FSMakeFSSpec(gPrefsFolderVRefNum, gPrefsFolderDirID, PREFS_FILE_PATH, &file);
-	iErr = FSpOpenDF(&file, fsRdPerm, &refNum);
-	if (iErr)
-		return(iErr);
-
-				/* CHECK FILE LENGTH */
-
-	GetEOF(refNum, &eof);
-
-	if (eof != sizeof(PrefsType) + sizeof(PREFS_MAGIC))
-		goto fileIsCorrupt;
-
-				/* READ HEADER */
-
-	count = sizeof(PREFS_MAGIC);
-	iErr = FSRead(refNum, &count, magic);
-	if (iErr ||
-		count != sizeof(PREFS_MAGIC) ||
-		0 != strncmp(magic, PREFS_MAGIC, sizeof(PREFS_MAGIC)-1))
+	if (err != noErr)
 	{
-		goto fileIsCorrupt;
+		InitDefaultPrefs();
 	}
 
-				/* READ PREFS STRUCT */
-
-	count = sizeof(PrefsType);
-	iErr = FSRead(refNum, &count,  (Ptr)&gGamePrefs);		// read data from file
-	if (iErr || count != sizeof(PrefsType))
-	{
-		goto fileIsCorrupt;
-	}
-
-	FSClose(refNum);
-
-			/****************/
-			/* VERIFY PREFS */
-			/****************/
-
-	if (gGamePrefs.language >= NUM_LANGUAGES
-		|| gGamePrefs.numTracksCompleted >= NUM_RACE_TRACKS)
-	{
-		goto fileIsCorrupt;
-	}
-
-	goto done;
-
-fileIsCorrupt:
-	puts("Prefs file appears to be corrupt!");
-	FSClose(refNum);
-	InitDefaultPrefs();
-
-done:
 	memcpy(&gDiskShadowPrefs, &gGamePrefs, sizeof(gDiskShadowPrefs));
-	return(noErr);
+
+	return err;
 }
 
 
+#pragma mark -
 
 /******************** SAVE PREFS **********************/
 
 void SavePrefs(void)
 {
-FSSpec				file;
-OSErr				iErr;
-short				refNum;
-long				count;
-
 #if _DEBUG
 	// If prefs didn't change relative to what's on disk, don't bother rewriting them
 	if (0 == memcmp(&gDiskShadowPrefs, &gGamePrefs, sizeof(gGamePrefs)))
@@ -529,38 +583,9 @@ long				count;
 		return;
 	}
 
-	puts("Saving prefs");
 #endif
 
-	InitPrefsFolder(true);
-
-				/* CREATE BLANK FILE */
-
-	FSMakeFSSpec(gPrefsFolderVRefNum, gPrefsFolderDirID, PREFS_FILE_PATH, &file);
-	FSpDelete(&file);															// delete any existing file
-	iErr = FSpCreate(&file, 'CavM', 'Pref', smSystemScript);					// create blank file
-	if (iErr)
-		return;
-
-				/* OPEN FILE */
-
-	iErr = FSpOpenDF(&file, fsRdWrPerm, &refNum);
-	if (iErr)
-	{
-		FSpDelete(&file);
-		return;
-	}
-
-				/* WRITE MAGIC */
-
-	count = sizeof(PREFS_MAGIC);
-	FSWrite(refNum, &count, (Ptr) PREFS_MAGIC);
-
-				/* WRITE DATA */
-
-	count = sizeof(PrefsType);
-	FSWrite(refNum, &count, (Ptr) &gGamePrefs);
-	FSClose(refNum);
+	SaveUserDataFile(PREFS_FILE_PATH, PREFS_MAGIC, sizeof(PrefsType), (Ptr)&gGamePrefs);
 
 	memcpy(&gDiskShadowPrefs, &gGamePrefs, sizeof(gGamePrefs));
 }
