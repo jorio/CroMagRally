@@ -1979,6 +1979,9 @@ short		p2 = car2->PlayerNum;
 		/* SEE IF IT WAS A MAJOR WRECK */
 		/*******************************/
 
+	bool canDoBumpFeedback = GAME_MAX(gPlayerInfo[p1].bumpSoundTimer, gPlayerInfo[p2].bumpSoundTimer) <= 0.0f;
+	bool didBumpFeedback = false;
+
 	if ((!gPlayerInfo[p1].onWater) && (!gPlayerInfo[p2].onWater))	// only if nobody is on water
 	{
 
@@ -2019,8 +2022,12 @@ short		p2 = car2->PlayerNum;
 
 					/* MAKE IMPACT EXPLOSION */
 
-			MakeSparkExplosion((gCoord.x + car2->Coord.x)/2, (gCoord.y + car2->Coord.y)/2,
-								(gCoord.z + car2->Coord.z)/2, 300.0f, PARTICLE_SObjType_WhiteSpark);
+			if (canDoBumpFeedback)
+			{
+				MakeSparkExplosion((gCoord.x + car2->Coord.x) / 2, (gCoord.y + car2->Coord.y) / 2,
+								   (gCoord.z + car2->Coord.z) / 2, 300.0f, PARTICLE_SObjType_WhiteSpark);
+				didBumpFeedback = true;
+			}
 
 					/* ANNOUNCE REALLY BIG ONES */
 
@@ -2057,10 +2064,24 @@ short		p2 = car2->PlayerNum;
 
 		}
 	}
+
 				/* MAKE SOUND */
 
-	if (relSpeed > 500.0f)
-		PlayEffect3D(EFFECT_CRASH, &gCoord);
+	if (relSpeed > 500.0f && canDoBumpFeedback)
+	{
+		PlayEffect3D(EFFECT_CRASH2, &gCoord);
+		didBumpFeedback = true;
+	}
+
+
+				/* CAP BUMP FEEDBACK RATE */
+
+	if (didBumpFeedback)
+	{
+		float nextBumpFeedbackDelay = 0.45f + RandomFloat() * 0.1f;
+		gPlayerInfo[p1].bumpSoundTimer = nextBumpFeedbackDelay;
+		gPlayerInfo[p2].bumpSoundTimer = nextBumpFeedbackDelay;
+	}
 }
 
 
