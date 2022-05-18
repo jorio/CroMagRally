@@ -343,6 +343,11 @@ Boolean	taken[NUM_LAND_CAR_TYPES];
 		gPlayerInfo[i].engineChannel = -1;
 
 
+			/* SCORING */
+
+		memset(gPlayerInfo[i].lapTimes, 0, sizeof(gPlayerInfo[i].lapTimes));
+
+
 			/* RESET CAR PHYSICS INFO */
 
 		SetPhysicsForVehicleType(i);
