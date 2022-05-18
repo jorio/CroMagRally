@@ -137,6 +137,8 @@ OSErr		iErr;
 
 	LoadLocalizedStrings(gGamePrefs.language);
 
+	LoadScoreboardFile();
+
 			/* DO BOOT CHECK FOR SCREEN MODE */
 
 	SetFullscreenMode(true);

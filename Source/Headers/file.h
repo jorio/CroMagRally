@@ -73,23 +73,33 @@ typedef struct
 	Boolean	gamepadRumble;
 }PrefsType;
 
-#define PREFS_MAGIC "CMR Prefs v0"
 #define PREFS_FOLDER_NAME "CroMagRally"
-#define PREFS_FILE_PATH (":" PREFS_FOLDER_NAME ":Prefs")
+
+#define PREFS_MAGIC "CMR Prefs v0   "
+#define PREFS_FILENAME "Prefs"
 
 
+// Probably storing more info than necessary, but it's there if we ever want to make a super-detailed scoreboard
 typedef struct
 {
-	uint64_t	timestamp;
+	int64_t		timestamp;
 	float		lapTimes[LAPS_PER_RACE];
-	char		reserved1[32];		// make room for player name if we want to add this in a later version
-	char		reserved2[12];		// pad to 64 bytes
+	Byte		trackNum;
+	Byte		difficulty;
+	Byte		gameMode;
+	Byte		vehicleType;
+	Byte		place;
+	Byte		sex;
+	Byte		skin;
+	char		reserved[32+5];		// pad to 64 bytes & make room for player name (if we want to add this later)
 } ScoreboardRecord;
 
 typedef struct
 {
-	ScoreboardRecord records[NUM_RACE_TRACKS];
+	ScoreboardRecord records[NUM_RACE_TRACKS][MAX_RECORDS_PER_TRACK];
 } Scoreboard;
+
+#define SCOREBOARD_MAGIC "CMR Scores v0  "
 
 
 		/* COMMAND-LINE OPTIONS */
@@ -126,6 +136,9 @@ void SetPlayerProgression(int numTracksCompleted);
 
 Ptr LoadDataFile(const char* path, long* outLength);
 char* LoadTextFile(const char* path, long* outLength);
+
+OSErr SaveScoreboardFile(void);
+OSErr LoadScoreboardFile(void);
 
 #define BYTESWAP_HANDLE(format, type, n, handle)                                  \
 {                                                                                 \

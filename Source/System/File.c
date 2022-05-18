@@ -433,9 +433,17 @@ SkeletonFile_AnimHeader_Type	*animHeaderPtr;
 
 #pragma mark -
 
+static OSErr MakeFSSpecForUserDataFile(const char* filename, FSSpec* spec)
+{
+	char path[256];
+	snprintf(path, sizeof(path), ":%s:%s", PREFS_FOLDER_NAME, filename);
+
+	return FSMakeFSSpec(gPrefsFolderVRefNum, gPrefsFolderDirID, path, spec);
+}
+
 /********* LOAD STRUCT FROM USER FILE IN PREFS FOLDER ***********/
 
-OSErr LoadUserDataFile(const char* path, const char* magic, long payloadLength, Ptr payloadPtr)
+OSErr LoadUserDataFile(const char* filename, const char* magic, long payloadLength, Ptr payloadPtr)
 {
 OSErr		iErr;
 short		refNum;
@@ -454,7 +462,7 @@ long		magicLength = strlen(magic) + 1;		// including null-terminator
 				/* READ FILE */
 				/*************/
 
-	FSMakeFSSpec(gPrefsFolderVRefNum, gPrefsFolderDirID, path, &file);
+	MakeFSSpecForUserDataFile(filename, &file);
 	iErr = FSpOpenDF(&file, fsRdPerm, &refNum);
 	if (iErr)
 		return iErr;
@@ -490,7 +498,7 @@ long		magicLength = strlen(magic) + 1;		// including null-terminator
 	return noErr;
 
 fileIsCorrupt:
-	printf("File '%s' appears to be corrupt!\n", path);
+	printf("File '%s' appears to be corrupt!\n", file.cName);
 	FSClose(refNum);
 	return badFileFormat;
 }
@@ -498,7 +506,7 @@ fileIsCorrupt:
 
 /********* SAVE STRUCT TO USER FILE IN PREFS FOLDER ***********/
 
-OSErr SaveUserDataFile(const char* path, const char* magic, long payloadLength, Ptr payloadPtr)
+OSErr SaveUserDataFile(const char* filename, const char* magic, long payloadLength, Ptr payloadPtr)
 {
 FSSpec				file;
 OSErr				iErr;
@@ -509,7 +517,7 @@ long				count;
 
 				/* CREATE BLANK FILE */
 
-	FSMakeFSSpec(gPrefsFolderVRefNum, gPrefsFolderDirID, path, &file);
+	MakeFSSpecForUserDataFile(filename, &file);
 	FSpDelete(&file);															// delete any existing file
 	iErr = FSpCreate(&file, 'CavM', 'Pref', smSystemScript);					// create blank file
 	if (iErr)
@@ -544,11 +552,13 @@ long				count;
 
 	memcpy(&gDiskShadowPrefs, &gGamePrefs, sizeof(gGamePrefs));
 
-	printf("Wrote %s\n", path);
+	printf("Wrote %s\n", file.cName);
 
 	return iErr;
 }
 
+
+#pragma mark -
 
 /******************** LOAD PREFS **********************/
 //
@@ -557,7 +567,7 @@ long				count;
 
 OSErr LoadPrefs(void)
 {
-	OSErr err = LoadUserDataFile(PREFS_FILE_PATH, PREFS_MAGIC, sizeof(PrefsType), (Ptr) &gGamePrefs);
+	OSErr err = LoadUserDataFile("Prefs", PREFS_MAGIC, sizeof(PrefsType), (Ptr) &gGamePrefs);
 
 	if (err != noErr)
 	{
@@ -569,8 +579,6 @@ OSErr LoadPrefs(void)
 	return err;
 }
 
-
-#pragma mark -
 
 /******************** SAVE PREFS **********************/
 
@@ -585,7 +593,7 @@ void SavePrefs(void)
 
 #endif
 
-	SaveUserDataFile(PREFS_FILE_PATH, PREFS_MAGIC, sizeof(PrefsType), (Ptr)&gGamePrefs);
+	SaveUserDataFile("Prefs", PREFS_MAGIC, sizeof(PrefsType), (Ptr)&gGamePrefs);
 
 	memcpy(&gDiskShadowPrefs, &gGamePrefs, sizeof(gGamePrefs));
 }
@@ -616,6 +624,8 @@ void SavePlayerFile(void)
 }
 
 
+/*********************** GET/SET PROGRESSION *******************************/
+
 
 int GetNumAgesCompleted(void)
 {
@@ -643,7 +653,35 @@ void SetPlayerProgression(int numTracksCompleted)
 }
 
 
+#pragma mark -
 
+/*********************** SCOREBOARD FILE *******************************/
+
+OSErr SaveScoreboardFile(void)
+{
+	_Static_assert(sizeof(ScoreboardRecord) == 64, "Ideally, a ScoreboardRecord should be 64 bytes long");
+	return SaveUserDataFile(
+			"Scoreboard",
+			SCOREBOARD_MAGIC,
+			sizeof(gScoreboard),
+			(Ptr) &gScoreboard);
+}
+
+OSErr LoadScoreboardFile(void)
+{
+	OSErr err = LoadUserDataFile(
+			"Scoreboard",
+			SCOREBOARD_MAGIC,
+			sizeof(gScoreboard),
+			(Ptr) &gScoreboard);
+
+	if (err != noErr)
+	{
+		memset(&gScoreboard, 0, sizeof(gScoreboard));
+	}
+
+	return err;
+}
 
 #pragma mark -
 

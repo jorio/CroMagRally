@@ -358,6 +358,10 @@ void PlayerCompletedRace(short playerNum)
 {
 	gPlayerInfo[playerNum].raceComplete = true;
 
+
+	int rankInScoreboard = SaveRaceTime(playerNum);
+
+
 			/* TELL WINNER IN MULTIPLAYER RACE */
 			//
 			// Game ends as soon as 1st player finishes the race
