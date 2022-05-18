@@ -4,6 +4,8 @@
 /****************************/
 
 #include "game.h"
+#include "uielements.h"
+#include "menu.h"
 #include <time.h>
 
 Scoreboard gScoreboard;
@@ -141,4 +143,104 @@ int SaveRaceTime(int playerNum)
 
 	// Return our rank so infobar can tell user if they beat the record
 	return rank;
+}
+
+#pragma mark -
+
+static void SetupScoreboardScreen(void)
+{
+OGLSetupInputType	viewDef;
+OGLColorRGBA		ambientColor = { .1, .1, .1, 1 };
+OGLColorRGBA		fillColor1 = { 1.0, 1.0, 1.0, 1 };
+OGLColorRGBA		fillColor2 = { .3, .3, .3, 1 };
+OGLVector3D			fillDirection1 = { .9, -.7, -1 };
+OGLVector3D			fillDirection2 = { -1, -.2, -.5 };
+
+
+			/**************/
+			/* SETUP VIEW */
+			/**************/
+
+	OGL_NewViewDef(&viewDef);
+
+	viewDef.camera.fov 				= 1;
+	viewDef.camera.hither 			= 10;
+	viewDef.camera.yon 				= 3000;
+	viewDef.camera.from[0].z		= 700;
+	viewDef.camera.from[0].y		= 250;
+	viewDef.view.clearColor 		= (OGLColorRGBA) {0,0,0, 1.0f};
+	viewDef.styles.useFog			= false;
+	viewDef.view.pillarboxRatio	= PILLARBOX_RATIO_4_3;
+	viewDef.view.fontName			= "rockfont";
+
+	OGLVector3D_Normalize(&fillDirection1, &fillDirection1);
+	OGLVector3D_Normalize(&fillDirection2, &fillDirection2);
+
+	viewDef.lights.ambientColor 	= ambientColor;
+	viewDef.lights.numFillLights 	= 2;
+	viewDef.lights.fillDirection[0] = fillDirection1;
+	viewDef.lights.fillDirection[1] = fillDirection2;
+	viewDef.lights.fillColor[0] 	= fillColor1;
+	viewDef.lights.fillColor[1] 	= fillColor2;
+
+	OGL_SetupGameView(&viewDef);
+
+
+				/************/
+				/* LOAD ART */
+				/************/
+
+
+			/* BACKGROUND */
+
+	MakeScrollingBackgroundPattern();
+
+			/* FADE IN */
+
+	MakeFadeEvent(true);
+
+//	UpdateShadowCarStats();
+}
+
+static Byte gScoreboardTrack = 0;
+
+static const MenuItem gScoreboardMenuTree[] =
+{
+	{.id='scbd'},
+	{
+		kMICycler1,
+		STR_NULL,
+		.cycler =
+		{
+			.valuePtr = &gScoreboardTrack,
+			.choices =
+			{
+				{STR_LEVEL_1, 0},
+				{STR_LEVEL_2, 1},
+				{STR_LEVEL_3, 2},
+				{STR_LEVEL_4, 3},
+				{STR_LEVEL_5, 4},
+				{STR_LEVEL_6, 5},
+				{STR_LEVEL_7, 6},
+				{STR_LEVEL_8, 7},
+				{STR_LEVEL_9, 8},
+			}
+		},
+		.customHeight = 1.5,
+	},
+	{0},
+};
+
+void DoScoreboardScreen()
+{
+	SetupScoreboardScreen();
+
+	MenuStyle style = kDefaultMenuStyle;
+	style.yOffset = -200;
+	style.canBackOutOfRootMenu = true;
+
+	int outcome = StartMenu(gScoreboardMenuTree, &style, MoveObjects, DrawObjects);
+
+	DeleteAllObjects();
+	OGL_DisposeGameView();
 }

@@ -46,6 +46,7 @@ enum
 {
 	MENU_EXITCODE_HELP		= 1000,
 	MENU_EXITCODE_CREDITS,
+	MENU_EXITCODE_SCOREBOARD,
 	MENU_EXITCODE_PHYSICS,
 	MENU_EXITCODE_SELFRUNDEMO,
 	MENU_EXITCODE_QUITGAME,
@@ -92,6 +93,7 @@ static const MenuItem gMainMenuTree[] =
 	{ .id='xtra' },
 	{kMIPick, STR_HELP,				.id=MENU_EXITCODE_HELP,		.next='EXIT' },
 	{kMIPick, STR_CREDITS,			.id=MENU_EXITCODE_CREDITS,	.next='EXIT', .callback=OnPickCredits },
+	{kMIPick, STR_SCOREBOARD,		.id=MENU_EXITCODE_SCOREBOARD,	.next='EXIT' },
 	{kMIPick, STR_PHYSICS_EDITOR,	.id=MENU_EXITCODE_PHYSICS,	.next='EXIT' },
 
 	{ .id='mpgm' },
@@ -203,6 +205,8 @@ do_again:
 	OGL_DisposeGameView();
 
 
+			/* RUN NEXT SCREEN */
+
 	switch (outcome)
 	{
 		case MENU_EXITCODE_HELP:
@@ -212,11 +216,15 @@ do_again:
 		case MENU_EXITCODE_CREDITS:
 			DoCreditsScreen();
 			goto do_again;
-		
+
+		case MENU_EXITCODE_SCOREBOARD:
+			DoScoreboardScreen();
+			goto do_again;
+
 		case MENU_EXITCODE_PHYSICS:
 			DoPhysicsEditor();
 			goto do_again;
-		
+
 		case MENU_EXITCODE_SELFRUNDEMO:
 			PrimeSelfRunningDemo();
 			break;
