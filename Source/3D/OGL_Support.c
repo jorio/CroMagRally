@@ -243,6 +243,11 @@ void OGL_SetupGameView(OGLSetupInputType *setupDefPtr)
 				gActiveSplitScreenMode = SPLITSCREEN_MODE_4P_GRID;
 				break;
 
+		case	5:	// For debugging
+		case	6:	// For debugging
+				gActiveSplitScreenMode = SPLITSCREEN_MODE_6P_GRID;
+				break;
+
 		default:
 			DoFatalAlert("OGL_SetupGameView: # panes not implemented");
 	}
@@ -808,34 +813,31 @@ int	t,b,l,r;
 
 		case	SPLITSCREEN_MODE_4P_GRID:
 		_4pgrid:
+		{
+				int column = whichPane & 1;
+				int row    = whichPane < 2 ? 1 : 0;
+
 				*w = 0.5f * (clippedWidth - div) + 0.5f;
 				*h = 0.5f * (clippedHeight - div) + 0.5f;
-				switch (whichPane)
-				{
-					case	0:
-						*x = l;
-						*y = t + 0.5f * (clippedHeight + div) + 0.5f;
-						break;
 
-					case	1:
-						*x = l + 0.5f * (clippedWidth + div) + 0.5f;
-						*y = t + 0.5f * (clippedHeight + div) + 0.5f;
-						break;
+				*x = l + (0.5f*column) * (clippedWidth  + div) + 0.5f;
+				*y = t + (0.5f*row   ) * (clippedHeight + div) + 0.5f;
 
-					case	2:
-						*x = l;
-						*y = t;
-						break;
-
-					case	3:
-						*x = l + 0.5f * (clippedWidth + div) + 0.5f;
-						*y = t;
-						break;
-
-					default:
-						DoFatalAlert("Unsupported pane %d in 4P_GRID split", whichPane);
-				}
 				break;
+		}
+
+		case	SPLITSCREEN_MODE_6P_GRID:
+		{
+				int column = whichPane % 3;
+				int row    = whichPane < 3 ? 1 : 0;
+
+				*w = (1.0f/3.0f) * (clippedWidth - div) + 0.5f;
+				*h = (1.0f/2.0f) * (clippedHeight - div) + 0.5f;
+
+				*x = l + (column*(1.0f/3.0f)) * (clippedWidth  + div) + 0.5f;
+				*y = t + (row   *(1.0f/2.0f)) * (clippedHeight + div) + 0.5f;
+				break;
+		}
 
 		default:
 				DoFatalAlert("Unsupported split-screen mode %d", gActiveSplitScreenMode);

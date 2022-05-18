@@ -280,6 +280,29 @@ enum
 	//  +----+----+
 	SPLITSCREEN_MODE_4P_GRID,
 
+	//  +--+--+--+
+	//  |  |  |  |
+	//  +--+--+  |
+	//  |  |  |  |
+	//  +--+--+--+
+	// Not implemented
+	SPLITSCREEN_MODE_5P_TALL,
+
+	//  +--+--+--+
+	//  |  |  |  |
+	//  +--+--+--+
+	//  |  |     |
+	//  +--+--+--+
+	// Not implemented
+	SPLITSCREEN_MODE_5P_WIDE,
+
+	//  +--+--+--+
+	//  |  |  |  |
+	//  +--+--+--+
+	//  |  |  |  |
+	//  +--+--+--+
+	SPLITSCREEN_MODE_6P_GRID,
+
 	NUM_SPLITSCREEN_MODES
 };
 
