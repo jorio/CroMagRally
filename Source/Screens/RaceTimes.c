@@ -56,7 +56,7 @@ void TickLapTimes(int playerNum)
 	}
 }
 
-float SumLapTimes(float lapTimes[LAPS_PER_RACE])
+float SumLapTimes(const float lapTimes[LAPS_PER_RACE])
 {
 	float total = 0;
 

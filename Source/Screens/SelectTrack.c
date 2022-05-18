@@ -278,9 +278,19 @@ static void MakeTrackName(void)
 		gTrackName = nil;
 	}
 
+
+	float record = 0;
+	bool hasRecord = false;
+
+	if (gBaseTrack == 0) // race
+	{
+		record = SumLapTimes(gScoreboard.records[gSelectedTrackIndex][0].lapTimes);
+		hasRecord = record > 0.1f;
+	}
+
 	NewObjectDefinitionType def =
 	{
-		.coord		= {0, -168, 0},
+		.coord		= {0, hasRecord? -180: -168, 0},
 		.scale		= .7,
 		.slot		= SPRITE_SLOT,
 	};
@@ -302,25 +312,36 @@ static void MakeTrackName(void)
 	def.coord.y = 60;
 	def.scale = .25f;
 	def.slot++;
-	ObjNode *subtitle = NULL;
 
 	if (IsSelectedTrackLocked())
 	{
+		ObjNode *subtitle = NULL;
+
 		switch (gSelectedTrackIndex / TRACKS_PER_AGE)
 		{
 			case BRONZE_AGE:
 				subtitle = TextMesh_New(Localize(STR_COMPLETE_STONE_AGE_TO_UNLOCK_TRACK), 0, &def);
+				AppendNodeToChain(gTrackName, subtitle);
 				break;
 
 			case IRON_AGE:
 				subtitle = TextMesh_New(Localize(STR_COMPLETE_BRONZE_AGE_TO_UNLOCK_TRACK), 0, &def);
+				AppendNodeToChain(gTrackName, subtitle);
 				break;
 		}
 	}
 
-	if (subtitle != NULL)
+
+	if (hasRecord)
 	{
-		gTrackName->ChainNode = subtitle;
+		def.coord.y = -150;
+		def.slot++;
+
+		char bestTimeStr[64];
+		snprintf(bestTimeStr, sizeof(bestTimeStr), "%s: %s", Localize(STR_BEST_TIME), FormatRaceTime(record));
+
+		ObjNode* bestTime = TextMesh_New(bestTimeStr, 0, &def);
+		AppendNodeToChain(gTrackName, bestTime);
 	}
 }
 
