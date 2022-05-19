@@ -1154,7 +1154,7 @@ static void MoveLapMessage(ObjNode *theNode)
 // Called from Checkpoints.c whenever the player completes a race.
 //
 
-void ShowFinalPlace(short playerNum)
+void ShowFinalPlace(short playerNum, int rankInScoreboard)
 {
 short	place;
 short	sex;
@@ -1216,6 +1216,18 @@ short	sex;
 		ObjNode* yourTimeObj = TextMesh_New(timeStr, 0, &textDef);
 
 		AppendNodeToChain(gFinalPlaceObj, yourTimeObj);
+
+
+			/* MAKE NEW RECORD TEXT IF RANKED 1ST & SCOREBOARD WASN'T EMPTY */
+
+		textDef.slot++;
+		if (rankInScoreboard == 0
+			&& SumLapTimes(gScoreboard.records[gTrackNum][1].lapTimes) > 0)
+		{
+			textDef.coord.y += 32;
+			ObjNode* newRecordObj = TextMesh_New(Localize(STR_NEW_RECORD), 0, &textDef);
+			AppendNodeToChain(gFinalPlaceObj, newRecordObj);
+		}
 	}
 }
 

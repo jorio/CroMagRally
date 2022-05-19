@@ -392,7 +392,7 @@ void PlayerCompletedRace(short playerNum)
 
 	else
 	{
-		ShowFinalPlace(playerNum);
+		ShowFinalPlace(playerNum, rankInScoreboard);
 
 		if (!gPlayerInfo[playerNum].isComputer)
 		{
