@@ -47,12 +47,13 @@ static void NavigatePadBinding(const MenuItem* entry);
 static void NavigateMouseBinding(const MenuItem* entry);
 static void NavigateFloatRange(const MenuItem* entry);
 
+#define SpecialMuted				Flag[0]
+#define SpecialSweepRTL				Flag[1]
 #define SpecialRow					Special[0]
 #define SpecialCol					Special[1]
-#define SpecialMuted				Special[2]
 #define SpecialPulsateTimer			SpecialF[0]
 #define SpecialSweepTimer			SpecialF[1]
-#define SpecialAsyncFadeOutSpeed	SpecialF[2]
+#define SpecialAsyncFadeOutSpeed	SpecialF[3]
 
 /****************************/
 /*    CONSTANTS             */
@@ -502,7 +503,11 @@ static void MoveGenericMenuItem(ObjNode* node, float baseAlpha)
 			float xBackup = node->Coord.x;
 
 			float p = (1.0f - node->SpecialSweepTimer);
-			node->Coord.x -= p*p * 50.0f;
+			float offset = p*p * 50.0f;
+			if (node->SpecialSweepRTL != 0)		// used to sweep left instead of right
+				offset *= -1;
+
+			node->Coord.x -= offset;
 			UpdateObjectTransforms(node);
 
 			node->Coord.x = xBackup;
@@ -914,10 +919,13 @@ static void NavigateCycler(const MenuItem* entry)
 		if (entry->callback)
 			entry->callback(entry);
 
+		ObjNode* node;
 		if (entry->type == kMICycler1)
-			LayOutCycler1(gNav->menuRow, 0);
+			node = LayOutCycler1(gNav->menuRow, 0);
 		else
-			LayOutCycler2ValueText(gNav->menuRow);
+			node = LayOutCycler2ValueText(gNav->menuRow);
+
+		node->SpecialSweepRTL = (delta == -1);
 
 		RepositionArrows();
 	}
