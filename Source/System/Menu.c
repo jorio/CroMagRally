@@ -944,9 +944,17 @@ static void NavigateFloatRange(const MenuItem* entry)
 	if (delta != 0)
 	{
 		float deltaFrac = delta * entry->floatRange.incrementFrac;
-		float currentFrac = *entry->floatRange.valuePtr / *entry->floatRange.equilibriumPtr;
-		float newFrac = currentFrac + deltaFrac;
-		float newValue = newFrac * *entry->floatRange.equilibriumPtr;
+		float valueFrac = *entry->floatRange.valuePtr / *entry->floatRange.equilibriumPtr;
+		valueFrac += deltaFrac;
+
+		// If possible, round fraction to 0% or 100%, to avoid floating-point drift
+		// when the user sets values back to 0% or 100% manually.
+		if (fabsf(valueFrac - 1.0f) < 0.001f)		// Round to 100%
+			valueFrac = 1.0f;
+		else if (fabsf(valueFrac) < 0.001f)			// Round to 0%
+			valueFrac = 0.0f;
+
+		float newValue = valueFrac * *entry->floatRange.equilibriumPtr;
 
 		gNav->idleTime = 0;
 		PlayEffect_Parms(kSfxCycle, FULL_CHANNEL_VOLUME, FULL_CHANNEL_VOLUME, NORMAL_CHANNEL_RATE * 2 / 3 + (RandomFloat2() * 0x3000));
