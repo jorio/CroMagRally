@@ -1439,7 +1439,7 @@ static float GetMenuItemHeight(int row)
 	const MenuItem* menuItem = &gNav->menu[row];
 
 	if (GetLayoutFlags(menuItem) & kMILayoutFlagHidden)
-		return false;
+		return 0;
 	else if (menuItem->customHeight > 0)
 		return menuItem->customHeight;
 	else
@@ -1713,13 +1713,17 @@ static void LayOutMenu(int menuID)
 	DeleteAllText();
 
 	float totalHeight = 0;
+	float firstHeight = 0;
 	for (int row = 0; menu[row].type != kMISENTINEL; row++)
 	{
-		totalHeight += GetMenuItemHeight(row) * gNav->style.rowHeight;
+		float height = GetMenuItemHeight(row);
+		if (firstHeight == 0)
+			firstHeight = height;
+		totalHeight += height * gNav->style.rowHeight;
 	}
 
 	float y = -totalHeight*.5f + gNav->style.yOffset;
-	y += GetMenuItemHeight(0) * gNav->style.rowHeight / 2.0f;
+	y += firstHeight * gNav->style.rowHeight / 2.0f;
 
 	if (gNav->darkenPane)
 	{
