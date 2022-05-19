@@ -1327,11 +1327,11 @@ static char* UpdateDebugText(void)
 		"FPS:\t%d"
 		"\nTRIS:\t%d"
 		"\nOBJS:\t%d"
-		"\nVRAM:\t%dK"
+		"\nVRAM:\t%d\vK"
 		"\nPTRS:\t%d"
-		"\nTILES:\t%d/%d"
-		"\nCHAN:\t%d/%d"
-		"\n%dX%d/%d"
+		"\nTILES:\t%d\v/%d"
+		"\nCHAN:\t%d\v/%d"
+		"\n%d\vX\r%d\v/%d"
 		"\n%s"
 		,
 		(int)(gFramesPerSecond + .5f),

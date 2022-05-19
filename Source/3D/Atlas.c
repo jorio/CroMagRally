@@ -21,6 +21,16 @@
 
 #define MAX_IMMEDIATEMODE_QUADS		1024
 
+#define SUBSCRIPT_SCALE				0.66f
+
+enum
+{
+	kControlChar_LineBreak				= '\n',
+	kControlChar_Tab					= '\t',
+	kControlChar_Subscript				= '\v',
+	kControlChar_ResetInlineFormatting	= '\r',
+};
+
 /****************************/
 /*    PROTOTYPES            */
 /****************************/
@@ -423,6 +433,7 @@ static float Kern(const Atlas* font, const AtlasGlyph* glyph, const char* utftex
 static void ComputeMetrics(const Atlas* atlas, const char* text, int flags, TextMetrics* m)
 {
 	int currentLine = 0;
+	float glyphScale = 1;
 
 	// Compute number of quads and line width
 	m->numLines = 1;
@@ -436,24 +447,35 @@ static void ComputeMetrics(const Atlas* atlas, const char* text, int flags, Text
 	{
 		uint32_t codepoint = ReadNextCodepointFromUTF8(&utftext, flags);
 
-		if (atlas->isASCIIFont)
+		if (atlas->isASCIIFont)			// Parse control characters if it's a font
 		{
-			if (codepoint == '\n')
+			switch (codepoint)
 			{
-				m->bbWidth = GAME_MAX(m->bbWidth, m->lineWidths[currentLine]);
-				m->bbHeight += m->lineHeights[currentLine];
+				case kControlChar_LineBreak:
+					m->bbWidth = GAME_MAX(m->bbWidth, m->lineWidths[currentLine]);
+					m->bbHeight += m->lineHeights[currentLine];
 
-				currentLine++;
-				GAME_ASSERT(currentLine < MAX_LINEBREAKS_PER_OBJNODE);
+					currentLine++;
+					GAME_ASSERT(currentLine < MAX_LINEBREAKS_PER_OBJNODE);
 
-				m->lineWidths[currentLine] = 0;  // init next line
-				m->lineHeights[currentLine] = 0;
-				continue;
-			}
-			else if (codepoint == '\t')
-			{
-				m->lineWidths[currentLine] = TAB_STOP * ceilf((m->lineWidths[currentLine] + 1.0f) / TAB_STOP);
-				continue;
+					m->lineWidths[currentLine] = 0;  // init next line
+					m->lineHeights[currentLine] = 0;
+					continue;
+
+				case kControlChar_Tab:
+					m->lineWidths[currentLine] = TAB_STOP * ceilf((m->lineWidths[currentLine] + 1.0f) / TAB_STOP);
+					continue;
+
+				case kControlChar_Subscript:
+					glyphScale *= SUBSCRIPT_SCALE;
+					continue;
+
+				case kControlChar_ResetInlineFormatting:
+					glyphScale = 1;
+					continue;
+
+				default:
+					break;
 			}
 		}
 
@@ -475,7 +497,7 @@ static void ComputeMetrics(const Atlas* atlas, const char* text, int flags, Text
 			glyphHeight = glyph->yadv;
 		}
 
-		m->lineWidths[currentLine] += (glyph->xadv * kernFactor);
+		m->lineWidths[currentLine] += glyphScale * (glyph->xadv * kernFactor);
 		m->lineHeights[currentLine] = GAME_MAX(m->lineHeights[currentLine], glyphHeight);
 
 		if (glyph->w > 0)		// zero-width glyphs don't produce a quad (e.g. space)
@@ -554,23 +576,39 @@ static void PrepVertices(
 
 	int p = 0;		// point counter
 	int currentLine = 0;
+	float glyphScale = 1;
+
 	for (const char* utftext = text; *utftext; )
 	{
 		uint32_t codepoint = ReadNextCodepointFromUTF8(&utftext, flags);
 
-		if (atlas->isASCIIFont)
+		if (atlas->isASCIIFont)			// Parse control characters if it's a font
 		{
-			if (codepoint == '\n')
+			switch (codepoint)
 			{
-				currentLine++;
-				x = metrics->lineOffsetX[currentLine];
-				y = metrics->lineOffsetY[currentLine];
-				continue;
-			}
-			else if (codepoint == '\t')
-			{
-				x = TAB_STOP * ceilf((x + 1.0f) / TAB_STOP);
-				continue;
+				case kControlChar_LineBreak:
+					currentLine++;
+					x = metrics->lineOffsetX[currentLine];
+					y = metrics->lineOffsetY[currentLine];
+					glyphScale = 1;
+					continue;
+
+				case kControlChar_Tab:
+					x = TAB_STOP * ceilf((x + 1.0f) / TAB_STOP);
+					continue;
+
+				case kControlChar_Subscript:
+					y += atlas->lineHeight * (1.0f - SUBSCRIPT_SCALE * 1.05f);
+					glyphScale *= SUBSCRIPT_SCALE;
+					continue;
+
+				case kControlChar_ResetInlineFormatting:
+					y = metrics->lineOffsetY[currentLine];
+					glyphScale = 1;
+					continue;
+
+				default:
+					break;
 			}
 		}
 
@@ -584,10 +622,10 @@ static void PrepVertices(
 			continue;
 		}
 
-		float left   = x + g->xoff;
-		float top    = y + g->yoff;
-		float right  = left + g->w;
-		float bottom = top  + g->h;
+		float left   = x    + glyphScale * g->xoff;
+		float top    = y    + glyphScale * g->yoff;
+		float right  = left + glyphScale * g->w;
+		float bottom = top  + glyphScale * g->h;
 
 		uvs[p+0] = (OGLTextureCoord) {g->u1, g->v2};
 		uvs[p+1] = (OGLTextureCoord) {g->u2, g->v2};
@@ -599,12 +637,11 @@ static void PrepVertices(
 		points[p+3] = (OGLPoint3D) { left , top   , z };
 
 		float xadv = g->xadv;
-
 		if (atlas->isASCIIFont)
 			xadv *= Kern(atlas, g, utftext, flags);
 
-		x += xadv;
-		p += 4;
+		x += glyphScale * xadv;
+		p += 4;			// 4 more vertices
 	}
 }
 
