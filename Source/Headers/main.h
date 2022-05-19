@@ -4,9 +4,6 @@
 
 #pragma once
 
-#define NUM_WORLDS			4
-#define NUM_AREAS_PER_WORLD	3
-
 #define	MAX_PLAYERS			6
 #define	MAX_LOCAL_PLAYERS	4
 

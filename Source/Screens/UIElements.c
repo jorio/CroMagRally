@@ -132,8 +132,8 @@ static void DrawScrollingBackgroundPattern(ObjNode* theNode)
 
 	MOMaterialObject* patternMaterial = (MOMaterialObject*) theNode->SpecialPtr[0];
 
-	float dx = theNode->SpecialF[0] -= gFramesPerSecondFrac * 0.05f;
-	float dy = theNode->SpecialF[1] -= gFramesPerSecondFrac * 0.05f;
+	float dx = theNode->SpecialF[0] -= gFramesPerSecondFrac * 0.08f;
+	float dy = theNode->SpecialF[1] -= gFramesPerSecondFrac * 0.08f;
 
 	OGL_PushState();
 	MO_DrawMaterial(patternMaterial);

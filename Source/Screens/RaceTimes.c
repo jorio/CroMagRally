@@ -10,7 +10,12 @@
 
 Scoreboard gScoreboard;
 
-Boolean IsRaceMode()
+static Byte gScoreboardTrack = 0;
+static ObjNode* gRecordChainHead = 0;
+
+static void OnScoreboardTrackChanged(const MenuItem* mi);
+
+Boolean IsRaceMode(void)
 {
 	switch (gGameMode)
 	{
@@ -28,7 +33,7 @@ char* FormatRaceTime(float t)
 {
 	if (t <= 0)
 	{
-		return "-'--''--";
+		return "-'--''---";
 	}
 
 	static char timeBuf[16];
@@ -37,7 +42,7 @@ char* FormatRaceTime(float t)
 	int sec = ((int) t) % 60;
 	int cent = ((int) (t * 100.0f)) % 100;
 
-	snprintf(timeBuf, sizeof(timeBuf), "%d'%02d''%02d", min, sec, cent);
+	snprintf(timeBuf, sizeof(timeBuf), "%d'%02d\v.%02d", min, sec, cent);
 
 	return timeBuf;
 }
@@ -202,7 +207,6 @@ OGLVector3D			fillDirection2 = { -1, -.2, -.5 };
 //	UpdateShadowCarStats();
 }
 
-static Byte gScoreboardTrack = 0;
 
 static const MenuItem gScoreboardMenuTree[] =
 {
@@ -210,6 +214,7 @@ static const MenuItem gScoreboardMenuTree[] =
 	{
 		kMICycler1,
 		STR_NULL,
+		.callback = OnScoreboardTrackChanged,
 		.cycler =
 		{
 			.valuePtr = &gScoreboardTrack,
@@ -231,8 +236,10 @@ static const MenuItem gScoreboardMenuTree[] =
 	{0},
 };
 
-void DoScoreboardScreen()
+void DoScoreboardScreen(void)
 {
+	GAME_ASSERT(gRecordChainHead == NULL);
+
 	SetupScoreboardScreen();
 
 	MenuStyle style = kDefaultMenuStyle;
@@ -243,4 +250,94 @@ void DoScoreboardScreen()
 
 	DeleteAllObjects();
 	OGL_DisposeGameView();
+
+	gRecordChainHead = NULL;
+}
+
+static void LayOutScoreboardForTrack(void)
+{
+	if (gRecordChainHead)
+	{
+		DeleteObject(gRecordChainHead);
+		gRecordChainHead = NULL;
+	}
+
+	NewObjectDefinitionType def1 =
+	{
+		.coord = {-200, -110, 0},
+		.scale = 0.5,
+	};
+
+	NewObjectDefinitionType def2 =
+	{
+		.coord = {-23, -105, 0},
+		.scale = 0.2,
+	};
+	NewObjectDefinitionType def3 =
+	{
+		.coord = {-200, -110+20, 0},
+		.scale = 0.2,
+	};
+
+	short slot = MENU_SLOT;
+	const char* lapStr = Localize(STR_LAP);
+
+	for (int i = 0; i < GAME_MIN(10, MAX_RECORDS_PER_TRACK); i++)
+	{
+		const ScoreboardRecord* record = &gScoreboard.records[gScoreboardTrack][i];
+
+		def1.slot = slot++;
+
+		float raceTime = SumLapTimes(record->lapTimes);
+		char* raceTimeStr = FormatRaceTime(raceTime);
+		ObjNode* textNode = TextMesh_New(raceTimeStr, kTextMeshAlignLeft, &def1);
+
+		if (gRecordChainHead)
+			AppendNodeToChain(gRecordChainHead, textNode);
+		else
+			gRecordChainHead = textNode;
+
+		char lapsBuf[128];
+		lapsBuf[0] = '\0';
+		snprintfcat(lapsBuf, sizeof(lapsBuf), "%s 1: %s", lapStr, FormatRaceTime(record->lapTimes[0]));
+		snprintfcat(lapsBuf, sizeof(lapsBuf), "\n%s 2: %s", lapStr, FormatRaceTime(record->lapTimes[1]));
+		snprintfcat(lapsBuf, sizeof(lapsBuf), "\n%s 3: %s", lapStr, FormatRaceTime(record->lapTimes[2]));
+
+
+		def2.slot = slot++;
+		ObjNode* textNode2 = TextMesh_New(lapsBuf, kTextMeshAlignLeft, &def2);
+		AppendNodeToChain(gRecordChainHead, textNode2);
+
+		time_t timestamp = (time_t) record->timestamp;
+		struct tm *timeinfo = localtime(&timestamp);
+		int day = timeinfo->tm_mday;
+		const char* month = Localize(timeinfo->tm_mon + STR_MONTH_1);
+		int year = 1900 + timeinfo->tm_year;
+
+		if (gGamePrefs.language == LANGUAGE_ENGLISH)
+		{
+			snprintf(lapsBuf, sizeof(lapsBuf), "%s %d, %d", month, day, year);
+		}
+		else if (gGamePrefs.language == LANGUAGE_GERMAN)
+		{
+			snprintf(lapsBuf, sizeof(lapsBuf), "%d. %s %d", day, month, year);
+		}
+		else
+		{
+			snprintf(lapsBuf, sizeof(lapsBuf), "%d %s %d", day, month, year);
+		}
+
+		def3.slot = slot++;
+		ObjNode* textNode3 = TextMesh_New(lapsBuf, kTextMeshAlignLeft, &def3);
+		AppendNodeToChain(gRecordChainHead, textNode3);
+
+		def1.coord.y += 80;
+		def2.coord.y += 80;
+		def3.coord.y += 80;
+	}
+}
+
+static void OnScoreboardTrackChanged(const MenuItem* mi)
+{
+	LayOutScoreboardForTrack();
 }
