@@ -14,6 +14,7 @@ static Byte gScoreboardTrack = 0;
 static ObjNode* gRecordChainHead = 0;
 
 static void OnScoreboardTrackChanged(const MenuItem* mi);
+static void LayOutScoreboardForTrack(void);
 
 Boolean IsRaceMode(void)
 {
@@ -33,7 +34,7 @@ char* FormatRaceTime(float t)
 {
 	if (t <= 0)
 	{
-		return "-'--''---";
+		return "-'--\v.--";
 	}
 
 	static char timeBuf[16];
@@ -175,7 +176,7 @@ OGLVector3D			fillDirection2 = { -1, -.2, -.5 };
 	viewDef.camera.from[0].y		= 250;
 	viewDef.view.clearColor 		= (OGLColorRGBA) {0,0,0, 1.0f};
 	viewDef.styles.useFog			= false;
-	viewDef.view.pillarboxRatio	= PILLARBOX_RATIO_4_3;
+	viewDef.view.pillarboxRatio		= PILLARBOX_RATIO_4_3;
 	viewDef.view.fontName			= "rockfont";
 
 	OGLVector3D_Normalize(&fillDirection1, &fillDirection1);
@@ -195,6 +196,7 @@ OGLVector3D			fillDirection2 = { -1, -.2, -.5 };
 				/* LOAD ART */
 				/************/
 
+	LoadSpriteGroup(SPRITE_GROUP_SCOREBOARDSCREEN, "scoreboard", 0);
 
 			/* BACKGROUND */
 
@@ -204,7 +206,9 @@ OGLVector3D			fillDirection2 = { -1, -.2, -.5 };
 
 	MakeFadeEvent(true);
 
-//	UpdateShadowCarStats();
+			/* SHOW INITIAL TRACK INFO */
+
+	LayOutScoreboardForTrack();
 }
 
 
@@ -243,7 +247,7 @@ void DoScoreboardScreen(void)
 	SetupScoreboardScreen();
 
 	MenuStyle style = kDefaultMenuStyle;
-	style.yOffset = -200;
+	style.yOffset = -170;
 	style.canBackOutOfRootMenu = true;
 
 	int outcome = StartMenu(gScoreboardMenuTree, &style, MoveObjects, DrawObjects);
@@ -252,6 +256,8 @@ void DoScoreboardScreen(void)
 	OGL_DisposeGameView();
 
 	gRecordChainHead = NULL;
+
+	DisposeSpriteGroup(SPRITE_GROUP_SCOREBOARDSCREEN);
 }
 
 static void LayOutScoreboardForTrack(void)
@@ -262,78 +268,106 @@ static void LayOutScoreboardForTrack(void)
 		gRecordChainHead = NULL;
 	}
 
-	NewObjectDefinitionType def1 =
+
+	static const OGLColorRGBA colors[]  =
 	{
-		.coord = {-200, -110, 0},
-		.scale = 0.5,
+			{1.0,1,1,1},
+			{.88,.88,1,1},
+			{.76,.76,.9,1},
+			{.64,.64,.8,1},
+			{.52,.52,.7,1},
 	};
 
-	NewObjectDefinitionType def2 =
-	{
-		.coord = {-23, -105, 0},
-		.scale = 0.2,
-	};
-	NewObjectDefinitionType def3 =
-	{
-		.coord = {-200, -110+20, 0},
-		.scale = 0.2,
-	};
+
+	float x = -100;
+	float y = -80;
+
+	NewObjectDefinitionType defRank = {.coord = {x-130, y, 0}, .scale = 0.75,};
+	NewObjectDefinitionType defCar  = {.coord = {x-50, y, 0}, .scale = 0.2, .group=SPRITE_GROUP_SCOREBOARDSCREEN};
+	NewObjectDefinitionType defTime = {.coord = {x-20, y, 0}, .scale = 0.6,};
+	NewObjectDefinitionType defLaps = {.coord = {x+150, y, 0}, .scale = 0.2,};
+	NewObjectDefinitionType defDate = {.coord = {x+260, y, 0}, .scale = 0.2,};
 
 	short slot = MENU_SLOT;
 	const char* lapStr = Localize(STR_LAP);
 
-	for (int i = 0; i < GAME_MIN(10, MAX_RECORDS_PER_TRACK); i++)
+	const int nNodes = 5;
+	char text[128];
+
+	for (int i = 0; i < GAME_MIN(5, MAX_RECORDS_PER_TRACK); i++)
 	{
+		int n = 0;
+		ObjNode* nodes[nNodes];
+		memset(nodes, 0, sizeof(nodes));
+
 		const ScoreboardRecord* record = &gScoreboard.records[gScoreboardTrack][i];
 
-		def1.slot = slot++;
-
 		float raceTime = SumLapTimes(record->lapTimes);
-		char* raceTimeStr = FormatRaceTime(raceTime);
-		ObjNode* textNode = TextMesh_New(raceTimeStr, kTextMeshAlignLeft, &def1);
 
-		if (gRecordChainHead)
-			AppendNodeToChain(gRecordChainHead, textNode);
-		else
-			gRecordChainHead = textNode;
+		defRank.slot = slot++;
+		snprintf(text, sizeof(text), "#%d", i + 1);
+		nodes[n++] = TextMesh_New(text, 0, &defRank);
 
-		char lapsBuf[128];
-		lapsBuf[0] = '\0';
-		snprintfcat(lapsBuf, sizeof(lapsBuf), "%s 1: %s", lapStr, FormatRaceTime(record->lapTimes[0]));
-		snprintfcat(lapsBuf, sizeof(lapsBuf), "\n%s 2: %s", lapStr, FormatRaceTime(record->lapTimes[1]));
-		snprintfcat(lapsBuf, sizeof(lapsBuf), "\n%s 3: %s", lapStr, FormatRaceTime(record->lapTimes[2]));
-
-
-		def2.slot = slot++;
-		ObjNode* textNode2 = TextMesh_New(lapsBuf, kTextMeshAlignLeft, &def2);
-		AppendNodeToChain(gRecordChainHead, textNode2);
-
-		time_t timestamp = (time_t) record->timestamp;
-		struct tm *timeinfo = localtime(&timestamp);
-		int day = timeinfo->tm_mday;
-		const char* month = Localize(timeinfo->tm_mon + STR_MONTH_1);
-		int year = 1900 + timeinfo->tm_year;
-
-		if (gGamePrefs.language == LANGUAGE_ENGLISH)
+		if (raceTime <= 0)
 		{
-			snprintf(lapsBuf, sizeof(lapsBuf), "%s %d, %d", month, day, year);
-		}
-		else if (gGamePrefs.language == LANGUAGE_GERMAN)
-		{
-			snprintf(lapsBuf, sizeof(lapsBuf), "%d. %s %d", day, month, year);
+			defTime.slot = slot++;
+			nodes[n++] = TextMesh_New("-------------------", kTextMeshAlignLeft, &defTime);
 		}
 		else
 		{
-			snprintf(lapsBuf, sizeof(lapsBuf), "%d %s %d", day, month, year);
+
+			defTime.slot = slot++;
+			nodes[n++] = TextMesh_New(FormatRaceTime(raceTime), kTextMeshAlignLeft, &defTime);
+
+			text[0] = '\0';
+			snprintfcat(text, sizeof(text), "%c1: %s", lapStr[0], FormatRaceTime(record->lapTimes[0]));
+			snprintfcat(text, sizeof(text), "\n%c2: %s", lapStr[0], FormatRaceTime(record->lapTimes[1]));
+			snprintfcat(text, sizeof(text), "\n%c3: %s", lapStr[0], FormatRaceTime(record->lapTimes[2]));
+
+			defLaps.slot = slot++;
+			nodes[n++] = TextMesh_New(text, kTextMeshAlignLeft, &defLaps);
+
+			time_t timestamp = (time_t) record->timestamp;
+			struct tm *timeinfo = localtime(&timestamp);
+			int day = timeinfo->tm_mday;
+			const char* month = Localize(timeinfo->tm_mon + STR_MONTH_1);
+			int year = 1900 + timeinfo->tm_year;
+
+			snprintf(text, sizeof(text), "%s %s", Localize(STR_DIFFICULTY_1 + record->difficulty), Localize(STR_SIMPLISTIC + record->difficulty));
+			if (gGamePrefs.language == LANGUAGE_ENGLISH)
+				snprintfcat(text, sizeof(text), "\n%s %d, %d", month, day, year);
+			else
+				snprintfcat(text, sizeof(text), "\n%d %s %d", day, month, year);
+
+			defDate.slot = slot++;
+			nodes[n++] = TextMesh_New(text, kTextMeshAlignLeft, &defDate);
+
+			if (record->vehicleType != CAR_TYPE_SUB)
+			{
+				defCar.slot = slot++;
+				defCar.type = 1 + record->vehicleType;
+				nodes[n++] = MakeSpriteObject(&defCar);
+			}
 		}
 
-		def3.slot = slot++;
-		ObjNode* textNode3 = TextMesh_New(lapsBuf, kTextMeshAlignLeft, &def3);
-		AppendNodeToChain(gRecordChainHead, textNode3);
 
-		def1.coord.y += 80;
-		def2.coord.y += 80;
-		def3.coord.y += 80;
+		for (n = 0; n < nNodes; n++)
+		{
+			if (!nodes[n])
+				continue;
+			nodes[n]->ColorFilter = colors[i];
+
+			if (!gRecordChainHead)
+				gRecordChainHead = nodes[n];
+			else
+				AppendNodeToChain(gRecordChainHead, nodes[n]);
+		}
+
+		defTime.coord.y += 60;
+		defLaps.coord.y += 60;
+		defDate.coord.y += 60;
+		defRank.coord.y += 60;
+		defCar.coord.y += 60;
 	}
 }
 

@@ -14,3 +14,4 @@ $MKATLAS $SRCDIR/infobar        -o ${OUTDIR}/infobar        -a 512x512
 $MKATLAS $SRCDIR/menus          -o ${OUTDIR}/menus          -a 128x512
 $MKATLAS $SRCDIR/rockfont       -o ${OUTDIR}/rockfont       -a 512x512 --font
 $MKATLAS $SRCDIR/wallfont       -o ${OUTDIR}/wallfont       -a 512x512 --font
+$MKATLAS $SRCDIR/scoreboard     -o ${OUTDIR}/scoreboard     -a 1024x1024
