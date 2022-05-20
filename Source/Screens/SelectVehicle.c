@@ -34,22 +34,6 @@ static const char* GetBoneString(int n);
 /*    CONSTANTS             */
 /****************************/
 
-enum
-{
-	VEHICLESELECT_SObjType_Arrow_LeftOn,
-	VEHICLESELECT_SObjType_Arrow_RightOn,
-
-	VEHICLESELECT_SObjType_Meter1,
-	VEHICLESELECT_SObjType_Meter2,
-	VEHICLESELECT_SObjType_Meter3,
-	VEHICLESELECT_SObjType_Meter4,
-	VEHICLESELECT_SObjType_Meter5,
-	VEHICLESELECT_SObjType_Meter6,
-	VEHICLESELECT_SObjType_Meter7,
-	VEHICLESELECT_SObjType_Meter8
-};
-
-
 #define	LEFT_ARROW_X	-192
 #define RIGHT_ARROW_X	192
 #define	ARROW_Y			-48
@@ -58,12 +42,12 @@ enum
 #define	CAR_Y			70
 
 #define	PARAMETERS_X		-224
-#define	PARAMETERS_Y		96
+#define	PARAMETERS_Y		92
 #define	PARAMETERS_SCALE	.5
 
 #define	LINE_SPACING		34
 
-#define	NAME_Y				-144
+#define	NAME_Y				-170
 
 #define	NUM_PARAM_BONES		8
 
@@ -381,8 +365,8 @@ int					age;
 
 		NewObjectDefinitionType def =
 		{
-			.coord		= {0, -.8*240, 0},
-			.scale		= .5,
+			.coord		= {0, -208, 0},
+			.scale		= .4,
 			.slot 		= SPRITE_SLOT,
 		};
 		
@@ -413,7 +397,8 @@ static void MakeVehicleName(void)
 	{
 		.coord		= {0, NAME_Y, 0},
 		.scale		= .6,
-		.slot 		= SPRITE_SLOT,
+		.slot 		= 99,	// Behind car
+		.moveCall	= MoveUIArrow,
 	};
 
 	const char* nameStr = "???";
@@ -448,6 +433,7 @@ static void UpdateSelectedVehicle(void)
 	gVehicleObj->Type = gSelectedVehicleIndex;
 	ResetDisplayGroupObject(gVehicleObj);
 	MakeVehicleName();
+
 
 	for (int i = 0; i < NUM_VEHICLE_PARAMETERS; i++)
 	{
@@ -561,6 +547,7 @@ short	p;
 		gSelectedVehicleIndex--;
 		UpdateSelectedVehicle();
 		TwitchUIArrow(gVehicleLeftArrow, -1, 0);
+		TwitchUIArrow(gVehicleName, 1, 0);
 	}
 	else
 	if (GetNewNeedState(kNeed_UIRight, p) && (gSelectedVehicleIndex < NUM_LAND_CAR_TYPES-1))
@@ -569,6 +556,7 @@ short	p;
 		gSelectedVehicleIndex++;
 		UpdateSelectedVehicle();
 		TwitchUIArrow(gVehicleRightArrow, 1, 0);
+		TwitchUIArrow(gVehicleName, -1, 0);
 	}
 
 	return(false);
