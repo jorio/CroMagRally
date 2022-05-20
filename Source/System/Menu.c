@@ -31,14 +31,14 @@ static void LayOutMenu(int menuID);
 static ObjNode* LayOutCycler2ValueText(int row);
 static ObjNode* LayOutFloatRangeValueText(int row);
 
-static ObjNode* LayOutCycler1(int row, float sweepFactor);
-static ObjNode* LayOutCycler2(int row, float sweepFactor);
-static ObjNode* LayOutPick(int row, float sweepFactor);
-static ObjNode* LayOutLabel(int row, float sweepFactor);
-static ObjNode* LayOutKeyBinding(int row, float sweepFactor);
-static ObjNode* LayOutPadBinding(int row, float sweepFactor);
-static ObjNode* LayOutMouseBinding(int row, float sweepFactor);
-static ObjNode* LayOutFloatRange(int row, float sweepFactor);
+static ObjNode* LayOutCycler1(int row);
+static ObjNode* LayOutCycler2(int row);
+static ObjNode* LayOutPick(int row);
+static ObjNode* LayOutLabel(int row);
+static ObjNode* LayOutKeyBinding(int row);
+static ObjNode* LayOutPadBinding(int row);
+static ObjNode* LayOutMouseBinding(int row);
+static ObjNode* LayOutFloatRange(int row);
 
 static void NavigateCycler(const MenuItem* entry);
 static void NavigatePick(const MenuItem* entry);
@@ -47,13 +47,19 @@ static void NavigatePadBinding(const MenuItem* entry);
 static void NavigateMouseBinding(const MenuItem* entry);
 static void NavigateFloatRange(const MenuItem* entry);
 
+static int GetCyclerNumChoices(const MenuItem* entry);
+static int GetValueIndexInCycler(const MenuItem* entry, uint8_t value);
+
 #define SpecialMuted				Flag[0]
 #define SpecialSweepRTL				Flag[1]
 #define SpecialRow					Special[0]
 #define SpecialCol					Special[1]
+#define SpecialTwitchKind			Special[2]
 #define SpecialPulsateTimer			SpecialF[0]
 #define SpecialSweepTimer			SpecialF[1]
 #define SpecialAsyncFadeOutSpeed	SpecialF[3]
+#define SpecialTwitchTimer			SpecialF[4]
+#define SpecialTwitchSeed			SpecialF[5]
 
 /****************************/
 /*    CONSTANTS             */
@@ -93,6 +99,7 @@ const MenuStyle kDefaultMenuStyle =
 	.asyncFadeOut		= true,
 	.fadeOutSceneOnExit	= true,
 	.sweepInSpeed		= (1.0f / 0.2f),
+	.twitchSpeed		= (1.0f / 0.4f),
 	.standardScale		= .5f,
 	.rowHeight			= 40,
 	.uniformXExtent		= 0,
@@ -110,7 +117,7 @@ const MenuStyle kDefaultMenuStyle =
 typedef struct
 {
 	float height;
-	ObjNode* (*layOutCallback)(int row, float sweepFactor);
+	ObjNode* (*layOutCallback)(int row);
 	void (*navigateCallback)(const MenuItem* menuItem);
 } MenuItemClass;
 
@@ -168,6 +175,9 @@ typedef struct
 } MenuNavigation;
 
 static MenuNavigation* gNav = NULL;
+
+static float gTempInitialSweepFactor = 0;
+static bool gTempForceSwipeRTL = false;
 
 /***********************************/
 /*    MENU NAVIGATION STRUCT       */
@@ -474,6 +484,29 @@ static void SaveSelectedRowInHistory(void)
 	gNav->history[gNav->historyPos].row = gNav->menuRow;
 }
 
+static void TwitchSelection(void)
+{
+	gNav->menuObjects[gNav->menuRow]->SpecialTwitchTimer = 1;
+	gNav->menuObjects[gNav->menuRow]->SpecialTwitchKind = 0;
+	gNav->menuObjects[gNav->menuRow]->SpecialTwitchSeed = RandomFloat();
+}
+
+static void TwitchOutSelection(void)
+{
+	if (gNav->menuRow >= 0)
+	{
+		gNav->menuObjects[gNav->menuRow]->SpecialTwitchTimer = 1;
+		gNav->menuObjects[gNav->menuRow]->SpecialTwitchKind = 1;
+	}
+}
+
+static void TwitchWiggleSelection(void)
+{
+	gNav->menuObjects[gNav->menuRow]->SpecialTwitchTimer = 1;
+	gNav->menuObjects[gNav->menuRow]->SpecialTwitchKind = 2;
+
+}
+
 /****************************/
 /*    MENU MOVE CALLS       */
 /****************************/
@@ -484,9 +517,77 @@ static void MoveDarkenPane(ObjNode* node)
 	node->ColorFilter.a = gNav->menuFadeAlpha * gNav->style.darkenPaneOpacity;
 }
 
+static float Mix(float p, float a, float b)
+{
+	return (1-p)*a + p*b;
+}
+
 static void MoveGenericMenuItem(ObjNode* node, float baseAlpha)
 {
 	float sweepAlpha = 1;
+
+	float xBackup = node->Coord.x;
+	OGLVector3D sBackup = node->Scale;
+	float rBackup = node->Rot.z;
+
+	float targetScale = 1;
+	if (gNav->menuRow == node->SpecialRow)
+	{
+		targetScale = 1.15;
+	}
+
+	if (node->SpecialTwitchTimer > 0)
+	{
+		if (node->SpecialTwitchKind == 0)			// twitch IN (to selected state)
+		{
+
+			node->SpecialTwitchTimer -= gFramesPerSecondFrac * gNav->style.twitchSpeed;
+			if (node->SpecialTwitchTimer < 0)
+				node->SpecialTwitchTimer = 0;
+
+			float p = node->SpecialTwitchTimer;
+			p *= p;
+			p *= p;
+			node->Scale.x = sBackup.x * targetScale * Mix(1-p, 1.1, 1); //sBackup.x * (targetScale + p*0.05f);
+			node->Scale.y = sBackup.x * targetScale * Mix(1-p, 1.1, 1); //sBackup.y * (targetScale + p*0.05f);
+//		node->Rot.z = (node->SpecialTwitchSeed - 0.5f) * p * 0.03;
+		}
+		else if (node->SpecialTwitchKind == 1)		// twitch OUT (back to normal)
+		{
+			node->SpecialTwitchTimer -= gFramesPerSecondFrac * gNav->style.twitchSpeed * 3;
+			if (node->SpecialTwitchTimer < 0)
+				node->SpecialTwitchTimer = 0;
+
+			float p = node->SpecialTwitchTimer;
+			//p *= p;
+			p *= p;
+			node->Scale.x = sBackup.x * targetScale * Mix(1-p, 1.1, 1);
+			node->Scale.y = sBackup.y * targetScale * Mix(1-p, 1.1, 1);
+		}
+		else
+		{
+			node->SpecialTwitchTimer -= gFramesPerSecondFrac * gNav->style.twitchSpeed;
+			if (node->SpecialTwitchTimer < 0)
+				node->SpecialTwitchTimer = 0;
+
+			float p  = node->SpecialTwitchTimer;
+			float dampening = node->SpecialTwitchTimer;
+
+			float x = sinf(p * 3.14 * 3);
+			x *= dampening;
+			x *= 25 * sBackup.x;
+			//x *= theNode->PadlockWiggleSign;
+			node->Coord.x += x;
+
+			node->Scale.x = sBackup.x * targetScale;
+			node->Scale.y = sBackup.x * targetScale;
+		}
+	}
+	else		// idle
+	{
+		node->Scale.x = sBackup.x * targetScale;
+		node->Scale.y = sBackup.y * targetScale;
+	}
 
 	if (node->SpecialSweepTimer < 1.0f)
 	{
@@ -500,22 +601,16 @@ static void MoveGenericMenuItem(ObjNode* node, float baseAlpha)
 		{
 			sweepAlpha = node->SpecialSweepTimer;
 
-			float xBackup = node->Coord.x;
-
 			float p = (1.0f - node->SpecialSweepTimer);
 			float offset = p*p * 50.0f;
-			if (node->SpecialSweepRTL != 0)		// used to sweep left instead of right
+			if (node->SpecialSweepRTL)		// used to sweep left instead of right
 				offset *= -1;
 
 			node->Coord.x -= offset;
-			UpdateObjectTransforms(node);
-
-			node->Coord.x = xBackup;
 		}
 		else
 		{
 			sweepAlpha = 1;
-			UpdateObjectTransforms(node);
 		}
 	}
 
@@ -523,6 +618,11 @@ static void MoveGenericMenuItem(ObjNode* node, float baseAlpha)
 	{
 		baseAlpha *= .5f;
 	}
+
+	UpdateObjectTransforms(node);
+	node->Coord.x = xBackup;
+	node->Scale = sBackup;
+	node->Rot.z = rBackup;
 
 	node->ColorFilter.a = baseAlpha * sweepAlpha;
 
@@ -627,7 +727,10 @@ static void GoBackInHistory(void)
 	{
 		PlayEffect(kSfxBack);
 		gNav->historyPos--;
+
+		gTempForceSwipeRTL = true;
 		LayOutMenu(gNav->history[gNav->historyPos].menuID);
+		gTempForceSwipeRTL = false;
 	}
 	else if (gNav->style.canBackOutOfRootMenu)
 	{
@@ -645,14 +748,26 @@ static void RepositionArrows(void)
 	ObjNode* snapTo = NULL;
 	ObjNode* chainRoot = GetCurrentMenuItemObject();
 
-	switch (gNav->menu[gNav->menuRow].type)
+	bool visible[2] = {false, false};
+
+	const MenuItem* entry = &gNav->menu[gNav->menuRow];
+	switch (entry->type)
 	{
 		case kMICycler1:
+		{
 			snapTo = chainRoot;
+
+			int index = GetValueIndexInCycler(entry, *entry->cycler.valuePtr);
+
+			visible[0] = (index != 0);
+			visible[1] = (index != GetCyclerNumChoices(entry)-1);
 			break;
+		}
 
 		case kMICycler2:
 		case kMIFloatRange:
+			visible[0] = true;
+			visible[1] = true;
 			snapTo = GetNthChainedNode(chainRoot, 1, NULL);
 			break;
 
@@ -679,7 +794,7 @@ static void RepositionArrows(void)
 	{
 		OGLRect extents = TextMesh_GetExtents(snapTo);
 
-		float spacing = 50 * snapTo->Scale.x;
+		float spacing = 90 * snapTo->Scale.x;
 
 		for (int i = 0; i < 2; i++)
 		{
@@ -690,6 +805,8 @@ static void RepositionArrows(void)
 			arrowObj->Coord.y = snapTo->Coord.y;
 			arrowObj->Scale = snapTo->Scale;
 			UpdateObjectTransforms(arrowObj);
+
+			arrowObj->ColorFilter.a = visible[i] ? 1 : 0.25f;
 		}
 	}
 	else
@@ -706,6 +823,8 @@ static void NavigateSettingEntriesVertically(int delta)
 	bool makeSound = gNav->menuRow >= 0;
 	int browsed = 0;
 	bool skipEntry = false;
+
+	TwitchOutSelection();
 
 	do
 	{
@@ -727,6 +846,7 @@ static void NavigateSettingEntriesVertically(int delta)
 	if (makeSound)
 	{
 		PlayEffect(kSfxNavigate);
+		TwitchSelection();
 	}
 
 	// Reposition arrows
@@ -827,6 +947,7 @@ static void NavigatePick(const MenuItem* entry)
 		{
 			case 0:
 			case 'NOOP':
+				TwitchSelection();
 				break;
 
 			case 'EXIT':
@@ -889,7 +1010,7 @@ static void NavigateCycler(const MenuItem* entry)
 	}
 	else if (GetNewNeedStateAnyP(kNeed_UIRight)
 		|| GetNewNeedStateAnyP(kNeed_UINext)
-		|| GetNewNeedStateAnyP(kNeed_UIConfirm)
+//		|| GetNewNeedStateAnyP(kNeed_UIConfirm)
 		|| (gNav->mouseHoverValid && GetNewClickState(SDL_BUTTON_LEFT))
 		|| (gNav->mouseHoverValid && GetNewClickState(SDL_BUTTON_WHEELUP))
 		)
@@ -904,6 +1025,15 @@ static void NavigateCycler(const MenuItem* entry)
 		if (entry->cycler.valuePtr && !entry->cycler.callbackSetsValue)
 		{
 			int index = GetValueIndexInCycler(entry, *entry->cycler.valuePtr);
+
+			if ((index == 0 && delta < 0) ||
+				(index == GetCyclerNumChoices(entry)-1 && delta > 0))
+			{
+				PlayEffect(EFFECT_BADSELECT);
+				TwitchWiggleSelection();
+				return;
+			}
+
 			if (index >= 0)
 				index = PositiveModulo(index + delta, GetCyclerNumChoices(entry));
 			else
@@ -921,7 +1051,7 @@ static void NavigateCycler(const MenuItem* entry)
 
 		ObjNode* node;
 		if (entry->type == kMICycler1)
-			node = LayOutCycler1(gNav->menuRow, 0);
+			node = LayOutCycler1(gNav->menuRow);
 		else
 			node = LayOutCycler2ValueText(gNav->menuRow);
 
@@ -990,22 +1120,26 @@ static void NavigateKeyBinding(const MenuItem* entry)
 
 	if (GetNewNeedStateAnyP(kNeed_UILeft) || GetNewNeedStateAnyP(kNeed_UIPrev))
 	{
+		TwitchOutSelection();
 		keyNo = PositiveModulo(keyNo - 1, KEYBINDING_MAX_KEYS);
 		gNav->idleTime = 0;
 		gNav->menuCol = keyNo;
 		PlayEffect(kSfxNavigate);
 		gNav->mouseHoverValid = false;
+		TwitchSelection();
 		RepositionArrows();
 		return;
 	}
 
 	if (GetNewNeedStateAnyP(kNeed_UIRight) || GetNewNeedStateAnyP(kNeed_UINext))
 	{
+		TwitchOutSelection();
 		keyNo = PositiveModulo(keyNo + 1, KEYBINDING_MAX_KEYS);
 		gNav->idleTime = 0;
 		gNav->menuCol = keyNo;
 		PlayEffect(kSfxNavigate);
 		gNav->mouseHoverValid = false;
+		TwitchSelection();
 		RepositionArrows();
 		return;
 	}
@@ -1014,10 +1148,12 @@ static void NavigateKeyBinding(const MenuItem* entry)
 		|| GetNewKeyState(CLEAR_BINDING_SCANCODE)
 		|| (gNav->mouseHoverValid && GetNewClickState(SDL_BUTTON_MIDDLE)))
 	{
+		TwitchOutSelection();
 		gNav->idleTime = 0;
 		gGamePrefs.keys[entry->inputNeed].key[keyNo] = 0;
 		PlayEffect(kSfxDelete);
 		MakeKbText(row, keyNo);
+		TwitchSelection();
 		RepositionArrows();
 		return;
 	}
@@ -1032,6 +1168,7 @@ static void NavigateKeyBinding(const MenuItem* entry)
 		gNav->menuState = kMenuStateAwaitingKeyPress;
 
 		MakeKbText(row, keyNo);		// It'll show "PRESS!" because we're in kMenuStateAwaitingKeyPress
+		TwitchSelection();
 		RepositionArrows();
 
 		// Change subtitle to help message
@@ -1053,22 +1190,26 @@ static void NavigatePadBinding(const MenuItem* entry)
 
 	if (GetNewNeedStateAnyP(kNeed_UILeft) || GetNewNeedStateAnyP(kNeed_UIPrev))
 	{
+		TwitchOutSelection();
 		btnNo = PositiveModulo(btnNo - 1, KEYBINDING_MAX_GAMEPAD_BUTTONS);
 		gNav->menuCol = btnNo;
 		gNav->idleTime = 0;
 		PlayEffect(kSfxNavigate);
 		gNav->mouseHoverValid = false;
+		TwitchSelection();
 		RepositionArrows();
 		return;
 	}
 
 	if (GetNewNeedStateAnyP(kNeed_UIRight) || GetNewNeedStateAnyP(kNeed_UINext))
 	{
+		TwitchOutSelection();
 		btnNo = PositiveModulo(btnNo + 1, KEYBINDING_MAX_GAMEPAD_BUTTONS);
 		gNav->menuCol = btnNo;
 		gNav->idleTime = 0;
 		PlayEffect(kSfxNavigate);
 		gNav->mouseHoverValid = false;
+		TwitchSelection();
 		RepositionArrows();
 		return;
 	}
@@ -1077,10 +1218,12 @@ static void NavigatePadBinding(const MenuItem* entry)
 		|| GetNewKeyState(CLEAR_BINDING_SCANCODE)
 		|| (gNav->mouseHoverValid && GetNewClickState(SDL_BUTTON_MIDDLE)))
 	{
+		TwitchOutSelection();
 		gNav->idleTime = 0;
 		gGamePrefs.keys[entry->inputNeed].gamepad[btnNo].type = kInputTypeUnbound;
 		PlayEffect(kSfxDelete);
 		MakePbText(row, btnNo);
+		TwitchSelection();
 		return;
 	}
 
@@ -1100,6 +1243,7 @@ static void NavigatePadBinding(const MenuItem* entry)
 
 		MakePbText(row, btnNo);			// It'll show "PRESS!" because we're in MenuStateAwaitingPadPress
 		RepositionArrows();
+		TwitchSelection();
 
 		// Change subtitle to help message
 		ReplaceMenuText(STR_CONFIGURE_GAMEPAD_HELP, STR_CONFIGURE_GAMEPAD_HELP_CANCEL);
@@ -1509,6 +1653,9 @@ static ObjNode* MakeText(const char* text, int row, int desiredCol, int textMesh
 			node->RightOff = gNav->style.uniformXExtent;
 	}
 
+	node->SpecialSweepTimer = gTempInitialSweepFactor;
+	node->SpecialSweepRTL = gTempForceSwipeRTL;
+
 	return node;
 }
 
@@ -1526,25 +1673,23 @@ static const char* GetCyclerValueText(int row)
 	return "VALUE NOT FOUND???";
 }
 
-static ObjNode* LayOutLabel(int row, float sweepFactor)
+static ObjNode* LayOutLabel(int row)
 {
 	const MenuItem* entry = &gNav->menu[row];
 
 	ObjNode* label = MakeText(GetMenuItemLabel(entry), row, 0, 0);
 	label->ColorFilter = gNav->style.labelColor;
 	label->MoveCall = MoveLabel;
-	label->SpecialSweepTimer = sweepFactor;
 
 	return label;
 }
 
-static ObjNode* LayOutPick(int row, float sweepFactor)
+static ObjNode* LayOutPick(int row)
 {
 	const MenuItem* entry = &gNav->menu[row];
 
 	ObjNode* node = MakeText(GetMenuItemLabel(entry), row, 0, 0);
 	node->MoveCall = MoveAction;
-	node->SpecialSweepTimer = sweepFactor;
 	node->SpecialMuted = !IsMenuItemSelectable(entry);
 
 	return node;
@@ -1557,7 +1702,7 @@ static ObjNode* LayOutCycler2ValueText(int row)
 	return node2;
 }
 
-static ObjNode* LayOutCycler2(int row, float sweepFactor)
+static ObjNode* LayOutCycler2(int row)
 {
 	DECLARE_WORKBUF(buf, bufSize);
 
@@ -1568,16 +1713,14 @@ static ObjNode* LayOutCycler2(int row, float sweepFactor)
 	ObjNode* node1 = MakeText(buf, row, 0, kTextMeshAlignLeft);
 	node1->Coord.x -= 120;
 	node1->MoveCall = MoveAction;
-	node1->SpecialSweepTimer = sweepFactor;
 
 	ObjNode* node2 = LayOutCycler2ValueText(row);
-	node2->SpecialSweepTimer = sweepFactor;
 	node2->Coord.x += 100;
 
 	return node1;
 }
 
-static ObjNode* LayOutCycler1(int row, float sweepFactor)
+static ObjNode* LayOutCycler1(int row)
 {
 	DECLARE_WORKBUF(buf, bufSize);
 
@@ -1590,7 +1733,6 @@ static ObjNode* LayOutCycler1(int row, float sweepFactor)
 
 	ObjNode* node = MakeText(buf, row, 0, 0);
 	node->MoveCall = MoveAction;
-	node->SpecialSweepTimer = sweepFactor;
 
 	return node;
 }
@@ -1609,7 +1751,7 @@ static ObjNode* LayOutFloatRangeValueText(int row)
 	return node2;
 }
 
-static ObjNode* LayOutFloatRange(int row, float sweepFactor)
+static ObjNode* LayOutFloatRange(int row)
 {
 	DECLARE_WORKBUF(buf, bufSize);
 	const MenuItem* entry = &gNav->menu[row];
@@ -1617,18 +1759,16 @@ static ObjNode* LayOutFloatRange(int row, float sweepFactor)
 	snprintf(buf, bufSize, "%s:", GetMenuItemLabel(entry));
 	ObjNode* node1 = MakeText(buf, row, 0, kTextMeshAlignLeft);
 	node1->MoveCall = MoveAction;
-	node1->SpecialSweepTimer = sweepFactor;
 	node1->Coord.x -= entry->floatRange.xSpread;
 
 	ObjNode* node2 = LayOutFloatRangeValueText(row);
-	node2->SpecialSweepTimer = sweepFactor;
 	node2->Coord.x += entry->floatRange.xSpread;
 	UpdateObjectTransforms(node2);
 
 	return node1;
 }
 
-static ObjNode* LayOutKeyBinding(int row, float sweepFactor)
+static ObjNode* LayOutKeyBinding(int row)
 {
 	DECLARE_WORKBUF(buf, bufSize);
 	const MenuItem* entry = &gNav->menu[row];
@@ -1639,7 +1779,6 @@ static ObjNode* LayOutKeyBinding(int row, float sweepFactor)
 	label->Coord.x -= 256;
 	label->ColorFilter = gNav->style.labelColor;
 	label->MoveCall = MoveLabel;
-	label->SpecialSweepTimer = sweepFactor;
 
 	for (int j = 0; j < KEYBINDING_MAX_KEYS; j++)
 	{
@@ -1647,13 +1786,12 @@ static ObjNode* LayOutKeyBinding(int row, float sweepFactor)
 		keyNode->SpecialCol = j;
 		keyNode->Coord.x = -50 + j * 170 ;
 		keyNode->MoveCall = MoveKeyBinding;
-		keyNode->SpecialSweepTimer = sweepFactor;
 	}
 
 	return label;
 }
 
-static ObjNode* LayOutPadBinding(int row, float sweepFactor)
+static ObjNode* LayOutPadBinding(int row)
 {
 	DECLARE_WORKBUF(buf, bufSize);
 	const MenuItem* entry = &gNav->menu[row];
@@ -1664,7 +1802,6 @@ static ObjNode* LayOutPadBinding(int row, float sweepFactor)
 	label->Coord.x -= 256;
 	label->ColorFilter = gNav->style.labelColor;
 	label->MoveCall = MoveLabel;
-	label->SpecialSweepTimer = sweepFactor;
 
 	for (int j = 0; j < KEYBINDING_MAX_KEYS; j++)
 	{
@@ -1672,13 +1809,12 @@ static ObjNode* LayOutPadBinding(int row, float sweepFactor)
 		keyNode->SpecialCol = j;
 		keyNode->Coord.x = -50 + j * 170;
 		keyNode->MoveCall = MovePadBinding;
-		keyNode->SpecialSweepTimer = sweepFactor;
 	}
 
 	return label;
 }
 
-static ObjNode* LayOutMouseBinding(int row, float sweepFactor)
+static ObjNode* LayOutMouseBinding(int row)
 {
 	DECLARE_WORKBUF(buf, bufSize);
 	const MenuItem* entry = &gNav->menu[row];
@@ -1688,11 +1824,9 @@ static ObjNode* LayOutMouseBinding(int row, float sweepFactor)
 	ObjNode* label = MakeText(buf, row, 0, 0);
 	label->ColorFilter = gNav->style.labelColor;
 	label->MoveCall = MoveAction;
-	label->SpecialSweepTimer = sweepFactor;
 
 	ObjNode* keyNode = MakeText(GetMouseBindingName(row), row, 1, 0);
 	keyNode->MoveCall = MoveMouseBinding;
-	keyNode->SpecialSweepTimer = sweepFactor;
 
 	return label;
 }
@@ -1740,7 +1874,7 @@ static void LayOutMenu(int menuID)
 		UpdateObjectTransforms(gNav->darkenPane);
 	}
 
-	float sweepFactor = 0.0f;
+	gTempInitialSweepFactor = 0.0f;
 
 	for (int row = 0; menu[row].type != kMISENTINEL; row++)
 	{
@@ -1757,19 +1891,21 @@ static void LayOutMenu(int menuID)
 
 		if (cls->layOutCallback)
 		{
-			cls->layOutCallback(row, sweepFactor);
+			cls->layOutCallback(row);
 		}
 
 		y += GetMenuItemHeight(row) * gNav->style.rowHeight;
 
 		if (entry->type != kMISpacer)
 		{
-			sweepFactor -= .2f;
+			gTempInitialSweepFactor -= .2f;
 		}
 
 		gNav->numMenuEntries++;
 		GAME_ASSERT(gNav->numMenuEntries < MAX_MENU_ROWS);
 	}
+
+	gTempInitialSweepFactor = 0.0f;
 
 	if (gNav->menuRow <= 0
 		|| !IsMenuItemSelectable(&gNav->menu[gNav->menuRow]))	// we had selected this item when we last were in this menu, but it's been disabled since then

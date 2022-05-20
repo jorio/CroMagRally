@@ -70,6 +70,7 @@ typedef struct MenuStyle
 	float			fadeInSpeed;		// Menu will ignore input during 1.0/fadeInSpeed seconds after booting
 	float			fadeOutSpeed;
 	float			sweepInSpeed;
+	float			twitchSpeed;
 	float			standardScale;
 	float			rowHeight;
 	float			uniformXExtent;
