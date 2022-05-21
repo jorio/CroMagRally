@@ -433,13 +433,17 @@ short	placeToWin,startStage;
 			InitArea();
 			PlayArea();
 
-			if (gPlayerInfo[0].place <= placeToWin)									// if came in 1st place then tally tokens
-				TallyTokens();
+			bool objectiveCompleted = (gPlayerInfo[0].place <= placeToWin) && (gTotalTokens >= MAX_TOKENS);
 
+			if (gPlayerInfo[0].place <= placeToWin)									// if came in 1st place then tally tokens
+			{
+				TallyTokens();
+				objectiveCompleted = (gTotalTokens >= MAX_TOKENS);
+			}
 
 					/* SEE IF DIDNT COME IN 1ST PLACE OR DIDNT GET ALL THE TOKENS */
 
-			if ((gPlayerInfo[0].place > placeToWin) || (gTotalTokens < MAX_TOKENS))
+			if (!objectiveCompleted)
 			{
 				if (gNumRetriesRemaining > 0)										// see if there are any retries remaining
 				{
@@ -457,10 +461,10 @@ short	placeToWin,startStage;
 					gGameOver = true;												// no retries, so bail
 			}
 
-
 				/* IF JUST COMPLETED SOMETHING NEW THEN INC THE STAGE COUNTER */
 
-			if (!gGameOver															// dont do anything if we failed or bailed
+			if (objectiveCompleted
+				&& !gGameOver														// dont do anything if we failed or bailed
 				&& gTrackNum+1 > GetNumTracksCompletedTotal())						// only if it's better than current progress
 			{
 				SetPlayerProgression(gTrackNum+1);
