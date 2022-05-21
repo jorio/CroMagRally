@@ -231,25 +231,27 @@ ObjNode	*multiplayerText = NULL;
 
 				/* SET UP CHARACTER SKINS */
 
-	if (gGameMode == GAME_MODE_PRACTICE || gGameMode == GAME_MODE_TOURNAMENT)
+	LoadCavemanSkins();
+
+	int skinID = gPlayerInfo[whichPlayer].skin;
+
+	if ((gGameMode == GAME_MODE_PRACTICE || gGameMode == GAME_MODE_TOURNAMENT)
+		&& skinID == 0)
 	{
-		// Single-player mode: keep stock model skins so we get a chance to show off
-		// Grag's trademark purple outfit even though it's actually unused in-game.
+		// Single-player mode: if the player didn't change their skin,
+		// keep stock model skins so we get a chance to show off Grag's
+		// trademark purple outfit (even though it's actually unused in-game).
 	}
 	else
 	{
-				/* IN MULTIPLAYER, USE ACTUAL CHARACTER SKINS */
-
-		LoadCavemanSkins();
-
-		int skinID = gPlayerInfo[gCurrentPlayerNum].skin;
+				/* OVERRIDE CHARACTER SKINS */
 
 		gSex[0]->Skeleton->overrideTexture = gCavemanSkins[0][skinID];
 		gSex[1]->Skeleton->overrideTexture = gCavemanSkins[1][skinID];
 
 		if (gGameMode == GAME_MODE_CAPTUREFLAG)
 		{
-			int team = gPlayerInfo[gCurrentPlayerNum].team;
+			int team = gPlayerInfo[whichPlayer].team;
 			if (team == RED_TEAM)
 			{
 				multiplayerText->ColorFilter = (OGLColorRGBA) {.8, 0, 0, 1};
@@ -274,6 +276,49 @@ static void FreeCharacterSelectArt(void)
 }
 
 
+/***************** CYCLE CHARACTER SKINS *******************/
+
+static void CycleSkin(short whichPlayer, int delta)
+{
+	GAME_ASSERT(whichPlayer < MAX_PLAYERS);
+
+			/* FIND OUT WHICH SKINS ARE ALREADY TAKEN */
+
+	uint32_t skinsTaken = 0;
+	for (int prevPlayer = 0; prevPlayer < whichPlayer; prevPlayer++)
+	{
+		skinsTaken |= (1 << gPlayerInfo[prevPlayer].skin);
+	}
+
+			/* CYCLE TO NEXT AVAILABLE SKIN */
+
+	short oldSkin = gPlayerInfo[whichPlayer].skin;
+	short newSkin = oldSkin;
+
+	do
+	{
+		newSkin += delta;
+		newSkin = PositiveModulo(newSkin, NUM_CAVEMAN_SKINS);
+	} while (skinsTaken & (1 << newSkin));
+
+	gPlayerInfo[whichPlayer].skin = newSkin;
+
+			/* SET TEXTURES */
+
+	gSex[0]->Skeleton->overrideTexture = gCavemanSkins[0][newSkin];
+	gSex[1]->Skeleton->overrideTexture = gCavemanSkins[1][newSkin];
+
+			/* SWAP MY OLD SKIN W/ PLAYER THAT USES THE ONE I WANT */
+
+	for (int i = 0; i < MAX_PLAYERS; i++)
+	{
+		if (i != whichPlayer && gPlayerInfo[i].skin == newSkin)
+		{
+			gPlayerInfo[i].skin = oldSkin;
+			break;
+		}
+	}
+}
 
 
 /***************** DO CHARACTERSELECT CONTROLS *******************/
@@ -334,7 +379,32 @@ short	p;
 		gCharacterArrow->Coord.x = GetCharacterArrowHomeX();
 		MakeTwitch(gCharacterArrow, kTwitchDisplaceLeft);
 	}
-
+	else
+	if (GetNewNeedState(kNeed_UIUp, p))
+	{
+		if (gGameMode != GAME_MODE_CAPTUREFLAG)
+		{
+			PlayEffect_Parms(EFFECT_SELECTCLICK, FULL_CHANNEL_VOLUME, FULL_CHANNEL_VOLUME, NORMAL_CHANNEL_RATE * 0.7f);
+			CycleSkin(whichPlayer, 1);
+		}
+		else
+		{
+			PlayEffect(EFFECT_BADSELECT);
+		}
+	}
+	else
+	if (GetNewNeedState(kNeed_UIDown, p))
+	{
+		if (gGameMode != GAME_MODE_CAPTUREFLAG)
+		{
+			PlayEffect_Parms(EFFECT_SELECTCLICK, FULL_CHANNEL_VOLUME, FULL_CHANNEL_VOLUME, NORMAL_CHANNEL_RATE * 0.7f);
+			CycleSkin(whichPlayer, -1);
+		}
+		else
+		{
+			PlayEffect(EFFECT_BADSELECT);
+		}
+	}
 
 	return(false);
 }

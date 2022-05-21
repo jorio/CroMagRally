@@ -67,6 +67,7 @@ extern CollisionRec				gCollisionList[];
 extern CommandLineOptions		gCommandLine;
 extern const float				gWaterHeights[NUM_TRACKS][6];
 extern const KeyBinding			kDefaultKeyBindings[NUM_CONTROL_NEEDS];
+extern const OGLColorRGB		kCavemanSkinColors[NUM_CAVEMAN_SKINS];
 extern const UserPhysics		kDefaultPhysics;
 extern FenceDefType				*gFenceList;
 extern float					**gMapYCoords;

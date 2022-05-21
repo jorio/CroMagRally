@@ -118,6 +118,15 @@ static const struct
 	{ &gPlayerInfo[0].flamingTimer,				INFOBAR_SObjType_RedTorch },
 };
 
+const OGLColorRGB kCavemanSkinColors[NUM_CAVEMAN_SKINS] =
+{
+	[CAVEMAN_SKIN_BROWN]	=	{.8,.5,.3},
+	[CAVEMAN_SKIN_GREEN]	=	{ 0, 1, 0},
+	[CAVEMAN_SKIN_BLUE]		=	{ 0, 0, 1},
+	[CAVEMAN_SKIN_GRAY]		=	{.5,.5,.5},
+	[CAVEMAN_SKIN_RED]		=	{ 1, 0, 0},
+	[CAVEMAN_SKIN_WHITE]	=	{ 1, 1, 1},
+};
 
 /*********************/
 /*    VARIABLES      */
@@ -494,22 +503,6 @@ static void GetPointOnOverheadMap(float* px, float* pz)
 
 static void Infobar_DrawMap(void)
 {
-static const OGLColorRGB	blipColors[] =
-{
-	{.8,.5,.3},			// brown
-	{ 0, 1, 0},			// green
-	{ 0, 0, 1},			// blue
-	{.5,.5,.5},			// grey
-	{ 1, 0, 0},			// red
-	{ 1, 1, 1},			// white
-};
-
-static const OGLColorRGB	teamColors[] =
-{
-	{1,0,0},			// red
-	{0,1,0},			// white
-};
-
 	short	p = GetPlayerNum(gCurrentSplitScreenPane);
 
 
@@ -576,13 +569,8 @@ static const OGLColorRGB	teamColors[] =
 						gGlobalColorFilter = (OGLColorRGB) {1,1,1};
 					break;
 
-			case	GAME_MODE_CAPTUREFLAG:							// in capture-flag mode players are team color coded red or green
-					gGlobalColorFilter = teamColors[gPlayerInfo[i].team & 1];
-					break;
-
-
 			default:
-					gGlobalColorFilter = blipColors[i];
+					gGlobalColorFilter = kCavemanSkinColors[gPlayerInfo[i].skin];
 		}
 
 		
