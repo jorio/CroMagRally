@@ -201,18 +201,9 @@ OGLVector3D			fillDirection1 = { .9, -.3, -1 };
 		.scale = 0.4f,
 		.coord = {0, 0, 0},
 		.slot = SPRITE_SLOT,
-		.moveCall = MoveUIPadlock
 	};
 
 	gGatherPrompt = TextMesh_NewEmpty(256, &def2);
-}
-
-
-
-/********************** FREE CHARACTERSELECT ART **********************/
-
-static void FreeLocalGatherArt(void)
-{
 }
 
 
@@ -242,7 +233,7 @@ static int DoLocalGatherControls(void)
 		else
 		{
 			PlayEffect(EFFECT_BADSELECT);
-			WiggleUIPadlock(gGatherPrompt);
+			MakeTwitch(gGatherPrompt, kTwitchBigWiggle);
 		}
 	}
 	else if (GetNewNeedStateAnyP(kNeed_UIConfirm))
@@ -251,7 +242,7 @@ static int DoLocalGatherControls(void)
 		if (gNumControllersMissing > 0)
 		{
 			PlayEffect(EFFECT_BADSELECT);
-			WiggleUIPadlock(gGatherPrompt);
+			MakeTwitch(gGatherPrompt, kTwitchBigWiggle);
 		}
 	}
 	else if (IsCheatKeyComboDown())		// useful to test local multiplayer without having all controllers plugged in

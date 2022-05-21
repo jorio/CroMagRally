@@ -12,21 +12,12 @@
 #define ArrowHomeX			SpecialF[0]
 #define ArrowHomeY			SpecialF[1]
 
-#define	PADLOCK_WIGGLE_DURATION		0.55f
-#define	PADLOCK_WIGGLE_AMPLITUDE	8.0f
-#define	PADLOCK_WIGGLE_SPEED		25.0f
-
-#define PadlockInitialized	Flag[0]
-#define PadlockHomeX		SpecialF[0]
-#define PadlockHomeY		SpecialF[1]
-#define PadlockWiggleTimer	SpecialF[2]
-#define PadlockWiggleSign	SpecialF[3]
-
 static const float kEffectDurations[kTwitchCOUNT] =
 {
 	[kTwitchScaleIn] = .14f,
 	[kTwitchScaleOut] = .14f,
-	[kTwitchWiggle] = .35f,
+	[kTwitchQuickWiggle] = .35f,
+	[kTwitchBigWiggle] = .45f,
 };
 
 typedef struct
@@ -65,6 +56,7 @@ static UifxData* GetUifxData(ObjNode* driver, bool checkCookie)
 static void MoveUIEffectDriver(ObjNode* driver)
 {
 	UifxData* effect = GetUifxData(driver, true);
+	Byte type = driver->Type;
 
 	ObjNode* puppet = effect->puppet;
 
@@ -81,10 +73,10 @@ static void MoveUIEffectDriver(ObjNode* driver)
 
 	effect->timer += gFramesPerSecondFrac;
 
-	float duration = kEffectDurations[driver->Type];
+	float duration = kEffectDurations[type];
 	if (duration == 0)
 	{
-		printf("Twitch type %d is missing duration", driver->Type);
+		printf("Twitch type %d is missing duration", type);
 		duration = 1;
 	}
 
@@ -95,7 +87,7 @@ static void MoveUIEffectDriver(ObjNode* driver)
 		p = 1;
 	}
 
-	switch (driver->Type)
+	switch (type)
 	{
 		case kTwitchScaleIn:
 		{
@@ -119,15 +111,16 @@ static void MoveUIEffectDriver(ObjNode* driver)
 			break;
 		}
 
-		case kTwitchWiggle:
+		case kTwitchQuickWiggle:
+		case kTwitchBigWiggle:
 		{
-			float invp = 1 - p;
-			float dampening = invp;
+			float period = PI * (type==kTwitchQuickWiggle ? 3.0f : 4.0f);
+			float amp = 25 * realS.x;
 
-			float x = sinf(invp * 3.14 * 3);
-			x *= dampening;
-			x *= 25 * realS.x;
-			puppet->Coord.x += x;
+			float invp = 1 - p;
+			float dampen = invp;
+
+			puppet->Coord.x += amp * dampen * sinf(invp * period);
 
 			break;
 		}
@@ -222,55 +215,6 @@ void TwitchUIArrow(ObjNode* theNode, float x, float y)
 
 	theNode->Coord.x = theNode->ArrowHomeX + ARROW_TWITCH_DISTANCE * x;
 	theNode->Coord.y = theNode->ArrowHomeY + ARROW_TWITCH_DISTANCE * y;
-}
-
-#pragma mark -
-
-static void PrimeUIPadlock(ObjNode* theNode)
-{
-	if (!theNode->PadlockInitialized)
-	{
-		// Not initialized: save home position
-		theNode->PadlockHomeX = theNode->Coord.x;
-		theNode->PadlockHomeY = theNode->Coord.y;
-		theNode->PadlockWiggleSign = 1;
-		theNode->PadlockWiggleTimer = 0;
-		theNode->PadlockInitialized = true;
-	}
-}
-
-void MoveUIPadlock(ObjNode* theNode)
-{
-	PrimeUIPadlock(theNode);
-
-	if (theNode->PadlockWiggleTimer <= 0)
-	{
-		// Wiggle time elapsed, pin to home position
-		theNode->Coord.x = theNode->PadlockHomeX;
-		theNode->Coord.y = theNode->PadlockHomeY;
-		UpdateObjectTransforms(theNode);
-		return;
-	}
-
-	theNode->PadlockWiggleTimer -= gFramesPerSecondFrac;
-
-	float dampening = theNode->PadlockWiggleTimer * (1.0f / PADLOCK_WIGGLE_DURATION);
-
-	float x = sinf((theNode->PadlockWiggleTimer - PADLOCK_WIGGLE_DURATION) * PADLOCK_WIGGLE_SPEED);
-	x *= dampening;
-	x *= PADLOCK_WIGGLE_AMPLITUDE;
-	x *= theNode->PadlockWiggleSign;
-
-	theNode->Coord.x = x;
-
-	UpdateObjectTransforms(theNode);
-}
-
-void WiggleUIPadlock(ObjNode* theNode)
-{
-	PrimeUIPadlock(theNode);
-	theNode->PadlockWiggleTimer = PADLOCK_WIGGLE_DURATION;
-	theNode->PadlockWiggleSign = -theNode->PadlockWiggleSign;	// alternate sign everytime we wiggle anew
 }
 
 #pragma mark -

@@ -349,7 +349,6 @@ int					age;
 			.type = MENUS_SObjType_Padlock,
 			.coord = { 0, ARROW_Y, 0 },
 			.slot = SPRITE_SLOT,
-			.moveCall = MoveUIPadlock,
 			.scale = ARROW_SCALE,
 		};
 		gVehiclePadlock = MakeSpriteObject(&def);
@@ -528,7 +527,7 @@ short	p;
 		else
 		{
 			PlayEffect(EFFECT_BADSELECT);
-			WiggleUIPadlock(gVehiclePadlock);
+			MakeTwitch(gVehiclePadlock, kTwitchBigWiggle);
 		}
 	}
 	else

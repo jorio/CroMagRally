@@ -515,7 +515,7 @@ static void TwitchOutSelection(void)
 
 static void TwitchWiggleSelection(void)
 {
-	MakeTwitch(GetCurrentMenuItemObject(), kTwitchWiggle);
+	MakeTwitch(GetCurrentMenuItemObject(), kTwitchQuickWiggle);
 }
 
 /****************************/

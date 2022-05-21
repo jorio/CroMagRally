@@ -255,7 +255,6 @@ OGLSetupInputType	viewDef;
 			.type = MENUS_SObjType_Padlock,
 			.coord = { 0, PADLOCK_Y, 0 },
 			.slot = SPRITE_SLOT,
-			.moveCall = MoveUIPadlock,
 			.scale = ARROW_SCALE,
 		};
 		gTrackPadlock = MakeSpriteObject(&def);
@@ -386,7 +385,7 @@ static Boolean DoTrackSelectControls(void)
 		if (IsSelectedTrackLocked())
 		{
 			PlayEffect(EFFECT_BADSELECT);
-			WiggleUIPadlock(gTrackPadlock);
+			MakeTwitch(gTrackPadlock, kTwitchBigWiggle);
 		}
 		else
 		{
