@@ -37,6 +37,7 @@ static void OnPickTagDuration(const MenuItem* mi);
 
 static int IsClearSavedGameAvailable(const MenuItem* mi);
 static int IsTournamentAgeAvailable(const MenuItem* mi);
+static int GetLayoutFlagsForTournamentObjective(const MenuItem* mi);
 
 /****************************/
 /*    CONSTANTS             */
@@ -108,7 +109,8 @@ static const MenuItem gMainMenuTree[] =
 	{kMIPick, STR_TOURNAMENT,	.callback=OnPickGameMode, .id=GAME_MODE_TOURNAMENT,			.next='tour' },
 
 	{ .id='tour' },
-	{kMILabel, .text=STR_TOURNAMENT_OBJECTIVE },
+	{kMILabel, .text=STR_TOURNAMENT_OBJECTIVE,		.getLayoutFlags=GetLayoutFlagsForTournamentObjective },
+	{kMILabel, .text=STR_TOURNAMENT_OBJECTIVE_EASY,	.getLayoutFlags=GetLayoutFlagsForTournamentObjective },
 	{kMISpacer, .customHeight=1.0f},
 	{kMIPick, STR_STONE_AGE,	.callback=OnPickTournamentAge, .id=STONE_AGE,	.next='EXIT'},
 	{kMIPick, STR_BRONZE_AGE,	.callback=OnPickTournamentAge, .id=BRONZE_AGE,	.next='EXIT', .getLayoutFlags=IsTournamentAgeAvailable},
@@ -455,4 +457,14 @@ static int IsTournamentAgeAvailable(const MenuItem* mi)
 		return 0;
 	else
 		return kMILayoutFlagDisabled;
+}
+
+static int GetLayoutFlagsForTournamentObjective(const MenuItem* mi)
+{
+	bool isEasy = gGamePrefs.difficulty <= DIFFICULTY_EASY;
+
+	if (mi->text == STR_TOURNAMENT_OBJECTIVE_EASY)
+		return isEasy? 0: kMILayoutFlagHidden;
+	else
+		return isEasy? kMILayoutFlagHidden: 0;
 }
