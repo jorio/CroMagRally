@@ -4,8 +4,8 @@ enum
 {
 	kTwitchScaleIn = 1,
 	kTwitchScaleOut,
-	kTwitchLeft,
-	kTwitchRight,
+	kTwitchDisplaceLeft,
+	kTwitchDisplaceRight,
 	kTwitchQuickWiggle,
 	kTwitchBigWiggle,
 	kTwitchCOUNT,
@@ -14,6 +14,4 @@ enum
 
 ObjNode* MakeTwitch(ObjNode* puppet, int type);
 
-void MoveUIArrow(ObjNode* theNode);
-void TwitchUIArrow(ObjNode* theNode, float x, float y);
 ObjNode* MakeScrollingBackgroundPattern(void);

@@ -238,7 +238,6 @@ OGLSetupInputType	viewDef;
 			.type = MENUS_SObjType_LeftArrow,
 			.coord = { LEFT_ARROW_X, ARROW_Y, 0 },
 			.slot = SPRITE_SLOT,
-			.moveCall = MoveUIArrow,
 			.scale = ARROW_SCALE,
 		};
 		gTrackLeftArrow = MakeSpriteObject(&def);
@@ -408,7 +407,7 @@ static Boolean DoTrackSelectControls(void)
 		gSelectedTrackIndex--;
 		PlayEffect(EFFECT_SELECTCLICK);
 		UpdateSelectedTrack();
-		TwitchUIArrow(gTrackLeftArrow, -1, 0);
+		MakeTwitch(gTrackLeftArrow, kTwitchDisplaceLeft);
 	}
 	else
 	if (GetNewNeedStateAnyP(kNeed_UIRight) && (gSelectedTrackIndex < (gNumTracksInSelection-1)))
@@ -416,7 +415,7 @@ static Boolean DoTrackSelectControls(void)
 		gSelectedTrackIndex++;
 		PlayEffect(EFFECT_SELECTCLICK);
 		UpdateSelectedTrack();
-		TwitchUIArrow(gTrackRightArrow, 1, 0);
+		MakeTwitch(gTrackRightArrow, kTwitchDisplaceRight);
 	}
 
 	return(false);

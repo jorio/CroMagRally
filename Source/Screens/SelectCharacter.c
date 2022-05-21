@@ -223,7 +223,6 @@ ObjNode	*multiplayerText = NULL;
 			.type = MENUS_SObjType_UpArrow,
 			.coord = { GetCharacterArrowHomeX(), ARROW_Y, 0},
 			.slot = SPRITE_SLOT,
-			.moveCall = MoveUIArrow,
 			.scale = ARROW_SCALE,
 		};
 		gCharacterArrow = MakeSpriteObject(&def);
@@ -322,7 +321,8 @@ short	p;
 		gSelectedCharacterIndex--;
 		MorphToSkeletonAnim(gSex[0]->Skeleton, 1, 5.0);
 		MorphToSkeletonAnim(gSex[1]->Skeleton, 0, 5.0);
-		gCharacterArrow->SpecialF[0] = GetCharacterArrowHomeX();
+		gCharacterArrow->Coord.x = GetCharacterArrowHomeX();
+		MakeTwitch(gCharacterArrow, kTwitchDisplaceRight);
 	}
 	else
 	if (GetNewNeedState(kNeed_UIRight, p) && (gSelectedCharacterIndex < 1))
@@ -331,7 +331,8 @@ short	p;
 		gSelectedCharacterIndex++;
 		MorphToSkeletonAnim(gSex[0]->Skeleton, 0, 5.0);
 		MorphToSkeletonAnim(gSex[1]->Skeleton, 1, 5.0);
-		gCharacterArrow->SpecialF[0] = GetCharacterArrowHomeX();
+		gCharacterArrow->Coord.x = GetCharacterArrowHomeX();
+		MakeTwitch(gCharacterArrow, kTwitchDisplaceLeft);
 	}
 
 

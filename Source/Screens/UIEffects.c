@@ -5,19 +5,14 @@
 #include "game.h"
 #include "uieffects.h"
 
-#define ARROW_TWITCH_DISTANCE		16.0f
-#define ARROW_TWITCH_SPEED			12.0f
-
-#define ArrowInitialized	Flag[0]
-#define ArrowHomeX			SpecialF[0]
-#define ArrowHomeY			SpecialF[1]
-
 static const float kEffectDurations[kTwitchCOUNT] =
 {
-	[kTwitchScaleIn] = .14f,
-	[kTwitchScaleOut] = .14f,
-	[kTwitchQuickWiggle] = .35f,
-	[kTwitchBigWiggle] = .45f,
+	[kTwitchScaleIn]		= .14f,
+	[kTwitchScaleOut]		= .14f,
+	[kTwitchDisplaceLeft]	= .2f,
+	[kTwitchDisplaceRight]	= .2f,
+	[kTwitchQuickWiggle]	= .35f,
+	[kTwitchBigWiggle]		= .45f,
 };
 
 typedef struct
@@ -65,7 +60,9 @@ static void MoveUIEffectDriver(ObjNode* driver)
 	float duration = kEffectDurations[type];
 	if (duration == 0)
 	{
-		printf("Twitch type %d is missing duration", type);
+#if _DEBUG
+		printf("Twitch type %d is missing duration\n", type);
+#endif
 		duration = 1;
 	}
 
@@ -100,6 +97,20 @@ static void MoveUIEffectDriver(ObjNode* driver)
 			break;
 		}
 
+		case kTwitchDisplaceLeft:
+		case kTwitchDisplaceRight:
+		{
+			float peakDisplacement = 32.0f;
+
+			float way = type==kTwitchDisplaceLeft? -1.0f: 1.0f;
+
+			p = EaseOutQuad(p);
+
+			puppet->Coord.x += way * realS.x * Lerp(peakDisplacement, 0, p);
+
+			break;
+		}
+
 		case kTwitchQuickWiggle:
 		case kTwitchBigWiggle:
 		{
@@ -114,7 +125,7 @@ static void MoveUIEffectDriver(ObjNode* driver)
 			break;
 		}
 	}
-	
+
 	UpdateObjectTransforms(puppet);
 
 	puppet->Coord = realC;
@@ -157,51 +168,6 @@ ObjNode* MakeTwitch(ObjNode* puppet, int type)
 	};
 
 	return driver;
-}
-
-#pragma mark -
-
-static void PrimeUIArrow(ObjNode* theNode)
-{
-	if (!theNode->ArrowInitialized)
-	{
-		// Not initialized: save home position
-		theNode->ArrowHomeX = theNode->Coord.x;
-		theNode->ArrowHomeY = theNode->Coord.y;
-		theNode->ArrowInitialized = true;
-	}
-}
-
-void MoveUIArrow(ObjNode* theNode)
-{
-	PrimeUIArrow(theNode);
-
-	float dx = theNode->Coord.x - theNode->ArrowHomeX;
-	float dy = theNode->Coord.y - theNode->ArrowHomeY;
-
-	if (fabsf(dx) < 0.2f) dx = 0;	// if close enough, kill movement
-	if (fabsf(dy) < 0.2f) dy = 0;
-
-	if (dx != 0 || dy != 0)
-	{
-		theNode->Coord.x -= ARROW_TWITCH_SPEED * gFramesPerSecondFrac * dx;
-		theNode->Coord.y -= ARROW_TWITCH_SPEED * gFramesPerSecondFrac * dy;
-	}
-	else
-	{
-		theNode->Coord.x = theNode->ArrowHomeX;	// pin to home position
-		theNode->Coord.y = theNode->ArrowHomeY;
-	}
-	
-	UpdateObjectTransforms(theNode);
-}
-
-void TwitchUIArrow(ObjNode* theNode, float x, float y)
-{
-	PrimeUIArrow(theNode);
-
-	theNode->Coord.x = theNode->ArrowHomeX + ARROW_TWITCH_DISTANCE * x;
-	theNode->Coord.y = theNode->ArrowHomeY + ARROW_TWITCH_DISTANCE * y;
 }
 
 #pragma mark -

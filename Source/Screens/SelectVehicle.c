@@ -332,7 +332,6 @@ int					age;
 			.type = MENUS_SObjType_LeftArrow,
 			.coord = { LEFT_ARROW_X, ARROW_Y, 0 },
 			.slot = SPRITE_SLOT,
-			.moveCall = MoveUIArrow,
 			.scale = ARROW_SCALE,
 		};
 		gVehicleLeftArrow = MakeSpriteObject(&def);
@@ -397,7 +396,6 @@ static void MakeVehicleName(void)
 		.coord		= {0, NAME_Y, 0},
 		.scale		= .6,
 		.slot 		= 99,	// Behind car
-		.moveCall	= MoveUIArrow,
 	};
 
 	const char* nameStr = "???";
@@ -545,8 +543,8 @@ short	p;
 		PlayEffect(EFFECT_SELECTCLICK);
 		gSelectedVehicleIndex--;
 		UpdateSelectedVehicle();
-		TwitchUIArrow(gVehicleLeftArrow, -1, 0);
-		TwitchUIArrow(gVehicleName, 1, 0);
+		MakeTwitch(gVehicleLeftArrow, kTwitchDisplaceLeft);
+		MakeTwitch(gVehicleName, kTwitchDisplaceRight);
 	}
 	else
 	if (GetNewNeedState(kNeed_UIRight, p) && (gSelectedVehicleIndex < NUM_LAND_CAR_TYPES-1))
@@ -554,8 +552,8 @@ short	p;
 		PlayEffect(EFFECT_SELECTCLICK);
 		gSelectedVehicleIndex++;
 		UpdateSelectedVehicle();
-		TwitchUIArrow(gVehicleRightArrow, 1, 0);
-		TwitchUIArrow(gVehicleName, -1, 0);
+		MakeTwitch(gVehicleRightArrow, kTwitchDisplaceRight);
+		MakeTwitch(gVehicleName, kTwitchDisplaceLeft);
 	}
 
 	return(false);
