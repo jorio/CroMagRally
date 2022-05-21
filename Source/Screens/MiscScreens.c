@@ -634,7 +634,7 @@ float	fps = gFramesPerSecondFrac;
 
 
 	UpdateObject(theNode);
-	BurnFire(theNode, theNode->Coord.x, theNode->Coord.y + 20.0f, theNode->Coord.z, true, PARTICLE_SObjType_Fire, .6);
+	BurnFire(theNode, theNode->Coord.x, theNode->Coord.y + 20.0f, theNode->Coord.z, false, PARTICLE_SObjType_Fire, .6);
 }
 
 
