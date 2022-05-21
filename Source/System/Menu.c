@@ -962,7 +962,7 @@ static void NavigateCycler(const MenuItem* entry)
 	{
 		gNav->idleTime = 0;
 
-		if (entry->cycler.valuePtr && !entry->cycler.callbackSetsValue)
+		if (entry->cycler.valuePtr)
 		{
 			int index = GetValueIndexInCycler(entry, *entry->cycler.valuePtr);
 
@@ -971,6 +971,8 @@ static void NavigateCycler(const MenuItem* entry)
 			{
 				PlayEffect(EFFECT_BADSELECT);
 				TwitchWiggleSelection();
+				MakeTwitch(gNav->arrowObjects[0], kTwitchBigWiggle);
+				MakeTwitch(gNav->arrowObjects[1], kTwitchBigWiggle);
 				return;
 			}
 
@@ -987,7 +989,9 @@ static void NavigateCycler(const MenuItem* entry)
 		}
 
 		if (entry->callback)
+		{
 			entry->callback(entry);
+		}
 
 		ObjNode* node;
 		if (entry->type == kMICycler1)
@@ -998,6 +1002,11 @@ static void NavigateCycler(const MenuItem* entry)
 		GetMenuNodeData(node)->sweepRTL = (delta == -1);
 
 		RepositionArrows();
+
+		if (delta < 0)
+			MakeTwitch(gNav->arrowObjects[0], kTwitchDisplaceLeft);
+		else
+			MakeTwitch(gNav->arrowObjects[1], kTwitchDisplaceRight);
 	}
 }
 

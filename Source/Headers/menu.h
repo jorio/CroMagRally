@@ -22,7 +22,6 @@ typedef enum
 typedef struct
 {
 	Byte*			valuePtr;
-	bool			callbackSetsValue;
 	struct
 	{
 		LocStrID	text;
