@@ -490,31 +490,42 @@ static void SaveSelectedRowInHistory(void)
 	gNav->history[gNav->historyPos].row = gNav->menuRow;
 }
 
-static void TwitchSelection(void)
+static void TwitchSelectionInOrOut(bool scaleIn)
 {
 	ObjNode* obj = GetCurrentMenuItemObject();
+
+	switch (gNav->menu[gNav->menuRow].type)
+	{
+		case kMIKeyBinding:
+		case kMIPadBinding:
+		case kMIMouseBinding:
+			obj = GetNthChainedNode(obj, 1+gNav->menuCol, NULL);
+			break;
+
+		default:
+			break;
+	}
+
 	if (!obj)
 		return;
 
+
 	float s = GetMenuItemHeight(gNav->menuRow) * gNav->style.standardScale;
-	obj->Scale.x = s * 1.15;
-	obj->Scale.y = s * 1.15;
+	obj->Scale.x = s * (scaleIn? 1.15: 1);
+	obj->Scale.y = s * (scaleIn? 1.15: 1);
 
 	if (GetSpecialData(obj, MenuNodeData)->sweepProgress >= 1)
-		MakeTwitch(obj, kTwitchScaleIn);
+		MakeTwitch(obj, scaleIn? kTwitchScaleIn: kTwitchScaleOut);
+}
+
+static void TwitchSelection(void)
+{
+	TwitchSelectionInOrOut(true);
 }
 
 static void TwitchOutSelection(void)
 {
-	ObjNode* obj = GetCurrentMenuItemObject();
-	if (!obj)
-		return;
-
-	float s = GetMenuItemHeight(gNav->menuRow) * gNav->style.standardScale;
-	obj->Scale.x = s;
-	obj->Scale.y = s;
-
-	MakeTwitch(obj, kTwitchScaleOut);
+	TwitchSelectionInOrOut(false);
 }
 
 static void TwitchWiggleSelection(void)
@@ -613,7 +624,7 @@ static void MoveControlBinding(ObjNode* node)
 			break;
 
 		default:
-			DoFatalAlert("Unsupported type");
+			DoFatalAlert("MoveControlBinding: unknown MI type");
 	}
 
 	if (data->row == gNav->menuRow && data->col == gNav->menuCol)
@@ -714,6 +725,8 @@ static void RepositionArrows(void)
 		case kMIKeyBinding:
 		case kMIPadBinding:
 		case kMIMouseBinding:
+			visible[0] = true;
+			visible[1] = true;
 			switch (gNav->menuState)
 			{
 				case kMenuStateAwaitingKeyPress:
@@ -1458,11 +1471,12 @@ static void AwaitMetaGamepadPress(void)
 
 	if (!anyGamepadFound)
 	{
-		MakeText(GetPadBindingName(gNav->menuRow, gNav->menuCol), gNav->menuRow, gNav->menuCol+1, kTextMeshAllCaps | kTextMeshAlignLeft);
-		ReplaceMenuText(STR_CONFIGURE_GAMEPAD_HELP, STR_NO_GAMEPAD_DETECTED);
-		PlayEffect(kSfxError);
 		gNav->menuState = kMenuStateReady;
 		gNav->idleTime = 0;
+		MakePbText(gNav->menuRow, gNav->menuCol);	// update text after state changed back to Ready
+		RepositionArrows();
+		PlayEffect(kSfxError);
+		ReplaceMenuText(STR_CONFIGURE_GAMEPAD_HELP, STR_NO_GAMEPAD_DETECTED);
 	}
 }
 
