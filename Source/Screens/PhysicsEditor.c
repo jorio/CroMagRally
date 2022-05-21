@@ -11,7 +11,7 @@
 #include "game.h"
 #include "menu.h"
 #include "miscscreens.h"
-#include "uielements.h"
+#include "uieffects.h"
 
 /****************************/
 /*    PROTOTYPES            */

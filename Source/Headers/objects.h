@@ -82,6 +82,7 @@ extern	void SetObjectTransformMatrix(ObjNode *theNode);
 extern	void DisposeObjectBaseGroup(ObjNode *theNode);
 extern	void ResetDisplayGroupObject(ObjNode *theNode);
 void AttachObject(ObjNode *theNode);
+Boolean IsObjectBeingDeleted(ObjNode *theNode);
 
 extern	void MoveStaticObject(ObjNode *theNode);
 

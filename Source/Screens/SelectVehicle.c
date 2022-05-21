@@ -13,7 +13,7 @@
 #include "game.h"
 #include "miscscreens.h"
 #include "network.h"
-#include "uielements.h"
+#include "uieffects.h"
 
 
 /****************************/

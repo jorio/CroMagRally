@@ -11,7 +11,7 @@
 /****************************/
 
 #include "game.h"
-#include "uielements.h"
+#include "uieffects.h"
 
 
 /****************************/

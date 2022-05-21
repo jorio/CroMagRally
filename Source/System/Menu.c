@@ -8,6 +8,7 @@
 
 #include "game.h"
 #include "menu.h"
+#include "uieffects.h"
 
 #include <SDL.h>
 #include <SDL_opengl.h>
@@ -47,6 +48,7 @@ static void NavigatePadBinding(const MenuItem* entry);
 static void NavigateMouseBinding(const MenuItem* entry);
 static void NavigateFloatRange(const MenuItem* entry);
 
+static float GetMenuItemHeight(int row);
 static int GetCyclerNumChoices(const MenuItem* entry);
 static int GetValueIndexInCycler(const MenuItem* entry, uint8_t value);
 
@@ -54,12 +56,9 @@ static int GetValueIndexInCycler(const MenuItem* entry, uint8_t value);
 #define SpecialSweepRTL				Flag[1]
 #define SpecialRow					Special[0]
 #define SpecialCol					Special[1]
-#define SpecialTwitchKind			Special[2]
 #define SpecialPulsateTimer			SpecialF[0]
 #define SpecialSweepTimer			SpecialF[1]
 #define SpecialAsyncFadeOutSpeed	SpecialF[3]
-#define SpecialTwitchTimer			SpecialF[4]
-#define SpecialTwitchSeed			SpecialF[5]
 
 /****************************/
 /*    CONSTANTS             */
@@ -99,7 +98,6 @@ const MenuStyle kDefaultMenuStyle =
 	.asyncFadeOut		= true,
 	.fadeOutSceneOnExit	= true,
 	.sweepInSpeed		= (1.0f / 0.2f),
-	.twitchSpeed		= (1.0f / 0.4f),
 	.standardScale		= .5f,
 	.rowHeight			= 40,
 	.uniformXExtent		= 0,
@@ -279,6 +277,9 @@ static void SetHandMouseCursor(void)
 
 ObjNode* GetCurrentMenuItemObject(void)
 {
+	if (gNav->menuRow < 0)
+		return NULL;
+
 	return gNav->menuObjects[gNav->menuRow];
 }
 
@@ -486,25 +487,35 @@ static void SaveSelectedRowInHistory(void)
 
 static void TwitchSelection(void)
 {
-	gNav->menuObjects[gNav->menuRow]->SpecialTwitchTimer = 1;
-	gNav->menuObjects[gNav->menuRow]->SpecialTwitchKind = 0;
-	gNav->menuObjects[gNav->menuRow]->SpecialTwitchSeed = RandomFloat();
+	ObjNode* obj = GetCurrentMenuItemObject();
+	if (!obj)
+		return;
+
+	float mih = GetMenuItemHeight(gNav->menuRow);
+	float s = mih * gNav->style.standardScale;
+	obj->Scale.x = s * 1.15;
+	obj->Scale.y = s * 1.15;
+
+	if (obj->SpecialSweepTimer >= 1)
+		MakeTwitch(obj, kTwitchScaleIn);
 }
 
 static void TwitchOutSelection(void)
 {
-	if (gNav->menuRow >= 0)
-	{
-		gNav->menuObjects[gNav->menuRow]->SpecialTwitchTimer = 1;
-		gNav->menuObjects[gNav->menuRow]->SpecialTwitchKind = 1;
-	}
+	ObjNode* obj = GetCurrentMenuItemObject();
+	if (!obj)
+		return;
+
+	float s = GetMenuItemHeight(gNav->menuRow) * gNav->style.standardScale;
+	obj->Scale.x = s;
+	obj->Scale.y = s;
+
+	MakeTwitch(obj, kTwitchScaleOut);
 }
 
 static void TwitchWiggleSelection(void)
 {
-	gNav->menuObjects[gNav->menuRow]->SpecialTwitchTimer = 1;
-	gNav->menuObjects[gNav->menuRow]->SpecialTwitchKind = 2;
-
+	MakeTwitch(GetCurrentMenuItemObject(), kTwitchWiggle);
 }
 
 /****************************/
@@ -517,77 +528,11 @@ static void MoveDarkenPane(ObjNode* node)
 	node->ColorFilter.a = gNav->menuFadeAlpha * gNav->style.darkenPaneOpacity;
 }
 
-static float Mix(float p, float a, float b)
-{
-	return (1-p)*a + p*b;
-}
-
 static void MoveGenericMenuItem(ObjNode* node, float baseAlpha)
 {
 	float sweepAlpha = 1;
 
 	float xBackup = node->Coord.x;
-	OGLVector3D sBackup = node->Scale;
-	float rBackup = node->Rot.z;
-
-	float targetScale = 1;
-	if (gNav->menuRow == node->SpecialRow)
-	{
-		targetScale = 1.15;
-	}
-
-	if (node->SpecialTwitchTimer > 0)
-	{
-		if (node->SpecialTwitchKind == 0)			// twitch IN (to selected state)
-		{
-
-			node->SpecialTwitchTimer -= gFramesPerSecondFrac * gNav->style.twitchSpeed;
-			if (node->SpecialTwitchTimer < 0)
-				node->SpecialTwitchTimer = 0;
-
-			float p = node->SpecialTwitchTimer;
-			p *= p;
-			p *= p;
-			node->Scale.x = sBackup.x * targetScale * Mix(1-p, 1.1, 1); //sBackup.x * (targetScale + p*0.05f);
-			node->Scale.y = sBackup.x * targetScale * Mix(1-p, 1.1, 1); //sBackup.y * (targetScale + p*0.05f);
-//		node->Rot.z = (node->SpecialTwitchSeed - 0.5f) * p * 0.03;
-		}
-		else if (node->SpecialTwitchKind == 1)		// twitch OUT (back to normal)
-		{
-			node->SpecialTwitchTimer -= gFramesPerSecondFrac * gNav->style.twitchSpeed * 3;
-			if (node->SpecialTwitchTimer < 0)
-				node->SpecialTwitchTimer = 0;
-
-			float p = node->SpecialTwitchTimer;
-			//p *= p;
-			p *= p;
-			node->Scale.x = sBackup.x * targetScale * Mix(1-p, 1.1, 1);
-			node->Scale.y = sBackup.y * targetScale * Mix(1-p, 1.1, 1);
-		}
-		else
-		{
-			node->SpecialTwitchTimer -= gFramesPerSecondFrac * gNav->style.twitchSpeed;
-			if (node->SpecialTwitchTimer < 0)
-				node->SpecialTwitchTimer = 0;
-
-			float p  = node->SpecialTwitchTimer;
-			float dampening = node->SpecialTwitchTimer;
-
-			float x = sinf(p * 3.14 * 3);
-			x *= dampening;
-			x *= 25 * sBackup.x;
-			//x *= theNode->PadlockWiggleSign;
-			node->Coord.x += x;
-
-			node->Scale.x = sBackup.x * targetScale;
-			node->Scale.y = sBackup.x * targetScale;
-		}
-	}
-	else		// idle
-	{
-		node->Scale.x = sBackup.x * targetScale;
-		node->Scale.y = sBackup.y * targetScale;
-	}
 
 	if (node->SpecialSweepTimer < 1.0f)
 	{
@@ -621,8 +566,6 @@ static void MoveGenericMenuItem(ObjNode* node, float baseAlpha)
 
 	UpdateObjectTransforms(node);
 	node->Coord.x = xBackup;
-	node->Scale = sBackup;
-	node->Rot.z = rBackup;
 
 	node->ColorFilter.a = baseAlpha * sweepAlpha;
 
@@ -794,7 +737,7 @@ static void RepositionArrows(void)
 	{
 		OGLRect extents = TextMesh_GetExtents(snapTo);
 
-		float spacing = 90 * snapTo->Scale.x;
+		float spacing = 45 * snapTo->Scale.x;
 
 		for (int i = 0; i < 2; i++)
 		{
@@ -1915,6 +1858,7 @@ static void LayOutMenu(int menuID)
 		NavigateSettingEntriesVertically(1);
 	}
 
+	TwitchSelection();
 	RepositionArrows();
 }
 

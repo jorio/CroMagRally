@@ -301,10 +301,10 @@ struct ObjNode
 	signed char		Mode;				// mode
 	short			PlayerNum;			// player #
 
-	signed char		Flag[6];
+	Ptr				SpecialPtr[6];
 	long			Special[6];
 	float			SpecialF[6];
-	Ptr				SpecialPtr[6];
+	int8_t			Flag[6];
 
 	float			Health;				// health 0..1
 

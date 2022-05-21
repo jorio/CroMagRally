@@ -1,4 +1,9 @@
+// UI EFFECTS.C
+// (c)2022 Iliyas Jorio
+// This file is part of Cro-Mag Rally. https://github.com/jorio/cromagrally
+
 #include "game.h"
+#include "uieffects.h"
 
 #define ARROW_TWITCH_DISTANCE		16.0f
 #define ARROW_TWITCH_SPEED			12.0f
@@ -16,6 +21,163 @@
 #define PadlockHomeY		SpecialF[1]
 #define PadlockWiggleTimer	SpecialF[2]
 #define PadlockWiggleSign	SpecialF[3]
+
+static const float kEffectDurations[kTwitchCOUNT] =
+{
+	[kTwitchScaleIn] = .14f,
+	[kTwitchScaleOut] = .14f,
+	[kTwitchWiggle] = .35f,
+};
+
+typedef struct
+{
+	ObjNode*	puppet;
+	float		duration;
+	float		timer;
+	float		amplitude;
+	float		seed;
+	uint32_t	cookie;
+} UifxData;
+
+float EaseInQuad(float p) {	return p * p; }
+float EaseOutQuad(float p) { return 1 - (1 - p) * (1 - p); }
+float EaseOutCubic(float p) { return 1 - powf(1 - p, 3); }
+
+static float Lerp(float a, float b, float p)
+{
+	return (1-p) * a + p*b;
+}
+
+static UifxData* GetUifxData(ObjNode* driver, bool checkCookie)
+{
+	UifxData* effect = (UifxData*)&driver->SpecialPtr[0];
+
+	if (checkCookie)
+	{
+		GAME_ASSERT(effect->cookie == 'UIFX');
+	}
+
+//	_Static_assert(sizeof(*effect) <= sizeof(union SpecialDataUnion), "UifxData struct too large!");
+
+	return effect;
+}
+
+static void MoveUIEffectDriver(ObjNode* driver)
+{
+	UifxData* effect = GetUifxData(driver, true);
+
+	ObjNode* puppet = effect->puppet;
+
+	if (IsObjectBeingDeleted(effect->puppet))
+	{
+		DeleteObject(driver);
+		return;
+	}
+
+	// Backup home coord/scale/rotation
+	OGLPoint3D realC = puppet->Coord;
+	OGLVector3D realS = puppet->Scale;
+	OGLVector3D realR = puppet->Rot;
+
+	effect->timer += gFramesPerSecondFrac;
+
+	float duration = kEffectDurations[driver->Type];
+	if (duration == 0)
+	{
+		printf("Twitch type %d is missing duration", driver->Type);
+		duration = 1;
+	}
+
+	float p = effect->timer / duration;
+
+	if (p > 1)	// we'll nuke the driver at the end of this function
+	{
+		p = 1;
+	}
+
+	switch (driver->Type)
+	{
+		case kTwitchScaleIn:
+		{
+			float overdrive = 1.1f;
+
+			p = EaseOutCubic(p);
+			puppet->Scale.x = realS.x * Lerp(overdrive, 1, p);
+			puppet->Scale.y = realS.y * Lerp(overdrive, 1, p);
+
+			break;
+		}
+
+		case kTwitchScaleOut:
+		{
+			float overdrive = 1.1f;
+
+			p = EaseOutQuad(p);
+			puppet->Scale.x = realS.x * Lerp(overdrive, 1, p);
+			puppet->Scale.y = realS.y * Lerp(overdrive, 1, p);
+
+			break;
+		}
+
+		case kTwitchWiggle:
+		{
+			float invp = 1 - p;
+			float dampening = invp;
+
+			float x = sinf(invp * 3.14 * 3);
+			x *= dampening;
+			x *= 25 * realS.x;
+			puppet->Coord.x += x;
+
+			break;
+		}
+	}
+	
+	UpdateObjectTransforms(puppet);
+
+	puppet->Coord = realC;
+	puppet->Scale = realS;
+	puppet->Rot = realR;
+
+	if (p == 1)
+	{
+		DeleteObject(driver);
+	}
+}
+
+ObjNode* MakeTwitch(ObjNode* puppet, int type)
+{
+	if (puppet == NULL)
+	{
+		return NULL;
+	}
+
+	NewObjectDefinitionType def =
+	{
+		.genre = CUSTOM_GENRE,
+		.type = type,
+		.slot = puppet->Slot + 1,
+		.scale = 1,
+		.moveCall = MoveUIEffectDriver,
+		.flags = STATUS_BIT_MOVEINPAUSE,
+	};
+
+	ObjNode* driver = MakeNewObject(&def);
+
+	UifxData* effect = GetUifxData(driver, false);
+
+	*effect = (UifxData)
+	{
+		.cookie = 'UIFX',
+		.puppet = puppet,
+		.duration = 0.14f,
+		.amplitude = 10,
+		.timer = 0,
+		.seed = RandomFloat(),
+	};
+
+	return driver;
+}
 
 #pragma mark -
 

@@ -1257,6 +1257,14 @@ out:
 }
 
 
+/***************** IS OBJECT BEING DELETED ****************/
+
+Boolean IsObjectBeingDeleted(ObjNode* theNode)
+{
+	return theNode->CType == INVALID_NODE_FLAG;
+}
+
+
 /***************** FLUSH OBJECT DELETE QUEUE ****************/
 
 static void FlushObjectDeleteQueue(void)
