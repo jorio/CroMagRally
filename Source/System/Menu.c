@@ -969,12 +969,19 @@ static void NavigateCycler(const MenuItem* entry)
 	}
 	else if (GetNewNeedStateAnyP(kNeed_UIRight)
 		|| GetNewNeedStateAnyP(kNeed_UINext)
-//		|| GetNewNeedStateAnyP(kNeed_UIConfirm)
 		|| (gNav->mouseHoverValid && GetNewClickState(SDL_BUTTON_LEFT))
 		|| (gNav->mouseHoverValid && GetNewClickState(SDL_BUTTON_WHEELUP))
 		)
 	{
 		delta = 1;
+	}
+	else if (GetNewNeedStateAnyP(kNeed_UIConfirm))
+	{
+		MakeTwitch(GetCurrentMenuItemObject(), kTwitchScaleIn);
+		MakeTwitch(gNav->arrowObjects[0], kTwitchBigWiggle);
+		MakeTwitch(gNav->arrowObjects[1], kTwitchBigWiggle);
+		PlayEffect(EFFECT_BADSELECT);
+		return;
 	}
 
 	if (delta != 0)
@@ -1041,10 +1048,17 @@ static void NavigateFloatRange(const MenuItem* entry)
 	}
 	else if (GetNeedStateAnyP(kNeed_UIRight)
 		|| GetNeedStateAnyP(kNeed_UINext)
-//		|| GetNeedStateAnyP(kNeed_UIConfirm)
 		|| (gNav->mouseHoverValid && GetNewClickState(SDL_BUTTON_LEFT)))
 	{
 		delta = 1;
+	}
+	else if (GetNewNeedStateAnyP(kNeed_UIConfirm))
+	{
+		MakeTwitch(GetCurrentMenuItemObject(), kTwitchScaleIn);
+		MakeTwitch(gNav->arrowObjects[0], kTwitchBigWiggle);
+		MakeTwitch(gNav->arrowObjects[1], kTwitchBigWiggle);
+		PlayEffect(EFFECT_BADSELECT);
+		return;
 	}
 
 	MenuNodeData* data = GetMenuNodeData(GetCurrentMenuItemObject());
