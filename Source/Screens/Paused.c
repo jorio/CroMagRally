@@ -154,7 +154,7 @@ void DoPaused(void)
 	int outcome = StartMenu(gPauseMenuTree, &style, UpdatePausedMenuCallback, DrawTerrain);
 
 	gGamePaused = false;
-	gHideInfobar = false;
+	PauseAllChannels(false);
 	
 	PopKeys();										// restore key state
 
@@ -162,7 +162,7 @@ void DoPaused(void)
 	{
 		case	'resu':								// RESUME
 		default:
-			PauseAllChannels(false);
+			gHideInfobar = false;
 			break;
 
 		case	'bail':								// EXIT

@@ -313,6 +313,11 @@ static const char*	maps[] =
 };
 
 
+			/* RESET HIDE FLAG AT START OF AREA */
+
+	gHideInfobar = false;
+
+
 			/* SETUP MASTER OBJECT */
 
 	GAME_ASSERT(!gInfobarMasterObj);
