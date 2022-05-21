@@ -11,6 +11,8 @@ static const float kEffectDurations[kTwitchCOUNT] =
 	[kTwitchScaleOut]		= .14f,
 	[kTwitchDisplaceLeft]	= .2f,
 	[kTwitchDisplaceRight]	= .2f,
+	[kTwitchLightDisplaceLeft]	= .1f,
+	[kTwitchLightDisplaceRight]	= .1f,
 	[kTwitchQuickWiggle]	= .35f,
 	[kTwitchBigWiggle]		= .45f,
 };
@@ -103,6 +105,20 @@ static void MoveUIEffectDriver(ObjNode* driver)
 			float peakDisplacement = 32.0f;
 
 			float way = type==kTwitchDisplaceLeft? -1.0f: 1.0f;
+
+			p = EaseOutQuad(p);
+
+			puppet->Coord.x += way * realS.x * Lerp(peakDisplacement, 0, p);
+
+			break;
+		}
+
+		case kTwitchLightDisplaceLeft:
+		case kTwitchLightDisplaceRight:
+		{
+			float peakDisplacement = 8.0f;
+
+			float way = type == kTwitchLightDisplaceLeft ? -1.0f : 1.0f;
 
 			p = EaseOutQuad(p);
 

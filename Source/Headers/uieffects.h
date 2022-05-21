@@ -6,6 +6,8 @@ enum
 	kTwitchScaleOut,
 	kTwitchDisplaceLeft,
 	kTwitchDisplaceRight,
+	kTwitchLightDisplaceLeft,
+	kTwitchLightDisplaceRight,
 	kTwitchQuickWiggle,
 	kTwitchBigWiggle,
 	kTwitchCOUNT,

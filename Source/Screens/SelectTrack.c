@@ -408,6 +408,8 @@ static Boolean DoTrackSelectControls(void)
 		PlayEffect(EFFECT_SELECTCLICK);
 		UpdateSelectedTrack();
 		MakeTwitch(gTrackLeftArrow, kTwitchDisplaceLeft);
+		MakeTwitch(gTrackImageIcon, kTwitchLightDisplaceRight);
+		MakeTwitch(gTrackName, kTwitchDisplaceRight);
 	}
 	else
 	if (GetNewNeedStateAnyP(kNeed_UIRight) && (gSelectedTrackIndex < (gNumTracksInSelection-1)))
@@ -416,6 +418,8 @@ static Boolean DoTrackSelectControls(void)
 		PlayEffect(EFFECT_SELECTCLICK);
 		UpdateSelectedTrack();
 		MakeTwitch(gTrackRightArrow, kTwitchDisplaceRight);
+		MakeTwitch(gTrackImageIcon, kTwitchLightDisplaceLeft);
+		MakeTwitch(gTrackName, kTwitchDisplaceLeft);
 	}
 
 	return(false);
