@@ -58,7 +58,8 @@ void TickLapTimes(int playerNum)
 	PlayerInfoType* pi = &gPlayerInfo[playerNum];
 
 	if (pi->lapNum >= 0						// lap number is negative before we cross finish line at start of race
-		&& pi->lapNum < LAPS_PER_RACE)		// lap number gets bumped to 3 when crossing finish line at end of race
+		&& pi->lapNum < LAPS_PER_RACE		// lap number gets bumped to 3 when crossing finish line at end of race
+		&& !pi->raceComplete)				// stop ticking when race is complete
 	{
 		pi->lapTimes[pi->lapNum] += gFramesPerSecondFrac;
 	}
