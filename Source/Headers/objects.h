@@ -111,3 +111,9 @@ int GetNodeChainLength(ObjNode* start);
 ObjNode* GetNthChainedNode(ObjNode* start, int targetIndex, ObjNode** outPrevNode);
 ObjNode* GetChainTailNode(ObjNode* start);
 void AppendNodeToChain(ObjNode* start, ObjNode* newTail);
+
+#define CheckSpecialDataStruct(structType) \
+	_Static_assert(sizeof(structType) <= MAX_SPECIAL_DATA_BYTES, "Special data struct too large!")
+
+#define GetSpecialData(theNode, structType) \
+	((structType*) (theNode)->SpecialPadding)

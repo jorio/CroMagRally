@@ -19,7 +19,6 @@
 #define DECLARE_STATIC_WORKBUF(buf, bufSize) static char (buf)[256]; static const int (bufSize) = 256
 
 
-
 /****************************/
 /*    PROTOTYPES            */
 /****************************/
@@ -52,13 +51,19 @@ static float GetMenuItemHeight(int row);
 static int GetCyclerNumChoices(const MenuItem* entry);
 static int GetValueIndexInCycler(const MenuItem* entry, uint8_t value);
 
-#define SpecialMuted				Flag[0]
-#define SpecialSweepRTL				Flag[1]
-#define SpecialRow					Special[0]
-#define SpecialCol					Special[1]
-#define SpecialPulsateTimer			SpecialF[0]
-#define SpecialSweepTimer			SpecialF[1]
-#define SpecialAsyncFadeOutSpeed	SpecialF[3]
+typedef struct
+{
+	Boolean		muted;
+	Boolean		sweepRTL;
+	int			row;
+	int			col;
+	float		pulsateTimer;
+	float		sweepProgress;
+	float		asyncFadeOutSpeed;
+} MenuNodeData;
+CheckSpecialDataStruct(MenuNodeData);
+
+#define GetMenuNodeData(node) GetSpecialData(node, MenuNodeData)
 
 /****************************/
 /*    CONSTANTS             */
@@ -432,9 +437,9 @@ static ObjNode* MakeKbText(int row, int keyNo)
 		kbName = GetKeyBindingName(row, keyNo);
 	}
 
-	ObjNode* text = MakeText(kbName, row, 1+keyNo, kTextMeshAllCaps | kTextMeshAlignLeft);
-	text->SpecialCol = keyNo;
-	return text;
+	ObjNode* node = MakeText(kbName, row, 1+keyNo, kTextMeshAllCaps | kTextMeshAlignLeft);
+	GetMenuNodeData(node)->col = keyNo;
+	return node;
 }
 
 static ObjNode* MakePbText(int row, int btnNo)
@@ -450,9 +455,9 @@ static ObjNode* MakePbText(int row, int btnNo)
 		pbName = GetPadBindingName(row, btnNo);
 	}
 
-	ObjNode* text = MakeText(pbName, row, 1+btnNo, kTextMeshAllCaps | kTextMeshAlignLeft);
-	text->SpecialCol = btnNo;
-	return text;
+	ObjNode* node = MakeText(pbName, row, 1+btnNo, kTextMeshAllCaps | kTextMeshAlignLeft);
+	GetMenuNodeData(node)->col = btnNo;
+	return node;
 }
 
 static bool IsMenuItemSelectable(const MenuItem* mi)
@@ -491,12 +496,11 @@ static void TwitchSelection(void)
 	if (!obj)
 		return;
 
-	float mih = GetMenuItemHeight(gNav->menuRow);
-	float s = mih * gNav->style.standardScale;
+	float s = GetMenuItemHeight(gNav->menuRow) * gNav->style.standardScale;
 	obj->Scale.x = s * 1.15;
 	obj->Scale.y = s * 1.15;
 
-	if (obj->SpecialSweepTimer >= 1)
+	if (GetSpecialData(obj, MenuNodeData)->sweepProgress >= 1)
 		MakeTwitch(obj, kTwitchScaleIn);
 }
 
@@ -530,25 +534,26 @@ static void MoveDarkenPane(ObjNode* node)
 
 static void MoveGenericMenuItem(ObjNode* node, float baseAlpha)
 {
-	float sweepAlpha = 1;
+	MenuNodeData* data = GetMenuNodeData(node);
 
+	float sweepAlpha = 1;
 	float xBackup = node->Coord.x;
 
-	if (node->SpecialSweepTimer < 1.0f)
+	if (data->sweepProgress < 1.0f)
 	{
-		node->SpecialSweepTimer += gFramesPerSecondFrac * gNav->style.sweepInSpeed;
+		data->sweepProgress += gFramesPerSecondFrac * gNav->style.sweepInSpeed;
 
-		if (node->SpecialSweepTimer < 0)
+		if (data->sweepProgress < 0)
 		{
 			sweepAlpha = 0;
 		}
-		else if (node->SpecialSweepTimer < 1)
+		else if (data->sweepProgress < 1)
 		{
-			sweepAlpha = node->SpecialSweepTimer;
+			sweepAlpha = data->sweepProgress;
 
-			float p = (1.0f - node->SpecialSweepTimer);
+			float p = (1.0f - data->sweepProgress);
 			float offset = p*p * 50.0f;
-			if (node->SpecialSweepRTL)		// used to sweep left instead of right
+			if (data->sweepRTL)		// used to sweep left instead of right
 				offset *= -1;
 
 			node->Coord.x -= offset;
@@ -559,7 +564,7 @@ static void MoveGenericMenuItem(ObjNode* node, float baseAlpha)
 		}
 	}
 
-	if (node->SpecialMuted)
+	if (data->muted)
 	{
 		baseAlpha *= .5f;
 	}
@@ -580,7 +585,7 @@ static void MoveLabel(ObjNode* node)
 
 static void MoveAction(ObjNode* node)
 {
-	if (node->SpecialRow == gNav->menuRow)
+	if (GetMenuNodeData(node)->row == gNav->menuRow)
 		node->ColorFilter = gNav->style.highlightColor; //TwinkleColor();
 	else
 		node->ColorFilter = gNav->style.idleColor;
@@ -588,16 +593,39 @@ static void MoveAction(ObjNode* node)
 	MoveGenericMenuItem(node, 1);
 }
 
-static void MoveKeyBinding(ObjNode* node)
+static void MoveControlBinding(ObjNode* node)
 {
-	if (node->SpecialRow == gNav->menuRow && node->SpecialCol == gNav->menuCol)
+	MenuNodeData* data = GetMenuNodeData(node);
+
+	int pulsatingState = 0;
+	switch (gNav->menu[data->row].type)
 	{
-		if (gNav->menuState == kMenuStateAwaitingKeyPress)
+		case kMIKeyBinding:
+			pulsatingState = kMenuStateAwaitingKeyPress;
+			break;
+
+		case kMIPadBinding:
+			pulsatingState = kMenuStateAwaitingPadPress;
+			break;
+
+		case kMIMouseBinding:
+			pulsatingState = kMenuStateAwaitingMouseClick;
+			break;
+
+		default:
+			DoFatalAlert("Unsupported type");
+	}
+
+	if (data->row == gNav->menuRow && data->col == gNav->menuCol)
+	{
+		if (gNav->menuState == pulsatingState)
 		{
-			node->ColorFilter = PulsateColor(&node->SpecialPulsateTimer);
+			node->ColorFilter = PulsateColor(&data->pulsateTimer);
 		}
 		else
+		{
 			node->ColorFilter = gNav->style.highlightColor; //TwinkleColor();
+		}
 	}
 	else
 	{
@@ -607,54 +635,23 @@ static void MoveKeyBinding(ObjNode* node)
 	MoveGenericMenuItem(node, node->ColorFilter.a);
 }
 
-static void MovePadBinding(ObjNode* node)
+static void MoveAsyncFadeOutAndDelete(ObjNode* node)
 {
-	if (node->SpecialRow == gNav->menuRow && node->SpecialCol == gNav->menuCol)
-	{
-		if (gNav->menuState == kMenuStateAwaitingPadPress)
-			node->ColorFilter = PulsateColor(&node->SpecialPulsateTimer);
-		else
-			node->ColorFilter = gNav->style.highlightColor; //TwinkleColor();
-	}
-	else
-	{
-		node->ColorFilter = gNav->style.idleColor;
-	}
+	MenuNodeData* data = GetMenuNodeData(node);
 
-	MoveGenericMenuItem(node, node->ColorFilter.a);
-}
-
-static void MoveMouseBinding(ObjNode* node)
-{
-	if (node->SpecialRow == gNav->menuRow)
+	node->ColorFilter.a -= gFramesPerSecondFrac * data->asyncFadeOutSpeed;
+	if (node->ColorFilter.a < 0.0f)
 	{
-		if (gNav->menuState == kMenuStateAwaitingMouseClick)
-			node->ColorFilter = PulsateColor(&node->SpecialPulsateTimer);
-		else
-			node->ColorFilter = gNav->style.highlightColor; //TwinkleColor();
-	}
-	else
-	{
-		node->ColorFilter = gNav->style.idleColor;
-	}
-
-	MoveGenericMenuItem(node, node->ColorFilter.a);
-}
-
-static void MoveAsyncFadeOutAndDelete(ObjNode *theNode)
-{
-	theNode->ColorFilter.a -= gFramesPerSecondFrac * theNode->SpecialAsyncFadeOutSpeed;
-	if (theNode->ColorFilter.a < 0.0f)
-	{
-		DeleteObject(theNode);
+		DeleteObject(node);
 	}
 }
 
-static void InstallAsyncFadeOut(ObjNode* theNode)
+static void InstallAsyncFadeOut(ObjNode* node)
 {
-	theNode->MoveCall = MoveAsyncFadeOutAndDelete;
-	theNode->SpecialAsyncFadeOutSpeed = gNav->style.fadeOutSpeed;
+	MenuNodeData* data = GetMenuNodeData(node);
 
+	node->MoveCall = MoveAsyncFadeOutAndDelete;
+	data->asyncFadeOutSpeed = gNav->style.fadeOutSpeed;
 }
 
 /****************************/
@@ -998,7 +995,7 @@ static void NavigateCycler(const MenuItem* entry)
 		else
 			node = LayOutCycler2ValueText(gNav->menuRow);
 
-		node->SpecialSweepRTL = (delta == -1);
+		GetMenuNodeData(node)->sweepRTL = (delta == -1);
 
 		RepositionArrows();
 	}
@@ -1565,8 +1562,6 @@ static ObjNode* MakeText(const char* text, int row, int desiredCol, int textMesh
 		};
 
 		node = TextMesh_New(text, textMeshFlags, &def);
-		node->SpecialRow = row;
-		node->SpecialCol = desiredCol;
 
 		if (pNode)
 		{
@@ -1579,15 +1574,6 @@ static ObjNode* MakeText(const char* text, int row, int desiredCol, int textMesh
 		}
 	}
 
-	/*
-	if (centered)
-	{
-		int paddedRightOff = ((gNav->menuColXs[col+1]-170) - node->Coord.x) / node->Scale.x;
-		if (paddedRightOff > node->RightOff)
-			node->RightOff = paddedRightOff;
-	}
-	*/
-
 	if (gNav->style.uniformXExtent)
 	{
 		if (-gNav->style.uniformXExtent < node->LeftOff)
@@ -1596,8 +1582,11 @@ static ObjNode* MakeText(const char* text, int row, int desiredCol, int textMesh
 			node->RightOff = gNav->style.uniformXExtent;
 	}
 
-	node->SpecialSweepTimer = gTempInitialSweepFactor;
-	node->SpecialSweepRTL = gTempForceSwipeRTL;
+	MenuNodeData* data = GetMenuNodeData(node);
+	data->row = row;
+	data->col = desiredCol;
+	data->sweepProgress = gTempInitialSweepFactor;
+	data->sweepRTL = gTempForceSwipeRTL;
 
 	return node;
 }
@@ -1631,11 +1620,13 @@ static ObjNode* LayOutPick(int row)
 {
 	const MenuItem* entry = &gNav->menu[row];
 
-	ObjNode* node = MakeText(GetMenuItemLabel(entry), row, 0, 0);
-	node->MoveCall = MoveAction;
-	node->SpecialMuted = !IsMenuItemSelectable(entry);
+	ObjNode* obj = MakeText(GetMenuItemLabel(entry), row, 0, 0);
+	obj->MoveCall = MoveAction;
 
-	return node;
+	MenuNodeData* data = GetSpecialData(obj, MenuNodeData);
+	data->muted = !IsMenuItemSelectable(entry);
+
+	return obj;
 }
 
 static ObjNode* LayOutCycler2ValueText(int row)
@@ -1726,9 +1717,9 @@ static ObjNode* LayOutKeyBinding(int row)
 	for (int j = 0; j < KEYBINDING_MAX_KEYS; j++)
 	{
 		ObjNode* keyNode = MakeKbText(row, j);
-		keyNode->SpecialCol = j;
 		keyNode->Coord.x = -50 + j * 170 ;
-		keyNode->MoveCall = MoveKeyBinding;
+		keyNode->MoveCall = MoveControlBinding;
+		GetMenuNodeData(keyNode)->col = j;
 	}
 
 	return label;
@@ -1749,9 +1740,9 @@ static ObjNode* LayOutPadBinding(int row)
 	for (int j = 0; j < KEYBINDING_MAX_KEYS; j++)
 	{
 		ObjNode* keyNode = MakePbText(row, j);
-		keyNode->SpecialCol = j;
 		keyNode->Coord.x = -50 + j * 170;
-		keyNode->MoveCall = MovePadBinding;
+		keyNode->MoveCall = MoveControlBinding;
+		GetMenuNodeData(keyNode)->col = j;
 	}
 
 	return label;
@@ -1769,7 +1760,7 @@ static ObjNode* LayOutMouseBinding(int row)
 	label->MoveCall = MoveAction;
 
 	ObjNode* keyNode = MakeText(GetMouseBindingName(row), row, 1, 0);
-	keyNode->MoveCall = MoveMouseBinding;
+	keyNode->MoveCall = MoveControlBinding;
 
 	return label;
 }

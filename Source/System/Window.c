@@ -22,10 +22,14 @@ extern SDL_Window* gSDLWindow;
 
 static void MoveFadeEvent(ObjNode *theNode);
 
-#define FaderMode				Flag[0]
-#define FaderDone				Flag[1]
-#define FaderSpeed				SpecialF[0]
-#define FaderFrameCounter		Special[0]
+typedef struct
+{
+	Byte		mode;
+	Boolean		done;
+	float		speed;
+	long		frameCounter;
+} FaderData;
+CheckSpecialDataStruct(FaderData);
 
 /****************************/
 /*    CONSTANTS             */
@@ -77,7 +81,8 @@ ObjNode		*thisNodePtr;
 	{
 		if (thisNodePtr->MoveCall == MoveFadeEvent)
 		{
-			thisNodePtr->FaderMode = fadeIn;							// set new mode
+			FaderData* faderData = GetSpecialData(thisNodePtr, FaderData);
+			faderData->mode = fadeIn;									// set new mode
 			return thisNodePtr;
 		}
 		thisNodePtr = thisNodePtr->NextNode;							// next node
@@ -102,10 +107,11 @@ ObjNode		*thisNodePtr;
 	if (fabsf(fadeDuration) < .01f)	// don't div/0
 		fadeDuration = .01f;
 
-	newObj->FaderMode = fadeIn;
-	newObj->FaderDone = false;
-	newObj->FaderSpeed = 1.0f / fadeDuration;
-	newObj->FaderFrameCounter = 0;
+	FaderData* faderData = GetSpecialData(newObj, FaderData);
+	faderData->mode = fadeIn;
+	faderData->done = false;
+	faderData->speed = 1.0f / fadeDuration;
+	faderData->frameCounter = 0;
 
 	MOVertexArrayData* mesh = GetQuadMeshWithin(newObj);
 	mesh->numPoints = 4;
@@ -127,28 +133,30 @@ static void MoveFadeEvent(ObjNode *theNode)
 {
 float	fps = gFramesPerSecondFrac;
 
-	theNode->FaderFrameCounter++;
+	FaderData* faderData = GetSpecialData(theNode, FaderData);
+
+	faderData->frameCounter++;
 
 			/* SEE IF FADE IN */
 
-	if (theNode->FaderMode)
+	if (faderData->mode)
 	{
-		gGammaFadePercent += fps * theNode->FaderSpeed;
+		gGammaFadePercent += fps * faderData->speed;
 		if (gGammaFadePercent >= 1.0f)										// see if @ 100%
 		{
 			gGammaFadePercent = 1.0f;
-			theNode->FaderDone = true;
+			faderData->done = true;
 		}
 	}
 
 			/* FADE OUT */
 	else
 	{
-		gGammaFadePercent -= fps * theNode->FaderSpeed;
+		gGammaFadePercent -= fps * faderData->speed;
 		if (gGammaFadePercent <= 0.0f)													// see if @ 0%
 		{
 			gGammaFadePercent = 0;
-			theNode->FaderDone = true;
+			faderData->done = true;
 		}
 	}
 
@@ -160,9 +168,9 @@ float	fps = gFramesPerSecondFrac;
 		FadeSound(gGammaFadePercent);
 	}
 
-	if (theNode->FaderDone)
+	if (faderData->done)
 	{
-		if (theNode->FaderMode)			// nuke it if fading in, hold it if fading out
+		if (faderData->mode)			// nuke it if fading in, hold it if fading out
 			DeleteObject(theNode);
 
 		theNode->MoveCall = NULL;		// don't run this again
@@ -181,9 +189,11 @@ void OGL_FadeOutScene(void (*drawCall)(void), void (*moveCall)(void))
 	}
 
 	ObjNode* fader = MakeFadeEvent(false);
-	long pFaderFrameCount = fader->FaderFrameCounter;
+	FaderData* faderData = GetSpecialData(fader, FaderData);
 
-	while (!fader->FaderDone)
+	long pFaderFrameCount = faderData->frameCounter;
+
+	while (!faderData->done)
 	{
 		CalcFramesPerSecond();
 		DoSDLMaintenance();
@@ -194,10 +204,10 @@ void OGL_FadeOutScene(void (*drawCall)(void), void (*moveCall)(void))
 		}
 
 		// Force fader object to move even if MoveObjects was skipped
-		if (fader->FaderFrameCounter == pFaderFrameCount)	// fader wasn't moved by moveCall
+		if (faderData->frameCounter == pFaderFrameCount)	// fader wasn't moved by moveCall
 		{
 			MoveFadeEvent(fader);
-			pFaderFrameCount = fader->FaderFrameCounter;
+			pFaderFrameCount = faderData->frameCounter;
 		}
 
 		OGL_DrawScene(drawCall);

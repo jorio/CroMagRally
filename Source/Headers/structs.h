@@ -27,6 +27,8 @@
 #define	MAX_MORPH_TRIMESHES		10
 #define	MAX_MORPH_POINTS		1000
 
+#define	MAX_SPECIAL_DATA_BYTES	(sizeof(void*) * 8)
+
 
 
 			/*********************/
@@ -301,10 +303,18 @@ struct ObjNode
 	signed char		Mode;				// mode
 	short			PlayerNum;			// player #
 
-	Ptr				SpecialPtr[6];
-	long			Special[6];
-	float			SpecialF[6];
-	int8_t			Flag[6];
+	union
+	{
+		struct
+		{
+			Ptr		SpecialPtr[6];
+			long	Special[6];
+			float	SpecialF[6];
+			int8_t	Flag[6];
+		};
+
+		void*		SpecialPadding[MAX_SPECIAL_DATA_BYTES / sizeof(intptr_t)];
+	};
 
 	float			Health;				// health 0..1
 

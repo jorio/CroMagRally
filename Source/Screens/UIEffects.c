@@ -29,6 +29,7 @@ typedef struct
 	float		seed;
 	uint32_t	cookie;
 } UifxData;
+CheckSpecialDataStruct(UifxData);
 
 float EaseInQuad(float p) {	return p * p; }
 float EaseOutQuad(float p) { return 1 - (1 - p) * (1 - p); }
@@ -39,23 +40,11 @@ static float Lerp(float a, float b, float p)
 	return (1-p) * a + p*b;
 }
 
-static UifxData* GetUifxData(ObjNode* driver, bool checkCookie)
-{
-	UifxData* effect = (UifxData*)&driver->SpecialPtr[0];
-
-	if (checkCookie)
-	{
-		GAME_ASSERT(effect->cookie == 'UIFX');
-	}
-
-//	_Static_assert(sizeof(*effect) <= sizeof(union SpecialDataUnion), "UifxData struct too large!");
-
-	return effect;
-}
-
 static void MoveUIEffectDriver(ObjNode* driver)
 {
-	UifxData* effect = GetUifxData(driver, true);
+	UifxData* effect = GetSpecialData(driver, UifxData);
+	GAME_ASSERT(effect->cookie == 'UIFX');
+
 	Byte type = driver->Type;
 
 	ObjNode* puppet = effect->puppet;
@@ -157,9 +146,7 @@ ObjNode* MakeTwitch(ObjNode* puppet, int type)
 
 	ObjNode* driver = MakeNewObject(&def);
 
-	UifxData* effect = GetUifxData(driver, false);
-
-	*effect = (UifxData)
+	*GetSpecialData(driver, UifxData) = (UifxData)
 	{
 		.cookie = 'UIFX',
 		.puppet = puppet,
