@@ -263,7 +263,7 @@ struct ObjNode
 
 	struct	ObjNode	*ShadowNode;		// ptr to node's shadow (if any)
 
-	uint16_t			Slot;				// sort value
+	uint16_t		Slot;				// sort value
 	Byte			Genre;				// obj genre
 	Byte			Type;				// obj type
 	Byte			Group;				// obj group
@@ -338,7 +338,7 @@ typedef struct
 	Byte		type;
 	Byte		animNum;
 	Byte		projection;
-	short		slot;
+	uint16_t	slot;
 	OGLPoint3D	coord;
 	uint32_t	flags;
 	void		(*moveCall)(ObjNode *);
