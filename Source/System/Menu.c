@@ -115,8 +115,9 @@ const MenuStyle kDefaultMenuStyle =
 	.yOffset			= 0,
 
 	.highlightColor		= {0.3f, 0.5f, 0.2f, 1.0f},
+	.arrowColor			= {0.7f, 0.7f, 0.7f, 1.0f},
 	.idleColor			= {1.0f, 1.0f, 1.0f, 1.0f},
-	.labelColor			= {0.4f, 0.4f, 0.4f, 1.0f},
+	.labelColor			= {0.35f, 0.35f, 0.35f, 1.0f},
 };
 
 typedef struct
@@ -213,6 +214,9 @@ static void InitMenuNavigation(void)
 	};
 	nav->arrowObjects[0] = TextMesh_New("<", 0, &arrowDef);
 	nav->arrowObjects[1] = TextMesh_New(">", 0, &arrowDef);
+
+	nav->arrowObjects[0]->ColorFilter = nav->style.arrowColor;
+	nav->arrowObjects[1]->ColorFilter = nav->style.arrowColor;
 }
 
 static void DisposeMenuNavigation(void)
@@ -765,7 +769,7 @@ static void RepositionArrows(void)
 			arrowObj->Scale = snapTo->Scale;
 			UpdateObjectTransforms(arrowObj);
 
-			arrowObj->ColorFilter.a = visible[i] ? 1 : 0.25f;
+			arrowObj->ColorFilter.a = visible[i] ? 1 : 0;//0.25f;
 		}
 	}
 	else

@@ -78,6 +78,7 @@ typedef struct MenuStyle
 	OGLColorRGBA	labelColor;
 	OGLColorRGBA	idleColor;
 	OGLColorRGBA	highlightColor;
+	OGLColorRGBA	arrowColor;
 	struct
 	{
 		bool			asyncFadeOut : 1;

@@ -167,7 +167,6 @@ const MenuItem gSettingsMenuTree[] =
 	{kMIPick, STR_RESET_KEYBINDINGS, .callback=OnPickResetKeyboardBindings, .customHeight=.5f },
 
 	{ .id='gpad' },
-	{kMISpacer, .customHeight=.65f },  // hack to avoid overlapping CMR logo
 	{kMILabel, STR_CONFIGURE_GAMEPAD_HELP, .customHeight=.5f },
 	{kMISpacer, .customHeight=.17f },
 	{kMILabel, STR_LEFT_STICK_ALWAYS_STEERS, .customHeight=.4f },
