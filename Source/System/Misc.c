@@ -189,7 +189,7 @@ float	f;
 
 /************** RANDOM FLOAT 2 ********************/
 //
-// returns a random float between 0 and 1
+// returns a random float between -1 and 1
 //
 
 float RandomFloat2(void)

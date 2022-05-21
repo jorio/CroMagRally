@@ -60,6 +60,8 @@ typedef struct
 	float		pulsateTimer;
 	float		sweepProgress;
 	float		asyncFadeOutSpeed;
+	float		incrementCooldown;
+	int			nIncrements;
 } MenuNodeData;
 CheckSpecialDataStruct(MenuNodeData);
 
@@ -500,6 +502,10 @@ static void TwitchSelectionInOrOut(bool scaleIn)
 		case kMIPadBinding:
 		case kMIMouseBinding:
 			obj = GetNthChainedNode(obj, 1+gNav->menuCol, NULL);
+			break;
+
+		case kMIFloatRange:
+			obj = GetNthChainedNode(obj, 1, NULL);
 			break;
 
 		default:
@@ -1027,22 +1033,39 @@ static void NavigateFloatRange(const MenuItem* entry)
 {
 	int delta = 0;
 
-	if (GetNewNeedStateAnyP(kNeed_UILeft)
-		|| GetNewNeedStateAnyP(kNeed_UIPrev)
+	if (GetNeedStateAnyP(kNeed_UILeft)
+		|| GetNeedStateAnyP(kNeed_UIPrev)
 		|| (gNav->mouseHoverValid && GetNewClickState(SDL_BUTTON_RIGHT)))
 	{
 		delta = -1;
 	}
-	else if (GetNewNeedStateAnyP(kNeed_UIRight)
-		|| GetNewNeedStateAnyP(kNeed_UINext)
-		|| GetNewNeedStateAnyP(kNeed_UIConfirm)
+	else if (GetNeedStateAnyP(kNeed_UIRight)
+		|| GetNeedStateAnyP(kNeed_UINext)
+//		|| GetNeedStateAnyP(kNeed_UIConfirm)
 		|| (gNav->mouseHoverValid && GetNewClickState(SDL_BUTTON_LEFT)))
 	{
 		delta = 1;
 	}
 
-	if (delta != 0)
+	MenuNodeData* data = GetMenuNodeData(GetCurrentMenuItemObject());
+
+	if (delta == 0)
 	{
+		data->incrementCooldown = 0;
+		data->nIncrements = 0;
+	}
+	else
+	{
+		gNav->idleTime = 0;
+
+		data->incrementCooldown -= gFramesPerSecondFrac;
+
+		if (data->incrementCooldown > 0)
+		{
+			// Wait for cooldown to go negative to increment/decrement value
+			return;
+		}
+
 		float deltaFrac = delta * entry->floatRange.incrementFrac;
 		float valueFrac = *entry->floatRange.valuePtr / *entry->floatRange.equilibriumPtr;
 		valueFrac += deltaFrac;
@@ -1056,16 +1079,52 @@ static void NavigateFloatRange(const MenuItem* entry)
 
 		float newValue = valueFrac * *entry->floatRange.equilibriumPtr;
 
-		gNav->idleTime = 0;
-		PlayEffect_Parms(kSfxCycle, FULL_CHANNEL_VOLUME, FULL_CHANNEL_VOLUME, NORMAL_CHANNEL_RATE * 2 / 3 + (RandomFloat2() * 0x3000));
-
+		// Set value
 		*entry->floatRange.valuePtr = newValue;
 
+		// Invoke callback
 		if (entry->callback)
 			entry->callback(entry);
 
+
+		// Play sound
+		float pitch = 0.5f;
+		pitch += GAME_MIN(6, data->nIncrements) * (1.0f/6.0f) * 0.5f;
+		pitch += RandomFloat() * 0.2f;
+		PlayEffect_Parms(EFFECT_MINE, FULL_CHANNEL_VOLUME, FULL_CHANNEL_VOLUME, NORMAL_CHANNEL_RATE * pitch);
+
+		// Prepare to lay out new value text
+		gTempInitialSweepFactor = .5f;
+		gTempForceSwipeRTL = delta > 0;
+
+		// Lay out new value text
 		LayOutFloatRangeValueText(gNav->menuRow);
+
+		// Restore sweep params
+		gTempInitialSweepFactor = 0;
+		gTempForceSwipeRTL = false;
+
+		// Adjust arrows
 		RepositionArrows();
+		if (delta < 0)
+			MakeTwitch(gNav->arrowObjects[0], kTwitchDisplaceLeft);
+		else
+			MakeTwitch(gNav->arrowObjects[1], kTwitchDisplaceRight);
+
+		// Update cooldown timer
+		if (valueFrac == 1.0f || valueFrac == 0.0f)		// Force speed bump at 0% and 100%
+		{
+			data->incrementCooldown = .5f;
+			data->nIncrements = 0;
+		}
+		else
+		{
+			const float kCooldownProgression[] = {.4f, .3f, .25f, .2f, .175f, .15f, .125f, .1f};
+			const int nCooldowns = sizeof(kCooldownProgression) / sizeof(kCooldownProgression[0]);
+
+			data->incrementCooldown = kCooldownProgression[ GAME_MIN(data->nIncrements, nCooldowns-1) ];
+			data->nIncrements++;
+		}
 	}
 }
 
