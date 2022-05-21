@@ -629,17 +629,17 @@ void SavePlayerFile(void)
 
 int GetNumAgesCompleted(void)
 {
-	return GAME_MIN(NUM_AGES, gGamePrefs.numTracksCompleted / TRACKS_PER_AGE);
+	return GAME_MIN(NUM_AGES, gGamePrefs.tournamentProgression.numTracksCompleted / TRACKS_PER_AGE);
 }
 
 int GetNumStagesCompletedInAge(void)
 {
-	return gGamePrefs.numTracksCompleted % TRACKS_PER_AGE;
+	return gGamePrefs.tournamentProgression.numTracksCompleted % TRACKS_PER_AGE;
 }
 
 int GetNumTracksCompletedTotal(void)
 {
-	return gGamePrefs.numTracksCompleted;
+	return gGamePrefs.tournamentProgression.numTracksCompleted;
 }
 
 int GetTrackNumFromAgeStage(int age, int stage)
@@ -649,7 +649,19 @@ int GetTrackNumFromAgeStage(int age, int stage)
 
 void SetPlayerProgression(int numTracksCompleted)
 {
-	gGamePrefs.numTracksCompleted = numTracksCompleted;
+	gGamePrefs.tournamentProgression.numTracksCompleted = numTracksCompleted;
+}
+
+float GetTotalTournamentTime(void)
+{
+	float sum = 0;
+
+	for (int i = 0; i < GetNumTracksCompletedTotal(); i++)
+	{
+		sum += SumLapTimes(gGamePrefs.tournamentProgression.tournamentLapTimes[i]);
+	}
+
+	return sum;
 }
 
 

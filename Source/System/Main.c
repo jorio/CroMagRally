@@ -467,7 +467,12 @@ short	placeToWin,startStage;
 				&& !gGameOver														// dont do anything if we failed or bailed
 				&& gTrackNum+1 > GetNumTracksCompletedTotal())						// only if it's better than current progress
 			{
+				memcpy(gGamePrefs.tournamentProgression.tournamentLapTimes[gTrackNum],
+					   gPlayerInfo->lapTimes,
+					   sizeof(gPlayerInfo->lapTimes));
+
 				SetPlayerProgression(gTrackNum+1);
+
 				SavePlayerFile();
 			}
 

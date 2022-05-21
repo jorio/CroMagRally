@@ -52,12 +52,14 @@ typedef struct
 
 		/* PREFERENCES */
 
+typedef struct
+{
+	Byte	numTracksCompleted;
+	float	tournamentLapTimes[NUM_RACE_TRACKS][LAPS_PER_RACE];
+} TournamentProgression;
 
 typedef struct
 {
-	char	playerName[32];
-	Byte	numTracksCompleted;
-
 	Byte	difficulty;
 	Byte	splitScreenMode2P;
 	Byte	splitScreenMode3P;
@@ -71,6 +73,9 @@ typedef struct
 
 	KeyBinding keys[NUM_CONTROL_NEEDS];
 	Boolean	gamepadRumble;
+
+	TournamentProgression tournamentProgression;
+	char	playerName[32];
 }PrefsType;
 
 #define PREFS_FOLDER_NAME "CroMagRally"
@@ -132,6 +137,7 @@ int GetNumAgesCompleted(void);
 int GetNumStagesCompletedInAge(void);
 int GetNumTracksCompletedTotal(void);
 int GetTrackNumFromAgeStage(int age, int stage);
+float GetTotalTournamentTime(void);
 void SetPlayerProgression(int numTracksCompleted);
 
 Ptr LoadDataFile(const char* path, long* outLength);

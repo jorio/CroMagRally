@@ -404,6 +404,15 @@ static void MoveCup(ObjNode *theNode)
 
 
 
+/***************** MOVE TOURNAMENT TOTAL TIME **********************/
+
+static void MoveTotalTime(ObjNode* theNode)
+{
+	theNode->ColorFilter.a = GAME_MIN(theNode->ColorFilter.a + gFramesPerSecondFrac, 1);
+}
+
+
+
 #pragma mark -
 
 
@@ -436,7 +445,7 @@ float	timer = 0;
 		OGL_DrawScene(DrawObjects);
 
 		timer += gFramesPerSecondFrac;
-		if (timer > 10.0f && UserWantsOut())
+		if (timer > 13.0f && UserWantsOut())
 		{
 			break;
 		}
@@ -569,6 +578,23 @@ OGLSetupInputType	viewDef;
 		};
 		signObj = MakeNewDisplayGroupObject(&def);
 		newObj->ChainNode = signObj;
+	}
+
+			/* TOTAL TIME */
+
+	{
+		NewObjectDefinitionType def =
+		{
+			.coord = {0,208,0},
+			.scale = .4f,
+			.slot = SPRITE_SLOT,
+			.moveCall = MoveTotalTime,
+		};
+
+		char totalTimeStr[64];
+		snprintf(totalTimeStr, sizeof(totalTimeStr), "%s: %s", Localize(STR_TOTAL_TIME), FormatRaceTime(GetTotalTournamentTime()));
+		ObjNode* totalTimeObj = TextMesh_New(totalTimeStr, 0, &def);
+		totalTimeObj->ColorFilter.a = -11;
 	}
 }
 
