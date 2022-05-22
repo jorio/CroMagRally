@@ -255,7 +255,6 @@ static const float shadowScale[NUM_LAND_CAR_TYPES] =
 
 	newObj->PlayerNum = playerNum;
 	newObj->Rot.y = rotY;
-	newObj->CType = CTYPE_MISC|CTYPE_PLAYER;
 
 
 				/* SET COLLISION INFO */
@@ -1975,6 +1974,9 @@ short		p2 = car2->PlayerNum;
 	car2->Delta.z += b2.z;
 
 
+	bool onGround1 = (car1->StatusBits) & STATUS_BIT_ONGROUND;
+	bool onGround2 = (car2->StatusBits) & STATUS_BIT_ONGROUND;
+
 		/*******************************/
 		/* SEE IF IT WAS A MAJOR WRECK */
 		/*******************************/
@@ -1982,7 +1984,9 @@ short		p2 = car2->PlayerNum;
 	bool canDoBumpFeedback = GAME_MAX(gPlayerInfo[p1].bumpSoundTimer, gPlayerInfo[p2].bumpSoundTimer) <= 0.0f;
 	bool didBumpFeedback = false;
 
-	if ((!gPlayerInfo[p1].onWater) && (!gPlayerInfo[p2].onWater))	// only if nobody is on water
+	if (	(onGround1 || onGround2)	// not if both are airborne -- don't send each other into fly loop
+		&&	(!gPlayerInfo[p1].onWater)	// and nobody is on water
+		&&	(!gPlayerInfo[p2].onWater))
 	{
 
 		dot = OGLVector3D_Dot(&v1, &v2);								// determine the angle between the car vectors (-1 = head on, 0 = perp, +1 parallel)
