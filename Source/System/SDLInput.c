@@ -35,12 +35,10 @@ enum
 	KEYSTATE_IGNOREHELD		= KEYSTATE_OFF | KEYSTATE_IGNORE_BIT,
 };
 
-#define kJoystickDeadZone				(20 * 32767 / 100)
+#define kJoystickDeadZone				(33 * 32767 / 100)
 #define kJoystickDeadZone_UI			(66 * 32767 / 100)
 #define kJoystickDeadZoneFrac			(kJoystickDeadZone / 32767.0f)
 #define kJoystickDeadZoneFracSquared	(kJoystickDeadZoneFrac * kJoystickDeadZoneFrac)
-
-#define kDefaultSnapAngle				OGLMath_DegreesToRadians(10)
 
 /**********************/
 /*     PROTOTYPES     */
