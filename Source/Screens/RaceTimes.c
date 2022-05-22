@@ -8,6 +8,8 @@
 #include "menu.h"
 #include <time.h>
 
+#define MAX_RECORDS_PER_SCREEN 5
+
 Scoreboard gScoreboard;
 
 static Byte gScoreboardTrack = 0;
@@ -251,7 +253,7 @@ void DoScoreboardScreen(void)
 	style.yOffset = -170;
 	style.canBackOutOfRootMenu = true;
 
-	int outcome = StartMenu(gScoreboardMenuTree, &style, MoveObjects, DrawObjects);
+	StartMenu(gScoreboardMenuTree, &style, MoveObjects, DrawObjects);
 
 	DeleteAllObjects();
 	OGL_DisposeGameView();
@@ -291,14 +293,12 @@ static void LayOutScoreboardForTrack(void)
 
 	short slot = MENU_SLOT;
 	const char* lapStr = Localize(STR_LAP);
-
-	const int nNodes = 5;
 	char text[128];
 
-	for (int i = 0; i < GAME_MIN(5, MAX_RECORDS_PER_TRACK); i++)
+	for (int i = 0; i < GAME_MIN(MAX_RECORDS_PER_SCREEN, MAX_RECORDS_PER_TRACK); i++)
 	{
 		int n = 0;
-		ObjNode* nodes[nNodes];
+		ObjNode* nodes[MAX_RECORDS_PER_SCREEN];
 		memset(nodes, 0, sizeof(nodes));
 
 		const ScoreboardRecord* record = &gScoreboard.records[gScoreboardTrack][i];
@@ -352,7 +352,7 @@ static void LayOutScoreboardForTrack(void)
 		}
 
 
-		for (n = 0; n < nNodes; n++)
+		for (n = 0; n < MAX_RECORDS_PER_SCREEN; n++)
 		{
 			if (!nodes[n])
 				continue;
