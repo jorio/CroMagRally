@@ -2007,8 +2007,8 @@ int StartMenu(
 		void (*update)(void),
 		void (*draw)(void))
 {
-	int cursorStateBeforeMenu = SDL_ShowCursor(-1);
-	SDL_ShowCursor(1);
+//	int cursorStateBeforeMenu = SDL_ShowCursor(-1);
+//	SDL_ShowCursor(1);
 
 		/* INITIALIZE MENU STATE */
 
@@ -2158,7 +2158,7 @@ int StartMenu(
 	MyFlushEvents();
 
 	SetStandardMouseCursor();
-	SDL_ShowCursor(cursorStateBeforeMenu);
+//	SDL_ShowCursor(cursorStateBeforeMenu);
 
 	int finalPick = gNav->menuPick;
 	DisposeMenuNavigation();

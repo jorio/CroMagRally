@@ -61,7 +61,6 @@ void DoAlert(const char* format, ...)
 	SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Cro-Mag Rally", message, gSDLWindow);
 
 	Exit2D();
-	SDL_ShowCursor(0);
 }
 
 

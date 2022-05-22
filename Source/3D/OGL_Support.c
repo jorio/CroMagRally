@@ -211,8 +211,6 @@ static OGLVector3D			fillDirection2 = { -1, -.3, -.3 };
 
 void OGL_SetupGameView(OGLSetupInputType *setupDefPtr)
 {
-	SDL_ShowCursor(0);	// do this just as a safety precaution to make sure no cursor lingering around
-
 	GAME_ASSERT_MESSAGE(gGameView == NULL, "gGameView overwritten");
 
 			/* ALLOC MEMORY FOR OUTPUT DATA */
