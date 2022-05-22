@@ -11,6 +11,7 @@
 
 #include "game.h"
 #include "bones.h"
+#include <stddef.h>
 
 extern int gMyState_ProjectionType;
 
@@ -90,6 +91,9 @@ ObjNode	*MakeNewObject(NewObjectDefinitionType *newObjDef)
 ObjNode	*newNodePtr;
 long	slot;
 unsigned long flags = newObjDef->flags;
+
+	_Static_assert(0 == (offsetof(struct ObjNode, SpecialPadding) & 7), "SpecialPadding should be aligned to 8");
+
 
 				/* ALLOCATE NEW NODE(CLEARED TO 0'S) */
 

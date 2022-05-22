@@ -313,7 +313,7 @@ struct ObjNode
 			int8_t	Flag[6];
 		};
 
-		void*		SpecialPadding[MAX_SPECIAL_DATA_BYTES / sizeof(intptr_t)];
+		char		SpecialPadding[MAX_SPECIAL_DATA_BYTES];
 	};
 
 	float			Health;				// health 0..1
