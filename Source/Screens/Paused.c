@@ -134,7 +134,8 @@ void DoPaused(void)
 	MenuStyle style = kDefaultMenuStyle;
 	style.canBackOutOfRootMenu = true;
 	style.fadeOutSceneOnExit = false;
-	style.darkenPaneOpacity = .7f;
+	style.darkenPaneOpacity = .6f;
+	style.labelColor = (OGLColorRGBA){.7,.7,.7,1};
 	style.startButtonExits = true;
 
 	PushKeys();										// save key state so things dont get de-synced during net games

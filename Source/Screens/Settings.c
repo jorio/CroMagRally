@@ -167,6 +167,7 @@ const MenuItem gSettingsMenuTree[] =
 	{kMIPick, STR_RESET_KEYBINDINGS, .callback=OnPickResetKeyboardBindings, .customHeight=.5f },
 
 	{ .id='gpad' },
+	{kMISpacer, .customHeight=.35f },
 	{kMILabel, STR_CONFIGURE_GAMEPAD_HELP, .customHeight=.5f },
 	{kMISpacer, .customHeight=.17f },
 	{kMILabel, STR_LEFT_STICK_ALWAYS_STEERS, .customHeight=.4f },

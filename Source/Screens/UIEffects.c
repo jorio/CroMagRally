@@ -7,7 +7,7 @@
 
 static const float kEffectDurations[kTwitchCOUNT] =
 {
-	[kTwitchScaleIn]		= .14f,
+	[kTwitchScaleIn]		= .20f,
 	[kTwitchScaleOut]		= .14f,
 	[kTwitchDisplaceLeft]	= .2f,
 	[kTwitchDisplaceRight]	= .2f,

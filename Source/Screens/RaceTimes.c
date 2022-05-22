@@ -238,7 +238,7 @@ static const MenuItem gScoreboardMenuTree[] =
 				{STR_LEVEL_9, 8},
 			}
 		},
-		.customHeight = 1.5,
+		.customHeight = 1.3,
 	},
 	{0},
 };
@@ -283,7 +283,7 @@ static void LayOutScoreboardForTrack(void)
 
 
 	float x = -100;
-	float y = -80;
+	float y = -90;
 
 	NewObjectDefinitionType defRank = {.coord = {x-130, y, 0}, .scale = 0.75,};
 	NewObjectDefinitionType defCar  = {.coord = {x-50, y, 0}, .scale = 0.2, .group=SPRITE_GROUP_SCOREBOARDSCREEN};
