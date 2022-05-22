@@ -29,9 +29,6 @@ static void GetLocalKeyStateForPlayer(short playerNum);
 /**********************/
 
 
-float	gAnalogSteeringTimer[MAX_PLAYERS] = {0,0,0,0,0,0};
-
-
 
 /************************* INIT INPUT *********************************/
 

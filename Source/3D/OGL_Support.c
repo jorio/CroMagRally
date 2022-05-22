@@ -1331,8 +1331,10 @@ static char* UpdateDebugText(void)
 		"\nPTRS:\t%d"
 		"\nTILES:\t%d\v/%d"
 		"\nCHAN:\t%d\v/%d"
-		"\n%d\vX\r%d\v/%d"
-		"\n%s"
+		"\nRES:\t%d\vX\r%d\v/%d"
+		"\nRACE:\t%s"
+		"\nAS\vTEER\r:\t%+.02f"
+		"\nSTEER:\t%+.02f%s"
 		,
 		(int)(gFramesPerSecond + .5f),
 		gPolysThisFrame,
@@ -1346,7 +1348,10 @@ static char* UpdateDebugText(void)
 		gGameWindowWidth,
 		gGameWindowHeight,
 		gNumSplitScreenPanes,
-		FormatRaceTime(GetRaceTime(0))
+		FormatRaceTime(GetRaceTime(0)),
+		gPlayerInfo[0].analogSteering.x,
+		gPlayerInfo[0].steering,
+		gPlayerInfo[0].steering == gPlayerInfo[0].analogSteering.x? "": "*"
 	);
 
 	return debugTextBuffer;

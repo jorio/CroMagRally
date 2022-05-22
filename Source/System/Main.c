@@ -1135,7 +1135,6 @@ short				numPanes;
 	for (int i = 0; i < MAX_PLAYERS; i++)
 	{
 		gPlayerInfo[i].objNode = nil;
-		gAnalogSteeringTimer[i] = 0;
 	}
 
 

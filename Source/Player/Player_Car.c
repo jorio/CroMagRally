@@ -2855,7 +2855,6 @@ static void DoPlayerControl_Car(ObjNode *theNode)
 uint16_t			playerNum = theNode->PlayerNum;
 float			thrust,speed;
 float			fps = gFramesPerSecondFrac;
-float			steering,analogSteering;
 
 	if (gNoCarControls || (gPlayerInfo[playerNum].frozenTimer > 0.0f) || (gPlayerInfo[playerNum].isEliminated))		// see if no control
 	{
@@ -2922,57 +2921,28 @@ float			steering,analogSteering;
 			/* SEE IF TURN LEFT/RIGHT */
 			/**************************/
 
-	steering = gPlayerInfo[playerNum].steering;
-	analogSteering = gPlayerInfo[playerNum].analogSteering.x;
+	float steering			= gPlayerInfo[playerNum].steering;
+	float targetSteering	= gPlayerInfo[playerNum].analogSteering.x;
 
-			/* CHECK FOR DIGITAL STEERING */
-			//
-			// If user is using keys, then the steering values will be at their maximums.
-			// In this case, do automated incremental steering instead of analog manual.
-			//
+			/* APPLY STEERING RESPONSIVENESS (INCREMENTAL STEERING) */
 
-	if ((gAnalogSteeringTimer[playerNum] <= 0.0f) || gNetGameInProgress)				// see if not doing analog (ignore timer in net mode cuz it caused sync problems)
+	if (targetSteering == steering)
 	{
-		if (analogSteering == -1.0f)
-		{
-			steering -= gUserPhysics.steeringResponsiveness * fps;
-			if (steering < -1.0f)
-				steering = -1.0f;
-		}
-		else
-		if (analogSteering == 1.0f)
-		{
-			steering += gUserPhysics.steeringResponsiveness * fps;
-			if (steering > 1.0f)
-				steering = 1.0f;
-		}
-				/* DIGITAL AUTO-CENTER STEERING */
-		else
-		if (analogSteering == 0.0f)
-		{
-			if (steering < 0.0f)
-			{
-				steering += gUserPhysics.steeringResponsiveness * fps;
-				if (steering > 0.0f)
-					steering = 0.0f;
-			}
-			else
-			if (steering > 0.0f)
-			{
-				steering -= gUserPhysics.steeringResponsiveness * fps;
-				if (steering < 0.0f)
-					steering = 0.0f;
-			}
-		}
-		else
-			steering = analogSteering;									// analog (should only get here in a net game)
+		// No-op, keep same steering as previously
 	}
-
-			/* WE ARE DOING ANALOG STEERING */
+	else if (targetSteering < steering)
+	{
+		steering -= gUserPhysics.steeringResponsiveness * fps;
+		if (steering < targetSteering)
+			steering = targetSteering;
+	}
 	else
 	{
-		steering = analogSteering;
+		steering += gUserPhysics.steeringResponsiveness * fps;
+		if (steering > targetSteering)
+			steering = targetSteering;
 	}
+
 
 	gPlayerInfo[playerNum].steering = steering;							// update value
 

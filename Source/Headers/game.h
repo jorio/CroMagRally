@@ -73,7 +73,6 @@ extern FenceDefType				*gFenceList;
 extern float					**gMapYCoords;
 extern float					g2DLogicalHeight;
 extern float					g2DLogicalWidth;
-extern float					gAnalogSteeringTimer[MAX_PLAYERS];
 extern float					gAutoFadeEndDist;
 extern float					gAutoFadeRange_Frac;
 extern float					gAutoFadeStartDist;
