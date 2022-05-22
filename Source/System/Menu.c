@@ -1218,7 +1218,7 @@ static void NavigateKeyBinding(const MenuItem* entry)
 
 static void NavigatePadBinding(const MenuItem* entry)
 {
-	gNav->menuCol = PositiveModulo(gNav->menuCol, KEYBINDING_MAX_GAMEPAD_BUTTONS);
+	gNav->menuCol = PositiveModulo(gNav->menuCol, KEYBINDING_MAX_USER_GAMEPAD_BUTTONS);
 	int btnNo = gNav->menuCol;
 	int row = gNav->menuRow;
 
@@ -1230,7 +1230,7 @@ static void NavigatePadBinding(const MenuItem* entry)
 	if (GetNewNeedStateAnyP(kNeed_UILeft) || GetNewNeedStateAnyP(kNeed_UIPrev))
 	{
 		TwitchOutSelection();
-		btnNo = PositiveModulo(btnNo - 1, KEYBINDING_MAX_GAMEPAD_BUTTONS);
+		btnNo = PositiveModulo(btnNo - 1, KEYBINDING_MAX_USER_GAMEPAD_BUTTONS);
 		gNav->menuCol = btnNo;
 		gNav->idleTime = 0;
 		PlayEffect(kSfxNavigate);
@@ -1243,7 +1243,7 @@ static void NavigatePadBinding(const MenuItem* entry)
 	if (GetNewNeedStateAnyP(kNeed_UIRight) || GetNewNeedStateAnyP(kNeed_UINext))
 	{
 		TwitchOutSelection();
-		btnNo = PositiveModulo(btnNo + 1, KEYBINDING_MAX_GAMEPAD_BUTTONS);
+		btnNo = PositiveModulo(btnNo + 1, KEYBINDING_MAX_USER_GAMEPAD_BUTTONS);
 		gNav->menuCol = btnNo;
 		gNav->idleTime = 0;
 		PlayEffect(kSfxNavigate);
@@ -1386,7 +1386,7 @@ static void UnbindPadButtonFromAllRemappableInputNeeds(int8_t type, int8_t id)
 
 		KeyBinding* binding = GetBindingAtRow(row);
 
-		for (int j = 0; j < KEYBINDING_MAX_GAMEPAD_BUTTONS; j++)
+		for (int j = 0; j < KEYBINDING_MAX_USER_GAMEPAD_BUTTONS; j++)
 		{
 			if (binding->gamepad[j].type == type && binding->gamepad[j].id == id)
 			{
@@ -1455,7 +1455,7 @@ static bool AwaitGamepadPress(SDL_GameController* controller)
 	int row = gNav->menuRow;
 	int btnNo = gNav->menuCol;
 	GAME_ASSERT(btnNo >= 0);
-	GAME_ASSERT(btnNo < KEYBINDING_MAX_GAMEPAD_BUTTONS);
+	GAME_ASSERT(btnNo < KEYBINDING_MAX_USER_GAMEPAD_BUTTONS);
 
 	if (GetNewKeyState(SDL_SCANCODE_ESCAPE)
 		|| SDL_GameControllerGetButton(controller, SDL_CONTROLLER_BUTTON_START))

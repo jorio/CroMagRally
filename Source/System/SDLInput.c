@@ -522,24 +522,6 @@ OGLVector2D GetAnalogSteering(int playerID)
 	{
 		steer.x = GetControllerAnalogSteeringAxis(sdlController, SDL_CONTROLLER_AXIS_LEFTX);
 		steer.y = GetControllerAnalogSteeringAxis(sdlController, SDL_CONTROLLER_AXIS_LEFTY);
-
-		if (SDL_GameControllerGetButton(sdlController, SDL_CONTROLLER_BUTTON_DPAD_LEFT))
-		{
-			steer.x = -1.0f;
-		}
-		else if (SDL_GameControllerGetButton(sdlController, SDL_CONTROLLER_BUTTON_DPAD_RIGHT))
-		{
-			steer.x = 1.0f;
-		}
-
-		if (SDL_GameControllerGetButton(sdlController, SDL_CONTROLLER_BUTTON_DPAD_UP))
-		{
-			steer.y = -1.0f;
-		}
-		else if (SDL_GameControllerGetButton(sdlController, SDL_CONTROLLER_BUTTON_DPAD_DOWN))
-		{
-			steer.y = 1.0f;
-		}
 	}
 
 			/* NEXT CHECK THE DIGITAL KEYS */

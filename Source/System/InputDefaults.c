@@ -28,15 +28,15 @@
 const KeyBinding kDefaultKeyBindings[NUM_CONTROL_NEEDS] =
 {
 //Need-------------------     Keys---------------------------  Mouse-----  Gamepad----------------------------------------
-[kNeed_ThrowForward		] = { { SC_THROWF1  , SC_THROWF2	}, 0		, { CB(Y)				, CAMINUS(RIGHTY)		} },
-[kNeed_ThrowBackward	] = { { SC_THROWB1	, SC_THROWB2	}, 0		, { CB(X)				, CAPLUS(RIGHTY)		} },
-[kNeed_Brakes			] = { { SC(SPACE)	, 0				}, 0		, { CAPLUS(TRIGGERRIGHT), CBNULL()				} },
-[kNeed_CameraMode		] = { { SC(GRAVE)	, 0				}, 0		, { CB(LEFTSHOULDER)	, CBNULL()				} },
-[kNeed_RearView			] = { { SC(LSHIFT)	, 0				}, 0		, { CAPLUS(TRIGGERLEFT)	, CBNULL()				} },
-[kNeed_Forward			] = { { SC(UP)		, SC(W)			}, 0		, { CB(A)				, CBNULL()				} },
-[kNeed_Backward			] = { { SC(DOWN)	, SC(S)			}, 0		, { CB(B)				, CBNULL()				} },
-[kNeed_Left			    ] = { { SC(LEFT)	, SC(A)			}, 0		, { CBNULL()			, CBNULL()				} },
-[kNeed_Right		    ] = { { SC(RIGHT)	, SC(D)			}, 0		, { CBNULL()			, CBNULL()				} },
+[kNeed_ThrowForward		] = { { SC_THROWF1  , SC_THROWF2	}, 0		, { CB(Y)				, CAMINUS(RIGHTY)	, CBNULL()			} },
+[kNeed_ThrowBackward	] = { { SC_THROWB1	, SC_THROWB2	}, 0		, { CB(X)				, CAPLUS(RIGHTY)	, CBNULL()			} },
+[kNeed_Brakes			] = { { SC(SPACE)	, 0				}, 0		, { CAPLUS(TRIGGERRIGHT), CBNULL()			, CBNULL()			} },
+[kNeed_CameraMode		] = { { SC(GRAVE)	, 0				}, 0		, { CB(LEFTSHOULDER)	, CBNULL()			, CBNULL()			} },
+[kNeed_RearView			] = { { SC(LSHIFT)	, 0				}, 0		, { CAPLUS(TRIGGERLEFT)	, CBNULL()			, CBNULL()			} },
+[kNeed_Forward			] = { { SC(UP)		, SC(W)			}, 0		, { CB(A)				, CBNULL()			, CB(DPAD_UP)		} },
+[kNeed_Backward			] = { { SC(DOWN)	, SC(S)			}, 0		, { CB(B)				, CBNULL()			, CB(DPAD_DOWN)		} },
+[kNeed_Left			    ] = { { SC(LEFT)	, SC(A)			}, 0		, { CBNULL()			, CBNULL()			, CB(DPAD_LEFT)		} },
+[kNeed_Right		    ] = { { SC(RIGHT)	, SC(D)			}, 0		, { CBNULL()			, CBNULL()			, CB(DPAD_RIGHT)	} },
 
 [kNeed_UIUp				] = { { SC(UP)		, SC(W)			}, 0		, { CB(DPAD_UP)			, CAMINUS(LEFTY)		} },
 [kNeed_UIDown			] = { { SC(DOWN)	, SC(S)			}, 0		, { CB(DPAD_DOWN)		, CAPLUS(LEFTY)			} },
