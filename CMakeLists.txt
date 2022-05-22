@@ -139,6 +139,17 @@ if(NOT MSVC)
 		-Wno-unused-parameter
 		-Wno-unused-function #-------------
 	)
+
+	# Sanitizers in debug mode (Linux only)
+	if ((NOT APPLE) AND (CMAKE_BUILD_TYPE MATCHES DEBUG))
+		list(INSERT GAME_LIBRARIES 0 asan ubsan)
+		add_compile_options(
+			-fsanitize=alignment
+			-fsanitize=address
+			-fsanitize=undefined
+			-fno-omit-frame-pointer
+		)
+	endif()
 else()
 	# On Win32, we need NOGDI and NOUSER to be able to define some Mac functions
 	# whose names are otherwise taken by Windows APIs.
