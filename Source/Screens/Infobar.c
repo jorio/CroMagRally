@@ -193,20 +193,30 @@ static float GetIconY(int iconID)
 
 /********************* PANE DIVIDER MESH **************************/
 
+typedef struct
+{
+	int splitScreenMode;
+	float logicalWidth;
+	float logicalHeight;
+} PaneDividerState;
+CheckSpecialDataStruct(PaneDividerState);
+
 static void MovePaneDivider(ObjNode* theNode)
 {
-	if (theNode->Special[0] == gActiveSplitScreenMode
-		&& theNode->SpecialF[0] == g2DLogicalWidth
-		&& theNode->SpecialF[0] == g2DLogicalHeight)
+	PaneDividerState* state = GetSpecialData(theNode, PaneDividerState);
+
+	if (state->splitScreenMode == gActiveSplitScreenMode
+		&& state->logicalWidth == g2DLogicalWidth
+		&& state->logicalHeight == g2DLogicalHeight)
 	{
 		// Layout didn't change since last time
 		return;
 	}
 
 	// Save params for which we are laying out the pane dividers
-	theNode->Special[0] = gActiveSplitScreenMode;
-	theNode->SpecialF[0] = g2DLogicalWidth;
-	theNode->SpecialF[1] = g2DLogicalHeight;
+	state->splitScreenMode = gActiveSplitScreenMode;
+	state->logicalWidth = g2DLogicalWidth;
+	state->logicalHeight = g2DLogicalHeight;
 
 	bool hideMe = (gActiveSplitScreenMode == SPLITSCREEN_MODE_NONE);
 	SetObjectVisible(theNode, !hideMe);
