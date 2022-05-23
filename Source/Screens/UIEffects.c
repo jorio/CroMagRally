@@ -5,45 +5,109 @@
 #include "game.h"
 #include "uieffects.h"
 
-static const float kEffectDurations[kTwitchCOUNT] =
+static const TwitchDef kTwitchPresets[kTwitchPresetCOUNT] =
 {
-	[kTwitchScaleIn]		= .20f,
-	[kTwitchScaleOut]		= .14f,
-	[kTwitchDisplaceLeft]	= .2f,
-	[kTwitchDisplaceRight]	= .2f,
-	[kTwitchLightDisplaceLeft]	= .1f,
-	[kTwitchLightDisplaceRight]	= .1f,
-	[kTwitchQuickWiggle]	= .35f,
-	[kTwitchBigWiggle]		= .45f,
+	[kTwitchScaleIn] =
+	{
+		.fxClass = kTwitchClassScale,
+		.duration = .20f,
+		.amplitude = 1.1f,
+		.easing = kEaseOutCubic
+	},
+
+	[kTwitchScaleOut] =
+	{
+		.fxClass = kTwitchClassScale,
+		.duration = .14f,
+		.amplitude = 1.1f,
+		.easing = kEaseOutQuad
+	},
+
+	[kTwitchDisplaceLeft] =
+	{
+		.fxClass = kTwitchClassDisplaceX,
+		.duration = .20f,
+		.amplitude = -32,
+		.easing = kEaseOutQuad,
+	},
+
+	[kTwitchDisplaceRight] =
+	{
+		.fxClass = kTwitchClassDisplaceX,
+		.duration = .20f,
+		.amplitude = +32,
+		.easing = kEaseOutQuad,
+	},
+
+	[kTwitchLightDisplaceLeft] =
+	{
+		.fxClass=kTwitchClassDisplaceX,
+		.duration = .10f,
+		.amplitude = -8,
+		.easing = kEaseOutQuad,
+	},
+
+	[kTwitchLightDisplaceRight] =
+	{
+		.fxClass = kTwitchClassDisplaceX,
+		.duration = .10f,
+		.amplitude = +8,
+		.easing = kEaseOutQuad,
+	},
+
+	[kTwitchQuickWiggle] =
+	{
+		.fxClass = kTwitchClassWiggleX,
+		.duration = .35f,
+		.amplitude = 25,
+		.period = PI * 3,
+		.easing = kEaseLerp,
+	},
+
+	[kTwitchBigWiggle] =
+	{
+		.fxClass = kTwitchClassWiggleX,
+		.duration = .45f,
+		.amplitude = 25,
+		.period = PI * 4,
+		.easing = kEaseLerp,
+	},
 };
 
 typedef struct
 {
+	TwitchDef	def;
 	ObjNode*	puppet;
-	float		duration;
 	float		timer;
-	float		amplitude;
-	float		seed;
 	uint32_t	cookie;
-} UifxData;
-CheckSpecialDataStruct(UifxData);
-
-float EaseInQuad(float p) {	return p * p; }
-float EaseOutQuad(float p) { return 1 - (1 - p) * (1 - p); }
-float EaseOutCubic(float p) { return 1 - powf(1 - p, 3); }
+} TwitchDriverData;
+CheckSpecialDataStruct(TwitchDriverData);
 
 static float Lerp(float a, float b, float p)
 {
 	return (1-p) * a + p*b;
 }
 
+static float Ease(float p, int easingType)
+{
+	switch (easingType)
+	{
+		case kEaseInQuad:		return p*p;
+		case kEaseOutQuad:		return 1 - (1 - p) * (1 - p);
+		case kEaseOutCubic:		return 1 - powf(1 - p, 3);
+
+		case kEaseLerp:
+		default:
+			return p;
+	}
+}
+
 static void MoveUIEffectDriver(ObjNode* driver)
 {
-	UifxData* effect = GetSpecialData(driver, UifxData);
+	TwitchDriverData* effect = GetSpecialData(driver, TwitchDriverData);
 	GAME_ASSERT(effect->cookie == 'UIFX');
 
-	Byte type = driver->Type;
-
+	const TwitchDef* def = &effect->def;
 	ObjNode* puppet = effect->puppet;
 
 	if (IsObjectBeingDeleted(effect->puppet))
@@ -57,13 +121,11 @@ static void MoveUIEffectDriver(ObjNode* driver)
 	OGLVector3D realS = puppet->Scale;
 	OGLVector3D realR = puppet->Rot;
 
-	effect->timer += gFramesPerSecondFrac;
-
-	float duration = kEffectDurations[type];
+	float duration = def->duration;
 	if (duration == 0)
 	{
 #if _DEBUG
-		printf("Twitch type %d is missing duration\n", type);
+		printf("Twitch is missing duration\n");
 #endif
 		duration = 1;
 	}
@@ -74,70 +136,26 @@ static void MoveUIEffectDriver(ObjNode* driver)
 	{
 		p = 1;
 	}
-
-	switch (type)
+	else
 	{
-		case kTwitchScaleIn:
-		{
-			float overdrive = 1.1f;
+		p = Ease(p, def->easing);
+	}
 
-			p = EaseOutCubic(p);
-			puppet->Scale.x = realS.x * Lerp(overdrive, 1, p);
-			puppet->Scale.y = realS.y * Lerp(overdrive, 1, p);
-
+	switch (effect->def.fxClass)
+	{
+		case kTwitchClassScale:
+			puppet->Scale.x = realS.x * Lerp(def->amplitude, 1, p);
+			puppet->Scale.y = realS.y * Lerp(def->amplitude, 1, p);
 			break;
-		}
 
-		case kTwitchScaleOut:
-		{
-			float overdrive = 1.1f;
-
-			p = EaseOutQuad(p);
-			puppet->Scale.x = realS.x * Lerp(overdrive, 1, p);
-			puppet->Scale.y = realS.y * Lerp(overdrive, 1, p);
-
+		case kTwitchClassDisplaceX:
+			puppet->Coord.x += realS.x * Lerp(def->amplitude, 0, p);
 			break;
-		}
 
-		case kTwitchDisplaceLeft:
-		case kTwitchDisplaceRight:
+		case kTwitchClassWiggleX:
 		{
-			float peakDisplacement = 32.0f;
-
-			float way = type==kTwitchDisplaceLeft? -1.0f: 1.0f;
-
-			p = EaseOutQuad(p);
-
-			puppet->Coord.x += way * realS.x * Lerp(peakDisplacement, 0, p);
-
-			break;
-		}
-
-		case kTwitchLightDisplaceLeft:
-		case kTwitchLightDisplaceRight:
-		{
-			float peakDisplacement = 8.0f;
-
-			float way = type == kTwitchLightDisplaceLeft ? -1.0f : 1.0f;
-
-			p = EaseOutQuad(p);
-
-			puppet->Coord.x += way * realS.x * Lerp(peakDisplacement, 0, p);
-
-			break;
-		}
-
-		case kTwitchQuickWiggle:
-		case kTwitchBigWiggle:
-		{
-			float period = PI * (type==kTwitchQuickWiggle ? 3.0f : 4.0f);
-			float amp = 25 * realS.x;
-
-			float invp = 1 - p;
-			float dampen = invp;
-
-			puppet->Coord.x += amp * dampen * sinf(invp * period);
-
+			float dampen = 1 - p;
+			puppet->Coord.x += realS.x * def->amplitude * dampen * sinf(dampen * def->period);
 			break;
 		}
 	}
@@ -148,13 +166,15 @@ static void MoveUIEffectDriver(ObjNode* driver)
 	puppet->Scale = realS;
 	puppet->Rot = realR;
 
-	if (p == 1)
+	effect->timer += gFramesPerSecondFrac;
+
+	if (p >= 1)
 	{
 		DeleteObject(driver);
 	}
 }
 
-ObjNode* MakeTwitch(ObjNode* puppet, int type)
+ObjNode* MakeTwitch(ObjNode* puppet, int preset)
 {
 	if (puppet == NULL)
 	{
@@ -164,8 +184,7 @@ ObjNode* MakeTwitch(ObjNode* puppet, int type)
 	NewObjectDefinitionType def =
 	{
 		.genre = CUSTOM_GENRE,
-		.type = type,
-		.slot = puppet->Slot + 1,
+		.slot = puppet->Slot + 1,		// puppet's move call must set coord/scale BEFORE twitch's move call
 		.scale = 1,
 		.moveCall = MoveUIEffectDriver,
 		.flags = STATUS_BIT_MOVEINPAUSE,
@@ -173,14 +192,12 @@ ObjNode* MakeTwitch(ObjNode* puppet, int type)
 
 	ObjNode* driver = MakeNewObject(&def);
 
-	*GetSpecialData(driver, UifxData) = (UifxData)
+	*GetSpecialData(driver, TwitchDriverData) = (TwitchDriverData)
 	{
 		.cookie = 'UIFX',
 		.puppet = puppet,
-		.duration = 0.14f,
-		.amplitude = 10,
+		.def = kTwitchPresets[preset],
 		.timer = 0,
-		.seed = RandomFloat(),
 	};
 
 	return driver;

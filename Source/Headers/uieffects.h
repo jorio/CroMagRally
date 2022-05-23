@@ -10,10 +10,35 @@ enum
 	kTwitchLightDisplaceRight,
 	kTwitchQuickWiggle,
 	kTwitchBigWiggle,
-	kTwitchCOUNT,
+	kTwitchPresetCOUNT,
 };
 
+enum
+{
+	kTwitchClassScale = 1,
+	kTwitchClassDisplaceX,
+	kTwitchClassWiggleX,
+	kTwitchClassCOUNT,
+};
 
-ObjNode* MakeTwitch(ObjNode* puppet, int type);
+enum
+{
+	kEaseLerp = 0,
+	kEaseInQuad,
+	kEaseOutQuad,
+	kEaseOutCubic,
+};
+
+typedef struct
+{
+	Byte fxClass;
+	Byte easing;
+	float duration;
+	float period;
+	float amplitude;
+	float seed;
+} TwitchDef;
+
+ObjNode* MakeTwitch(ObjNode* puppet, int preset);
 
 ObjNode* MakeScrollingBackgroundPattern(void);
