@@ -71,7 +71,7 @@ typedef struct
 	Byte	musicVolumePercent;
 	Byte	sfxVolumePercent;
 
-	KeyBinding keys[NUM_CONTROL_NEEDS];
+	InputBinding bindings[NUM_CONTROL_NEEDS];
 	Boolean	gamepadRumble;
 
 	TournamentProgression tournamentProgression;

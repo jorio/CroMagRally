@@ -9,9 +9,9 @@
 
 		/* NEEDS */
 
-#define KEYBINDING_MAX_KEYS						2
-#define KEYBINDING_MAX_GAMEPAD_BUTTONS			3
-#define KEYBINDING_MAX_USER_GAMEPAD_BUTTONS		2	// remappable gamepad buttons
+#define MAX_USER_BINDINGS_PER_NEED		2
+#define MAX_HARD_BINDINGS_PER_NEED		1
+#define MAX_BINDINGS_PER_NEED		(MAX_USER_BINDINGS_PER_NEED + MAX_HARD_BINDINGS_PER_NEED)
 
 #define NUM_SUPPORTED_MOUSE_BUTTONS			31
 #define NUM_SUPPORTED_MOUSE_BUTTONS_PURESDL	(NUM_SUPPORTED_MOUSE_BUTTONS-2)
@@ -21,18 +21,42 @@
 #define NUM_MOUSE_SENSITIVITY_LEVELS		8
 #define DEFAULT_MOUSE_SENSITIVITY_LEVEL		(NUM_MOUSE_SENSITIVITY_LEVELS/2)
 
-typedef struct KeyBinding
+typedef struct
 {
-	int16_t			key[KEYBINDING_MAX_KEYS];	// SDL scancodes
+	int8_t		type;
+	int8_t		id;
+} PadBinding;
 
-	int8_t			mouseButton;
-
-	struct
+typedef struct
+{
+	// SDL scancodes
+	union
 	{
-		int8_t		type;
-		int8_t		id;
-	} gamepad[KEYBINDING_MAX_GAMEPAD_BUTTONS];
-} KeyBinding;
+		int16_t			key[MAX_BINDINGS_PER_NEED];
+
+		struct
+		{
+			int16_t		userKey[MAX_USER_BINDINGS_PER_NEED];
+			int16_t		hardKey[MAX_HARD_BINDINGS_PER_NEED];
+		};
+	};
+
+	// Controller buttons
+	union
+	{
+		PadBinding		pad[MAX_BINDINGS_PER_NEED];
+
+		struct
+		{
+			PadBinding	userPad[MAX_USER_BINDINGS_PER_NEED];
+			PadBinding	hardPad[MAX_HARD_BINDINGS_PER_NEED];
+		};
+	};
+
+
+	int8_t				mouseButton;
+
+} InputBinding;
 
 enum
 {

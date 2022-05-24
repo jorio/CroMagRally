@@ -165,7 +165,7 @@ void InitDefaultPrefs(void)
 	gGamePrefs.musicVolumePercent	= 60;			// careful to set these two volumes to one of the
 	gGamePrefs.sfxVolumePercent		= 60;			// the predefined values allowed in the settings menu
 
-	memcpy(&gGamePrefs.keys, kDefaultKeyBindings, sizeof(kDefaultKeyBindings));
+	memcpy(&gGamePrefs.bindings, kDefaultInputBindings, sizeof(kDefaultInputBindings));
 }
 
 

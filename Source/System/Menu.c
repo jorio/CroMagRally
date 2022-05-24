@@ -325,9 +325,9 @@ static OGLColorRGBA PulsateColor(float* time)
 	return (OGLColorRGBA) {1,1,1,intensity};
 }
 
-static KeyBinding* GetBindingAtRow(int row)
+static InputBinding* GetBindingAtRow(int row)
 {
-	return &gGamePrefs.keys[gNav->menu[row].inputNeed];
+	return &gGamePrefs.bindings[gNav->menu[row].inputNeed];
 }
 
 static const char* GetKeyBindingName(int row, int col)
@@ -347,15 +347,15 @@ static const char* GetKeyBindingName(int row, int col)
 
 static const char* GetPadBindingName(int row, int col)
 {
-	KeyBinding* kb = GetBindingAtRow(row);
+	const PadBinding* pb = &GetBindingAtRow(row)->userPad[col];
 
-	switch (kb->gamepad[col].type)
+	switch (pb->type)
 	{
 		case kInputTypeUnbound:
 			return Localize(STR_UNBOUND_PLACEHOLDER);
 
 		case kInputTypeButton:
-			switch (kb->gamepad[col].id)
+			switch (pb->id)
 			{
 				case SDL_CONTROLLER_BUTTON_INVALID:			return Localize(STR_UNBOUND_PLACEHOLDER);
 				case SDL_CONTROLLER_BUTTON_A:				return Localize(STR_CONTROLLER_BUTTON_A);
@@ -371,12 +371,12 @@ static const char* GetPadBindingName(int row, int col)
 				case SDL_CONTROLLER_BUTTON_DPAD_LEFT:		return Localize(STR_CONTROLLER_BUTTON_DPAD_LEFT);
 				case SDL_CONTROLLER_BUTTON_DPAD_RIGHT:		return Localize(STR_CONTROLLER_BUTTON_DPAD_RIGHT);
 				default:
-					return SDL_GameControllerGetStringForButton(kb->gamepad[col].id);
+					return SDL_GameControllerGetStringForButton(pb->id);
 			}
 			break;
 
 		case kInputTypeAxisPlus:
-			switch (kb->gamepad[col].id)
+			switch (pb->id)
 			{
 				case SDL_CONTROLLER_AXIS_INVALID:			return Localize(STR_UNBOUND_PLACEHOLDER);
 				case SDL_CONTROLLER_AXIS_LEFTX:				return Localize(STR_CONTROLLER_AXIS_LEFTSTICK_RIGHT);
@@ -386,12 +386,12 @@ static const char* GetPadBindingName(int row, int col)
 				case SDL_CONTROLLER_AXIS_TRIGGERLEFT:		return Localize(STR_CONTROLLER_AXIS_LEFTTRIGGER);
 				case SDL_CONTROLLER_AXIS_TRIGGERRIGHT:		return Localize(STR_CONTROLLER_AXIS_RIGHTTRIGGER);
 				default:
-					return SDL_GameControllerGetStringForAxis(kb->gamepad[col].id);
+					return SDL_GameControllerGetStringForAxis(pb->id);
 			}
 			break;
 
 		case kInputTypeAxisMinus:
-			switch (kb->gamepad[col].id)
+			switch (pb->id)
 			{
 				case SDL_CONTROLLER_AXIS_INVALID:			return Localize(STR_UNBOUND_PLACEHOLDER);
 				case SDL_CONTROLLER_AXIS_LEFTX:				return Localize(STR_CONTROLLER_AXIS_LEFTSTICK_LEFT);
@@ -401,7 +401,7 @@ static const char* GetPadBindingName(int row, int col)
 				case SDL_CONTROLLER_AXIS_TRIGGERLEFT:		return Localize(STR_CONTROLLER_AXIS_LEFTTRIGGER);
 				case SDL_CONTROLLER_AXIS_TRIGGERRIGHT:		return Localize(STR_CONTROLLER_AXIS_RIGHTTRIGGER);
 				default:
-					return SDL_GameControllerGetStringForAxis(kb->gamepad[col].id);
+					return SDL_GameControllerGetStringForAxis(pb->id);
 			}
 			break;
 
@@ -414,9 +414,9 @@ static const char* GetMouseBindingName(int row)
 {
 	DECLARE_STATIC_WORKBUF(buf, bufSize);
 
-	KeyBinding* kb = GetBindingAtRow(row);
+	InputBinding* binding = GetBindingAtRow(row);
 
-	switch (kb->mouseButton)
+	switch (binding->mouseButton)
 	{
 		case 0:							return Localize(STR_UNBOUND_PLACEHOLDER);
 		case SDL_BUTTON_LEFT:			return Localize(STR_MOUSE_BUTTON_LEFT);
@@ -425,7 +425,7 @@ static const char* GetMouseBindingName(int row)
 		case SDL_BUTTON_WHEELUP:		return Localize(STR_MOUSE_WHEEL_UP);
 		case SDL_BUTTON_WHEELDOWN:		return Localize(STR_MOUSE_WHEEL_DOWN);
 		default:
-			snprintf(buf, bufSize, "%s %d", Localize(STR_BUTTON), kb->mouseButton);
+			snprintf(buf, bufSize, "%s %d", Localize(STR_BUTTON), binding->mouseButton);
 			return buf;
 	}
 }
@@ -1148,7 +1148,7 @@ static void NavigateFloatRange(const MenuItem* entry)
 
 static void NavigateKeyBinding(const MenuItem* entry)
 {
-	gNav->menuCol = PositiveModulo(gNav->menuCol, KEYBINDING_MAX_KEYS);
+	gNav->menuCol = PositiveModulo(gNav->menuCol, MAX_USER_BINDINGS_PER_NEED);
 	int keyNo = gNav->menuCol;
 	int row = gNav->menuRow;
 
@@ -1160,7 +1160,7 @@ static void NavigateKeyBinding(const MenuItem* entry)
 	if (GetNewNeedStateAnyP(kNeed_UILeft) || GetNewNeedStateAnyP(kNeed_UIPrev))
 	{
 		TwitchOutSelection();
-		keyNo = PositiveModulo(keyNo - 1, KEYBINDING_MAX_KEYS);
+		keyNo = PositiveModulo(keyNo - 1, MAX_USER_BINDINGS_PER_NEED);
 		gNav->idleTime = 0;
 		gNav->menuCol = keyNo;
 		PlayEffect(kSfxNavigate);
@@ -1173,7 +1173,7 @@ static void NavigateKeyBinding(const MenuItem* entry)
 	if (GetNewNeedStateAnyP(kNeed_UIRight) || GetNewNeedStateAnyP(kNeed_UINext))
 	{
 		TwitchOutSelection();
-		keyNo = PositiveModulo(keyNo + 1, KEYBINDING_MAX_KEYS);
+		keyNo = PositiveModulo(keyNo + 1, MAX_USER_BINDINGS_PER_NEED);
 		gNav->idleTime = 0;
 		gNav->menuCol = keyNo;
 		PlayEffect(kSfxNavigate);
@@ -1189,7 +1189,7 @@ static void NavigateKeyBinding(const MenuItem* entry)
 	{
 		TwitchOutSelection();
 		gNav->idleTime = 0;
-		gGamePrefs.keys[entry->inputNeed].key[keyNo] = 0;
+		gGamePrefs.bindings[entry->inputNeed].key[keyNo] = 0;
 		PlayEffect(kSfxDelete);
 		MakeKbText(row, keyNo);
 		TwitchSelection();
@@ -1218,7 +1218,7 @@ static void NavigateKeyBinding(const MenuItem* entry)
 
 static void NavigatePadBinding(const MenuItem* entry)
 {
-	gNav->menuCol = PositiveModulo(gNav->menuCol, KEYBINDING_MAX_USER_GAMEPAD_BUTTONS);
+	gNav->menuCol = PositiveModulo(gNav->menuCol, MAX_USER_BINDINGS_PER_NEED);
 	int btnNo = gNav->menuCol;
 	int row = gNav->menuRow;
 
@@ -1230,7 +1230,7 @@ static void NavigatePadBinding(const MenuItem* entry)
 	if (GetNewNeedStateAnyP(kNeed_UILeft) || GetNewNeedStateAnyP(kNeed_UIPrev))
 	{
 		TwitchOutSelection();
-		btnNo = PositiveModulo(btnNo - 1, KEYBINDING_MAX_USER_GAMEPAD_BUTTONS);
+		btnNo = PositiveModulo(btnNo - 1, MAX_USER_BINDINGS_PER_NEED);
 		gNav->menuCol = btnNo;
 		gNav->idleTime = 0;
 		PlayEffect(kSfxNavigate);
@@ -1243,7 +1243,7 @@ static void NavigatePadBinding(const MenuItem* entry)
 	if (GetNewNeedStateAnyP(kNeed_UIRight) || GetNewNeedStateAnyP(kNeed_UINext))
 	{
 		TwitchOutSelection();
-		btnNo = PositiveModulo(btnNo + 1, KEYBINDING_MAX_USER_GAMEPAD_BUTTONS);
+		btnNo = PositiveModulo(btnNo + 1, MAX_USER_BINDINGS_PER_NEED);
 		gNav->menuCol = btnNo;
 		gNav->idleTime = 0;
 		PlayEffect(kSfxNavigate);
@@ -1259,7 +1259,7 @@ static void NavigatePadBinding(const MenuItem* entry)
 	{
 		TwitchOutSelection();
 		gNav->idleTime = 0;
-		gGamePrefs.keys[entry->inputNeed].gamepad[btnNo].type = kInputTypeUnbound;
+		gGamePrefs.bindings[entry->inputNeed].userPad[btnNo].type = kInputTypeUnbound;
 		PlayEffect(kSfxDelete);
 		MakePbText(row, btnNo);
 		TwitchSelection();
@@ -1298,7 +1298,7 @@ static void NavigateMouseBinding(const MenuItem* entry)
 		|| (gNav->mouseHoverValid && GetNewClickState(SDL_BUTTON_MIDDLE)))
 	{
 		gNav->idleTime = 0;
-		gGamePrefs.keys[entry->inputNeed].mouseButton = 0;
+		gGamePrefs.bindings[entry->inputNeed].mouseButton = 0;
 		PlayEffect(kSfxDelete);
 		MakeText(Localize(STR_UNBOUND_PLACEHOLDER), gNav->menuRow, 1, 0);
 		return;
@@ -1364,9 +1364,9 @@ static void UnbindScancodeFromAllRemappableInputNeeds(int16_t sdlScancode)
 		if (gNav->menu[row].type != kMIKeyBinding)
 			continue;
 
-		KeyBinding* binding = GetBindingAtRow(row);
+		InputBinding* binding = GetBindingAtRow(row);
 
-		for (int j = 0; j < KEYBINDING_MAX_KEYS; j++)
+		for (int j = 0; j < MAX_USER_BINDINGS_PER_NEED; j++)
 		{
 			if (binding->key[j] == sdlScancode)
 			{
@@ -1384,14 +1384,14 @@ static void UnbindPadButtonFromAllRemappableInputNeeds(int8_t type, int8_t id)
 		if (gNav->menu[row].type != kMIPadBinding)
 			continue;
 
-		KeyBinding* binding = GetBindingAtRow(row);
+		InputBinding* binding = GetBindingAtRow(row);
 
-		for (int j = 0; j < KEYBINDING_MAX_USER_GAMEPAD_BUTTONS; j++)
+		for (int j = 0; j < MAX_USER_BINDINGS_PER_NEED; j++)
 		{
-			if (binding->gamepad[j].type == type && binding->gamepad[j].id == id)
+			if (binding->userPad[j].type == type && binding->userPad[j].id == id)
 			{
-				binding->gamepad[j].type = kInputTypeUnbound;
-				binding->gamepad[j].id = 0;
+				binding->userPad[j].type = kInputTypeUnbound;
+				binding->userPad[j].id = 0;
 				MakeText(Localize(STR_UNBOUND_PLACEHOLDER), row, j+1, kTextMeshAllCaps | kTextMeshAlignLeft);
 			}
 		}
@@ -1405,7 +1405,7 @@ static void UnbindMouseButtonFromAllRemappableInputNeeds(int8_t id)
 		if (gNav->menu[row].type != kMIMouseBinding)
 			continue;
 
-		KeyBinding* binding = GetBindingAtRow(row);
+		InputBinding* binding = GetBindingAtRow(row);
 
 		if (binding->mouseButton == id)
 		{
@@ -1420,7 +1420,7 @@ static void AwaitKeyPress(void)
 	int row = gNav->menuRow;
 	int keyNo = gNav->menuCol;
 	GAME_ASSERT(keyNo >= 0);
-	GAME_ASSERT(keyNo < KEYBINDING_MAX_KEYS);
+	GAME_ASSERT(keyNo < MAX_USER_BINDINGS_PER_NEED);
 
 	if (GetNewKeyState(SDL_SCANCODE_ESCAPE))
 	{
@@ -1455,7 +1455,7 @@ static bool AwaitGamepadPress(SDL_GameController* controller)
 	int row = gNav->menuRow;
 	int btnNo = gNav->menuCol;
 	GAME_ASSERT(btnNo >= 0);
-	GAME_ASSERT(btnNo < KEYBINDING_MAX_USER_GAMEPAD_BUTTONS);
+	GAME_ASSERT(btnNo < MAX_USER_BINDINGS_PER_NEED);
 
 	if (GetNewKeyState(SDL_SCANCODE_ESCAPE)
 		|| SDL_GameControllerGetButton(controller, SDL_CONTROLLER_BUTTON_START))
@@ -1464,7 +1464,7 @@ static bool AwaitGamepadPress(SDL_GameController* controller)
 		goto updateText;
 	}
 
-	KeyBinding* kb = GetBindingAtRow(gNav->menuRow);
+	InputBinding* binding = GetBindingAtRow(gNav->menuRow);
 
 	for (int8_t button = 0; button < SDL_CONTROLLER_BUTTON_MAX; button++)
 	{
@@ -1481,8 +1481,8 @@ static bool AwaitGamepadPress(SDL_GameController* controller)
 		{
 			PlayEffect(kSfxCycle);
 			UnbindPadButtonFromAllRemappableInputNeeds(kInputTypeButton, button);
-			kb->gamepad[btnNo].type = kInputTypeButton;
-			kb->gamepad[btnNo].id = button;
+			binding->userPad[btnNo].type = kInputTypeButton;
+			binding->userPad[btnNo].id = button;
 			goto updateText;
 		}
 	}
@@ -1506,8 +1506,8 @@ static bool AwaitGamepadPress(SDL_GameController* controller)
 			PlayEffect(kSfxCycle);
 			int axisType = axisValue < 0 ? kInputTypeAxisMinus : kInputTypeAxisPlus;
 			UnbindPadButtonFromAllRemappableInputNeeds(axisType, axis);
-			kb->gamepad[btnNo].type = axisType;
-			kb->gamepad[btnNo].id = axis;
+			binding->userPad[btnNo].type = axisType;
+			binding->userPad[btnNo].id = axis;
 			goto updateText;
 		}
 	}
@@ -1568,14 +1568,14 @@ static void AwaitMouseClick(void)
 		return;
 	}
 
-	KeyBinding* kb = GetBindingAtRow(gNav->menuRow);
+	InputBinding* binding = GetBindingAtRow(gNav->menuRow);
 
 	for (int8_t mouseButton = 0; mouseButton < NUM_SUPPORTED_MOUSE_BUTTONS; mouseButton++)
 	{
 		if (GetNewClickState(mouseButton))
 		{
 			UnbindMouseButtonFromAllRemappableInputNeeds(mouseButton);
-			kb->mouseButton = mouseButton;
+			binding->mouseButton = mouseButton;
 			MakeText(GetMouseBindingName(gNav->menuRow), gNav->menuRow, 1, 0);
 			gNav->menuState = kMenuStateReady;
 			gNav->idleTime = 0;
@@ -1814,7 +1814,7 @@ static ObjNode* LayOutKeyBinding(int row)
 	label->ColorFilter = gNav->style.labelColor;
 	label->MoveCall = MoveLabel;
 
-	for (int j = 0; j < KEYBINDING_MAX_KEYS; j++)
+	for (int j = 0; j < MAX_USER_BINDINGS_PER_NEED; j++)
 	{
 		ObjNode* keyNode = MakeKbText(row, j);
 		keyNode->Coord.x = -50 + j * 170 ;
@@ -1837,7 +1837,7 @@ static ObjNode* LayOutPadBinding(int row)
 	label->ColorFilter = gNav->style.labelColor;
 	label->MoveCall = MoveLabel;
 
-	for (int j = 0; j < KEYBINDING_MAX_KEYS; j++)
+	for (int j = 0; j < MAX_USER_BINDINGS_PER_NEED; j++)
 	{
 		ObjNode* keyNode = MakePbText(row, j);
 		keyNode->Coord.x = -50 + j * 170;
@@ -1906,6 +1906,7 @@ static void LayOutMenu(int menuID)
 		gNav->darkenPane->Coord.y = gNav->style.yOffset;
 		gNav->darkenPane->Scale.y = 1.3f * totalHeight / GetSpriteInfo(SPRITE_GROUP_INFOBAR, INFOBAR_SObjType_OverlayBackground)->yadv;
 		UpdateObjectTransforms(gNav->darkenPane);
+		MakeTwitch(gNav->darkenPane, kTwitchScaleOut);
 	}
 
 	gTempInitialSweepFactor = 0.0f;

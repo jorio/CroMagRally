@@ -163,11 +163,11 @@ static void UpdateInputNeeds(void)
 {
 	for (int i = 0; i < NUM_CONTROL_NEEDS; i++)
 	{
-		const KeyBinding* kb = &gGamePrefs.keys[i];
+		const InputBinding* kb = &gGamePrefs.bindings[i];
 
 		bool downNow = false;
 
-		for (int j = 0; j < KEYBINDING_MAX_KEYS; j++)
+		for (int j = 0; j < MAX_BINDINGS_PER_NEED; j++)
 		{
 			int16_t scancode = kb->key[j];
 			if (scancode && scancode < SDL_NUM_SCANCODES)
@@ -193,7 +193,7 @@ static void UpdateControllerSpecificInputNeeds(int controllerNum)
 
 	for (int needNum = 0; needNum < NUM_CONTROL_NEEDS; needNum++)
 	{
-		const KeyBinding* kb = &gGamePrefs.keys[needNum];
+		const InputBinding* kb = &gGamePrefs.bindings[needNum];
 
 		int16_t deadZone = needNum >= NUM_REMAPPABLE_NEEDS
 						   ? kJoystickDeadZone_UI
@@ -201,20 +201,22 @@ static void UpdateControllerSpecificInputNeeds(int controllerNum)
 
 		bool downNow = false;
 
-		for (int buttonNum = 0; buttonNum < KEYBINDING_MAX_GAMEPAD_BUTTONS; buttonNum++)
+		for (int buttonNum = 0; buttonNum < MAX_BINDINGS_PER_NEED; buttonNum++)
 		{
-			switch (kb->gamepad[buttonNum].type)
+			const PadBinding* pb = &kb->pad[buttonNum];
+
+			switch (pb->type)
 			{
 				case kInputTypeButton:
-					downNow |= 0 != SDL_GameControllerGetButton(controllerInstance, kb->gamepad[buttonNum].id);
+					downNow |= 0 != SDL_GameControllerGetButton(controllerInstance, pb->id);
 					break;
 
 				case kInputTypeAxisPlus:
-					downNow |= SDL_GameControllerGetAxis(controllerInstance, kb->gamepad[buttonNum].id) > deadZone;
+					downNow |= SDL_GameControllerGetAxis(controllerInstance, pb->id) > deadZone;
 					break;
 
 				case kInputTypeAxisMinus:
-					downNow |= SDL_GameControllerGetAxis(controllerInstance, kb->gamepad[buttonNum].id) < -deadZone;
+					downNow |= SDL_GameControllerGetAxis(controllerInstance, pb->id) < -deadZone;
 					break;
 
 				default:
@@ -884,7 +886,7 @@ void ResetDefaultKeyboardBindings(void)
 {
 	for (int i = 0; i < NUM_CONTROL_NEEDS; i++)
 	{
-		memcpy(gGamePrefs.keys[i].key, kDefaultKeyBindings[i].key, sizeof(gGamePrefs.keys[i].key));
+		memcpy(gGamePrefs.bindings[i].key, kDefaultInputBindings[i].key, sizeof(gGamePrefs.bindings[i].key));
 	}
 }
 
@@ -892,7 +894,7 @@ void ResetDefaultGamepadBindings(void)
 {
 	for (int i = 0; i < NUM_CONTROL_NEEDS; i++)
 	{
-		memcpy(gGamePrefs.keys[i].gamepad, kDefaultKeyBindings[i].gamepad, sizeof(gGamePrefs.keys[i].gamepad));
+		memcpy(gGamePrefs.bindings[i].pad, kDefaultInputBindings[i].pad, sizeof(gGamePrefs.bindings[i].pad));
 	}
 }
 
@@ -900,6 +902,6 @@ void ResetDefaultMouseBindings(void)
 {
 	for (int i = 0; i < NUM_CONTROL_NEEDS; i++)
 	{
-		gGamePrefs.keys[i].mouseButton = kDefaultKeyBindings[i].mouseButton;
+		gGamePrefs.bindings[i].mouseButton = kDefaultInputBindings[i].mouseButton;
 	}
 }
