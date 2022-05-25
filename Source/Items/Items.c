@@ -1019,6 +1019,19 @@ ObjNode	*newObj;
 	newObj->TerrainItemPtr = itemPtr;								// keep ptr to item list
 
 
+			/* CREATE ROCK AT BASE OF NECK */
+			// So it doesn't look like the neck is hovering in the air.
+
+	def.group	= MODEL_GROUP_GLOBAL;
+	def.type	= GLOBAL_ObjType_GreyRock;
+	def.coord.y	= GetTerrainY(x,z) + 50.0f;
+	def.scale	= 1.5f;
+	newObj = MakeNewDisplayGroupObject(&def);
+	newObj->Scale.x = 3;
+	newObj->Scale.z = 3;
+	UpdateObjectTransforms(newObj);
+
+
 	return(true);													// item was added
 }
 
