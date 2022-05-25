@@ -1,4 +1,6 @@
-import struct, sys, os
+import struct, sys, os, binascii
+
+INLINE_COMMENTS = True  # output byte positions of each vertex/UV
 
 GL_RGB = 0x1907
 GL_RGBA = 0x1908
@@ -32,6 +34,9 @@ def unpack_from_file(format, file):
     assert(data)
     assert(len(data) == size)
     return struct.unpack(format, data)
+
+def hexlify_f32be(f):
+    return binascii.hexlify(struct.pack(">f", f)).decode('ascii')
 
 def read_bg3d(filepath):
     model_name = os.path.splitext(os.path.basename(filepath))[0]
@@ -156,8 +161,13 @@ def read_bg3d(filepath):
 
             elif tag == BG3D_TAGTYPE_VERTEXARRAY:
                 for _ in range(numPoints):
+                    pos = f.tell()
                     x, y, z = unpack_from_file(">3f", f)
-                    obj += F"v {x:.6f} {y:.6f} {z:.6f}\n"
+                    obj += F"v {x:.6f} {y:.6f} {z:.6f}"
+                    if INLINE_COMMENTS:
+                    	obj += F"\t# @{pos:08x}: {hexlify_f32be(x)} {hexlify_f32be(y)} {hexlify_f32be(z)}\n"
+                    else:
+                    	obj += F"\n"
 
             elif tag == BG3D_TAGTYPE_NORMALARRAY:
                 for _ in range(numPoints):
@@ -166,8 +176,13 @@ def read_bg3d(filepath):
 
             elif tag == BG3D_TAGTYPE_UVARRAY:
                 for _ in range(numPoints):
+                    pos = f.tell()
                     u, v = unpack_from_file(">2f", f)
-                    obj += F"vt {u:.6f} {v:.6f}\n"
+                    obj += F"vt {u:.6f} {v:.6f}"
+                    if INLINE_COMMENTS:
+                    	obj += F"\t# @{pos:08x}: {hexlify_f32be(u)} {hexlify_f32be(v)}\n"
+                    else:
+                    	obj += F"\n"
 
             elif tag == BG3D_TAGTYPE_TRIANGLEARRAY:
                 for _ in range(numTriangles):
