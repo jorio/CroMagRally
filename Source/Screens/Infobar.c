@@ -419,8 +419,9 @@ static const char*	maps[] =
 		{
 			.coord		= {0, bottomTextY, 0},
 			.scale		= .3,
-			.slot		= SPRITE_SLOT,
+			.slot		= PANEDIVIDER_SLOT+1,
 			.moveCall	= MovePressAnyKey,
+			.flags		= STATUS_BIT_OVERLAYPANE,
 		};
 
 		int strKey = gUserPrefersGamepad ? STR_PRESS_START : STR_PRESS_SPACE;
@@ -438,8 +439,9 @@ static const char*	maps[] =
 		{
 			.coord		= {0, bottomTextY, 0},
 			.scale		= .4,
-			.slot		= SPRITE_SLOT,
+			.slot		= PANEDIVIDER_SLOT+1,
 			.moveCall	= MovePressAnyKey,
+			.flags		= STATUS_BIT_OVERLAYPANE,
 		};
 		ObjNode* tamperedPhysicsText = TextMesh_New(Localize(STR_PHYSICS_EDITOR), 0, &def);
 		tamperedPhysicsText->ColorFilter = (OGLColorRGBA) {1,0.4,0,1};
