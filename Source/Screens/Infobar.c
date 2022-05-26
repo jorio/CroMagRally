@@ -21,7 +21,7 @@ static void DrawInfobar(ObjNode* theNode);
 
 static void Infobar_DrawMap(void);
 static void Infobar_MovePlace(ObjNode* objNode);
-static void Infobar_DrawInventoryPOW(void);
+static void Infobar_MoveInventoryPOW(ObjNode* objNode);
 static void Infobar_MoveWrongWay(ObjNode* objNode);
 static void Infobar_DrawStartingLight(void);
 static void Infobar_MoveLap(ObjNode* objNode);
@@ -32,7 +32,6 @@ static void Infobar_DrawFlags(void);
 static void Infobar_DrawHealth(void);
 
 static void Infobar_MoveMap(ObjNode* objNode);
-static void Infobar_MoveInventoryPOW(ObjNode* objNode);
 static void Infobar_MoveStartingLight(ObjNode* objNode);
 static void Infobar_MoveTimerPowerups(ObjNode* objNode);
 static void Infobar_MoveTagTimer(ObjNode* objNode);
@@ -95,6 +94,7 @@ typedef struct
 	int type;
 	int sub;
 	int row;
+	int displayedValue;
 } InfobarIconData;
 CheckSpecialDataStruct(InfobarIconData);
 #define GetInfobarIconData(node) GetSpecialData(node, InfobarIconData)
@@ -127,10 +127,12 @@ static const IconPlacement gIconInfo[NUM_INFOBAR_ICONTYPES] =
 
 static void (*gIconMoveCallbacks[NUM_INFOBAR_ICONTYPES])(ObjNode*) =
 {
-	[ICON_PLACE]		= Infobar_MovePlace,
-	[ICON_LAP]			= Infobar_MoveLap,
-	[ICON_WRONGWAY]		= Infobar_MoveWrongWay,
-	[ICON_TOKEN]		= Infobar_MoveToken,
+	[ICON_PLACE]			= Infobar_MovePlace,
+	[ICON_LAP]				= Infobar_MoveLap,
+	[ICON_WRONGWAY]			= Infobar_MoveWrongWay,
+	[ICON_TOKEN]			= Infobar_MoveToken,
+	[ICON_WEAPON_RACE]		= Infobar_MoveInventoryPOW,
+	[ICON_WEAPON_BATTLE]	= Infobar_MoveInventoryPOW,
 };
 
 static const struct
@@ -479,8 +481,11 @@ static ObjNode* MakeBlankIcon(void)
 	return MakeSpriteObject(&def);
 }
 
-static void Infobar_MakeIcon(uint8_t type, uint8_t sub)
+static void Infobar_MakeIcon(uint8_t type, uint8_t flags)
 {
+	uint8_t sub = flags & 0x7f;
+	bool isText = !!(flags & 0x80);
+
 	GAME_ASSERT(type < NUM_INFOBAR_ICONTYPES);
 	GAME_ASSERT(sub < MAX_SUBICONS);
 
@@ -488,29 +493,39 @@ static void Infobar_MakeIcon(uint8_t type, uint8_t sub)
 	{
 		.scale = 1,
 		.coord = {64 + type*32, 64, 0},
-		.group = SPRITE_GROUP_INFOBAR,
-		.type = INFOBAR_SObjType_WrongWay,
 		.slot = INFOBAR_SLOT,
 		.moveCall = gIconMoveCallbacks[type],
 		.flags = STATUS_BITS_FOR_2D | STATUS_BIT_ONLYSHOWTHISPLAYER | STATUS_BIT_MOVEINPAUSE,
 		.projection = kProjectionType2DOrthoFullRect,
 	};
 
+	if (!isText)
+	{
+		def.group = SPRITE_GROUP_INFOBAR;
+		def.type = INFOBAR_SObjType_WrongWay;
+	}
+
 	for (int pane = 0; pane < gNumSplitScreenPanes; pane++)
 	{
-		ObjNode* obj = MakeSpriteObject(&def);
+		ObjNode* obj = NULL;
+
+		if (isText)
+			obj = TextMesh_New("?", kTextMeshAlignLeft, &def);
+		else
+			obj = MakeSpriteObject(&def);
 
 		obj->PlayerNum = GetPlayerNum(pane);		// TODO: maybe revise this for net games
 
 		InfobarIconData* special = GetInfobarIconData(obj);
 		special->type = type;
 		special->sub = sub;
+		special->displayedValue = -1;
 
 		gInfobarIconObjs[pane][type][sub] = obj;
 	}
 }
 
-static void Infobar_RepositionIcon(ObjNode* theNode)
+static void Infobar_RepositionIconTemp(ObjNode* theNode)
 {
 	const InfobarIconData* special = GetInfobarIconData(theNode);
 	int id = special->type;
@@ -519,13 +534,36 @@ static void Infobar_RepositionIcon(ObjNode* theNode)
 	theNode->Coord.y = GetIconY(id);
 	theNode->Scale.x = GetIconScale(id);
 	theNode->Scale.y = GetIconScale(id);
+}
+
+static void Infobar_RepositionIcon(ObjNode* theNode)
+{
+	Infobar_RepositionIconTemp(theNode);
 	UpdateObjectTransforms(theNode);
 }
 
 static void MakeInfobar(void)
 {
+	int weaponIconType;
+	switch (gGameMode)
+	{
+		case GAME_MODE_TAG1:
+		case GAME_MODE_TAG2:
+		case GAME_MODE_SURVIVAL:
+		case GAME_MODE_CAPTUREFLAG:
+			weaponIconType = ICON_WEAPON_BATTLE;
+			break;
+		default:
+			weaponIconType = ICON_WEAPON_RACE;
+			break;
+	}
+
+	// Inventory
+	Infobar_MakeIcon(weaponIconType, 0x00);
+	Infobar_MakeIcon(weaponIconType, 0x01);
+	Infobar_MakeIcon(weaponIconType, 0x82);		// text
+
 	//Infobar_DrawMap();
-	//Infobar_DrawInventoryPOW();
 	//Infobar_DrawStartingLight();
 	//Infobar_DrawTimerPowerups();
 
@@ -589,7 +627,6 @@ static void DrawInfobar(ObjNode* theNode)
 		/* DRAW THE STANDARD THINGS */
 
 	Infobar_DrawMap();
-//	Infobar_DrawInventoryPOW();
 	Infobar_DrawStartingLight();
 	Infobar_DrawTimerPowerups();
 
@@ -598,20 +635,6 @@ static void DrawInfobar(ObjNode* theNode)
 
 	switch(gGameMode)
 	{
-		case	GAME_MODE_PRACTICE:
-		case	GAME_MODE_MULTIPLAYERRACE:
-//				Infobar_DrawPlace();
-//				Infobar_DrawWrongWay();
-//				Infobar_DrawLap();
-				break;
-
-		case	GAME_MODE_TOURNAMENT:
-//				Infobar_DrawPlace();
-//				Infobar_DrawWrongWay();
-//				Infobar_DrawLap();
-//				Infobar_DrawTokens();
-				break;
-
 		case	GAME_MODE_TAG1:
 		case	GAME_MODE_TAG2:
 				Infobar_DrawTagTimer();
@@ -824,71 +847,59 @@ static void Infobar_MovePlace(ObjNode* node)
 
 /********************** DRAW WEAPON TYPE *************************/
 
-static void Infobar_DrawInventoryPOW(void)
+static void Infobar_MoveInventoryPOW(ObjNode* node)
 {
 int			n;
-short		powType,q;
-char		s[16];
-float		x,y,scale, spacing, fontScale;
+short		powType;
+char		s[4];
 
-	n = GetPlayerNum(gCurrentSplitScreenPane);
+	InfobarIconData* special = GetInfobarIconData(node);
+
+	n = node->PlayerNum;
 
 	powType = gPlayerInfo[n].powType;				// get weapon type
 	if (powType == POW_TYPE_NONE)
-		return;
-
-	int icon;
-	switch (gGameMode)
 	{
-		case GAME_MODE_TAG1:
-		case GAME_MODE_TAG2:
-		case GAME_MODE_SURVIVAL:
-		case GAME_MODE_CAPTUREFLAG:
-			icon = ICON_WEAPON_BATTLE;
-			break;
-		default:
-			icon = ICON_WEAPON_RACE;
-			break;
+		SetObjectVisible(node, false);
+		return;
+	}
+	else
+	{
+		SetObjectVisible(node, true);
 	}
 
-	x			= GetIconX(icon);
-	y			= GetIconY(icon);
-	scale		= GetIconScale(icon);
-	spacing		= GetIconXSpacing(icon);
 
-	fontScale = scale * .7f;
+	Infobar_RepositionIconTemp(node);
 
-		/* DRAW WEAPON ICON */
+	switch (GetInfobarIconData(node)->sub)
+	{
+		case 0:		// DRAW WEAPON ICON
+			ModifySpriteObjectFrame(node, INFOBAR_SObjType_Weapon_Bone + powType);
+			break;
 
-	DrawSprite(SPRITE_GROUP_INFOBAR, INFOBAR_SObjType_Weapon_Bone + powType,
-				x, y, scale, INFOBAR_SPRITE_FLAGS);
+		case 1:		// DRAW X-QUANTITY ICON
+			ModifySpriteObjectFrame(node, INFOBAR_SObjType_WeaponX);
+			node->Scale.x = node->Scale.y *= .8f;
+			break;
 
+		case 2:		// DRAW QUANTITY NUMBER
+		{
+			int q = gPlayerInfo[n].powQuantity;
+			if (special->displayedValue != q)
+			{
+				snprintf(s, sizeof(s), "%d   ", q);
+				TextMesh_Update(s, kTextMeshAlignLeft, node);
+				special->displayedValue = q;
+			}
 
-		/* DRAW X-QUANTITY ICON */
+			node->Coord.x -= 22;
+			node->Scale.x = node->Scale.y *= .7f;
+			node->ColorFilter = (OGLColorRGBA) {.4, 1.0, .3, 1.0};
+			break;
+		}
+	}
 
-	x += spacing;
-	DrawSprite(SPRITE_GROUP_INFOBAR, INFOBAR_SObjType_WeaponX,
-				x, y, scale * .8f, INFOBAR_SPRITE_FLAGS);
-
-
-		/* DRAW QUANTITY NUMBER */
-
-	gGlobalColorFilter.r = .4;						// tint green
-	gGlobalColorFilter.g = 1.0;
-	gGlobalColorFilter.b = .3;
-
-	q = gPlayerInfo[n].powQuantity;					// get weapon quantity
-	snprintf(s, sizeof(s), "%d", q);
-
-	x += spacing;
-	x -= 24;
-	Atlas_DrawString(SPRITE_GROUP_FONT, s, x, y, fontScale, INFOBAR_SPRITE_FLAGS | kTextMeshAlignLeft);
-
-
-	gGlobalColorFilter.r = 1;
-	gGlobalColorFilter.g = 1;
-	gGlobalColorFilter.b = 1;
-
+	UpdateObjectTransforms(node);
 }
 
 
