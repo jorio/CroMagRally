@@ -1,7 +1,8 @@
 /****************************/
 /*   	INFOBAR.C		    */
-/* (c)2000 Pangea Software  */
 /* By Brian Greenstone      */
+/* (c)2000 Pangea Software  */
+/* (c)2022 Iliyas Jorio     */
 /****************************/
 
 
@@ -15,19 +16,30 @@
 /*    PROTOTYPES            */
 /****************************/
 
+static void MakeInfobar(void);
 static void DrawInfobar(ObjNode* theNode);
 
 static void Infobar_DrawMap(void);
-static void Infobar_DrawPlace(void);
+static void Infobar_MovePlace(ObjNode* objNode);
+static void Infobar_MovePlaceOrdinal(ObjNode* objNode);
 static void Infobar_DrawInventoryPOW(void);
-static void Infobar_DrawWrongWay(void);
+static void Infobar_MoveWrongWay(ObjNode* objNode);
 static void Infobar_DrawStartingLight(void);
-static void Infobar_DrawLap(void);
+static void Infobar_MoveLap(ObjNode* objNode);
 static void Infobar_DrawTokens(void);
 static void Infobar_DrawTimerPowerups(void);
 static void Infobar_DrawTagTimer(void);
 static void Infobar_DrawFlags(void);
 static void Infobar_DrawHealth(void);
+
+static void Infobar_MoveMap(ObjNode* objNode);
+static void Infobar_MoveInventoryPOW(ObjNode* objNode);
+static void Infobar_MoveStartingLight(ObjNode* objNode);
+static void Infobar_MoveTokens(ObjNode* objNode);
+static void Infobar_MoveTimerPowerups(ObjNode* objNode);
+static void Infobar_MoveTagTimer(ObjNode* objNode);
+static void Infobar_MoveFlags(ObjNode* objNode);
+static void Infobar_MoveHealth(ObjNode* objNode);
 
 static void MoveFinalPlace(ObjNode *theNode);
 static void MoveTrackName(ObjNode *theNode);
@@ -50,6 +62,7 @@ static void MovePressAnyKey(ObjNode *theNode);
 enum
 {
 	ICON_PLACE	 = 0,
+	ICON_PLACEORDINAL,
 	ICON_MAP,
 	ICON_STARTLIGHT,
 	ICON_LAP,
@@ -91,6 +104,7 @@ typedef struct
 static const IconPlacement gIconInfo[NUM_INFOBAR_ICONTYPES] =
 {
 	[ICON_PLACE]		= { kAnchorTopLeft,		  64,  48, 0.9,   0,  0 },
+	[ICON_PLACEORDINAL]	= { kAnchorTopLeft,		  64,  48, 0.9,   0,  0 },	// superimposed on ICON_PLACE
 	[ICON_MAP]			= { kAnchorBottomRight,	 -80, -84, 0.5,   0,  0 },
 	[ICON_STARTLIGHT]	= { kAnchorCenter,		   0, -72, 1.0,   0,  0 },
 	[ICON_LAP]			= { kAnchorBottomLeft,	  51, -48, 0.7,   0,  0 },
@@ -102,6 +116,14 @@ static const IconPlacement gIconInfo[NUM_INFOBAR_ICONTYPES] =
 	[ICON_TIMERINDEX]	= { kAnchorTopRight,	-166,  36, 0.6, 106,  0 },
 	[ICON_POWTIMER]		= { kAnchorTopLeft,		  29, 144, 0.8,  37, 46 },
 	[ICON_FIRE]			= { kAnchorTopLeft,		  19,  36, 0.5,  32,  0 },
+};
+
+static void (*gIconMoveCallbacks[NUM_INFOBAR_ICONTYPES])(ObjNode*) =
+{
+	[ICON_PLACE]		= Infobar_MovePlace,
+	[ICON_PLACEORDINAL]	= Infobar_MovePlaceOrdinal,
+	[ICON_LAP]			= Infobar_MoveLap,
+	[ICON_WRONGWAY]		= Infobar_MoveWrongWay,
 };
 
 static const struct
@@ -144,6 +166,8 @@ Boolean			gHideInfobar = false;
 
 ObjNode			*gWinLoseString[MAX_PLAYERS];
 
+ObjNode			*gInfobarIconObjs[MAX_SPLITSCREENS][NUM_INFOBAR_ICONTYPES];
+
 
 #pragma mark -
 
@@ -164,10 +188,10 @@ static float GetIconX(int iconID)
 			return dx;
 
 		case kAnchorRight:
-			return dx + g2DLogicalWidth;
+			return dx + g2DLogicalWidth;			// TODO: Need this per-pane
 
 		default:
-			return dx + g2DLogicalWidth * 0.5f;
+			return dx + g2DLogicalWidth * 0.5f;		// TODO: Need this per-pane
 	}
 }
 
@@ -352,6 +376,9 @@ static const char*	maps[] =
 	};
 	gInfobarMasterObj = MakeNewObject(&masterObjDef);
 
+
+	MakeInfobar();
+
 	
 
 		/* SETUP STARTING LIGHT */
@@ -430,6 +457,95 @@ void DisposeInfobar(void)
 }
 
 
+static ObjNode* MakeBlankIcon(void)
+{
+	NewObjectDefinitionType def =
+	{
+		.scale = 1,
+		.group = SPRITE_GROUP_INFOBAR,
+		.type = 1,
+		.slot = INFOBAR_SLOT,
+	};
+
+	return MakeSpriteObject(&def);
+}
+
+static void Infobar_MakeIcon(int num)
+{
+	NewObjectDefinitionType def =
+	{
+		.scale = 1,
+		.coord = {64 + num*32, 64, 0},
+		.group = SPRITE_GROUP_INFOBAR,
+		.type = INFOBAR_SObjType_WrongWay,
+		.slot = INFOBAR_SLOT,
+		.moveCall = gIconMoveCallbacks[num],
+		.flags = STATUS_BITS_FOR_2D | STATUS_BIT_ONLYSHOWTHISPLAYER | STATUS_BIT_MOVEINPAUSE,
+		.projection = kProjectionType2DOrthoFullRect,
+	};
+
+	for (int i = 0; i < gNumSplitScreenPanes; i++)
+	{
+		gInfobarIconObjs[i][num] = MakeSpriteObject(&def);
+		gInfobarIconObjs[i][num]->PlayerNum = GetPlayerNum(i);		// TODO: maybe revise this for net games
+		gInfobarIconObjs[i][num]->Special[0] = num;
+	}
+}
+
+static void Infobar_RepositionIcon(ObjNode* theNode)
+{
+	int id = theNode->Special[0];
+	theNode->Coord.x = GetIconX(id);
+	theNode->Coord.y = GetIconY(id);
+	theNode->Scale.x = GetIconScale(id);
+	theNode->Scale.y = GetIconScale(id);
+	UpdateObjectTransforms(theNode);
+}
+
+static void MakeInfobar(void)
+{
+	//Infobar_DrawMap();
+	//Infobar_DrawInventoryPOW();
+	//Infobar_DrawStartingLight();
+	//Infobar_DrawTimerPowerups();
+
+
+	/* DRAW GAME MODE SPECIFICS */
+
+	switch (gGameMode)
+	{
+	case	GAME_MODE_PRACTICE:
+	case	GAME_MODE_MULTIPLAYERRACE:
+		Infobar_MakeIcon(ICON_PLACE);
+		Infobar_MakeIcon(ICON_PLACEORDINAL);
+		Infobar_MakeIcon(ICON_WRONGWAY);
+		Infobar_MakeIcon(ICON_LAP);
+		break;
+
+	case	GAME_MODE_TOURNAMENT:
+		Infobar_MakeIcon(ICON_PLACE);
+		Infobar_MakeIcon(ICON_PLACEORDINAL);
+		Infobar_MakeIcon(ICON_WRONGWAY);
+		Infobar_MakeIcon(ICON_LAP);
+		//Infobar_MakeTokens();
+		break;
+
+	case	GAME_MODE_TAG1:
+	case	GAME_MODE_TAG2:
+//		Infobar_DrawTagTimer();
+		break;
+
+	case	GAME_MODE_SURVIVAL:
+//		Infobar_DrawHealth();
+		break;
+
+	case	GAME_MODE_CAPTUREFLAG:
+//		Infobar_DrawFlags();
+		break;
+	}
+}
+
+
 /********************** DRAW INFOBAR ****************************/
 
 static void DrawInfobar(ObjNode* theNode)
@@ -446,7 +562,7 @@ static void DrawInfobar(ObjNode* theNode)
 		/* DRAW THE STANDARD THINGS */
 
 	Infobar_DrawMap();
-	Infobar_DrawInventoryPOW();
+//	Infobar_DrawInventoryPOW();
 	Infobar_DrawStartingLight();
 	Infobar_DrawTimerPowerups();
 
@@ -457,15 +573,15 @@ static void DrawInfobar(ObjNode* theNode)
 	{
 		case	GAME_MODE_PRACTICE:
 		case	GAME_MODE_MULTIPLAYERRACE:
-				Infobar_DrawPlace();
-				Infobar_DrawWrongWay();
-				Infobar_DrawLap();
+//				Infobar_DrawPlace();
+//				Infobar_DrawWrongWay();
+//				Infobar_DrawLap();
 				break;
 
 		case	GAME_MODE_TOURNAMENT:
-				Infobar_DrawPlace();
-				Infobar_DrawWrongWay();
-				Infobar_DrawLap();
+//				Infobar_DrawPlace();
+//				Infobar_DrawWrongWay();
+//				Infobar_DrawLap();
 				Infobar_DrawTokens();
 				break;
 
@@ -656,27 +772,24 @@ static int LocalizeOrdinalSprite(int place, int sex)
 	}
 }
 
-static void Infobar_DrawPlace(void)
+static void Infobar_MovePlace(ObjNode* node)
 {
-	int playerNum = GetPlayerNum(gCurrentSplitScreenPane);
+	int playerNum = node->PlayerNum;
+	int place = gPlayerInfo[playerNum].place;
+
+	ModifySpriteObjectFrame(node, INFOBAR_SObjType_Place1+place);
+	Infobar_RepositionIcon(node);
+}
+
+static void Infobar_MovePlaceOrdinal(ObjNode* node)
+{
+	int playerNum = node->PlayerNum;
 	int place = gPlayerInfo[playerNum].place;
 	int sex = gPlayerInfo[playerNum].sex;
 
-	// Draw big number
-	DrawSprite(SPRITE_GROUP_INFOBAR, INFOBAR_SObjType_Place1+place,
-				GetIconX(ICON_PLACE),
-				GetIconY(ICON_PLACE),
-				GetIconScale(ICON_PLACE),
-				INFOBAR_SPRITE_FLAGS);
-
-	// Draw ordinal suffix
-	DrawSprite(SPRITE_GROUP_INFOBAR, LocalizeOrdinalSprite(place, sex),
-				GetIconX(ICON_PLACE),
-				GetIconY(ICON_PLACE),
-				GetIconScale(ICON_PLACE),
-				INFOBAR_SPRITE_FLAGS);
+	ModifySpriteObjectFrame(node, LocalizeOrdinalSprite(place, sex));
+	Infobar_RepositionIcon(node);
 }
-
 
 /********************** DRAW WEAPON TYPE *************************/
 
@@ -750,22 +863,19 @@ float		x,y,scale, spacing, fontScale;
 
 /********************** DRAW WRONG WAY *************************/
 
-static void Infobar_DrawWrongWay(void)
+static void Infobar_MoveWrongWay(ObjNode* theNode)
 {
 Boolean	wrongWay;
-short	p;
-
-	p = GetPlayerNum(gCurrentSplitScreenPane);
+short	p = theNode->PlayerNum;
 
 	wrongWay = gPlayerInfo[p].wrongWay;
 
+	SetObjectVisible(theNode, wrongWay);
+
 	if (wrongWay)
 	{
-		DrawSprite(SPRITE_GROUP_INFOBAR, INFOBAR_SObjType_WrongWay,
-					GetIconX(ICON_WRONGWAY),
-					GetIconY(ICON_WRONGWAY),
-					GetIconScale(ICON_WRONGWAY),
-					INFOBAR_SPRITE_FLAGS);
+		ModifySpriteObjectFrame(theNode, INFOBAR_SObjType_WrongWay);
+		Infobar_RepositionIcon(theNode);
 	}
 }
 
@@ -838,30 +948,21 @@ int		oldTimer;
 
 /********************** DRAW LAP *************************/
 
-static void Infobar_DrawLap(void)
+static void Infobar_MoveLap(ObjNode* node)
 {
 int	lap,playerNum;
-
 
 			/*******************************/
 			/* DRAW THE CURRENT LAP NUMBER */
 			/*******************************/
 
-	playerNum = GetPlayerNum(gCurrentSplitScreenPane);
+	playerNum = node->PlayerNum;
 
 	lap = gPlayerInfo[playerNum].lapNum;
+	lap = GAME_CLAMP(lap, 0, 2);
 
-	if (lap < 0)
-		lap = 0;
-	if (lap > 2)
-		lap = 2;
-
-
-	DrawSprite(SPRITE_GROUP_INFOBAR, INFOBAR_SObjType_Lap1of3+lap,
-				GetIconX(ICON_LAP),
-				GetIconY(ICON_LAP),
-				GetIconScale(ICON_LAP),
-				INFOBAR_SPRITE_FLAGS);
+	ModifySpriteObjectFrame(node, INFOBAR_SObjType_Lap1of3+lap);
+	Infobar_RepositionIcon(node);
 }
 
 /********************** DRAW TOKENS *************************/
