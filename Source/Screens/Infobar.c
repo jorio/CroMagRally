@@ -30,7 +30,7 @@ static void Infobar_MoveLap(ObjNode* objNode);
 static void Infobar_MoveToken(ObjNode* objNode);
 static void Infobar_MovePOWTimer(ObjNode* objNode);
 static void Infobar_DrawTagTimer(Byte whichPane);
-static void Infobar_DrawFlags(Byte whichPane);
+static void Infobar_MoveFlag(ObjNode* objNode);
 static void Infobar_DrawHealth(Byte whichPane);
 
 static void MoveFinalPlace(ObjNode *theNode);
@@ -66,8 +66,7 @@ enum
 	ICON_TIMER,				// Health background
 	ICON_TIMERINDEX,		// Health indicator
 	ICON_POWTIMER,			// Buff timers
-	ICON_FIRE,
-
+	ICON_FLAG,				// CTF torches collected
 	NUM_INFOBAR_ICONTYPES
 };
 
@@ -115,7 +114,7 @@ static const IconPlacement gIconInfo[NUM_INFOBAR_ICONTYPES] =
 	[ICON_TIMER]		= { kAnchorTopRight,	-118,  36, 1.0f, 125 },
 	[ICON_TIMERINDEX]	= { kAnchorTopRight,	-166,  36, 0.6f, 106 },
 	[ICON_POWTIMER]		= { kAnchorTopLeft,		  29, 144, 0.8f,   0 },
-	[ICON_FIRE]			= { kAnchorTopLeft,		  19,  36, 0.5f,  32 },
+	[ICON_FLAG]			= { kAnchorTopRight,	  19-6*36,  36, 0.5f,  32 },
 };
 
 #define MAX_POWTIMERS 6
@@ -480,6 +479,7 @@ static void Infobar_MakeIcon(uint8_t type, uint8_t flags)
 		[ICON_WEAPON_RACE]		= Infobar_MoveInventoryPOW,
 		[ICON_WEAPON_BATTLE]	= Infobar_MoveInventoryPOW,
 		[ICON_POWTIMER]			= Infobar_MovePOWTimer,
+		[ICON_FLAG]				= Infobar_MoveFlag,
 	};
 
 	uint8_t sub = flags & 0x7f;
@@ -586,29 +586,32 @@ static void MakeInfobar(void)
 
 	switch (gGameMode)
 	{
-	case	GAME_MODE_PRACTICE:
-	case	GAME_MODE_MULTIPLAYERRACE:
-		break;
+		case	GAME_MODE_PRACTICE:
+		case	GAME_MODE_MULTIPLAYERRACE:
+			break;
 
-	case	GAME_MODE_TOURNAMENT:
-		for (int i = 0; i < MAX_TOKENS; i++)
-		{
-			Infobar_MakeIcon(ICON_TOKEN, i);
-		}
-		break;
+		case	GAME_MODE_TOURNAMENT:
+			for (int i = 0; i < MAX_TOKENS; i++)
+			{
+				Infobar_MakeIcon(ICON_TOKEN, i);
+			}
+			break;
 
-	case	GAME_MODE_TAG1:
-	case	GAME_MODE_TAG2:
-//		Infobar_DrawTagTimer();
-		break;
+		case	GAME_MODE_TAG1:
+		case	GAME_MODE_TAG2:
+			//Infobar_DrawTagTimer();
+			break;
 
-	case	GAME_MODE_SURVIVAL:
-//		Infobar_DrawHealth();
-		break;
+		case	GAME_MODE_SURVIVAL:
+			//Infobar_DrawHealth();
+			break;
 
-	case	GAME_MODE_CAPTUREFLAG:
-//		Infobar_DrawFlags();
-		break;
+		case	GAME_MODE_CAPTUREFLAG:
+			for (int i = 0; i < NUM_FLAGS_TO_GET; i++)
+			{
+				Infobar_MakeIcon(ICON_FLAG, i);
+			}
+			break;
 	}
 }
 
@@ -643,10 +646,6 @@ static void DrawInfobar(ObjNode* theNode)
 
 		case	GAME_MODE_SURVIVAL:
 				Infobar_DrawHealth(gCurrentSplitScreenPane);
-				break;
-
-		case	GAME_MODE_CAPTUREFLAG:
-				Infobar_DrawFlags(gCurrentSplitScreenPane);
 				break;
 	}
 }
@@ -1276,28 +1275,20 @@ float	timer,x,y, scale, spacing, dist;
 
 /********************* DRAW FLAGS **************************/
 
-static void Infobar_DrawFlags(Byte whichPane)
+static void Infobar_MoveFlag(ObjNode* theNode)
 {
-short	i,p,t;
-float	x,y, scale, spacing;
+	int p = theNode->PlayerNum;
+	int team = gPlayerInfo[p].team;
+	int numCapturedFlags = gCapturedFlagCount[team];
+	InfobarIconData* data = GetInfobarIconData(theNode);
 
+	int flagNum = NUM_FLAGS_TO_GET - data->sub - 1;		// invert order so torches appear right-to-left
 
-
-	p = GetPlayerNum(whichPane);
-	t = gPlayerInfo[p].team;							// get team #
-
-	x 		= GetIconX(whichPane, ICON_FIRE);
-	y 		= GetIconY(whichPane, ICON_FIRE);
-	scale 	= GetIconScale(ICON_FIRE);
-	spacing	= GetIconXSpacing(ICON_FIRE);
-
-	for (i = 0; i < gCapturedFlagCount[t]; i++)
+	if (SetObjectVisible(theNode, flagNum < numCapturedFlags))
 	{
-		DrawSprite(SPRITE_GROUP_INFOBAR, INFOBAR_SObjType_RedTorch + t,	x, y, scale, INFOBAR_SPRITE_FLAGS);
-		x += spacing;
+		ModifySpriteObjectFrame(theNode, INFOBAR_SObjType_RedTorch + team);
+		Infobar_RepositionIcon(theNode);
 	}
-
-
 }
 
 
