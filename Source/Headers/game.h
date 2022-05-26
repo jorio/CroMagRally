@@ -87,6 +87,7 @@ extern float					gStartingLightTimer;
 extern float					gTrackCompletedCoolDownTimer;
 extern FSSpec					gDataSpec;
 extern GLuint					gSuperTileTextureNames[MAX_SUPERTILE_TEXTURES];
+extern int						gCurrentAntialiasingLevel;
 extern int						gCurrentSplitScreenPane;
 extern int						gLoadTextureFlags;
 extern int						gGameMode;

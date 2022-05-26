@@ -23,6 +23,7 @@ extern "C"
 	SDL_Window* gSDLWindow = nullptr;
 	FSSpec gDataSpec;
 	CommandLineOptions gCommandLine;
+	int gCurrentAntialiasingLevel;
 
 #if 0 //_WIN32
 	// Tell Windows graphics driver that we prefer running on a dedicated GPU if available
@@ -134,10 +135,12 @@ retryVideo:
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_COMPATIBILITY);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
-	if (gGamePrefs.antialiasingLevel != 0)
+
+	gCurrentAntialiasingLevel = gGamePrefs.antialiasingLevel;
+	if (gCurrentAntialiasingLevel != 0)
 	{
 		SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
-		SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 1 << gGamePrefs.antialiasingLevel);
+		SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 1 << gCurrentAntialiasingLevel);
 	}
 
 	int display = 0;
@@ -157,7 +160,7 @@ retryVideo:
 
 	if (!gSDLWindow)
 	{
-		if (gGamePrefs.antialiasingLevel != 0)
+		if (gCurrentAntialiasingLevel != 0)
 		{
 			printf("Couldn't create SDL window with the requested MSAA level. Retrying without MSAA...\n");
 

@@ -1195,6 +1195,13 @@ void DetachObject(ObjNode *theNode)
 	theNode->NextNode = nil;
 
 	theNode->StatusBits |= STATUS_BIT_DETACHED;
+
+
+
+
+			/* UNCHAIN NODE */
+
+	UnchainNode(theNode);
 }
 
 
@@ -1511,4 +1518,29 @@ void AppendNodeToChain(ObjNode* first, ObjNode* newTail)
 		newTail->ChainHead = first;
 
 	GAME_ASSERT(newTail->Slot > oldTail->Slot);
+}
+
+void UnchainNode(ObjNode* theNode)
+{
+	if (theNode == NULL)
+		return;
+
+	ObjNode* chainHead = theNode->ChainHead;
+	ObjNode* chainNext = theNode->ChainNode;
+
+	for (ObjNode* node = chainHead; node != NULL; node = node->ChainNode)
+	{
+		if (node == theNode)
+			continue;
+
+		if (node->ChainNode == theNode)
+		{
+			node->ChainNode = chainNext;
+		}
+
+		if (node->ChainHead == theNode)		// rewrite ChainHead
+		{
+			node->ChainHead = chainNext;
+		}
+	}
 }

@@ -43,11 +43,44 @@ static void OnPickResetGamepadBindings(const MenuItem* mi)
 	LayoutCurrentMenuAgain();
 }
 
+static int ShouldDisplayMSAA(const MenuItem* mi)
+{
+#if __APPLE__
+	// macOS's OpenGL driver doesn't seem to handle MSAA very well,
+	// so don't expose the option unless the game was started with MSAA.
+
+	if (gCurrentAntialiasingLevel)
+	{
+		return 0;
+	}
+	else
+	{
+		return kMILayoutFlagHidden;
+	}
+#else
+	return 0;
+#endif
+}
+
 static void OnChangeMSAA(const MenuItem* mi)
 {
+	const long msaaWarningCookie = 'msaa';
 	ObjNode* object = GetCurrentMenuItemObject();
+	ObjNode* tailNode = GetChainTailNode(object);
 
-	if (GetChainTailNode(object)->Special[0] == 'msaa')
+	ObjNode* msaaWarning = NULL;
+	if (tailNode->Special[0] == msaaWarningCookie)
+	{
+		msaaWarning = GetChainTailNode(object);
+	}
+
+	if (gCurrentAntialiasingLevel == gGamePrefs.antialiasingLevel)
+	{
+		if (msaaWarning != NULL)
+			DeleteObject(msaaWarning);
+		return;
+	}
+	else if (msaaWarning != NULL)
 	{
 		return;
 	}
@@ -56,14 +89,14 @@ static void OnChangeMSAA(const MenuItem* mi)
 	{
 		.coord = {0, 200, 0},
 		.scale = 0.2f,
-		.slot = object->Slot + 1,
+		.slot = tailNode->Slot + 1,
 	};
 
-	ObjNode* warning = TextMesh_New(Localize(STR_ANTIALIASING_CHANGE_WARNING), 0, &def);
-	warning->ColorFilter = (OGLColorRGBA){ 1, 0, 0, 1 };
-	warning->Special[0] = 'msaa';
-	
-	GetChainTailNode(object)->ChainNode = warning;
+	msaaWarning = TextMesh_New(Localize(STR_ANTIALIASING_CHANGE_WARNING), 0, &def);
+	msaaWarning->ColorFilter = (OGLColorRGBA){ 1, 0, 0, 1 };
+	msaaWarning->Special[0] = msaaWarningCookie;
+
+	AppendNodeToChain(object, msaaWarning);
 }
 
 const MenuItem gSettingsMenuTree[] =
@@ -120,6 +153,7 @@ const MenuItem gSettingsMenuTree[] =
 	{
 		kMICycler1, STR_ANTIALIASING,
 		.callback = OnChangeMSAA,
+		.getLayoutFlags = ShouldDisplayMSAA,
 		.cycler =
 		{
 			.valuePtr = &gGamePrefs.antialiasingLevel,
@@ -183,7 +217,6 @@ const MenuItem gSettingsMenuTree[] =
 	{kMIPadBinding, .inputNeed=kNeed_RearView },
 	{kMISpacer, .customHeight=.25f },
 	{kMIPick, STR_RESET_KEYBINDINGS, .callback=OnPickResetGamepadBindings, .customHeight=.5f },
-	{kMISpacer, .customHeight=.25f },
 
 	{ .id=0 },
 };
