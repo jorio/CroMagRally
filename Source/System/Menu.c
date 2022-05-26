@@ -525,7 +525,7 @@ static void TwitchSelectionInOrOut(bool scaleIn)
 	obj->Scale.y = s * (scaleIn? 1.15: 1);
 
 	if (GetSpecialData(obj, MenuNodeData)->sweepProgress >= 1)
-		MakeTwitch(obj, scaleIn? kTwitchScaleIn: kTwitchScaleOut);
+		MakeTwitch(obj, scaleIn ? kTwitchScaleHard : kTwitchScaleSoft);
 }
 
 static void TwitchSelection(void)
@@ -981,7 +981,7 @@ static void NavigateCycler(const MenuItem* entry)
 	}
 	else if (GetNewNeedStateAnyP(kNeed_UIConfirm))
 	{
-		MakeTwitch(GetCurrentMenuItemObject(), kTwitchScaleIn);
+		MakeTwitch(GetCurrentMenuItemObject(), kTwitchScaleHard);
 		MakeTwitch(gNav->arrowObjects[0], kTwitchBigWiggle);
 		MakeTwitch(gNav->arrowObjects[1], kTwitchBigWiggle);
 		PlayEffect(EFFECT_BADSELECT);
@@ -1058,7 +1058,7 @@ static void NavigateFloatRange(const MenuItem* entry)
 	}
 	else if (GetNewNeedStateAnyP(kNeed_UIConfirm))
 	{
-		MakeTwitch(GetCurrentMenuItemObject(), kTwitchScaleIn);
+		MakeTwitch(GetCurrentMenuItemObject(), kTwitchScaleHard);
 		MakeTwitch(gNav->arrowObjects[0], kTwitchBigWiggle);
 		MakeTwitch(gNav->arrowObjects[1], kTwitchBigWiggle);
 		PlayEffect(EFFECT_BADSELECT);
@@ -1903,10 +1903,16 @@ static void LayOutMenu(int menuID)
 
 	if (gNav->darkenPane)
 	{
+		float prevScale = gNav->darkenPane->Scale.y;
+		float newScale = 1.3f * totalHeight / GetSpriteInfo(SPRITE_GROUP_INFOBAR, INFOBAR_SObjType_OverlayBackground)->yadv;
+
 		gNav->darkenPane->Coord.y = gNav->style.yOffset;
-		gNav->darkenPane->Scale.y = 1.3f * totalHeight / GetSpriteInfo(SPRITE_GROUP_INFOBAR, INFOBAR_SObjType_OverlayBackground)->yadv;
+		gNav->darkenPane->Scale.y = newScale;
 		UpdateObjectTransforms(gNav->darkenPane);
-		MakeTwitch(gNav->darkenPane, kTwitchScaleOut);
+
+		ObjNode* driver = MakeTwitch(gNav->darkenPane, kTwitchScaleSoft);
+		TwitchDef* twitchDef = GetTwitchParameters(driver);
+		twitchDef->amplitude = prevScale/newScale;
 	}
 
 	gTempInitialSweepFactor = 0.0f;

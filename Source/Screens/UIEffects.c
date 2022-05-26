@@ -7,7 +7,7 @@
 
 static const TwitchDef kTwitchPresets[kTwitchPresetCOUNT] =
 {
-	[kTwitchScaleIn] =
+	[kTwitchScaleHard] =
 	{
 		.fxClass = kTwitchClassScale,
 		.duration = .20f,
@@ -15,7 +15,7 @@ static const TwitchDef kTwitchPresets[kTwitchPresetCOUNT] =
 		.easing = kEaseOutCubic
 	},
 
-	[kTwitchScaleOut] =
+	[kTwitchScaleSoft] =
 	{
 		.fxClass = kTwitchClassScale,
 		.duration = .14f,
@@ -201,6 +201,19 @@ ObjNode* MakeTwitch(ObjNode* puppet, int preset)
 	};
 
 	return driver;
+}
+
+TwitchDef* GetTwitchParameters(ObjNode* driver)
+{
+	if (driver == NULL)
+	{
+		return NULL;
+	}
+
+	TwitchDriverData* driverData = GetSpecialData(driver, TwitchDriverData);
+	GAME_ASSERT(driverData->cookie == 'UIFX');
+
+	return &driverData->def;
 }
 
 #pragma mark -

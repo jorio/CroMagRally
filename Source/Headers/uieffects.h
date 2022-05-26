@@ -2,8 +2,8 @@
 
 enum
 {
-	kTwitchScaleIn = 1,
-	kTwitchScaleOut,
+	kTwitchScaleHard = 1,
+	kTwitchScaleSoft,
 	kTwitchDisplaceLeft,
 	kTwitchDisplaceRight,
 	kTwitchLightDisplaceLeft,
@@ -40,5 +40,6 @@ typedef struct
 } TwitchDef;
 
 ObjNode* MakeTwitch(ObjNode* puppet, int preset);
+TwitchDef* GetTwitchParameters(ObjNode* driver);
 
 ObjNode* MakeScrollingBackgroundPattern(void);
