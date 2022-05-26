@@ -225,6 +225,17 @@ typedef struct
 	Boolean					fadeSound;			// if true, global sound volume will track global gamma fade
 	float					fadeInDuration;
 	float					fadeOutDuration;
+
+	struct
+	{
+		int					vpx;
+		int					vpy;
+		int					vpw;
+		int					vph;
+		float				aspectRatio;
+		float				logicalWidth;
+		float				logicalHeight;
+	} panes[MAX_VIEWPORTS];
 }OGLSetupOutputType;
 
 
@@ -342,14 +353,13 @@ void OGL_FixColorGamma(OGLColorRGBA* color);
 GLenum _OGL_CheckError(const char* file, int line);
 #define OGL_CheckError() _OGL_CheckError(__FILE__, __LINE__)
 
-void OGL_GetCurrentViewport(int *x, int *y, int *w, int *h, Byte whichPane);
-
 void OGL_PushState(void);
 void OGL_PopState(void);
 
 void OGL_EnableLighting(void);
 void OGL_DisableLighting(void);
 
-void OGL_Update2DLogicalSize(void);
 void OGL_SetProjection(int projectionType);
+
+#define GetOverlayPaneNumber() (gNumSplitScreenPanes)
 

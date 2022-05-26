@@ -34,6 +34,7 @@ static void OGL_DisposeDrawContext(void);
 static void OGL_InitDrawContext(void);
 static void OGL_SetStyles(OGLSetupInputType *setupDefPtr);
 static void OGL_CreateLights(OGLLightDefType *lightDefPtr);
+static void OGL_UpdatePaneDimensions(Byte whichPane);
 
 
 /****************************/
@@ -61,10 +62,6 @@ int		gCurrentSplitScreenPane = 0;
 int		gNumSplitScreenPanes = 1;								// does NOT account for global overlay viewport
 Byte	gActiveSplitScreenMode 	= SPLITSCREEN_MODE_NONE;		// currently active split mode
 Boolean	gDrawingOverlayPane = false;
-
-float	gCurrentAspectRatio = 1;
-float	g2DLogicalWidth		= 640.0f;
-float	g2DLogicalHeight	= 480.0f;
 
 Boolean		gStateStack_Lighting[STATE_STACK_SIZE];
 Boolean		gStateStack_CullFace[STATE_STACK_SIZE];
@@ -298,6 +295,10 @@ void OGL_SetupGameView(OGLSetupInputType *setupDefPtr)
 	{
 		gGameView->fov[i] = setupDefPtr->camera.fov;					// each camera will have its own fov so we can change it for special effects
 		OGL_UpdateCameraFromTo(&setupDefPtr->camera.from[i], &setupDefPtr->camera.to[i], i);
+
+		// Prime pane dimensions. That's updated on each frame, but computing it now
+		// lets us create 2D objects in fixed-AR screens before the 1st frame is shown.
+		OGL_UpdatePaneDimensions(i);
 	}
 
 
@@ -310,21 +311,6 @@ void OGL_SetupGameView(OGLSetupInputType *setupDefPtr)
 			/* PRIME PILLARBOX */
 
 	InitPillarbox();
-
-
-			/* PRIME 2D LOGICAL SIZE */
-			//
-			// The 2D logical size is updated on each frame, but computing it now
-			// lets us create 2D objects in fixed-AR screens before the 1st frame is shown.
-			//
-
-	{
-		int x, y, w, h;
-		OGL_GetCurrentViewport(&x, &y, &w, &h, 0);
-
-		gCurrentAspectRatio = (float) w / (float) (h == 0? 1: h);
-		OGL_Update2DLogicalSize();
-	}
 }
 
 
@@ -618,15 +604,14 @@ void OGL_DrawScene(void (*drawRoutine)(void))
 
 	for (gCurrentSplitScreenPane = 0; gCurrentSplitScreenPane < numPasses; gCurrentSplitScreenPane++)
 	{
-		gDrawingOverlayPane = gCurrentSplitScreenPane == numPasses-1;
+		gDrawingOverlayPane = gCurrentSplitScreenPane == GetOverlayPaneNumber();
 
-		int x, y, w, h;
-		OGL_GetCurrentViewport(&x, &y, &w, &h, gCurrentSplitScreenPane);
-
-		glViewport(x, y, w, h);
-		gCurrentAspectRatio = (float) w / (float) (h == 0? 1: h);
-
-		OGL_Update2DLogicalSize();
+		OGL_UpdatePaneDimensions(gCurrentSplitScreenPane);
+		glViewport(
+				gGameView->panes[gCurrentSplitScreenPane].vpx,
+				gGameView->panes[gCurrentSplitScreenPane].vpy,
+				gGameView->panes[gCurrentSplitScreenPane].vpw,
+				gGameView->panes[gCurrentSplitScreenPane].vph);
 
 
 				/* GET UPDATED GLOBAL COPIES OF THE VARIOUS MATRICES */
@@ -673,10 +658,12 @@ void OGL_DrawScene(void (*drawRoutine)(void))
 // may look upside down.
 //
 
-void OGL_GetCurrentViewport(int *x, int *y, int *w, int *h, Byte whichPane)
+static void OGL_UpdatePaneViewport(Byte whichPane)
 {
+int x,y,w,h;
 int	t,b,l,r;
 
+	Byte fakePane = whichPane;
 
 	t = gGameView->clip.top;
 	b = gGameView->clip.bottom;
@@ -694,14 +681,14 @@ int	t,b,l,r;
 		div = SPLITSCREEN_DIVIDER_THICKNESS * (gGameWindowWidth*(1.0f/640.0f));
 	div = GAME_MAX(1, div);
 
-	if (whichPane >= gNumSplitScreenPanes) //gDrawingOverlayPane)
+	if (whichPane >= GetOverlayPaneNumber())
 	{
 		// Any pane IDs beyond gNumSplitScreenPanes is interpreted as
 		// a global viewport overlaying the rest.
-		*x = l;
-		*y = t;
-		*w = clippedWidth;
-		*h = clippedHeight;
+		x = l;
+		y = t;
+		w = clippedWidth;
+		h = clippedHeight;
 	}
 	else
 	if (gGameView->pillarboxRatio > 0)
@@ -711,135 +698,142 @@ int	t,b,l,r;
 		if (widescreenAdjustedWidth <= gGameWindowWidth)
 		{
 			// keep height
-			*w = widescreenAdjustedWidth;
-			*h = gGameWindowHeight;
-			*x = (gGameWindowWidth - *w) / 2;
-			*y = 0;
+			w = widescreenAdjustedWidth;
+			h = gGameWindowHeight;
+			x = (gGameWindowWidth - w) / 2;
+			y = 0;
 		}
 		else
 		{
 			// keep width
-			*w = gGameWindowWidth;
-			*h = gGameWindowWidth / gGameView->pillarboxRatio;
-			*x = 0;
-			*y = (gGameWindowHeight - *h) / 2;
+			w = gGameWindowWidth;
+			h = gGameWindowWidth / gGameView->pillarboxRatio;
+			x = 0;
+			y = (gGameWindowHeight - h) / 2;
 		}
 	}
 	else
 	switch(gActiveSplitScreenMode)
 	{
 		case	SPLITSCREEN_MODE_NONE:
-				*x = l;
-				*y = t;
-				*w = clippedWidth;
-				*h = clippedHeight;
+				x = l;
+				y = t;
+				w = clippedWidth;
+				h = clippedHeight;
 				break;
 
 		case	SPLITSCREEN_MODE_2P_WIDE:
 		_2pwide:
-				*x = l;
-				*w = clippedWidth;
-				*h = 0.5f * (clippedHeight - div) + 0.5f;
-				switch(whichPane)
+				x = l;
+				w = clippedWidth;
+				h = 0.5f * (clippedHeight - div) + 0.5f;
+				switch (fakePane)
 				{
 					case	0:		// top pane (y points up!)
-							*y = t + 0.5f * (clippedHeight + div) + 0.5f;
+							y = t + 0.5f * (clippedHeight + div) + 0.5f;
 							break;
 
 					case	1:		// bottom pane (y points up!)
-							*y = t;
+							y = t;
 							break;
 
 					default:
-							DoFatalAlert("Unsupported pane %d in 2P_WIDE split", whichPane);
+							DoFatalAlert("Unsupported pane %d in 2P_WIDE split", fakePane);
 				}
 				break;
 
 		case	SPLITSCREEN_MODE_2P_TALL:
 		_2ptall:
-				*w = 0.5f * (clippedWidth - div) + 0.5f;
-				*h = clippedHeight;
-				*y = t;
-				switch(whichPane)
+				w = 0.5f * (clippedWidth - div) + 0.5f;
+				h = clippedHeight;
+				y = t;
+				switch (fakePane)
 				{
 					case	0:
-							*x = l;
+							x = l;
 							break;
 
 					case	1:
-							*x = l + 0.5f * (clippedWidth + div) + 0.5f;
+							x = l + 0.5f * (clippedWidth + div) + 0.5f;
 							break;
 
 					default:
-							DoFatalAlert("Unsupported pane %d in 2P_TALL split", whichPane);
+							DoFatalAlert("Unsupported pane %d in 2P_TALL split", fakePane);
 				}
 				break;
 
 		case	SPLITSCREEN_MODE_3P_WIDE:
-				switch (whichPane)
+				switch (fakePane)
 				{
 					case	0:				// Player 1 has top-left pane in 2x2 grid
 					case	1:				// Player 2 has top-right pane in 2x2 grid
 							goto _4pgrid;
 
 					case	2:				// Player 3 has wide pane spanning bottom row
-							whichPane = 1;
+							fakePane = 1;
 							goto _2pwide;
 
 					default:
-							DoFatalAlert("Unsupported pane %d in 3P_WIDE split", whichPane);
+							DoFatalAlert("Unsupported pane %d in 3P_WIDE split", fakePane);
 				}
 
 		case	SPLITSCREEN_MODE_3P_TALL:
-				switch (whichPane)
+				switch (fakePane)
 				{
 					case	0:				// Player 1 has top-left pane in 2x2 grid
 							goto _4pgrid;
 
 					case	1:				// Player 2 has bottom-left pane in 2x2 grid
-							whichPane = 2;
+							fakePane = 2;
 							goto _4pgrid;
 
 					case	2:				// Player 3 has tall pane spanning right column
-							whichPane = 1;
+							fakePane = 1;
 							goto _2ptall;
 
 					default:
-							DoFatalAlert("Unsupported pane %d in 3P_TALL split", whichPane);
+							DoFatalAlert("Unsupported pane %d in 3P_TALL split", fakePane);
 				}
 				break;
 
 		case	SPLITSCREEN_MODE_4P_GRID:
 		_4pgrid:
 		{
-				int column = whichPane & 1;
-				int row    = whichPane < 2 ? 1 : 0;
+				int column = fakePane & 1;
+				int row    = fakePane < 2 ? 1 : 0;
 
-				*w = 0.5f * (clippedWidth - div) + 0.5f;
-				*h = 0.5f * (clippedHeight - div) + 0.5f;
+				w = 0.5f * (clippedWidth - div) + 0.5f;
+				h = 0.5f * (clippedHeight - div) + 0.5f;
 
-				*x = l + (0.5f*column) * (clippedWidth  + div) + 0.5f;
-				*y = t + (0.5f*row   ) * (clippedHeight + div) + 0.5f;
+				x = l + (0.5f*column) * (clippedWidth  + div) + 0.5f;
+				y = t + (0.5f*row   ) * (clippedHeight + div) + 0.5f;
 
 				break;
 		}
 
 		case	SPLITSCREEN_MODE_6P_GRID:
 		{
-				int column = whichPane % 3;
-				int row    = whichPane < 3 ? 1 : 0;
+				int column = fakePane % 3;
+				int row    = fakePane < 3 ? 1 : 0;
 
-				*w = (1.0f/3.0f) * (clippedWidth - div) + 0.5f;
-				*h = (1.0f/2.0f) * (clippedHeight - div) + 0.5f;
+				w = (1.0f/3.0f) * (clippedWidth - div) + 0.5f;
+				h = (1.0f/2.0f) * (clippedHeight - div) + 0.5f;
 
-				*x = l + (column*(1.0f/3.0f)) * (clippedWidth  + div) + 0.5f;
-				*y = t + (row   *(1.0f/2.0f)) * (clippedHeight + div) + 0.5f;
+				x = l + (column*(1.0f/3.0f)) * (clippedWidth  + div) + 0.5f;
+				y = t + (row   *(1.0f/2.0f)) * (clippedHeight + div) + 0.5f;
 				break;
 		}
 
 		default:
 				DoFatalAlert("Unsupported split-screen mode %d", gActiveSplitScreenMode);
 	}
+
+
+	gGameView->panes[whichPane].vpx = x;
+	gGameView->panes[whichPane].vpy = y;
+	gGameView->panes[whichPane].vpw = w;
+	gGameView->panes[whichPane].vph = h;
+	gGameView->panes[whichPane].aspectRatio = w / (h + 0.001f);
 }
 
 
@@ -1120,7 +1114,7 @@ OGLLightDefType	*lights;
 	OGL_SetGluPerspectiveMatrix(
 			&gViewToFrustumMatrix,
 			gGameView->fov[camNum],
-			gCurrentAspectRatio,
+			gGameView->panes[camNum].aspectRatio,
 			gGameView->hither,
 			gGameView->yon);
 
@@ -1391,13 +1385,13 @@ static void InitDebugText(void)
 // gCurrentAspectRatio must be set prior to calling this function!
 //
 
-void OGL_Update2DLogicalSize(void)
+void OGL_UpdatePaneLogicalSize(Byte whichPane)
 {
 	float referenceHeight;
 	float referenceWidth;
 	float invUIScale = 1;
 
-	if (gCurrentSplitScreenPane >= gNumSplitScreenPanes)		// TODO: IsDrawingOverlayPane()
+	if (whichPane >= GetOverlayPaneNumber())
 	{
 		referenceWidth = 640;
 		referenceHeight = 480;
@@ -1426,13 +1420,13 @@ void OGL_Update2DLogicalSize(void)
 			break;
 
 		case SPLITSCREEN_MODE_3P_WIDE:
-			if (gCurrentSplitScreenPane == 2)		// Player 3 has wide pane (like 1x2 grid)
+			if (whichPane == 2)		// Player 3 has wide pane (like 1x2 grid)
 				goto _2pwide;
 			else									// Players 1 & 2 have standard pane in 2x2 grid
 				goto _4pgrid;
 
 		case SPLITSCREEN_MODE_3P_TALL:
-			if (gCurrentSplitScreenPane == 2)		// Player 3 has tall pane (like 2x1 grid)
+			if (whichPane == 2)		// Player 3 has tall pane (like 2x1 grid)
 				goto _2ptall;
 			else									// Players 1 & 2 have standard pane in 2x2 grid
 				goto _4pgrid;
@@ -1447,21 +1441,31 @@ void OGL_Update2DLogicalSize(void)
 	referenceWidth *= invUIScale;
 
 	float minAspectRatio = referenceWidth / referenceHeight;
+	float aspectRatio = gGameView->panes[whichPane].aspectRatio;
 
-	g2DLogicalHeight = referenceHeight;
+	gGameView->panes[whichPane].logicalHeight = referenceHeight;
 
-	if (gCurrentAspectRatio < minAspectRatio)
-		g2DLogicalWidth = referenceHeight * minAspectRatio;
+	if (aspectRatio < minAspectRatio)
+		gGameView->panes[whichPane].logicalWidth = referenceHeight * minAspectRatio;
 	else
-		g2DLogicalWidth = referenceHeight * gCurrentAspectRatio;
+		gGameView->panes[whichPane].logicalWidth = referenceHeight * aspectRatio;
 }
 
+
+static void OGL_UpdatePaneDimensions(Byte whichPane)
+{
+	OGL_UpdatePaneViewport(whichPane);
+	OGL_UpdatePaneLogicalSize(whichPane);
+}
 
 
 /***************** SET 2D/3D PROJECTION *******************/
 
 void OGL_SetProjection(int projectionType)
 {
+	float lw = gGameView->panes[gCurrentSplitScreenPane].logicalWidth;
+	float lh = gGameView->panes[gCurrentSplitScreenPane].logicalHeight;
+
 	switch (projectionType)
 	{
 		case kProjectionType3D:
@@ -1481,7 +1485,7 @@ void OGL_SetProjection(int projectionType)
 		case kProjectionType2DOrthoFullRect:
 			glMatrixMode(GL_PROJECTION);
 			glLoadIdentity();
-			glOrtho(0, g2DLogicalWidth, g2DLogicalHeight, 0, 0, 1);
+			glOrtho(0, lw, lh, 0, 0, 1);
 			glMatrixMode(GL_MODELVIEW);
 			glLoadIdentity();
 			break;
@@ -1489,7 +1493,7 @@ void OGL_SetProjection(int projectionType)
 		case kProjectionType2DOrthoCentered:
 			glMatrixMode(GL_PROJECTION);
 			glLoadIdentity();
-			glOrtho(-g2DLogicalWidth*.5f, g2DLogicalWidth*.5f, g2DLogicalHeight*.5f, -g2DLogicalHeight*.5f, 0, 1);
+			glOrtho(-lw*.5f, lw*.5f, lh*.5f, -lh*.5f, 0, 1);
 			glMatrixMode(GL_MODELVIEW);
 			glLoadIdentity();
 			break;

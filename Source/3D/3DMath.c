@@ -1200,13 +1200,8 @@ void OGLMatrix4x4_SetTranslate(OGLMatrix4x4 *m, float x, float y, float z)
 
 void OGLMatrix4x4_GetFrustumToWindow(OGLMatrix4x4 *m, int pane)
 {
-int		x,y,w,h;
-float	width, height;
-
-	OGL_GetCurrentViewport(&x, &y, &w, &h, pane);
-
-	width = w;
-	height = h;
+	float width = gGameView->panes[pane].vpw;
+	float height = gGameView->panes[pane].vph;
 
 	OGLMatrix4x4_SetIdentity(m);
 

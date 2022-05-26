@@ -232,7 +232,7 @@ static void DestroyScrollingBackgroundPattern(ObjNode* theNode)
 static void DrawScrollingBackgroundPattern(ObjNode* theNode)
 {
 	float s = 4;
-	float sx = s * gCurrentAspectRatio;
+	float sx = s * gGameView->panes[gCurrentSplitScreenPane].aspectRatio;
 	float sy = s;
 
 	MOMaterialObject* patternMaterial = (MOMaterialObject*) theNode->SpecialPtr[0];

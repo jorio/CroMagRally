@@ -11,6 +11,7 @@
 /****************************/
 
 #include "game.h"
+#include "uieffects.h"
 #include <stddef.h>
 
 /****************************/
@@ -20,17 +21,17 @@
 static void MakeInfobar(void);
 static void DrawInfobar(ObjNode* theNode);
 
-static void Infobar_DrawMap(void);
+static void Infobar_DrawMap(Byte whichPane);
 static void Infobar_MovePlace(ObjNode* objNode);
 static void Infobar_MoveInventoryPOW(ObjNode* objNode);
 static void Infobar_MoveWrongWay(ObjNode* objNode);
-static void Infobar_DrawStartingLight(void);
+static void Infobar_DrawStartingLight(Byte whichPane);
 static void Infobar_MoveLap(ObjNode* objNode);
 static void Infobar_MoveToken(ObjNode* objNode);
 static void Infobar_MovePOWTimer(ObjNode* objNode);
-static void Infobar_DrawTagTimer(void);
-static void Infobar_DrawFlags(void);
-static void Infobar_DrawHealth(void);
+static void Infobar_DrawTagTimer(Byte whichPane);
+static void Infobar_DrawFlags(Byte whichPane);
+static void Infobar_DrawHealth(Byte whichPane);
 
 static void MoveFinalPlace(ObjNode *theNode);
 static void MoveTrackName(ObjNode *theNode);
@@ -171,10 +172,11 @@ ObjNode			*gInfobarIconObjs[MAX_SPLITSCREENS][NUM_INFOBAR_ICONTYPES][MAX_SUBICON
 #define GetIconScale(iconID) (gIconInfo[iconID].scale)
 #define GetIconXSpacing(iconID) (gIconInfo[iconID].xSpacing)
 
-static float GetIconX(int iconID)
+static float GetIconX(Byte whichPane, int iconID)
 {
 	int anchor = gIconInfo[iconID].anchor;
 	float dx = gIconInfo[iconID].xFromAnchor;
+	float lw = gGameView->panes[whichPane].logicalWidth;
 
 	switch (anchor & (kAnchorLeft | kAnchorRight))
 	{
@@ -182,17 +184,18 @@ static float GetIconX(int iconID)
 			return dx;
 
 		case kAnchorRight:
-			return dx + g2DLogicalWidth;			// TODO: Need this per-pane
+			return dx + lw;
 
 		default:
-			return dx + g2DLogicalWidth * 0.5f;		// TODO: Need this per-pane
+			return dx + lw * 0.5f;
 	}
 }
 
-static float GetIconY(int iconID)
+static float GetIconY(Byte whichPane, int iconID)
 {
 	int anchor = gIconInfo[iconID].anchor;
 	float dy = gIconInfo[iconID].yFromAnchor;
+	float lh = gGameView->panes[whichPane].logicalHeight;
 
 	switch (anchor & (kAnchorTop | kAnchorBottom))
 	{
@@ -200,10 +203,10 @@ static float GetIconY(int iconID)
 			return dy;
 
 		case kAnchorBottom:
-			return dy + g2DLogicalHeight;
+			return dy + lh;
 
 		default:
-			return dy + g2DLogicalHeight * 0.5f;
+			return dy + lh * 0.5f;
 	}
 }
 
@@ -223,9 +226,12 @@ static void MovePaneDivider(ObjNode* theNode)
 {
 	PaneDividerState* state = GetSpecialData(theNode, PaneDividerState);
 
+	float overlayLogicalWidth = gGameView->panes[GetOverlayPaneNumber()].logicalWidth;
+	float overlayLogicalHeight = gGameView->panes[GetOverlayPaneNumber()].logicalHeight;
+
 	if (state->splitScreenMode == gActiveSplitScreenMode
-		&& state->logicalWidth == g2DLogicalWidth
-		&& state->logicalHeight == g2DLogicalHeight)
+		&& state->logicalWidth == overlayLogicalWidth
+		&& state->logicalHeight == overlayLogicalHeight)
 	{
 		// Layout didn't change since last time
 		return;
@@ -233,8 +239,8 @@ static void MovePaneDivider(ObjNode* theNode)
 
 	// Save params for which we are laying out the pane dividers
 	state->splitScreenMode = gActiveSplitScreenMode;
-	state->logicalWidth = g2DLogicalWidth;
-	state->logicalHeight = g2DLogicalHeight;
+	state->logicalWidth = overlayLogicalWidth;
+	state->logicalHeight = overlayLogicalHeight;
 
 	bool hideMe = (gActiveSplitScreenMode == SPLITSCREEN_MODE_NONE);
 	SetObjectVisible(theNode, !hideMe);
@@ -249,8 +255,8 @@ static void MovePaneDivider(ObjNode* theNode)
 
 	int p = 0;
 	float halfThickness = (SPLITSCREEN_DIVIDER_THICKNESS + 1.0f) / 2.0f;
-	float halfLW = g2DLogicalWidth * 0.5f + 10;
-	float halfLH = g2DLogicalHeight * 0.5f + 10;
+	float halfLW = overlayLogicalWidth * 0.5f + 10;
+	float halfLH = overlayLogicalHeight * 0.5f + 10;
 
 	// Divider quad types
 	enum { EmptyDivider = 0, HAcross, VAcross, HLeftHalf, VUpperHalf };
@@ -520,10 +526,11 @@ static void Infobar_MakeIcon(uint8_t type, uint8_t flags)
 static void Infobar_RepositionIconTemp(ObjNode* theNode)
 {
 	const InfobarIconData* special = GetInfobarIconData(theNode);
+	int pane = theNode->PlayerNum;
 	int id = special->type;
 	int sub = special->sub;
-	theNode->Coord.x = GetIconX(id) + sub * GetIconXSpacing(id);
-	theNode->Coord.y = GetIconY(id);
+	theNode->Coord.x = GetIconX(pane, id) + sub * GetIconXSpacing(id);
+	theNode->Coord.y = GetIconY(pane, id);
 	theNode->Scale.x = GetIconScale(id);
 	theNode->Scale.y = GetIconScale(id);
 }
@@ -619,8 +626,8 @@ static void DrawInfobar(ObjNode* theNode)
 
 		/* DRAW THE STANDARD THINGS */
 
-	Infobar_DrawMap();
-	Infobar_DrawStartingLight();
+	Infobar_DrawMap(gCurrentSplitScreenPane);
+	Infobar_DrawStartingLight(gCurrentSplitScreenPane);
 
 
 		/* DRAW GAME MODE SPECIFICS */
@@ -629,15 +636,15 @@ static void DrawInfobar(ObjNode* theNode)
 	{
 		case	GAME_MODE_TAG1:
 		case	GAME_MODE_TAG2:
-				Infobar_DrawTagTimer();
+				Infobar_DrawTagTimer(gCurrentSplitScreenPane);
 				break;
 
 		case	GAME_MODE_SURVIVAL:
-				Infobar_DrawHealth();
+				Infobar_DrawHealth(gCurrentSplitScreenPane);
 				break;
 
 		case	GAME_MODE_CAPTUREFLAG:
-				Infobar_DrawFlags();
+				Infobar_DrawFlags(gCurrentSplitScreenPane);
 				break;
 	}
 }
@@ -646,7 +653,7 @@ static void DrawInfobar(ObjNode* theNode)
 
 /********************** DRAW MAP *******************************/
 
-static void GetPointOnOverheadMap(float* px, float* pz)
+static void GetPointOnOverheadMap(Byte whichPane, float* px, float* pz)
 {
 	float x = *px;
 	float z = *pz;
@@ -662,16 +669,16 @@ static void GetPointOnOverheadMap(float* px, float* pz)
 	x *= scale * OVERHEAD_MAP_REFERENCE_SIZE * .5f;		// shrink to size of underlay map
 	z *= scale * OVERHEAD_MAP_REFERENCE_SIZE * .5f;
 
-	x += GetIconX(ICON_MAP);							// position it
-	z += GetIconY(ICON_MAP);
+	x += GetIconX(whichPane, ICON_MAP);							// position it
+	z += GetIconY(whichPane, ICON_MAP);
 
 	*px = x;
 	*pz = z;
 }
 
-static void Infobar_DrawMap(void)
+static void Infobar_DrawMap(Byte whichPane)
 {
-	short	p = GetPlayerNum(gCurrentSplitScreenPane);
+	short	p = GetPlayerNum(whichPane);
 
 
 	if (gGameMode == GAME_MODE_TAG1)						// if in TAG 1 mode, tagged player is only one with a map
@@ -693,8 +700,8 @@ static void Infobar_DrawMap(void)
 			/* DRAW THE MAP UNDERLAY */
 
 	DrawSprite(SPRITE_GROUP_OVERHEADMAP, 1,
-			GetIconX(ICON_MAP),
-			GetIconY(ICON_MAP),
+			GetIconX(whichPane, ICON_MAP),
+			GetIconY(whichPane, ICON_MAP),
 			scale * gMapFit,
 			INFOBAR_SPRITE_FLAGS);
 
@@ -717,7 +724,7 @@ static void Infobar_DrawMap(void)
 
 		float x = gPlayerInfo[i].coord.x;
 		float z = gPlayerInfo[i].coord.z;
-		GetPointOnOverheadMap(&x, &z);
+		GetPointOnOverheadMap(whichPane, &x, &z);
 
 		float scaleBasis = ((i == p) ? 10 : 7);				// draw my marker bigger
 		scaleBasis *= scale;
@@ -769,7 +776,7 @@ static void Infobar_DrawMap(void)
 
 		float x = gTorchObjs[i]->Coord.x;
 		float z = gTorchObjs[i]->Coord.z;
-		GetPointOnOverheadMap(&x, &z);
+		GetPointOnOverheadMap(whichPane, &x, &z);
 
 		float scaleBasis = scale * 7.0f;					// calculate a scale basis to keep things scaled relative to texture size
 		scaleBasis *= .05f;
@@ -916,7 +923,7 @@ short	p = objNode->PlayerNum;
 
 /********************** DRAW STARTING LIGHT *************************/
 
-static void Infobar_DrawStartingLight(void)
+static void Infobar_DrawStartingLight(Byte whichPane)
 {
 int		oldTimer;
 
@@ -938,32 +945,29 @@ int		oldTimer;
 
 			/* DRAW THE NEEDED SPRITE */
 
+	int spriteNo;
+
 	if (gStartingLightTimer <= 1.0f)								// green
 	{
 		gNoCarControls = false;										// once green we have control
-		DrawSprite(SPRITE_GROUP_INFOBAR, INFOBAR_SObjType_Go,
-					GetIconX(ICON_STARTLIGHT),
-					GetIconY(ICON_STARTLIGHT),
-					GetIconScale(ICON_STARTLIGHT),
-					INFOBAR_SPRITE_FLAGS);
+		spriteNo = INFOBAR_SObjType_Go;
 	}
 	else
 	if (gStartingLightTimer <= 2.0f)								// yellow
 	{
-		DrawSprite(SPRITE_GROUP_INFOBAR, INFOBAR_SObjType_Set,
-					GetIconX(ICON_STARTLIGHT),
-					GetIconY(ICON_STARTLIGHT),
-					GetIconScale(ICON_STARTLIGHT),
-					INFOBAR_SPRITE_FLAGS);
+		spriteNo = INFOBAR_SObjType_Set;
 	}
 	else															// red
 	{
-		DrawSprite(SPRITE_GROUP_INFOBAR, INFOBAR_SObjType_Ready,
-					GetIconX(ICON_STARTLIGHT),
-					GetIconY(ICON_STARTLIGHT),
-					GetIconScale(ICON_STARTLIGHT),
-					INFOBAR_SPRITE_FLAGS);
+		spriteNo = INFOBAR_SObjType_Ready;
 	}
+
+	DrawSprite(SPRITE_GROUP_INFOBAR, spriteNo,
+			GetIconX(whichPane, ICON_STARTLIGHT),
+			GetIconY(whichPane, ICON_STARTLIGHT),
+			GetIconScale(ICON_STARTLIGHT),
+			INFOBAR_SPRITE_FLAGS);
+
 
 
 			/* IF CHANGED, THEN BEEP */
@@ -1137,13 +1141,13 @@ static const OGLColorRGBA tint = {1,.7,.5,1};
 
 /********************* DRAW TAG TIMER **************************/
 
-static void Infobar_DrawTagTimer(void)
+static void Infobar_DrawTagTimer(Byte whichPane)
 {
 short	p,p2;
 float	timer,x,y, scale, spacing;
 
-	x			= GetIconX(ICON_TIMER);
-	y			= GetIconY(ICON_TIMER);
+	x			= GetIconX(whichPane, ICON_TIMER);
+	y			= GetIconY(whichPane, ICON_TIMER);
 	scale		= GetIconScale(ICON_TIMER);
 	spacing		= GetIconXSpacing(ICON_TIMER);
 
@@ -1160,13 +1164,13 @@ float	timer,x,y, scale, spacing;
 
 		/* DRAW THE TIME MARKER */
 
-	x			= GetIconX(ICON_TIMERINDEX);
-	y			= GetIconY(ICON_TIMERINDEX);
+	x			= GetIconX(whichPane, ICON_TIMERINDEX);
+	y			= GetIconY(whichPane, ICON_TIMERINDEX);
 	scale		= GetIconScale(ICON_TIMERINDEX);
 	spacing		= GetIconXSpacing(ICON_TIMERINDEX);
 
 
-	p = GetPlayerNum(gCurrentSplitScreenPane);
+	p = GetPlayerNum(whichPane);
 	timer = (gPlayerInfo[p].tagTimer / TAG_TIME_LIMIT);							// get timer value 0..1
 	x += timer * spacing;
 
@@ -1181,7 +1185,7 @@ float	timer,x,y, scale, spacing;
 	{
 		p2 = gWhoIsIt;							// in tag, show timer of tagged player
 
-		x = GetIconX(ICON_TIMERINDEX);
+		x = GetIconX(whichPane, ICON_TIMERINDEX);
 		timer = (gPlayerInfo[p2].tagTimer / TAG_TIME_LIMIT);							// get timer value 0..1
 		x += timer * spacing;
 
@@ -1202,13 +1206,13 @@ float	timer,x,y, scale, spacing;
 
 /********************* DRAW HEALTH **************************/
 
-static void Infobar_DrawHealth(void)
+static void Infobar_DrawHealth(Byte whichPane)
 {
 short	p,p2;
 float	timer,x,y, scale, spacing, dist;
 
-	x			= GetIconX(ICON_TIMER);
-	y			= GetIconY(ICON_TIMER);
+	x			= GetIconX(whichPane, ICON_TIMER);
+	y			= GetIconY(whichPane, ICON_TIMER);
 	scale		= GetIconScale(ICON_TIMER);
 	spacing		= GetIconXSpacing(ICON_TIMER);
 
@@ -1225,13 +1229,13 @@ float	timer,x,y, scale, spacing, dist;
 
 		/* DRAW THE TIME MARKER */
 
-	x			= GetIconX(ICON_TIMERINDEX);
-	y			= GetIconY(ICON_TIMERINDEX);
+	x			= GetIconX(whichPane, ICON_TIMERINDEX);
+	y			= GetIconY(whichPane, ICON_TIMERINDEX);
 	scale		= GetIconScale(ICON_TIMERINDEX);
 	spacing		= GetIconXSpacing(ICON_TIMERINDEX);
 
 
-	p = GetPlayerNum(gCurrentSplitScreenPane);
+	p = GetPlayerNum(whichPane);
 	timer = gPlayerInfo[p].health;							// get timer value 0..1
 	x += timer * spacing;
 
@@ -1248,7 +1252,7 @@ float	timer,x,y, scale, spacing, dist;
 
 	if (p2 != -1)
 	{
-		x = GetIconX(ICON_TIMERINDEX);
+		x = GetIconX(whichPane, ICON_TIMERINDEX);
 		timer = gPlayerInfo[p2].health;
 		x += timer * spacing;
 
@@ -1270,18 +1274,18 @@ float	timer,x,y, scale, spacing, dist;
 
 /********************* DRAW FLAGS **************************/
 
-static void Infobar_DrawFlags(void)
+static void Infobar_DrawFlags(Byte whichPane)
 {
 short	i,p,t;
 float	x,y, scale, spacing;
 
 
 
-	p = GetPlayerNum(gCurrentSplitScreenPane);
+	p = GetPlayerNum(whichPane);
 	t = gPlayerInfo[p].team;							// get team #
 
-	x 		= GetIconX(ICON_FIRE);
-	y 		= GetIconY(ICON_FIRE);
+	x 		= GetIconX(whichPane, ICON_FIRE);
+	y 		= GetIconY(whichPane, ICON_FIRE);
 	scale 	= GetIconScale(ICON_FIRE);
 	spacing	= GetIconXSpacing(ICON_FIRE);
 

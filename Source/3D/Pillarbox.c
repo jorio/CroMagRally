@@ -20,8 +20,8 @@ void DisposePillarboxMaterial(void)
 static void DrawPillarbox(ObjNode* objNode)
 {
 	// Get dimensions of 0th viewport
-	int vpx, vpy, vpw, vph;
-	OGL_GetCurrentViewport(&vpx, &vpy, &vpw, &vph, 0);
+	int vpw = gGameView->panes[0].vpw;
+	int vph = gGameView->panes[0].vph;
 
 	// Don't draw if it's not gonna be visible
 	if (gGameView->pillarboxRatio <= 0
