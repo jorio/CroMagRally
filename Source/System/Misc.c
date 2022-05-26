@@ -384,31 +384,17 @@ unsigned long deltaTime;
 
 	gFramesPerSecond = 1000000.0f / deltaTime;
 
-#if 0
-AbsoluteTime currTime,deltaTime;
-static AbsoluteTime time = {0,0};
-Nanoseconds	nano;
-
-	currTime = UpTime();
-
-	deltaTime = SubAbsoluteFromAbsolute(currTime, time);
-	nano = AbsoluteToNanoseconds(deltaTime);
-
-	gFramesPerSecond = 1000000.0f / (float)nano.lo;
-	gFramesPerSecond *= 1000.0f;
-#endif
-
 	if (gFramesPerSecond < DEFAULT_FPS)			// (avoid divide by 0's later)
 		gFramesPerSecond = DEFAULT_FPS;
 
-	if (GetKeyState(SDL_SCANCODE_GRAVE) && GetKeyState(SDL_SCANCODE_KP_PLUS))		// debug speed-up with `+KP_PLUS
+#if _DEBUG
+	if (GetKeyState(SDL_SCANCODE_KP_PLUS))		// debug speed-up with KP_PLUS
 		gFramesPerSecond = 10;
+#endif
 
 	gFramesPerSecondFrac = 1.0f/gFramesPerSecond;		// calc fractional for multiplication
 
 	time = currTime;	// reset for next time interval
-
-	//printf("FPS: %f\n", gFramesPerSecond);
 }
 
 

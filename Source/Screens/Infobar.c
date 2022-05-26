@@ -11,6 +11,7 @@
 /****************************/
 
 #include "game.h"
+#include <stddef.h>
 
 /****************************/
 /*    PROTOTYPES            */
@@ -26,17 +27,10 @@ static void Infobar_MoveWrongWay(ObjNode* objNode);
 static void Infobar_DrawStartingLight(void);
 static void Infobar_MoveLap(ObjNode* objNode);
 static void Infobar_MoveToken(ObjNode* objNode);
-static void Infobar_DrawTimerPowerups(void);
+static void Infobar_MovePOWTimer(ObjNode* objNode);
 static void Infobar_DrawTagTimer(void);
 static void Infobar_DrawFlags(void);
 static void Infobar_DrawHealth(void);
-
-static void Infobar_MoveMap(ObjNode* objNode);
-static void Infobar_MoveStartingLight(ObjNode* objNode);
-static void Infobar_MoveTimerPowerups(ObjNode* objNode);
-static void Infobar_MoveTagTimer(ObjNode* objNode);
-static void Infobar_MoveFlags(ObjNode* objNode);
-static void Infobar_MoveHealth(ObjNode* objNode);
 
 static void MoveFinalPlace(ObjNode *theNode);
 static void MoveTrackName(ObjNode *theNode);
@@ -56,21 +50,21 @@ static void MovePressAnyKey(ObjNode *theNode);
 
 #define MAX_PANEDIVIDER_QUADS		4
 
-#define MAX_SUBICONS				8
+#define MAX_SUBICONS				12
 
 enum
 {
-	ICON_PLACE	 = 0,
+	ICON_PLACE	 = 0,		// 1st, 2nd, 3rd etc.
 	ICON_MAP,
 	ICON_STARTLIGHT,
 	ICON_LAP,
-	ICON_WRONGWAY,
-	ICON_TOKEN,
-	ICON_WEAPON_RACE,
-	ICON_WEAPON_BATTLE,
-	ICON_TIMER,
-	ICON_TIMERINDEX,
-	ICON_POWTIMER,
+	ICON_WRONGWAY,			// Big red X
+	ICON_TOKEN,				// Tournament mode arrowheads
+	ICON_WEAPON_RACE,		// Weapon/nitro inventory in race modes
+	ICON_WEAPON_BATTLE,		// Weapon/nitro inventory in battle modes
+	ICON_TIMER,				// Health background
+	ICON_TIMERINDEX,		// Health indicator
+	ICON_POWTIMER,			// Buff timers
 	ICON_FIRE,
 
 	NUM_INFOBAR_ICONTYPES
@@ -93,7 +87,6 @@ typedef struct
 {
 	int type;
 	int sub;
-	int row;
 	int displayedValue;
 } InfobarIconData;
 CheckSpecialDataStruct(InfobarIconData);
@@ -106,48 +99,41 @@ typedef struct
 	float yFromAnchor;
 	float scale;
 	float xSpacing;
-	float ySpacing;
 } IconPlacement;
 
 static const IconPlacement gIconInfo[NUM_INFOBAR_ICONTYPES] =
 {
-	[ICON_PLACE]		= { kAnchorTopLeft,		  64,  48, 0.9,   0,  0 },
-	[ICON_MAP]			= { kAnchorBottomRight,	 -80, -84, 0.5,   0,  0 },
-	[ICON_STARTLIGHT]	= { kAnchorCenter,		   0, -72, 1.0,   0,  0 },
-	[ICON_LAP]			= { kAnchorBottomLeft,	  51, -48, 0.7,   0,  0 },
-	[ICON_WRONGWAY]		= { kAnchorCenter,		   0, -72, 1.5,   0,  0 },
-	[ICON_TOKEN]		= { kAnchorTopRight,	-196,  24, 0.4,  26,  0 },
-	[ICON_WEAPON_RACE]	= { kAnchorTop,			 -16,  36, 0.9,  42,  0 },
-	[ICON_WEAPON_BATTLE]= { kAnchorTopLeft,		  32,  36, 0.9,  42,  0 },
-	[ICON_TIMER]		= { kAnchorTopRight,	-118,  36, 1.0, 125,  0 },
-	[ICON_TIMERINDEX]	= { kAnchorTopRight,	-166,  36, 0.6, 106,  0 },
-	[ICON_POWTIMER]		= { kAnchorTopLeft,		  29, 144, 0.8,  37, 46 },
-	[ICON_FIRE]			= { kAnchorTopLeft,		  19,  36, 0.5,  32,  0 },
+	[ICON_PLACE]		= { kAnchorTopLeft,		  64,  48, 0.9f,   0 },
+	[ICON_MAP]			= { kAnchorBottomRight,	 -80, -84, 0.5f,   0 },
+	[ICON_STARTLIGHT]	= { kAnchorCenter,		   0, -72, 1.0f,   0 },
+	[ICON_LAP]			= { kAnchorBottomLeft,	  51, -48, 0.7f,   0 },
+	[ICON_WRONGWAY]		= { kAnchorCenter,		   0, -72, 1.5f,   0 },
+	[ICON_TOKEN]		= { kAnchorTopRight,	-196,  24, 0.4f,  26 },
+	[ICON_WEAPON_RACE]	= { kAnchorTop,			 -16,  36, 0.9f,  42 },
+	[ICON_WEAPON_BATTLE]= { kAnchorTopLeft,		  32,  36, 0.9f,  42 },
+	[ICON_TIMER]		= { kAnchorTopRight,	-118,  36, 1.0f, 125 },
+	[ICON_TIMERINDEX]	= { kAnchorTopRight,	-166,  36, 0.6f, 106 },
+	[ICON_POWTIMER]		= { kAnchorTopLeft,		  29, 144, 0.8f,   0 },
+	[ICON_FIRE]			= { kAnchorTopLeft,		  19,  36, 0.5f,  32 },
 };
 
-static void (*gIconMoveCallbacks[NUM_INFOBAR_ICONTYPES])(ObjNode*) =
-{
-	[ICON_PLACE]			= Infobar_MovePlace,
-	[ICON_LAP]				= Infobar_MoveLap,
-	[ICON_WRONGWAY]			= Infobar_MoveWrongWay,
-	[ICON_TOKEN]			= Infobar_MoveToken,
-	[ICON_WEAPON_RACE]		= Infobar_MoveInventoryPOW,
-	[ICON_WEAPON_BATTLE]	= Infobar_MoveInventoryPOW,
-};
+#define MAX_POWTIMERS 6
 
 static const struct
 {
-	const float* timerPtr0;
-	int sprite;
-} gInfobarTimers[] =
+	size_t timerFloatOffset;
+	short sprite;
+} kPOWTimerDefs[MAX_POWTIMERS] =
 {
-	{ &gPlayerInfo[0].stickyTiresTimer,			INFOBAR_SObjType_StickyTires },
-	{ &gPlayerInfo[0].nitroTimer,				INFOBAR_SObjType_Weapon_Nitro },
-	{ &gPlayerInfo[0].superSuspensionTimer,		INFOBAR_SObjType_Suspension },
-	{ &gPlayerInfo[0].invisibilityTimer,		INFOBAR_SObjType_Invisibility },
-	{ &gPlayerInfo[0].frozenTimer,				INFOBAR_SObjType_Weapon_Freeze },
-	{ &gPlayerInfo[0].flamingTimer,				INFOBAR_SObjType_RedTorch },
+	{ offsetof(PlayerInfoType, stickyTiresTimer),		INFOBAR_SObjType_StickyTires },
+	{ offsetof(PlayerInfoType, nitroTimer),				INFOBAR_SObjType_Weapon_Nitro },
+	{ offsetof(PlayerInfoType, superSuspensionTimer),	INFOBAR_SObjType_Suspension },
+	{ offsetof(PlayerInfoType, invisibilityTimer),		INFOBAR_SObjType_Invisibility },
+	{ offsetof(PlayerInfoType, frozenTimer),			INFOBAR_SObjType_Weapon_Freeze },
+	{ offsetof(PlayerInfoType, flamingTimer),			INFOBAR_SObjType_RedTorch },
 };
+
+static int8_t gPOWTimersByRow[MAX_LOCAL_PLAYERS][MAX_POWTIMERS];
 
 const OGLColorRGB kCavemanSkinColors[NUM_CAVEMAN_SKINS] =
 {
@@ -184,7 +170,6 @@ ObjNode			*gInfobarIconObjs[MAX_SPLITSCREENS][NUM_INFOBAR_ICONTYPES][MAX_SUBICON
 
 #define GetIconScale(iconID) (gIconInfo[iconID].scale)
 #define GetIconXSpacing(iconID) (gIconInfo[iconID].xSpacing)
-#define GetIconYSpacing(iconID) (gIconInfo[iconID].ySpacing)
 
 static float GetIconX(int iconID)
 {
@@ -369,6 +354,15 @@ static const char*	maps[] =
 
 	gHideInfobar = false;
 
+			/* RESET ROW ALLOCATIONS FO RPOW TIMERS */
+
+	for (int p = 0; p < MAX_LOCAL_PLAYERS; p++)
+	{
+		for (int row = 0; row < MAX_POWTIMERS; row++)
+		{
+			gPOWTimersByRow[p][row] = -1;
+		}
+	}
 
 			/* SETUP MASTER OBJECT */
 
@@ -467,22 +461,19 @@ void DisposeInfobar(void)
 	memset(gInfobarIconObjs, 0, sizeof(gInfobarIconObjs));
 }
 
-
-static ObjNode* MakeBlankIcon(void)
-{
-	NewObjectDefinitionType def =
-	{
-		.scale = 1,
-		.group = SPRITE_GROUP_INFOBAR,
-		.type = 1,
-		.slot = INFOBAR_SLOT,
-	};
-
-	return MakeSpriteObject(&def);
-}
-
 static void Infobar_MakeIcon(uint8_t type, uint8_t flags)
 {
+	static void (*moveCallbacks[NUM_INFOBAR_ICONTYPES])(ObjNode*) =
+	{
+		[ICON_PLACE]			= Infobar_MovePlace,
+		[ICON_LAP]				= Infobar_MoveLap,
+		[ICON_WRONGWAY]			= Infobar_MoveWrongWay,
+		[ICON_TOKEN]			= Infobar_MoveToken,
+		[ICON_WEAPON_RACE]		= Infobar_MoveInventoryPOW,
+		[ICON_WEAPON_BATTLE]	= Infobar_MoveInventoryPOW,
+		[ICON_POWTIMER]			= Infobar_MovePOWTimer,
+	};
+
 	uint8_t sub = flags & 0x7f;
 	bool isText = !!(flags & 0x80);
 
@@ -494,7 +485,7 @@ static void Infobar_MakeIcon(uint8_t type, uint8_t flags)
 		.scale = 1,
 		.coord = {64 + type*32, 64, 0},
 		.slot = INFOBAR_SLOT,
-		.moveCall = gIconMoveCallbacks[type],
+		.moveCall = moveCallbacks[type],
 		.flags = STATUS_BITS_FOR_2D | STATUS_BIT_ONLYSHOWTHISPLAYER | STATUS_BIT_MOVEINPAUSE,
 		.projection = kProjectionType2DOrthoFullRect,
 	};
@@ -520,6 +511,7 @@ static void Infobar_MakeIcon(uint8_t type, uint8_t flags)
 		special->type = type;
 		special->sub = sub;
 		special->displayedValue = -1;
+//		special->allocatedRow = -1;
 
 		gInfobarIconObjs[pane][type][sub] = obj;
 	}
@@ -563,32 +555,33 @@ static void MakeInfobar(void)
 	Infobar_MakeIcon(weaponIconType, 0x01);
 	Infobar_MakeIcon(weaponIconType, 0x82);		// text
 
+	// Buff timers
+	for (int i = 0; i < MAX_POWTIMERS; i++)
+	{
+		Infobar_MakeIcon(ICON_POWTIMER, 0x00 | (i*2 + 0));	// icon
+		Infobar_MakeIcon(ICON_POWTIMER, 0x80 | (i*2 + 1));	// text
+	}
+
 	//Infobar_DrawMap();
 	//Infobar_DrawStartingLight();
-	//Infobar_DrawTimerPowerups();
-
-	//Infobar_MakeIcon(ICON_POWTIMER);
 
 	/* DRAW GAME MODE SPECIFICS */
+
+	if (IsRaceMode())
+	{
+		Infobar_MakeIcon(ICON_PLACE, 0);		// big number
+		Infobar_MakeIcon(ICON_PLACE, 1);		// ordinal
+		Infobar_MakeIcon(ICON_WRONGWAY, 0);
+		Infobar_MakeIcon(ICON_LAP, 0);
+	}
 
 	switch (gGameMode)
 	{
 	case	GAME_MODE_PRACTICE:
 	case	GAME_MODE_MULTIPLAYERRACE:
-		Infobar_MakeIcon(ICON_PLACE, 0);		// big number
-		Infobar_MakeIcon(ICON_PLACE, 1);		// ordinal
-
-		Infobar_MakeIcon(ICON_WRONGWAY, 0);
-		Infobar_MakeIcon(ICON_LAP, 0);
 		break;
 
 	case	GAME_MODE_TOURNAMENT:
-		Infobar_MakeIcon(ICON_PLACE, 0);
-		Infobar_MakeIcon(ICON_PLACE, 1);
-
-		Infobar_MakeIcon(ICON_WRONGWAY, 0);
-		Infobar_MakeIcon(ICON_LAP, 0);
-
 		for (int i = 0; i < MAX_TOKENS; i++)
 		{
 			Infobar_MakeIcon(ICON_TOKEN, i);
@@ -628,7 +621,6 @@ static void DrawInfobar(ObjNode* theNode)
 
 	Infobar_DrawMap();
 	Infobar_DrawStartingLight();
-	Infobar_DrawTimerPowerups();
 
 
 		/* DRAW GAME MODE SPECIFICS */
@@ -851,7 +843,7 @@ static void Infobar_MoveInventoryPOW(ObjNode* node)
 {
 int			n;
 short		powType;
-char		s[4];
+char		s[8];
 
 	InfobarIconData* special = GetInfobarIconData(node);
 
@@ -887,7 +879,7 @@ char		s[4];
 			int q = gPlayerInfo[n].powQuantity;
 			if (special->displayedValue != q)
 			{
-				snprintf(s, sizeof(s), "%d   ", q);
+				snprintf(s, sizeof(s), "%d", q);
 				TextMesh_Update(s, kTextMeshAlignLeft, node);
 				special->displayedValue = q;
 			}
@@ -905,19 +897,19 @@ char		s[4];
 
 /********************** DRAW WRONG WAY *************************/
 
-static void Infobar_MoveWrongWay(ObjNode* theNode)
+static void Infobar_MoveWrongWay(ObjNode* objNode)
 {
 Boolean	wrongWay;
-short	p = theNode->PlayerNum;
+short	p = objNode->PlayerNum;
 
 	wrongWay = gPlayerInfo[p].wrongWay;
 
-	SetObjectVisible(theNode, wrongWay);
+	SetObjectVisible(objNode, wrongWay);
 
 	if (wrongWay)
 	{
-		ModifySpriteObjectFrame(theNode, INFOBAR_SObjType_WrongWay);
-		Infobar_RepositionIcon(theNode);
+		ModifySpriteObjectFrame(objNode, INFOBAR_SObjType_WrongWay);
+		Infobar_RepositionIcon(objNode);
 	}
 }
 
@@ -1024,55 +1016,124 @@ static void Infobar_MoveToken(ObjNode* node)
 
 /********************* DRAW TIMER POWERUPS **************************/
 
-static void Infobar_DrawTimerPowerups(void)
+static int GetRowForPOWTimer(int playerNum, int powTimerID)
 {
-short	p;
-float	timer,x,y,x2, scale, fontScale, spacing, lineSpacing;
-char	s[16];
-static const OGLColorRGB tint = {1,.7,.5};
-static const OGLColorRGB noTint = {1,1,1};
-
-	p = GetPlayerNum(gCurrentSplitScreenPane);
-
-	x			= GetIconX(ICON_POWTIMER);
-	y			= GetIconY(ICON_POWTIMER);
-	scale		= GetIconScale(ICON_POWTIMER);
-	fontScale	= scale * .6f;
-	spacing		= GetIconXSpacing(ICON_POWTIMER);
-	lineSpacing	= GetIconYSpacing(ICON_POWTIMER);
-
-	static const size_t numTimers = sizeof(gInfobarTimers) / sizeof(gInfobarTimers[0]);
-	size_t offset = p * sizeof(gPlayerInfo[0]);
-
-	for (size_t i = 0; i < numTimers; i++)
+	for (int row = 0; row < MAX_POWTIMERS; row++)
 	{
-		timer = *(float*) ( ((uint8_t*) gInfobarTimers[i].timerPtr0) + offset );
-
-		if (timer <= 0.0f)
+		if (gPOWTimersByRow[playerNum][row] == powTimerID)
 		{
-			continue;
+			return row;
 		}
+	}
 
+	return -1;
+}
 
-			/* DRAW ICON */
+static int AllocRowForNewPOWTimer(int playerNum, int powTimerID)
+{
+	for (int row = 0; row < MAX_POWTIMERS; row++)
+	{
+		if (gPOWTimersByRow[playerNum][row] < 0)
+		{
+			gPOWTimersByRow[playerNum][row] = powTimerID;
+			return row;
+		}
+	}
 
-		DrawSprite(SPRITE_GROUP_INFOBAR, gInfobarTimers[i].sprite, x, y, scale, INFOBAR_SPRITE_FLAGS);
+	return -1;
+}
 
-			/* DRAW TIME */
+static void FreeRowTakenByPOWTimer(int playerNum, int powTimerID)
+{
+	int8_t* rowAllocation = &gPOWTimersByRow[playerNum][0];
 
-		gGlobalColorFilter = tint;
+	int row = GetRowForPOWTimer(playerNum, powTimerID);
 
-		snprintf(s, sizeof(s), "%d", (int) (timer+.5f));
+	if (row >= 0)
+	{
+		int numToMove = MAX_POWTIMERS - row - 1;
 
-		x2 = x + spacing;
-		Atlas_DrawString(SPRITE_GROUP_FONT, s, x2, y, fontScale, INFOBAR_SPRITE_FLAGS | kTextMeshAlignLeft);
+		if (numToMove != 0)
+		{
+			memmove(&rowAllocation[row],
+					&rowAllocation[row+1],
+					numToMove * sizeof(rowAllocation[0]));
 
-		y += lineSpacing;												// move down to prep for next item
-
-		gGlobalColorFilter = noTint;
+			rowAllocation[MAX_POWTIMERS-1] = -1;
+		}
 	}
 }
 
+static void Infobar_MovePOWTimer(ObjNode* objNode)
+{
+static const OGLColorRGBA tint = {1,.7,.5,1};
+
+	short p = objNode->PlayerNum;
+
+	InfobarIconData* special = GetInfobarIconData(objNode);
+
+	int timerID = special->sub >> 1;
+	int subInRow = special->sub & 1;
+
+	size_t offset = kPOWTimerDefs[timerID].timerFloatOffset;
+	float timer = *(float*) (((char*) &gPlayerInfo[p]) + offset);
+
+	bool isActive = timer > 0;
+
+	int currentRow = GetRowForPOWTimer(p, timerID);
+
+	if (subInRow == 0)								// check row allocation if we're the first objnode in the row
+	{
+		if (currentRow < 0 && isActive)				// no row allocated yet, we need one
+		{
+			currentRow = AllocRowForNewPOWTimer(p, timerID);
+		}
+		else if (currentRow >= 0 && !isActive)		// we've gone inactive, free the row
+		{
+			FreeRowTakenByPOWTimer(p, timerID);
+			GAME_ASSERT(GetRowForPOWTimer(p, timerID) < 0);
+		}
+	}
+
+	SetObjectVisible(objNode, isActive);
+
+	if (!isActive
+		|| currentRow < 0)		// no room!
+	{
+		return;
+	}
+
+	Infobar_RepositionIconTemp(objNode);
+
+	objNode->Coord.x += subInRow * 37.0f;
+	objNode->Coord.y += currentRow * 46.0f;
+
+	switch (subInRow)
+	{
+		case 0:		// DRAW ICON
+			ModifySpriteObjectFrame(objNode, kPOWTimerDefs[timerID].sprite);
+			break;
+
+		case 1:		// DRAW TIME
+		{
+			int q = (int) (timer+.5f);
+
+			if (special->displayedValue != q)
+			{
+				char s[8];
+				snprintf(s, sizeof(s), "%d", q);
+				TextMesh_Update(s, kTextMeshAlignLeft, objNode);
+				special->displayedValue = q;
+			}
+
+			objNode->Scale.x = objNode->Scale.y *= .6f;
+			objNode->ColorFilter = tint;
+			break;
+		}
+	}
+
+	UpdateObjectTransforms(objNode);
+}
 
 /********************* DRAW TAG TIMER **************************/
 

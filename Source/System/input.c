@@ -10,6 +10,8 @@
 /***************/
 
 #include "game.h"
+#include <SDL.h>
+
 
 /**********************/
 /*     PROTOTYPES     */
@@ -53,6 +55,15 @@ void ReadKeyboard(void)
 	{
 		gPlayerInfo[i].analogSteering = GetAnalogSteering(i);
 	}
+
+#if _DEBUG
+	if (GetNewKeyState(SDL_SCANCODE_KP_1))		gPlayerInfo[0].superSuspensionTimer	+= 3;
+	if (GetNewKeyState(SDL_SCANCODE_KP_2))		gPlayerInfo[0].stickyTiresTimer		+= 3;
+	if (GetNewKeyState(SDL_SCANCODE_KP_3))		gPlayerInfo[0].invisibilityTimer	+= 3;
+	if (GetNewKeyState(SDL_SCANCODE_KP_4))		gPlayerInfo[0].nitroTimer			+= 3;
+	if (GetNewKeyState(SDL_SCANCODE_KP_5))		gPlayerInfo[0].flamingTimer			+= 3;
+	if (GetNewKeyState(SDL_SCANCODE_KP_6))		gPlayerInfo[0].frozenTimer			+= 3;
+#endif
 }
 
 
