@@ -63,6 +63,7 @@ void ReadKeyboard(void)
 	if (GetNewKeyState(SDL_SCANCODE_KP_4))		gPlayerInfo[0].nitroTimer			+= 3;
 	if (GetNewKeyState(SDL_SCANCODE_KP_5))		gPlayerInfo[0].flamingTimer			+= 3;
 	if (GetNewKeyState(SDL_SCANCODE_KP_6))		gPlayerInfo[0].frozenTimer			+= 3;
+	if (GetNewKeyState(SDL_SCANCODE_KP_DIVIDE))	gPlayerInfo[0].numTokens++;
 #endif
 }
 

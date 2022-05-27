@@ -264,6 +264,7 @@ struct ObjNode
 	struct ObjNode	*ChainHead;			// a chain's head (link back to 1st obj in chain)
 
 	struct	ObjNode	*ShadowNode;		// ptr to node's shadow (if any)
+	struct ObjNode	*TwitchNode;		// ptr to node's twitch driver (if any)
 
 	uint16_t		Slot;				// sort value
 	Byte			Genre;				// obj genre

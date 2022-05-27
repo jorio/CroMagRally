@@ -11,7 +11,6 @@
 /****************************/
 
 #include "game.h"
-#include "uieffects.h"
 
 /****************************/
 /*    PROTOTYPES            */
@@ -367,7 +366,7 @@ short	p;
 		MorphToSkeletonAnim(gSex[0]->Skeleton, 1, 5.0);
 		MorphToSkeletonAnim(gSex[1]->Skeleton, 0, 5.0);
 		gCharacterArrow->Coord.x = GetCharacterArrowHomeX();
-		MakeTwitch(gCharacterArrow, kTwitchDisplaceRight);
+		MakeTwitch(gCharacterArrow, kTwitchDisplaceRTL);
 	}
 	else
 	if (GetNewNeedState(kNeed_UIRight, p) && (gSelectedCharacterIndex < 1))
@@ -377,7 +376,7 @@ short	p;
 		MorphToSkeletonAnim(gSex[0]->Skeleton, 0, 5.0);
 		MorphToSkeletonAnim(gSex[1]->Skeleton, 1, 5.0);
 		gCharacterArrow->Coord.x = GetCharacterArrowHomeX();
-		MakeTwitch(gCharacterArrow, kTwitchDisplaceLeft);
+		MakeTwitch(gCharacterArrow, kTwitchDisplaceLTR);
 	}
 	else
 	if (GetNewNeedState(kNeed_UIUp, p))

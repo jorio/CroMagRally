@@ -13,7 +13,6 @@
 #include "game.h"
 #include "miscscreens.h"
 #include "network.h"
-#include "uieffects.h"
 
 
 /****************************/
@@ -543,8 +542,8 @@ short	p;
 		PlayEffect(EFFECT_SELECTCLICK);
 		gSelectedVehicleIndex--;
 		UpdateSelectedVehicle();
-		MakeTwitch(gVehicleLeftArrow, kTwitchDisplaceLeft);
-		MakeTwitch(gVehicleName, kTwitchDisplaceRight);
+		MakeTwitch(gVehicleLeftArrow, kTwitchDisplaceLTR);
+		MakeTwitch(gVehicleName, kTwitchDisplaceRTL);
 	}
 	else
 	if (GetNewNeedState(kNeed_UIRight, p) && (gSelectedVehicleIndex < NUM_LAND_CAR_TYPES-1))
@@ -552,8 +551,8 @@ short	p;
 		PlayEffect(EFFECT_SELECTCLICK);
 		gSelectedVehicleIndex++;
 		UpdateSelectedVehicle();
-		MakeTwitch(gVehicleRightArrow, kTwitchDisplaceRight);
-		MakeTwitch(gVehicleName, kTwitchDisplaceLeft);
+		MakeTwitch(gVehicleRightArrow, kTwitchDisplaceRTL);
+		MakeTwitch(gVehicleName, kTwitchDisplaceLTR);
 	}
 
 	return(false);

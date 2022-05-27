@@ -3,7 +3,6 @@
 // This file is part of Cro-Mag Rally. https://github.com/jorio/cromagrally
 
 #include "game.h"
-#include "uieffects.h"
 
 static const TwitchDef kTwitchPresets[kTwitchPresetCOUNT] =
 {
@@ -23,7 +22,7 @@ static const TwitchDef kTwitchPresets[kTwitchPresetCOUNT] =
 		.easing = kEaseOutQuad
 	},
 
-	[kTwitchDisplaceLeft] =
+	[kTwitchDisplaceLTR] =
 	{
 		.fxClass = kTwitchClassDisplaceX,
 		.duration = .20f,
@@ -31,7 +30,7 @@ static const TwitchDef kTwitchPresets[kTwitchPresetCOUNT] =
 		.easing = kEaseOutQuad,
 	},
 
-	[kTwitchDisplaceRight] =
+	[kTwitchDisplaceRTL] =
 	{
 		.fxClass = kTwitchClassDisplaceX,
 		.duration = .20f,
@@ -39,7 +38,7 @@ static const TwitchDef kTwitchPresets[kTwitchPresetCOUNT] =
 		.easing = kEaseOutQuad,
 	},
 
-	[kTwitchLightDisplaceLeft] =
+	[kTwitchLightDisplaceLTR] =
 	{
 		.fxClass=kTwitchClassDisplaceX,
 		.duration = .10f,
@@ -47,12 +46,36 @@ static const TwitchDef kTwitchPresets[kTwitchPresetCOUNT] =
 		.easing = kEaseOutQuad,
 	},
 
-	[kTwitchLightDisplaceRight] =
+	[kTwitchLightDisplaceRTL] =
 	{
 		.fxClass = kTwitchClassDisplaceX,
 		.duration = .10f,
 		.amplitude = +8,
 		.easing = kEaseOutQuad,
+	},
+
+	[kTwitchLightDisplaceDTU] =
+	{
+		.fxClass = kTwitchClassDisplaceY,
+		.duration = .20f,
+		.amplitude = +8,
+		.easing = kEaseOutQuad,
+	},
+
+	[kTwitchLightDisplaceUTD] =
+	{
+		.fxClass = kTwitchClassDisplaceY,
+		.duration = .20f,
+		.amplitude = -8,
+		.easing = kEaseOutQuad,
+	},
+
+	[kTwitchYBounce] =
+	{
+		.fxClass = kTwitchClassDisplaceY,
+		.duration = .20f,
+		.amplitude = -16	,
+		.easing = kEaseBounce0To0,
 	},
 
 	[kTwitchQuickWiggle] =
@@ -71,6 +94,66 @@ static const TwitchDef kTwitchPresets[kTwitchPresetCOUNT] =
 		.amplitude = 25,
 		.period = PI * 4,
 		.easing = kEaseLerp,
+	},
+
+	[kTwitchSubtleWiggle] =
+	{
+		.fxClass = kTwitchClassWiggleX,
+		.duration = .25f,
+		.amplitude = 12,
+		.period = PI * 2,
+		.easing = kEaseLerp,
+	},
+
+	[kTwitchScaleUp] =
+	{
+		.fxClass = kTwitchClassScale,
+		.duration = .20f,
+		.amplitude = .8f,
+		.easing = kEaseInQuad,
+	},
+
+	[kTwitchArrowheadSpin] =
+	{
+		.fxClass = kTwitchClassSpinX,
+		.duration = 1.5f,
+		.amplitude = 1.0f,
+		.period = PI * 8,
+		.easing = kEaseOutQuad,
+	},
+
+	[kTwitchCoinSpin] =
+	{
+		.fxClass = kTwitchClassSpinX,
+		.duration = 0.35f,
+		.amplitude = 1.0f,
+		.period = PI,
+		.phase = -PI,
+		.easing = kEaseOutQuad,
+	},
+
+	[kTwitchSweepFromLeft] =
+	{
+		.fxClass = kTwitchClassDisplaceX,
+		.duration = 0.25f,
+		.amplitude = -64.0f,
+		.easing = kEaseOutBack, //kEaseOutQuad,
+	},
+
+	[kTwitchSweepFromTop] =
+	{
+		.fxClass = kTwitchClassDisplaceY,
+		.duration = 0.25f,
+		.amplitude = -64.0f,
+		.easing = kEaseOutBack, //kEaseOutQuad,
+	},
+
+	[kTwitchScaleVanish] =
+	{
+		.fxClass = kTwitchClassScaleVanish,
+		.duration = 0.25f,
+		.amplitude = 1,
+		.easing = kEaseInBack,
 	},
 };
 
@@ -92,13 +175,44 @@ static float Ease(float p, int easingType)
 {
 	switch (easingType)
 	{
-		case kEaseInQuad:		return p*p;
-		case kEaseOutQuad:		return 1 - (1 - p) * (1 - p);
-		case kEaseOutCubic:		return 1 - powf(1 - p, 3);
-
 		case kEaseLerp:
 		default:
 			return p;
+
+		case kEaseInQuad:
+			return p*p;
+
+		case kEaseOutQuad:
+		{
+			float q = 1-p;
+			return 1 - q*q;
+		}
+
+		case kEaseOutCubic:
+		{
+			float q = 1-p;
+			return 1 - q*q*q;
+		}
+
+		case kEaseInBack:
+		{
+			float k = 1.7f;
+			return (k+1)*p*p*p - k*p*p;
+		}
+
+		case kEaseOutBack:
+		{
+			float q = 1-p;
+			float k = 1.7f;
+			return 1 - ((k+1)*q*q*q - k*q*q);
+		}
+
+		case kEaseBounce0To0:
+		{
+			float q = 2*p - 1;
+			return q*q;
+			//return 1 - sqrtf(1 - (1-2*p)*(1-2*p));
+		}
 	}
 }
 
@@ -110,7 +224,8 @@ static void MoveUIEffectDriver(ObjNode* driver)
 	const TwitchDef* def = &effect->def;
 	ObjNode* puppet = effect->puppet;
 
-	if (IsObjectBeingDeleted(effect->puppet))
+	if (IsObjectBeingDeleted(effect->puppet)		// puppet is being destroyed
+		|| effect->puppet->TwitchNode != driver)	// twitch effect was replaced
 	{
 		DeleteObject(driver);
 		return;
@@ -131,15 +246,15 @@ static void MoveUIEffectDriver(ObjNode* driver)
 	}
 
 	float p = effect->timer / duration;
+	bool done = false;
 
-	if (p > 1)	// we'll nuke the driver at the end of this function
+	if (p >= 1)	// we'll nuke the driver at the end of this function
 	{
 		p = 1;
+		done = true;
 	}
-	else
-	{
-		p = Ease(p, def->easing);
-	}
+
+	p = Ease(p, def->easing);
 
 	switch (effect->def.fxClass)
 	{
@@ -148,14 +263,35 @@ static void MoveUIEffectDriver(ObjNode* driver)
 			puppet->Scale.y = realS.y * Lerp(def->amplitude, 1, p);
 			break;
 
+		case kTwitchClassScaleVanish:
+			puppet->Scale.x = realS.x * Lerp(def->amplitude, 0, p);
+			puppet->Scale.y = realS.y * Lerp(def->amplitude, 0, p);
+			break;
+
 		case kTwitchClassDisplaceX:
 			puppet->Coord.x += realS.x * Lerp(def->amplitude, 0, p);
+			break;
+
+		case kTwitchClassDisplaceY:
+			puppet->Coord.y += realS.y * Lerp(def->amplitude, 0, p);
 			break;
 
 		case kTwitchClassWiggleX:
 		{
 			float dampen = 1 - p;
-			puppet->Coord.x += realS.x * def->amplitude * dampen * sinf(dampen * def->period);
+			puppet->Coord.x += realS.x * def->amplitude * dampen * sinf(dampen * def->period + def->phase);
+			break;
+		}
+
+		case kTwitchClassSpinX:
+		{
+			float wave = cosf(p * def->period + def->phase);
+
+			if (fabsf(wave) < 0.2f)
+				wave = 0.2f * (wave < 0? -1: 1);
+
+			puppet->Scale.x = realS.x * def->amplitude * wave;
+
 			break;
 		}
 	}
@@ -168,17 +304,26 @@ static void MoveUIEffectDriver(ObjNode* driver)
 
 	effect->timer += gFramesPerSecondFrac;
 
-	if (p >= 1)
+	if (done)
 	{
 		DeleteObject(driver);
+		puppet->TwitchNode = NULL;
 	}
 }
 
-ObjNode* MakeTwitch(ObjNode* puppet, int preset)
+ObjNode* MakeTwitch(ObjNode* puppet, uint8_t preset)
 {
+	GAME_ASSERT_MESSAGE(preset <= kTwitchPresetCOUNT, "Not a legal twitch preset");
+
 	if (puppet == NULL)
 	{
 		return NULL;
+	}
+
+	if (puppet->TwitchNode)
+	{
+		DeleteObject(puppet->TwitchNode);
+		puppet->TwitchNode = NULL;
 	}
 
 	NewObjectDefinitionType def =
@@ -199,6 +344,8 @@ ObjNode* MakeTwitch(ObjNode* puppet, int preset)
 		.def = kTwitchPresets[preset],
 		.timer = 0,
 	};
+
+	puppet->TwitchNode = driver;
 
 	return driver;
 }

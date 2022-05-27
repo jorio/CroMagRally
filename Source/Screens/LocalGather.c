@@ -9,7 +9,6 @@
 /****************************/
 
 #include "game.h"
-#include "uieffects.h"
 #include <SDL.h>
 
 

@@ -11,7 +11,6 @@
 /****************************/
 
 #include "game.h"
-#include "uieffects.h"
 #include <stddef.h>
 
 /****************************/
@@ -88,6 +87,7 @@ typedef struct
 	int type;
 	int sub;
 	int displayedValue;
+	int state;
 } InfobarIconData;
 CheckSpecialDataStruct(InfobarIconData);
 #define GetInfobarIconData(node) GetSpecialData(node, InfobarIconData)
@@ -828,6 +828,27 @@ static void Infobar_MovePlace(ObjNode* node)
 	int place = gPlayerInfo[playerNum].place;
 	int sex = gPlayerInfo[playerNum].sex;
 
+	InfobarIconData* special = GetInfobarIconData(node);
+
+	if (special->displayedValue != place)
+	{
+		if (gCameraStartupTimer <= 0)					// only twitch once the race has started
+		{
+			if (special->displayedValue > place)		// we're doing better
+			{
+				//ObjNode* twitchDriver = MakeTwitch(node, kTwitchScaleHard);
+				//GetTwitchParameters(twitchDriver)->amplitude = 1.3;
+				MakeTwitch(node, kTwitchLightDisplaceUTD);
+			}
+			else										// we're doing worse
+			{
+				MakeTwitch(node, kTwitchSubtleWiggle);
+			}
+		}
+
+		special->displayedValue = place;
+	}
+
 	switch (GetInfobarIconData(node)->sub)
 	{
 		case 0:
@@ -849,32 +870,82 @@ static void Infobar_MovePlace(ObjNode* node)
 
 static void Infobar_MoveInventoryPOW(ObjNode* node)
 {
-int			n;
-short		powType;
-char		s[8];
+PlayerInfoType* pi = &gPlayerInfo[node->PlayerNum];
+
+enum
+{
+	kDormant,
+	kActive,
+	kVanishing,
+};
 
 	InfobarIconData* special = GetInfobarIconData(node);
 
-	n = node->PlayerNum;
+	bool hasAnyPow = pi->powType != POW_TYPE_NONE;
 
-	powType = gPlayerInfo[n].powType;				// get weapon type
-	if (powType == POW_TYPE_NONE)
+	switch (special->state)
 	{
-		SetObjectVisible(node, false);
+		case kDormant:
+			if (!hasAnyPow)
+			{
+				SetObjectVisible(node, false);
+			}
+			else
+			{
+				// earned POW, go active
+				SetObjectVisible(node, true);
+				special->state = kActive;
+				MakeTwitch(node, kTwitchSweepFromTop);
+			}
+			break;
+
+		case kActive:
+			if (!hasAnyPow)
+			{
+				// went inactive
+				MakeTwitch(node, kTwitchScaleVanish);
+				special->state = kVanishing;
+			}
+			break;
+
+		case kVanishing:
+			if (hasAnyPow)
+			{
+				// got a new POW as we were vanishing
+				special->state = kActive;
+			}
+			else if (node->TwitchNode == NULL)
+			{
+				special->state = kDormant;
+				special->displayedValue = -1;
+				SetObjectVisible(node, false);
+			}
+			break;
+	}
+
+	if (node->StatusBits & STATUS_BIT_HIDDEN)
+	{
 		return;
 	}
-	else
-	{
-		SetObjectVisible(node, true);
-	}
-
 
 	Infobar_RepositionIconTemp(node);
 
 	switch (GetInfobarIconData(node)->sub)
 	{
 		case 0:		// DRAW WEAPON ICON
-			ModifySpriteObjectFrame(node, INFOBAR_SObjType_Weapon_Bone + powType);
+			if (hasAnyPow)	// if we lost the POW, retain previous sprite
+			{
+				ModifySpriteObjectFrame(node, INFOBAR_SObjType_Weapon_Bone + pi->powType);
+
+				if (special->displayedValue != pi->powType &&
+					special->displayedValue != -1)
+				{
+					node->StatusBits |= STATUS_BIT_KEEPBACKFACES;
+					MakeTwitch(node, kTwitchCoinSpin);
+				}
+
+				special->displayedValue = pi->powType;
+			}
 			break;
 
 		case 1:		// DRAW X-QUANTITY ICON
@@ -884,12 +955,21 @@ char		s[8];
 
 		case 2:		// DRAW QUANTITY NUMBER
 		{
-			int q = gPlayerInfo[n].powQuantity;
-			if (special->displayedValue != q)
+			if (special->displayedValue != pi->powQuantity)
 			{
-				snprintf(s, sizeof(s), "%d", q);
+				char s[8];
+				snprintf(s, sizeof(s), "%d", pi->powQuantity);
 				TextMesh_Update(s, kTextMeshAlignLeft, node);
-				special->displayedValue = q;
+
+				if (!node->TwitchNode)
+				{
+					if (special->displayedValue > pi->powQuantity)		// we lost an item
+						MakeTwitch(node, kTwitchLightDisplaceDTU);
+					else												// we gained an item
+						MakeTwitch(node, kTwitchLightDisplaceUTD);
+				}
+
+				special->displayedValue = pi->powQuantity;
 			}
 
 			node->Coord.x -= 22;
@@ -1014,6 +1094,14 @@ static void Infobar_MoveToken(ObjNode* node)
 
 	bool hasToken = nthToken < numTokens;
 
+	InfobarIconData* data = GetInfobarIconData(node);
+	if (hasToken && data->displayedValue != hasToken)
+	{
+		MakeTwitch(node, kTwitchArrowheadSpin);
+		node->StatusBits |= STATUS_BIT_KEEPBACKFACES;
+		data->displayedValue = hasToken;
+	}
+
 	ModifySpriteObjectFrame(node, hasToken ? INFOBAR_SObjType_Token_Arrowhead : INFOBAR_SObjType_Token_ArrowheadDim);
 	Infobar_RepositionIcon(node);
 }
@@ -1056,6 +1144,7 @@ static void FreeRowTakenByPOWTimer(int playerNum, int powTimerID)
 
 	if (row >= 0)
 	{
+#if 0
 		int numToMove = MAX_POWTIMERS - row - 1;
 
 		if (numToMove != 0)
@@ -1066,44 +1155,96 @@ static void FreeRowTakenByPOWTimer(int playerNum, int powTimerID)
 
 			rowAllocation[MAX_POWTIMERS-1] = -1;
 		}
+#else
+		rowAllocation[row] = -1;
+#endif
 	}
 }
+
 
 static void Infobar_MovePOWTimer(ObjNode* objNode)
 {
 static const OGLColorRGBA tint = {1,.7,.5,1};
+enum
+{
+	kDormant		= 0,
+	kActive,
+	kVanishing,
+};
 
 	short p = objNode->PlayerNum;
-
 	InfobarIconData* special = GetInfobarIconData(objNode);
 
 	int timerID = special->sub >> 1;
 	int subInRow = special->sub & 1;
 
-	size_t offset = kPOWTimerDefs[timerID].timerFloatOffset;
-	float timer = *(float*) (((char*) &gPlayerInfo[p]) + offset);
-
-	bool isActive = timer > 0;
+	size_t timerOffset = kPOWTimerDefs[timerID].timerFloatOffset;
+	float timer = *(float*) (((char*) &gPlayerInfo[p]) + timerOffset);
+	bool isTicking = timer > 0;
 
 	int currentRow = GetRowForPOWTimer(p, timerID);
+	bool hasRow = currentRow >= 0;
 
-	if (subInRow == 0)								// check row allocation if we're the first objnode in the row
+	switch (special->state)
 	{
-		if (currentRow < 0 && isActive)				// no row allocated yet, we need one
-		{
-			currentRow = AllocRowForNewPOWTimer(p, timerID);
-		}
-		else if (currentRow >= 0 && !isActive)		// we've gone inactive, free the row
-		{
-			FreeRowTakenByPOWTimer(p, timerID);
-			GAME_ASSERT(GetRowForPOWTimer(p, timerID) < 0);
-		}
+		case kDormant:
+		default:
+			if (!isTicking)
+			{
+				SetObjectVisible(objNode, false);
+			}
+			else
+			{
+				// Started ticking, reserve row
+				if (!hasRow)
+				{
+					currentRow = AllocRowForNewPOWTimer(p, timerID);
+					hasRow = currentRow >= 0;
+				}
+
+				// If we have a row, appear
+				if (hasRow)
+				{
+					special->state = kActive;
+					MakeTwitch(objNode, kTwitchSweepFromLeft);
+					SetObjectVisible(objNode, true);
+				}
+				else
+				{
+					SetObjectVisible(objNode, false);
+				}
+			}
+			break;
+
+		case kActive:
+			if (!isTicking)		// Wait for ticking to end to change states
+			{
+				MakeTwitch(objNode, kTwitchScaleVanish);
+				special->state = kVanishing;
+			}
+			break;
+
+		case kVanishing:
+			if (!isTicking)
+			{
+				// Wait for vanish effect to finish
+				if (objNode->TwitchNode == NULL)
+				{
+					FreeRowTakenByPOWTimer(p, timerID);
+					special->state = kDormant;
+					SetObjectVisible(objNode, false);
+				}
+			}
+			else
+			{
+				// Started ticking again, go back to active state
+				special->state = kActive;
+			}
+			break;
 	}
 
-	SetObjectVisible(objNode, isActive);
-
-	if (!isActive
-		|| currentRow < 0)		// no room!
+	if (currentRow < 0									// no room!
+		|| objNode->StatusBits & STATUS_BIT_HIDDEN)
 	{
 		return;
 	}
@@ -1129,6 +1270,9 @@ static const OGLColorRGBA tint = {1,.7,.5,1};
 				snprintf(s, sizeof(s), "%d", q);
 				TextMesh_Update(s, kTextMeshAlignLeft, objNode);
 				special->displayedValue = q;
+
+//				if (!objNode->TwitchNode)
+//					MakeTwitch(objNode, kTwitchScaleHard);
 			}
 
 			objNode->Scale.x = objNode->Scale.y *= .6f;

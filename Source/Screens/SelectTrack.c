@@ -11,7 +11,6 @@
 /****************************/
 
 #include "game.h"
-#include "uieffects.h"
 
 
 /****************************/
@@ -407,9 +406,9 @@ static Boolean DoTrackSelectControls(void)
 		gSelectedTrackIndex--;
 		PlayEffect(EFFECT_SELECTCLICK);
 		UpdateSelectedTrack();
-		MakeTwitch(gTrackLeftArrow, kTwitchDisplaceLeft);
-		MakeTwitch(gTrackImageIcon, kTwitchLightDisplaceRight);
-		MakeTwitch(gTrackName, kTwitchDisplaceRight);
+		MakeTwitch(gTrackLeftArrow, kTwitchDisplaceLTR);
+		MakeTwitch(gTrackImageIcon, kTwitchLightDisplaceRTL);
+		MakeTwitch(gTrackName, kTwitchDisplaceRTL);
 	}
 	else
 	if (GetNewNeedStateAnyP(kNeed_UIRight) && (gSelectedTrackIndex < (gNumTracksInSelection-1)))
@@ -417,9 +416,9 @@ static Boolean DoTrackSelectControls(void)
 		gSelectedTrackIndex++;
 		PlayEffect(EFFECT_SELECTCLICK);
 		UpdateSelectedTrack();
-		MakeTwitch(gTrackRightArrow, kTwitchDisplaceRight);
-		MakeTwitch(gTrackImageIcon, kTwitchLightDisplaceLeft);
-		MakeTwitch(gTrackName, kTwitchDisplaceLeft);
+		MakeTwitch(gTrackRightArrow, kTwitchDisplaceRTL);
+		MakeTwitch(gTrackImageIcon, kTwitchLightDisplaceLTR);
+		MakeTwitch(gTrackName, kTwitchDisplaceLTR);
 	}
 
 	return(false);

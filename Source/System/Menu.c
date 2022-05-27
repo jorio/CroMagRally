@@ -8,7 +8,6 @@
 
 #include "game.h"
 #include "menu.h"
-#include "uieffects.h"
 
 #include <SDL.h>
 #include <SDL_opengl.h>
@@ -1034,9 +1033,9 @@ static void NavigateCycler(const MenuItem* entry)
 		RepositionArrows();
 
 		if (delta < 0)
-			MakeTwitch(gNav->arrowObjects[0], kTwitchDisplaceLeft);
+			MakeTwitch(gNav->arrowObjects[0], kTwitchDisplaceLTR);
 		else
-			MakeTwitch(gNav->arrowObjects[1], kTwitchDisplaceRight);
+			MakeTwitch(gNav->arrowObjects[1], kTwitchDisplaceRTL);
 	}
 }
 
@@ -1125,9 +1124,9 @@ static void NavigateFloatRange(const MenuItem* entry)
 		// Adjust arrows
 		RepositionArrows();
 		if (delta < 0)
-			MakeTwitch(gNav->arrowObjects[0], kTwitchDisplaceLeft);
+			MakeTwitch(gNav->arrowObjects[0], kTwitchDisplaceLTR);
 		else
-			MakeTwitch(gNav->arrowObjects[1], kTwitchDisplaceRight);
+			MakeTwitch(gNav->arrowObjects[1], kTwitchDisplaceRTL);
 
 		// Update cooldown timer
 		if (valueFrac == 1.0f || valueFrac == 0.0f)		// Force speed bump at 0% and 100%

@@ -4,7 +4,6 @@
 /****************************/
 
 #include "game.h"
-#include "uieffects.h"
 #include "menu.h"
 #include <time.h>
 
