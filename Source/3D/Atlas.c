@@ -311,9 +311,11 @@ Atlas* Atlas_Load(const char* fontName, int flags)
 	snprintf(atlas->name, sizeof(atlas->name), "%s", fontName);
 
 	char pathBuf[256];
-
 	snprintf(pathBuf, sizeof(pathBuf), ":sprites:%s.png", fontName);
+#if _DEBUG
 	printf("Atlas_Load: %s\n", pathBuf);
+#endif
+
 	{
 		// Create font material
 		const char* texturePath = pathBuf;

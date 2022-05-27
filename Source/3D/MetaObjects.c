@@ -1410,7 +1410,10 @@ Ptr				buffer;
 Ptr 			pictMapAddr;
 uint32_t		pictRowBytes;
 
-printf("MO_GetTextureFromFile: %s\n", path);
+#if _DEBUG
+	printf("MO_GetTextureFromFile: %s\n", path);
+#endif
+
 		/*******************************/
 		/* CREATE TEXTURE PIXEL BUFFER */
 		/*******************************/

@@ -30,8 +30,11 @@ size_t snprintfcat(char* buf, size_t bufSize, char const* fmt, ...);
 #define ShowSystemErr(err) DoFatalAlert("Fatal system error: %d", err)
 #define ShowSystemErr_NonFatal(err) DoFatalAlert("System error: %d", err)
 
-#define IMPLEMENT_ME() DoFatalAlert("IMPLEMENT ME! %s:%d", __func__, __LINE__)
-#define IMPLEMENT_ME_SOFT() printf("IMPLEMENT ME (soft): %s:%d\n", __func__, __LINE__)
+#if _DEBUG
+	#define IMPLEMENT_ME_SOFT() printf("IMPLEMENT ME: %s:%d\n", __func__, __LINE__)
+#else
+	#define IMPLEMENT_ME_SOFT()
+#endif
 
 #define GAME_ASSERT(condition) do { if (!(condition)) DoFatalAlert("%s:%d: %s", __func__, __LINE__, #condition); } while(0)
 #define GAME_ASSERT_MESSAGE(condition, message) do { if (!(condition)) DoFatalAlert("%s:%d: %s", __func__, __LINE__, message); } while(0)
