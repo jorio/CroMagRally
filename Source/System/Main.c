@@ -1592,6 +1592,12 @@ void GameMain(void)
 		gGameMode = GAME_MODE_PRACTICE;
 		gTrackNum = gCommandLine.bootToTrack - 1;
 		InitPlayerInfo_Game();
+
+		if (gCommandLine.car)
+		{
+			gPlayerInfo[0].vehicleType = gCommandLine.car - 1;
+		}
+
 		InitArea();
 		PlayArea();
 		CleanupLevel();

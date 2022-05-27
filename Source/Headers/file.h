@@ -113,6 +113,7 @@ typedef struct
 {
 	int		vsync;
 	int		bootToTrack;
+	int		car;
 } CommandLineOptions;
 
 //=================================================

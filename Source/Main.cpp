@@ -82,14 +82,19 @@ static void ParseCommandLine(int argc, char** argv)
 	{
 		std::string argument = argv[i];
 
-		if (argument == "--practice-track")
+		if (argument == "--track")
 		{
 			GAME_ASSERT_MESSAGE(i + 1 < argc, "practice track # unspecified");
 			gCommandLine.bootToTrack = atoi(argv[i + 1]);
 			i += 1;
 		}
-
-		if (argument == "--stats")
+		else if (argument == "--car")
+		{
+			GAME_ASSERT_MESSAGE(i + 1 < argc, "car # unspecified");
+			gCommandLine.car = atoi(argv[i + 1]);
+			i += 1;
+		}
+		else if (argument == "--stats")
 			gDebugMode = 1;
 		else if (argument == "--no-vsync")
 			gCommandLine.vsync = 0;
