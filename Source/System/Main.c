@@ -968,6 +968,7 @@ static void PlayArea(void)
 		{
 			if (!gPlayerInfo[0].raceComplete)
 			{
+				gPlayerInfo[0].cheated = true;
 				PlayerCompletedRace(0);
 				gPlayerInfo[0].place = 0;
 				gPlayerInfo[0].raceComplete = true;

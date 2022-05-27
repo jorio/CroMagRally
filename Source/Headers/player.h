@@ -164,6 +164,7 @@ typedef struct
 	short				place;
 	float				distToNextCheckpoint;
 	Boolean				raceComplete;
+	Boolean				cheated;
 
 
 			/* BATTLE MODES */

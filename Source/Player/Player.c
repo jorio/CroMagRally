@@ -225,6 +225,7 @@ Boolean	taken[NUM_LAND_CAR_TYPES];
 		gPlayerInfo[i].place					= i;
 		gPlayerInfo[i].distToNextCheckpoint		= 0;
 		gPlayerInfo[i].raceComplete				= false;
+		gPlayerInfo[i].cheated					= false;
 
 		gPlayerInfo[i].snowParticleGroup		= -1;
 		gPlayerInfo[i].snowTimer				= 0;

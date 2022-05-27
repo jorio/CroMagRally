@@ -96,6 +96,7 @@ int SaveRaceTime(int playerNum)
 		|| pi->isComputer					// it's a CPU player
 		|| gIsSelfRunningDemo				// it's a CPU player in SRD (they're considered "human" in SRD)
 		|| gUserTamperedWithPhysics			// we're playing with non-stock physics
+		|| pi->cheated						// we completed the race early by pressing B+R+I
 		)
 	{
 		return -1;
