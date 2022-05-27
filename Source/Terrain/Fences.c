@@ -65,7 +65,7 @@ enum
 };
 
 
-const char* kFenceNames[] =
+const char* kFenceNames[NUM_FENCE_TYPES] =
 {
 	[FENCE_TYPE_DESERTSKIN]		= "desertskin",
 	[FENCE_TYPE_INVISIBLE]		= "invisible",
@@ -108,7 +108,7 @@ Boolean			gDrawInvisiFences = true;
 
 MOMaterialObject	*gFenceMaterials[NUM_FENCE_TYPES];
 
-const float			gFenceHeight[] =
+const float			gFenceHeight[NUM_FENCE_TYPES] =
 {
 	2000,					// desert skin
 	3200,					// INVISIBLE
@@ -161,7 +161,14 @@ static void LoadFenceMaterial(int type)
 	snprintf(fencePath, sizeof(fencePath), ":sprites:fences:%s.png", kFenceNames[type]);
 
 	gFenceMaterials[type] = MO_GetTextureFromFile(fencePath, /*GL_RGB5_A1*/ GL_RGBA);
-	gFenceMaterials[type]->objectData.flags |= BG3D_MATERIALFLAG_CLAMP_V;		// don't wrap v, only u
+
+
+			/* WRAP U, CLAMP V */
+
+	if (type != FENCE_TYPE_TRIBAL)		// except tribal, which can be wrapped on both dimensions
+	{
+		gFenceMaterials[type]->objectData.flags |= BG3D_MATERIALFLAG_CLAMP_V;
+	}
 }
 
 
@@ -445,7 +452,7 @@ float					minX,minY,minZ,maxX,maxY,maxZ;
 				/* SET COORDS */
 
 			gFencePoints[f][j].x = x;
-			gFencePoints[f][j].y = y;
+			gFencePoints[f][j].y = y-height;							// sink an extra height's worth into ground to cover holes in terrain
 			gFencePoints[f][j].z = z;
 
 			gFencePoints[f][j+1].x = x;
@@ -462,8 +469,8 @@ float					minX,minY,minZ,maxX,maxY,maxZ;
 									gFencePoints[f][j-2].x, gFencePoints[f][j-2].y, gFencePoints[f][j-2].z) * textureUOff;
 			}
 
-			gFenceUVs[f][j].v 		= 0;									// bottom
-			gFenceUVs[f][j+1].v 	= 1.0;									// top
+			gFenceUVs[f][j].v 		= -1.0f;									// bottom (-1 due to sinking extra height)
+			gFenceUVs[f][j+1].v 	= 1.0f;									// top
 			gFenceUVs[f][j].u 		= gFenceUVs[f][j+1].u = u;
 		}
 
@@ -514,7 +521,7 @@ float			cameraX, cameraZ;
 
 			/* SET GLOBAL MATERIAL FLAGS */
 
-	gGlobalMaterialFlags = BG3D_MATERIALFLAG_CLAMP_V|BG3D_MATERIALFLAG_ALWAYSBLEND;
+//	gGlobalMaterialFlags = BG3D_MATERIALFLAG_CLAMP_V|BG3D_MATERIALFLAG_ALWAYSBLEND;
 
 
 			/*******************/
