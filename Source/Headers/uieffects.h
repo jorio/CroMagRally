@@ -49,6 +49,7 @@ typedef struct
 	Byte fxClass;
 	Byte easing;
 	float duration;
+	float delay;
 	float period;
 	float amplitude;
 	float phase;

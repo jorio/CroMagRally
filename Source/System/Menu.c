@@ -53,7 +53,6 @@ static int GetValueIndexInCycler(const MenuItem* entry, uint8_t value);
 typedef struct
 {
 	Boolean		muted;
-	Boolean		sweepRTL;
 	int			row;
 	int			col;
 	float		pulsateTimer;
@@ -75,7 +74,6 @@ CheckSpecialDataStruct(MenuNodeData);
 #define CLEAR_BINDING_SCANCODE SDL_SCANCODE_X
 
 #define kSfxNavigate	EFFECT_SELECTCLICK
-#define kSfxMenuChange	EFFECT_SELECTCLICK
 #define kSfxBack		EFFECT_GETPOW
 #define kSfxCycle		EFFECT_SELECTCLICK
 #define kSfxError		EFFECT_BADSELECT
@@ -557,40 +555,17 @@ static void MoveGenericMenuItem(ObjNode* node, float baseAlpha)
 	MenuNodeData* data = GetMenuNodeData(node);
 
 	float sweepAlpha = 1;
-	float xBackup = node->Coord.x;
 
 	if (data->sweepProgress < 1.0f)
 	{
 		data->sweepProgress += gFramesPerSecondFrac * gNav->style.sweepInSpeed;
-
-		if (data->sweepProgress < 0)
-		{
-			sweepAlpha = 0;
-		}
-		else if (data->sweepProgress < 1)
-		{
-			sweepAlpha = data->sweepProgress;
-
-			float p = (1.0f - data->sweepProgress);
-			float offset = p*p * 50.0f;
-			if (data->sweepRTL)		// used to sweep left instead of right
-				offset *= -1;
-
-			node->Coord.x -= offset;
-		}
-		else
-		{
-			sweepAlpha = 1;
-		}
+		sweepAlpha = GAME_CLAMP(data->sweepProgress, 0, 1);
 	}
 
 	if (data->muted)
 	{
 		baseAlpha *= .5f;
 	}
-
-	UpdateObjectTransforms(node);
-	node->Coord.x = xBackup;
 
 	node->ColorFilter.a = baseAlpha * sweepAlpha;
 
@@ -1022,13 +997,13 @@ static void NavigateCycler(const MenuItem* entry)
 			entry->callback(entry);
 		}
 
+		gTempForceSwipeRTL = (delta == -1);
+
 		ObjNode* node;
 		if (entry->type == kMICycler1)
 			node = LayOutCycler1(gNav->menuRow);
 		else
 			node = LayOutCycler2ValueText(gNav->menuRow);
-
-		GetMenuNodeData(node)->sweepRTL = (delta == -1);
 
 		RepositionArrows();
 
@@ -1446,7 +1421,6 @@ updateText:
 	MakeKbText(row, keyNo);		// update text after state changed back to Ready
 	RepositionArrows();
 	ReplaceMenuText(STR_CONFIGURE_KEYBOARD_HELP, STR_CONFIGURE_KEYBOARD_HELP);
-	return;
 }
 
 static bool AwaitGamepadPress(SDL_GameController* controller)
@@ -1685,7 +1659,11 @@ static ObjNode* MakeText(const char* text, int row, int desiredCol, int textMesh
 	data->row = row;
 	data->col = desiredCol;
 	data->sweepProgress = gTempInitialSweepFactor;
-	data->sweepRTL = gTempForceSwipeRTL;
+
+	ObjNode* twitchDriver = MakeTwitch(node, kTwitchDisplaceLTR);
+	TwitchDef* twitchDef = GetTwitchParameters(twitchDriver);
+	twitchDef->amplitude = gTempForceSwipeRTL ? 50 : -50;
+	twitchDef->delay = -gTempInitialSweepFactor * (1.0f / gNav->style.sweepInSpeed);
 
 	return node;
 }

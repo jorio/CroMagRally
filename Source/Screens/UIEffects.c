@@ -245,13 +245,17 @@ static void MoveUIEffectDriver(ObjNode* driver)
 		duration = 1;
 	}
 
-	float p = effect->timer / duration;
+	float p = (effect->timer - effect->def.delay) / duration;
 	bool done = false;
 
-	if (p >= 1)	// we'll nuke the driver at the end of this function
+	if (p >= 1)			// twitch complete -- we'll nuke the driver at the end of this function
 	{
 		p = 1;
 		done = true;
+	}
+	else if (p <= 0)	// delayed
+	{
+		p = 0;
 	}
 
 	p = Ease(p, def->easing);
