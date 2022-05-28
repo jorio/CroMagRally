@@ -138,7 +138,8 @@ enum
 	STATUS_BIT_REVERSESPLINE =	(1<<23),	// if going reverse direction on spline
 	STATUS_BIT_NOCLIPTEST 	=	(1<<24),	// if dont need to do clip testing
 	STATUS_BIT_AIMATCAMERA 	=	(1<<25),		// if need to aim at current player's camera (for sprite billboards)
-	STATUS_BIT_NOSHOWTHISPLAYER = (1<<26)	// opposite of STATUS_BIT_ONLYSHOWTHISPLAYER
+	STATUS_BIT_NOSHOWTHISPLAYER = (1<<26),	// opposite of STATUS_BIT_ONLYSHOWTHISPLAYER
+	STATUS_BIT_HIDEINPAUSE	=	(1<<27),
 };
 
 

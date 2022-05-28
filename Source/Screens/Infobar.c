@@ -492,7 +492,7 @@ static void Infobar_MakeIcon(uint8_t type, uint8_t flags)
 		.coord = {64 + type*32, 64, 0},
 		.slot = INFOBAR_SLOT,
 		.moveCall = moveCallbacks[type],
-		.flags = STATUS_BITS_FOR_2D | STATUS_BIT_ONLYSHOWTHISPLAYER | STATUS_BIT_MOVEINPAUSE,
+		.flags = STATUS_BITS_FOR_2D | STATUS_BIT_ONLYSHOWTHISPLAYER | STATUS_BIT_HIDEINPAUSE,
 		.projection = kProjectionType2DOrthoFullRect,
 	};
 
@@ -1457,7 +1457,7 @@ short	lapNum;
 			.coord		= {0,0,0},
 			.scale		= .7f,
 			.slot		= SPRITE_SLOT,
-            .flags      = STATUS_BIT_ONLYSHOWTHISPLAYER
+			.flags		= STATUS_BIT_ONLYSHOWTHISPLAYER | STATUS_BIT_HIDEINPAUSE,
 		};
 
 		const char* s = Localize(lapNum == 1 ? STR_LAP_2 : STR_LAP_3);
@@ -1691,7 +1691,7 @@ ObjNode	*newObj;
 		.coord		= {0,0,0},
 		.slot 		= SPRITE_SLOT,
 		.scale 	    = .8f,
-		.flags		= STATUS_BIT_MOVEINPAUSE,
+		.flags		= STATUS_BIT_HIDEINPAUSE,
 	};
 
 	newObj = TextMesh_New(Localize(STR_LEVEL_1 + gTrackNum), kTextMeshAlignCenter, &def);

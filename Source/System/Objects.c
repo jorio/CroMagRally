@@ -514,6 +514,12 @@ short			skelType, playerNum;
 				goto next;
 		}
 
+		if (gGamePaused || gHideInfobar)
+		{
+			if (statusBits & STATUS_BIT_HIDEINPAUSE)
+				goto next;
+		}
+
 		if (theNode->CType == INVALID_NODE_FLAG)				// see if already deleted
 			goto next;
 
