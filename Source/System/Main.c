@@ -1572,6 +1572,7 @@ void GameMain(void)
 	InitTerrainManager();
 	InitSkeletonManager();
 	InitSoundTools();
+	InitTwitchSystem();
 
 
 			/* INIT MORE MY STUFF */

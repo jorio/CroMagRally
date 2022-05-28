@@ -2,6 +2,7 @@ PRESET,CLASS,EASING,DURATION,AMP,PI*PERIOD,PI*PHASE
 MenuSelect,Scale,OutCubic,0.2,1.1,,
 MenuDeselect,Scale,OutQuad,0.14,1.1,,
 MenuWiggle,WiggleX,Linear,0.35,25,3,
+MenuFadeIn,AlphaFadeIn,OutQuad,0.2,,,
 PadlockWiggle,WiggleX,Linear,0.45,25,4,
 DisplaceLTR,DisplaceX,OutQuad,0.2,-32,,
 DisplaceRTL,DisplaceX,OutQuad,0.2,32,,

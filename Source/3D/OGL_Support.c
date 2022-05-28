@@ -1314,6 +1314,7 @@ static char* UpdateDebugText(void)
 {
 	static char debugTextBuffer[256];
 	extern short gNumFreeSupertiles;
+	extern int gFreeTwitches;
 
 	snprintf(debugTextBuffer, sizeof(debugTextBuffer),
 		"FPS:\t%d"
@@ -1323,6 +1324,7 @@ static char* UpdateDebugText(void)
 		"\nPTRS:\t%d"
 		"\nTILES:\t%d\v/%d"
 		"\nCHAN:\t%d\v/%d"
+		"\nUIFX:\t%d"
 		"\nRES:\t%d\vX\r%d\v/%d"
 		"\nRACE:\t%s"
 		"\nAS\vTEER\r:\t%+.02f"
@@ -1337,6 +1339,7 @@ static char* UpdateDebugText(void)
 		MAX_SUPERTILES,
 		GetNumBusyEffectChannels(),
 		MAX_CHANNELS,
+		MAX_TWITCHES - gFreeTwitches,
 		gGameWindowWidth,
 		gGameWindowHeight,
 		gNumSplitScreenPanes,

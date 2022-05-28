@@ -56,7 +56,6 @@ typedef struct
 	int			row;
 	int			col;
 	float		pulsateTimer;
-	float		sweepProgress;
 	float		asyncFadeOutSpeed;
 	float		incrementCooldown;
 	int			nIncrements;
@@ -554,20 +553,12 @@ static void MoveGenericMenuItem(ObjNode* node, float baseAlpha)
 {
 	MenuNodeData* data = GetMenuNodeData(node);
 
-	float sweepAlpha = 1;
-
-	if (data->sweepProgress < 1.0f)
-	{
-		data->sweepProgress += gFramesPerSecondFrac * gNav->style.sweepInSpeed;
-		sweepAlpha = GAME_CLAMP(data->sweepProgress, 0, 1);
-	}
-
 	if (data->muted)
 	{
 		baseAlpha *= .5f;
 	}
 
-	node->ColorFilter.a = baseAlpha * sweepAlpha;
+	node->ColorFilter.a = baseAlpha;
 
 	// Don't mix gNav->menuFadeAlpha -- it's only useful when fading OUT,
 	// in which case we're using a different move call for all menu items
@@ -1658,12 +1649,25 @@ static ObjNode* MakeText(const char* text, int row, int desiredCol, int textMesh
 	MenuNodeData* data = GetMenuNodeData(node);
 	data->row = row;
 	data->col = desiredCol;
-	data->sweepProgress = gTempInitialSweepFactor;
 
-	ObjNode* twitchDriver = MakeTwitch(node, kTwitchPreset_DisplaceLTR);
-	TwitchDef* twitchDef = GetTwitchParameters(twitchDriver);
-	twitchDef->amplitude = gTempForceSwipeRTL ? 50 : -50;
-	twitchDef->delay = -gTempInitialSweepFactor * (1.0f / gNav->style.sweepInSpeed);
+
+	float sweepInDelay = (1.0f / gNav->style.sweepInSpeed);
+	float delay = -gTempInitialSweepFactor * sweepInDelay;
+
+	Twitch* fadeEffect = MakeTwitch(node, kTwitchPreset_MenuFadeIn);
+	if (fadeEffect)
+	{
+		fadeEffect->delay = delay;
+		fadeEffect->duration = sweepInDelay;
+	}
+
+	Twitch* displaceEffect = MakeTwitch(node, kTwitchPreset_DisplaceLTR | kTwitchFlags_AllowChaining);
+	if (displaceEffect)
+	{
+		displaceEffect->amplitude = gTempForceSwipeRTL ? 50 : -50;
+		displaceEffect->duration = sweepInDelay;
+		displaceEffect->delay = delay;
+	}
 
 	return node;
 }
@@ -1887,9 +1891,8 @@ static void LayOutMenu(int menuID)
 		gNav->darkenPane->Scale.y = newScale;
 		UpdateObjectTransforms(gNav->darkenPane);
 
-		ObjNode* driver = MakeTwitch(gNav->darkenPane, kTwitchPreset_MenuDeselect);
-		TwitchDef* twitchDef = GetTwitchParameters(driver);
-		twitchDef->amplitude = prevScale/newScale;
+		Twitch* scaleEffect = MakeTwitch(gNav->darkenPane, kTwitchPreset_MenuDeselect);
+		scaleEffect->amplitude = prevScale/newScale;
 	}
 
 	gTempInitialSweepFactor = 0.0f;

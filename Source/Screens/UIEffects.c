@@ -5,13 +5,33 @@
 #include <stdlib.h>
 #include "game.h"
 
+#define MAX_TWITCH_CHAIN_LENGTH 4
 #define REGISTER_ENUM_NAME(x) [(x)] = (#x)
 
-static const char* kEnumNames[] =
+typedef struct
+{
+	ObjNode*			puppet;
+	Twitch*				fxChain[MAX_TWITCH_CHAIN_LENGTH];
+	float				timers[MAX_TWITCH_CHAIN_LENGTH];
+	uint32_t			cookie;
+	Byte				chainLength;
+} TwitchDriverData;
+CheckSpecialDataStruct(TwitchDriverData);
+
+int						gFreeTwitches = MAX_TWITCHES;
+static bool				gTwitchPtrPoolInitialized = false;
+static Twitch*			gTwitchPtrPool[MAX_TWITCHES];
+static Twitch			gTwitchBackingMemory[MAX_TWITCHES];
+
+static Twitch			gTwitchPresets[kTwitchPresetCOUNT];
+static bool				gTwitchPresetsLoaded = false;
+
+static const char* kTwitchEnumNames[] =
 {
 	REGISTER_ENUM_NAME(kTwitchPreset_MenuSelect),
 	REGISTER_ENUM_NAME(kTwitchPreset_MenuDeselect),
 	REGISTER_ENUM_NAME(kTwitchPreset_MenuWiggle),
+	REGISTER_ENUM_NAME(kTwitchPreset_MenuFadeIn),
 	REGISTER_ENUM_NAME(kTwitchPreset_PadlockWiggle),
 	REGISTER_ENUM_NAME(kTwitchPreset_DisplaceLTR),
 	REGISTER_ENUM_NAME(kTwitchPreset_DisplaceRTL),
@@ -33,6 +53,8 @@ static const char* kEnumNames[] =
 	REGISTER_ENUM_NAME(kTwitchClass_DisplaceY),
 	REGISTER_ENUM_NAME(kTwitchClass_WiggleX),
 	REGISTER_ENUM_NAME(kTwitchClass_Shrink),
+	REGISTER_ENUM_NAME(kTwitchClass_AlphaFadeIn),
+	REGISTER_ENUM_NAME(kTwitchClass_AlphaFadeOut),
 
 	REGISTER_ENUM_NAME(kEaseLinear),
 	REGISTER_ENUM_NAME(kEaseInQuad),
@@ -43,8 +65,60 @@ static const char* kEnumNames[] =
 	REGISTER_ENUM_NAME(kEaseBounce0To0),
 };
 
-static TwitchDef gTwitchPresets[kTwitchPresetCOUNT];
-static bool gTwitchPresetsLoaded = false;
+#pragma mark - Twitch pool management
+
+static void InitTwitchPool(void)
+{
+	for (int i = 0; i < MAX_TWITCHES; i++)
+	{
+		gTwitchPtrPool[i] = &gTwitchBackingMemory[i];
+	}
+
+	gFreeTwitches = MAX_TWITCHES;
+	gTwitchPtrPoolInitialized = true;
+}
+
+static bool IsPooledTwitchFree(Twitch* e)
+{
+	for (int i = 0; i < MAX_TWITCHES; i++)
+	{
+		if (gTwitchPtrPool[i] == e)
+			return true;
+	}
+	return false;
+}
+
+static Twitch* AllocTwitch(void)
+{
+	if (gFreeTwitches <= 0)
+		return NULL;
+
+	// Grab free slot
+	Twitch* e = gTwitchPtrPool[gFreeTwitches - 1];
+	gTwitchPtrPool[gFreeTwitches - 1] = NULL;
+
+	gFreeTwitches--;
+
+	return e;
+}
+
+static void DisposeTwitch(Twitch* e)
+{
+	if (e == NULL)
+		return;
+
+#if _DEBUG
+	GAME_ASSERT_MESSAGE(!IsPooledTwitchFree(e), "double-freeing pooled ptr");
+#endif
+
+	int i = gFreeTwitches;
+	GAME_ASSERT(i < MAX_TWITCHES);
+
+	gTwitchPtrPool[i] = e;
+	gFreeTwitches++;
+}
+
+#pragma mark - Parse presets
 
 static int FindEnumString(const char* prefix, const char* column)
 {
@@ -55,11 +129,11 @@ static int FindEnumString(const char* prefix, const char* column)
 
 	size_t prefixLength = (prefix==NULL) ? 0 : strlen(prefix);
 
-	const int numNames = sizeof(kEnumNames) / sizeof(kEnumNames[0]);
+	const int numNames = sizeof(kTwitchEnumNames) / sizeof(kTwitchEnumNames[0]);
 
 	for (int i = 0; i < numNames; i++)
 	{
-		const char* enumName = kEnumNames[i];
+		const char* enumName = kTwitchEnumNames[i];
 
 		if (NULL != enumName
 			&& ((0 == prefixLength) || (0 == strncmp(enumName, prefix, prefixLength)))
@@ -74,13 +148,15 @@ static int FindEnumString(const char* prefix, const char* column)
 
 static void LoadTwitchPresets(void)
 {
+	memset(gTwitchPresets, 0, sizeof(gTwitchPresets));
+
 	char* csv = LoadTextFile(":system:twitch.csv", NULL);
 
 	bool eol = false;
 
 	char* csvReader = csv;
 	int state = 0;
-	TwitchDef* preset = NULL;
+	Twitch* preset = NULL;
 
 	while (csvReader)
 	{
@@ -157,14 +233,7 @@ nextColumn:
 	gTwitchPresetsLoaded = true;
 }
 
-typedef struct
-{
-	TwitchDef	def;
-	ObjNode*	puppet;
-	float		timer;
-	uint32_t	cookie;
-} TwitchDriverData;
-CheckSpecialDataStruct(TwitchDriverData);
+#pragma mark - Easing
 
 static float Lerp(float a, float b, float p)
 {
@@ -216,39 +285,23 @@ static float Ease(float p, int easingType)
 	}
 }
 
-static void MoveUIEffectDriver(ObjNode* driver)
+#pragma mark - Twitch runtime
+
+static bool ApplyTwitch(ObjNode* puppet, const Twitch* fx, float timer)
 {
-	TwitchDriverData* effect = GetSpecialData(driver, TwitchDriverData);
-	GAME_ASSERT(effect->cookie == 'UIFX');
-
-	const TwitchDef* def = &effect->def;
-	ObjNode* puppet = effect->puppet;
-
-	if (IsObjectBeingDeleted(effect->puppet)		// puppet is being destroyed
-		|| effect->puppet->TwitchNode != driver)	// twitch effect was replaced
-	{
-		DeleteObject(driver);
-		return;
-	}
-
-	// Backup home coord/scale/rotation
-	OGLPoint3D realC = puppet->Coord;
-	OGLVector3D realS = puppet->Scale;
-	OGLVector3D realR = puppet->Rot;
-
-	float duration = def->duration;
+	float duration = fx->duration;
 	if (duration == 0)
 	{
 #if _DEBUG
-		printf("Twitch is missing duration\n");
+		printf("Twitch effect is missing duration\n");
 #endif
 		duration = 1;
 	}
 
-	float p = (effect->timer - effect->def.delay) / duration;
+	float p = (timer - fx->delay) / duration;
 	bool done = false;
 
-	if (p >= 1)			// twitch complete -- we'll nuke the driver at the end of this function
+	if (p >= 1)			// twitch complete
 	{
 		p = 1;
 		done = true;
@@ -258,125 +311,239 @@ static void MoveUIEffectDriver(ObjNode* driver)
 		p = 0;
 	}
 
-	p = Ease(p, def->easing);
+	p = Ease(p, fx->easing);
 
-	switch (effect->def.fxClass)
+	switch (fx->fxClass)
 	{
 		case kTwitchClass_Scale:
-			puppet->Scale.x = realS.x * Lerp(def->amplitude, 1, p);
-			puppet->Scale.y = realS.y * Lerp(def->amplitude, 1, p);
+			puppet->Scale.x *= Lerp(fx->amplitude, 1, p);
+			puppet->Scale.y *= Lerp(fx->amplitude, 1, p);
 			break;
 
 		case kTwitchClass_Shrink:
-			puppet->Scale.x = realS.x * Lerp(def->amplitude, 0, p);
-			puppet->Scale.y = realS.y * Lerp(def->amplitude, 0, p);
+			puppet->Scale.x *= Lerp(fx->amplitude, 0, p);
+			puppet->Scale.y *= Lerp(fx->amplitude, 0, p);
 			break;
 
 		case kTwitchClass_DisplaceX:
-			puppet->Coord.x += realS.x * Lerp(def->amplitude, 0, p);
+			puppet->Coord.x += puppet->Scale.x * Lerp(fx->amplitude, 0, p);
 			break;
 
 		case kTwitchClass_DisplaceY:
-			puppet->Coord.y += realS.y * Lerp(def->amplitude, 0, p);
+			puppet->Coord.y += puppet->Scale.y * Lerp(fx->amplitude, 0, p);
 			break;
 
 		case kTwitchClass_WiggleX:
 		{
 			float dampen = 1 - p;
-			puppet->Coord.x += realS.x * def->amplitude * dampen * sinf(dampen * def->period + def->phase);
+			puppet->Coord.x += puppet->Scale.x * fx->amplitude * dampen * sinf(dampen * fx->period + fx->phase);
 			break;
 		}
 
 		case kTwitchClass_SpinX:
 		{
-			float wave = cosf(p * def->period + def->phase);
+			float wave = cosf(p * fx->period + fx->phase);
 
 			if (fabsf(wave) < 0.2f)
 				wave = 0.2f * (wave < 0? -1: 1);
 
-			puppet->Scale.x = realS.x * def->amplitude * wave;
+			puppet->Scale.x = puppet->Scale.x * fx->amplitude * wave;
 
 			break;
 		}
 
+		case kTwitchClass_AlphaFadeIn:
+			puppet->ColorFilter.a *= Lerp(0, 1, p);
+			break;
+
+		case kTwitchClass_AlphaFadeOut:
+			puppet->ColorFilter.a *= Lerp(1, 0, p);
+			break;
+
 		default:
-			printf("Unknown effect class %d\n", effect->def.fxClass);
+			printf("Unknown effect class %d\n", fx->fxClass);
 			break;
 	}
 
+	// Don't rely on p>=1 for completion because some easing functions may overshoot on purpose!
+	return done;
+}
+
+static void MoveTwitchDriver(ObjNode* driverNode)
+{
+	TwitchDriverData* driverData = GetSpecialData(driverNode, TwitchDriverData);
+	GAME_ASSERT(driverData->cookie == 'UIFX');
+
+	ObjNode* puppet = driverData->puppet;
+
+	if (IsObjectBeingDeleted(driverData->puppet)			// puppet is being destroyed
+		|| driverData->puppet->TwitchNode != driverNode)	// twitch driver was replaced
+	{
+		DeleteObject(driverNode);
+		return;
+	}
+
+	// Backup home coord/scale/rotation
+	OGLPoint3D realC = puppet->Coord;
+	OGLVector3D realS = puppet->Scale;
+	OGLVector3D realR = puppet->Rot;
+
+	// Work through all effects in chain
+	int fxNum = 0;
+	while (fxNum < driverData->chainLength)
+	{
+		bool done = ApplyTwitch(puppet, driverData->fxChain[fxNum], driverData->timers[fxNum]);
+
+		if (done)
+		{
+			// Remove this effect from the chain
+			DisposeTwitch(driverData->fxChain[fxNum]);
+			driverData->fxChain[fxNum] = NULL;
+
+			driverData->chainLength--;
+			int lastFx = driverData->chainLength;
+
+			// Swap
+			if (fxNum != lastFx)
+			{
+				driverData->timers[fxNum]	= driverData->timers[lastFx];
+				driverData->fxChain[fxNum]	= driverData->fxChain[lastFx];
+			}
+		}
+		else
+		{
+			driverData->timers[fxNum] += gFramesPerSecondFrac;
+			fxNum++;
+		}
+	}
+
+	// Commit matrix
 	UpdateObjectTransforms(puppet);
 
+	// Restore home coord/scale/rotation
 	puppet->Coord = realC;
 	puppet->Scale = realS;
 	puppet->Rot = realR;
 
-	effect->timer += gFramesPerSecondFrac;
-
-	if (done)
+	// If we're done, nuke driverNode
+	if (driverData->chainLength == 0)
 	{
-		DeleteObject(driver);
+		DeleteObject(driverNode);
 		puppet->TwitchNode = NULL;
 	}
 }
 
-ObjNode* MakeTwitch(ObjNode* puppet, uint8_t preset)
-{
-	GAME_ASSERT_MESSAGE(preset <= kTwitchPresetCOUNT, "Not a legal twitch preset");
+#pragma mark - Twitch construction/destruction
 
+static void DisposeEffectChain(TwitchDriverData* driverData)
+{
+	for (int i = 0; i < driverData->chainLength; i++)
+	{
+		DisposeTwitch(driverData->fxChain[i]);
+		driverData->fxChain[i] = NULL;
+	}
+
+	driverData->chainLength = 0;
+}
+
+static void DestroyTwitchDriver(ObjNode* driver)
+{
+	TwitchDriverData* driverData = GetSpecialData(driver, TwitchDriverData);
+
+	if (driverData->puppet && driverData->puppet->TwitchNode == driver)
+	{
+		driverData->puppet->TwitchNode = NULL;
+	}
+	driverData->puppet = NULL;
+
+	DisposeEffectChain(driverData);
+}
+
+Twitch* MakeTwitch(ObjNode* puppet, int presetAndFlags)
+{
 	if (puppet == NULL)
 	{
 		return NULL;
 	}
 
-	if (!gTwitchPresetsLoaded)
-	{
-		LoadTwitchPresets();
-	}
+	GAME_ASSERT(gTwitchPresetsLoaded);
+	GAME_ASSERT(gTwitchPtrPoolInitialized);
+
+	ObjNode* driverNode = NULL;
+	TwitchDriverData* driverData = NULL;
 
 	if (puppet->TwitchNode)
 	{
-		DeleteObject(puppet->TwitchNode);
-		puppet->TwitchNode = NULL;
+		driverNode = puppet->TwitchNode;
+		driverData = GetSpecialData(driverNode, TwitchDriverData);
+
+		GAME_ASSERT(puppet->TwitchNode == driverNode);
+		GAME_ASSERT(driverData->cookie == 'UIFX');
+		GAME_ASSERT(driverData->puppet == puppet);
+		GAME_ASSERT(driverNode->Slot > puppet->Slot);
+
+		if (presetAndFlags & kTwitchFlags_AllowChaining)
+		{
+			if (driverData->chainLength >= MAX_TWITCH_CHAIN_LENGTH)
+			{
+				return NULL;
+			}
+		}
+		else
+		{
+			// Interrupt ongoing effect chain
+			DisposeEffectChain(driverData);
+		}
+	}
+	else
+	{
+		// Create a new twitch driver node
+		NewObjectDefinitionType def =
+		{
+			.genre		= EVENT_GENRE,
+			.slot		= puppet->Slot + 1,
+			.scale		= 1,
+			.moveCall	= MoveTwitchDriver,
+			.flags		= STATUS_BIT_MOVEINPAUSE,
+		};
+
+		driverNode = MakeNewObject(&def);
+		driverNode->Destructor = DestroyTwitchDriver;
+		driverData = GetSpecialData(driverNode, TwitchDriverData);
+
+		driverData->cookie = 'UIFX';
+		driverData->puppet = puppet;
+		puppet->TwitchNode = driverNode;
 	}
 
-	NewObjectDefinitionType def =
-	{
-		.genre = CUSTOM_GENRE,
-		.slot = puppet->Slot + 1,		// puppet's move call must set coord/scale BEFORE twitch's move call
-		.scale = 1,
-		.moveCall = MoveUIEffectDriver,
-		.flags = STATUS_BIT_MOVEINPAUSE,
-	};
+	Twitch* twitch = AllocTwitch();
 
-	ObjNode* driver = MakeNewObject(&def);
-
-	*GetSpecialData(driver, TwitchDriverData) = (TwitchDriverData)
-	{
-		.cookie = 'UIFX',
-		.puppet = puppet,
-		.def = gTwitchPresets[preset],
-		.timer = 0,
-	};
-
-	puppet->TwitchNode = driver;
-
-	return driver;
-}
-
-TwitchDef* GetTwitchParameters(ObjNode* driver)
-{
-	if (driver == NULL)
-	{
+	if (!twitch)
 		return NULL;
-	}
 
-	TwitchDriverData* driverData = GetSpecialData(driver, TwitchDriverData);
-	GAME_ASSERT(driverData->cookie == 'UIFX');
+	int effectNum = driverData->chainLength;
+	driverData->chainLength++;
+	GAME_ASSERT(driverData->chainLength <= MAX_TWITCH_CHAIN_LENGTH);
 
-	return &driverData->def;
+	driverData->timers[effectNum] = 0;
+	driverData->fxChain[effectNum] = twitch;
+
+	uint8_t presetNum = presetAndFlags & 0xFF;
+	GAME_ASSERT_MESSAGE(presetNum <= kTwitchPresetCOUNT, "Not a legal twitch preset");
+	*twitch = gTwitchPresets[presetNum];
+
+	return twitch;
 }
 
-#pragma mark -
+#pragma mark - Init
+
+void InitTwitchSystem(void)
+{
+	LoadTwitchPresets();
+	InitTwitchPool();
+}
+
+#pragma mark - Scrolling background pattern
 
 /************** SCROLLING BACKGROUND PATTERN *********************/
 

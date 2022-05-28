@@ -1,11 +1,14 @@
 #pragma once
 
+#define MAX_TWITCHES 256
+
 enum
 {
 	kTwitchPreset_NULL = 0,
 	kTwitchPreset_MenuSelect,
 	kTwitchPreset_MenuDeselect,
 	kTwitchPreset_MenuWiggle,
+	kTwitchPreset_MenuFadeIn,
 	kTwitchPreset_PadlockWiggle,
 	kTwitchPreset_DisplaceLTR,
 	kTwitchPreset_DisplaceRTL,
@@ -28,6 +31,8 @@ enum
 	kTwitchClass_DisplaceY,
 	kTwitchClass_WiggleX,
 	kTwitchClass_Shrink,
+	kTwitchClass_AlphaFadeIn,
+	kTwitchClass_AlphaFadeOut,
 
 	kEaseLinear,
 	kEaseInQuad,
@@ -38,19 +43,24 @@ enum
 	kEaseBounce0To0,
 };
 
+enum
+{
+	kTwitchFlags_AllowChaining = 0x10000,
+};
+
 typedef struct
 {
 	Byte fxClass;
 	Byte easing;
 	float duration;
-	float delay;
-	float period;
 	float amplitude;
+	float period;
 	float phase;
+	float delay;
 	float seed;
-} TwitchDef;
+} Twitch;
 
-ObjNode* MakeTwitch(ObjNode* puppet, uint8_t preset);
-TwitchDef* GetTwitchParameters(ObjNode* driver);
+void InitTwitchSystem(void);
+Twitch* MakeTwitch(ObjNode* puppet, int presetAndFlags);
 
 ObjNode* MakeScrollingBackgroundPattern(void);

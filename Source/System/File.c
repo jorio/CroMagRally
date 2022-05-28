@@ -926,7 +926,7 @@ static const char*	levelModelFiles[NUM_TRACKS] =
 
 
 	// Ensure sprite groups are preloaded
-PreloadGameArt();
+	PreloadGameArt();
 
 
 			/* LOAD TERRAIN */
