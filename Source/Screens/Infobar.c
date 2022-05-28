@@ -885,7 +885,8 @@ enum
 				// earned POW, go active
 				SetObjectVisible(node, true);
 				special->state = kActive;
-				MakeTwitch(node, kTwitchPreset_NewWeapon);
+				Twitch* t = MakeTwitch(node, kTwitchPreset_NewWeapon);
+				t->delay *= GetInfobarIconData(node)->sub;
 			}
 			break;
 
@@ -893,7 +894,8 @@ enum
 			if (!hasAnyPow)
 			{
 				// went inactive
-				MakeTwitch(node, kTwitchPreset_POWExpired);
+				Twitch* t = MakeTwitch(node, kTwitchPreset_POWExpired);
+				t->delay *= GetInfobarIconData(node)->sub;
 				special->state = kVanishing;
 			}
 			break;
@@ -951,11 +953,8 @@ enum
 				snprintf(s, sizeof(s), "%d", pi->powQuantity);
 				TextMesh_Update(s, kTextMeshAlignLeft, node);
 
-				if (!node->TwitchNode)
-				{
-					bool gain = pi->powQuantity > special->displayedValue;		// gain if qty++
-					MakeTwitch(node, gain ? kTwitchPreset_ItemGain : kTwitchPreset_ItemLoss);
-				}
+				bool gain = pi->powQuantity > special->displayedValue;		// gain if qty++
+				MakeTwitch(node, (gain ? kTwitchPreset_ItemGain : kTwitchPreset_ItemLoss) | kTwitchFlags_Chain);
 
 				special->displayedValue = pi->powQuantity;
 			}
@@ -1194,7 +1193,8 @@ enum
 				if (hasRow)
 				{
 					special->state = kActive;
-					MakeTwitch(objNode, kTwitchPreset_NewBuff);
+					Twitch* twitch = MakeTwitch(objNode, kTwitchPreset_NewBuff);
+					twitch->delay *= subInRow;
 					SetObjectVisible(objNode, true);
 				}
 				else
@@ -1207,7 +1207,8 @@ enum
 		case kActive:
 			if (!isTicking)		// Wait for ticking to end to change states
 			{
-				MakeTwitch(objNode, kTwitchPreset_POWExpired);
+				Twitch* twitch = MakeTwitch(objNode, kTwitchPreset_POWExpired);
+				twitch->delay *= subInRow;
 				special->state = kVanishing;
 			}
 			break;

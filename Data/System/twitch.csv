@@ -14,8 +14,8 @@ RankGain,DisplaceY,OutQuad,0.2,-8,,,
 RankLoss,WiggleX,Linear,0.25,12,2,,
 ArrowheadSpin,SpinX,OutQuad,1.5,1,8,,
 WeaponFlip,SpinX,OutQuad,0.35,1,1,-1,
-NewBuff,DisplaceX,OutBack,0.25,-64,,,
-NewWeapon,DisplaceY,OutBack,0.25,-64,,,
-POWExpired,Shrink,InBack,0.25,1,,,
+NewBuff,DisplaceX,OutBack,0.25,-64,,,0.05
+NewWeapon,DisplaceY,OutBack,0.25,-70,,,0.015
+POWExpired,Shrink,InBack,0.25,1,,,0.025
 FadeOutLapMessage,OverrideAlphaFadeOut,Linear,0.5,,,,1
 FadeOutTrackName,OverrideAlphaFadeOut,Linear,1,,,,2.5
