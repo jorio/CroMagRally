@@ -1039,9 +1039,17 @@ OGLPoint3D			pt;
 
 	MakeSparkExplosion(pt.x, pt.y, pt.z, 500.0, PARTICLE_SObjType_WhiteSpark);
 	BlastCars(-1, pt.x, pt.y, pt.z, 300.0);
-	PlayEffect_Parms3D(EFFECT_CANNON, &goddess->Coord, NORMAL_CHANNEL_RATE * 3/4, 6);
 
 
+		/* PLAY CANNON SOUND AT IMPACT POINT */
+
+	PlayEffect_Parms3D(EFFECT_CANNON, &pt, NORMAL_CHANNEL_RATE * 3/4, 2.0f);
+
+
+		/* PLAY QUIETER CANNON SOUND AT ORIGIN */
+		// Cannon sound has steep volume falloff, so we may not hear impact sound if standing close to goddess
+
+	PlayEffect_Parms3D(EFFECT_CANNON, &goddess->Coord, NORMAL_CHANNEL_RATE * 3/4, 0.66f);
 }
 
 
