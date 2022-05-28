@@ -23,6 +23,8 @@ enum
 	kTwitchPreset_NewBuff,
 	kTwitchPreset_NewWeapon,
 	kTwitchPreset_POWExpired,
+	kTwitchPreset_FadeOutLapMessage,
+	kTwitchPreset_FadeOutTrackName,
 	kTwitchPresetCOUNT,
 
 	kTwitchClass_Scale = kTwitchPresetCOUNT,		// deliberately starting above last preset # so presets and classes cannot be mixed up
@@ -31,8 +33,10 @@ enum
 	kTwitchClass_DisplaceY,
 	kTwitchClass_WiggleX,
 	kTwitchClass_Shrink,
-	kTwitchClass_AlphaFadeIn,
-	kTwitchClass_AlphaFadeOut,
+	kTwitchClass_MultAlphaFadeIn,
+	kTwitchClass_MultAlphaFadeOut,
+	kTwitchClass_OverrideAlphaFadeIn,
+	kTwitchClass_OverrideAlphaFadeOut,
 
 	kEaseLinear,
 	kEaseInQuad,
@@ -45,7 +49,8 @@ enum
 
 enum
 {
-	kTwitchFlags_AllowChaining = 0x10000,
+	kTwitchFlags_Chain			= 0x100,
+	kTwitchFlags_KillPuppet		= 0x200,
 };
 
 typedef struct

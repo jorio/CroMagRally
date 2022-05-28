@@ -33,8 +33,6 @@ static void Infobar_MoveFlag(ObjNode* objNode);
 static void Infobar_DrawHealth(Byte whichPane);
 
 static void MoveFinalPlace(ObjNode *theNode);
-static void MoveTrackName(ObjNode *theNode);
-static void MoveLapMessage(ObjNode *theNode);
 static void MovePressAnyKey(ObjNode *theNode);
 
 
@@ -1456,7 +1454,6 @@ short	lapNum;
 		NewObjectDefinitionType def =
 		{
 			.coord		= {0,0,0},
-			.moveCall	= MoveLapMessage,
 			.scale		= .7f,
 			.slot		= SPRITE_SLOT,
             .flags      = STATUS_BIT_ONLYSHOWTHISPLAYER
@@ -1465,14 +1462,10 @@ short	lapNum;
 		const char* s = Localize(lapNum == 1 ? STR_LAP_2 : STR_LAP_3);
 		ObjNode* text = TextMesh_New(s, kTextMeshAlignCenter, &def);
         text->PlayerNum = playerNum;
+
+		MakeTwitch(text, kTwitchPreset_MenuSelect);
+		MakeTwitch(text, kTwitchPreset_FadeOutLapMessage | kTwitchFlags_Chain | kTwitchFlags_KillPuppet);
 	}
-}
-
-/************* MOVE LAP MESSAGE *****************/
-
-static void MoveLapMessage(ObjNode *theNode)
-{
-	theNode->ColorFilter.a -= gFramesPerSecondFrac * .5f;
 }
 
 
@@ -1696,35 +1689,13 @@ ObjNode	*newObj;
 	{
 		.coord		= {0,0,0},
 		.slot 		= SPRITE_SLOT,
-		.moveCall 	= MoveTrackName,
 		.scale 	    = .8f,
 		.flags		= STATUS_BIT_MOVEINPAUSE,
 	};
 
 	newObj = TextMesh_New(Localize(STR_LEVEL_1 + gTrackNum), kTextMeshAlignCenter, &def);
 
-	newObj->ColorFilter.a = 3.5;
-}
-
-
-/******************** MOVE TRACK NAME *************************/
-
-static void MoveTrackName(ObjNode *theNode)
-{
-	if (gGamePaused)
-	{
-		theNode->StatusBits |= STATUS_BIT_HIDDEN;
-		return;
-	}
-
-	theNode->ColorFilter.a -= gFramesPerSecondFrac;
-	if (theNode->ColorFilter.a <= 0.0f)
-	{
-		DeleteObject(theNode);
-		return;
-	}
-
-	theNode->StatusBits &= ~STATUS_BIT_HIDDEN;
+	MakeTwitch(newObj, kTwitchPreset_FadeOutTrackName | kTwitchFlags_KillPuppet);
 }
 
 

@@ -14,7 +14,8 @@ typedef struct
 	Twitch*				fxChain[MAX_TWITCH_CHAIN_LENGTH];
 	float				timers[MAX_TWITCH_CHAIN_LENGTH];
 	uint32_t			cookie;
-	Byte				chainLength;
+	uint8_t				chainLength;
+	bool				deletePuppetOnCompletion;
 } TwitchDriverData;
 CheckSpecialDataStruct(TwitchDriverData);
 
@@ -46,6 +47,8 @@ static const char* kTwitchEnumNames[] =
 	REGISTER_ENUM_NAME(kTwitchPreset_NewBuff),
 	REGISTER_ENUM_NAME(kTwitchPreset_NewWeapon),
 	REGISTER_ENUM_NAME(kTwitchPreset_POWExpired),
+	REGISTER_ENUM_NAME(kTwitchPreset_FadeOutLapMessage),
+	REGISTER_ENUM_NAME(kTwitchPreset_FadeOutTrackName),
 
 	REGISTER_ENUM_NAME(kTwitchClass_Scale),
 	REGISTER_ENUM_NAME(kTwitchClass_SpinX),
@@ -53,8 +56,10 @@ static const char* kTwitchEnumNames[] =
 	REGISTER_ENUM_NAME(kTwitchClass_DisplaceY),
 	REGISTER_ENUM_NAME(kTwitchClass_WiggleX),
 	REGISTER_ENUM_NAME(kTwitchClass_Shrink),
-	REGISTER_ENUM_NAME(kTwitchClass_AlphaFadeIn),
-	REGISTER_ENUM_NAME(kTwitchClass_AlphaFadeOut),
+	REGISTER_ENUM_NAME(kTwitchClass_MultAlphaFadeIn),
+	REGISTER_ENUM_NAME(kTwitchClass_MultAlphaFadeOut),
+	REGISTER_ENUM_NAME(kTwitchClass_OverrideAlphaFadeIn),
+	REGISTER_ENUM_NAME(kTwitchClass_OverrideAlphaFadeOut),
 
 	REGISTER_ENUM_NAME(kEaseLinear),
 	REGISTER_ENUM_NAME(kEaseInQuad),
@@ -118,7 +123,7 @@ static void DisposeTwitch(Twitch* e)
 	gFreeTwitches++;
 }
 
-#pragma mark - Parse presets
+#pragma mark - Parse presets from CSV file
 
 static int FindEnumString(const char* prefix, const char* column)
 {
@@ -217,7 +222,14 @@ static void LoadTwitchPresets(void)
 
 			case 6:
 				preset->phase = PI * atof(column);
-				GAME_ASSERT(eol);
+				break;
+
+			case 7:
+				preset->delay = atof(column);
+				break;
+
+			default:
+				// ignore any other columns
 				break;
 		}
 
@@ -352,12 +364,20 @@ static bool ApplyTwitch(ObjNode* puppet, const Twitch* fx, float timer)
 			break;
 		}
 
-		case kTwitchClass_AlphaFadeIn:
+		case kTwitchClass_MultAlphaFadeIn:
 			puppet->ColorFilter.a *= Lerp(0, 1, p);
 			break;
 
-		case kTwitchClass_AlphaFadeOut:
+		case kTwitchClass_MultAlphaFadeOut:
 			puppet->ColorFilter.a *= Lerp(1, 0, p);
+			break;
+
+		case kTwitchClass_OverrideAlphaFadeIn:
+			puppet->ColorFilter.a = Lerp(0, 1, p);
+			break;
+
+		case kTwitchClass_OverrideAlphaFadeOut:
+			puppet->ColorFilter.a = Lerp(1, 0, p);
 			break;
 
 		default:
@@ -428,8 +448,15 @@ static void MoveTwitchDriver(ObjNode* driverNode)
 	// If we're done, nuke driverNode
 	if (driverData->chainLength == 0)
 	{
+		bool killPuppet = driverData->deletePuppetOnCompletion;
+
 		DeleteObject(driverNode);
 		puppet->TwitchNode = NULL;
+
+		if (killPuppet)
+		{
+			DeleteObject(puppet);
+		}
 	}
 }
 
@@ -482,7 +509,7 @@ Twitch* MakeTwitch(ObjNode* puppet, int presetAndFlags)
 		GAME_ASSERT(driverData->puppet == puppet);
 		GAME_ASSERT(driverNode->Slot > puppet->Slot);
 
-		if (presetAndFlags & kTwitchFlags_AllowChaining)
+		if (presetAndFlags & kTwitchFlags_Chain)
 		{
 			if (driverData->chainLength >= MAX_TWITCH_CHAIN_LENGTH)
 			{
@@ -492,6 +519,7 @@ Twitch* MakeTwitch(ObjNode* puppet, int presetAndFlags)
 		else
 		{
 			// Interrupt ongoing effect chain
+			driverData->deletePuppetOnCompletion = false;
 			DisposeEffectChain(driverData);
 		}
 	}
@@ -504,7 +532,7 @@ Twitch* MakeTwitch(ObjNode* puppet, int presetAndFlags)
 			.slot		= puppet->Slot + 1,
 			.scale		= 1,
 			.moveCall	= MoveTwitchDriver,
-			.flags		= STATUS_BIT_MOVEINPAUSE,
+			.flags		= puppet->StatusBits & STATUS_BIT_MOVEINPAUSE,
 		};
 
 		driverNode = MakeNewObject(&def);
@@ -515,6 +543,8 @@ Twitch* MakeTwitch(ObjNode* puppet, int presetAndFlags)
 		driverData->puppet = puppet;
 		puppet->TwitchNode = driverNode;
 	}
+
+	driverData->deletePuppetOnCompletion |= (presetAndFlags & kTwitchFlags_KillPuppet);
 
 	Twitch* twitch = AllocTwitch();
 

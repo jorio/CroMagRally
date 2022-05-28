@@ -1658,10 +1658,10 @@ static ObjNode* MakeText(const char* text, int row, int desiredCol, int textMesh
 	if (fadeEffect)
 	{
 		fadeEffect->delay = delay;
-		fadeEffect->duration = sweepInDelay;
+		fadeEffect->duration = 0.3f;
 	}
 
-	Twitch* displaceEffect = MakeTwitch(node, kTwitchPreset_DisplaceLTR | kTwitchFlags_AllowChaining);
+	Twitch* displaceEffect = MakeTwitch(node, kTwitchPreset_DisplaceLTR | kTwitchFlags_Chain);
 	if (displaceEffect)
 	{
 		displaceEffect->amplitude = gTempForceSwipeRTL ? 50 : -50;
