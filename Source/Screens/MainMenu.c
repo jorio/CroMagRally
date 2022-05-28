@@ -16,6 +16,8 @@
 #include "network.h"
 #include "version.h"
 
+#include <SDL.h>
+
 /****************************/
 /*    PROTOTYPES            */
 /****************************/
@@ -170,13 +172,36 @@ static void PrimeSelfRunningDemo(void)
 
 static void UpdateMainMenuScreen(void)
 {
+	static bool saidYeah = false;
+
 	MoveObjects();
 
-	if (GetCurrentMenu() == 'titl' &&
-		(GetMenuIdleTime() > DEMO_DELAY || IsCheatKeyComboDown()))
+	if (GetCurrentMenu() == 'titl')		// root menu page
 	{
-		gGameView->fadePillarbox = true;
-		KillMenu(MENU_EXITCODE_SELFRUNDEMO);
+				/* INITIATE SRD */
+
+		if (GetMenuIdleTime() > DEMO_DELAY || GetNewKeyState(SDL_SCANCODE_F1))
+		{
+			gGameView->fadePillarbox = true;
+			KillMenu(MENU_EXITCODE_SELFRUNDEMO);
+		}
+
+				/* SET 100% TOURNAMENT PROGRESSION */
+
+		else if (IsCheatKeyComboDown() && (!saidYeah || GetNumTracksCompletedTotal() < NUM_RACE_TRACKS))
+		{
+			saidYeah = true;
+
+			PlayEffect_Parms(EFFECT_ARROWHEAD, FULL_CHANNEL_VOLUME*2, FULL_CHANNEL_VOLUME*2, NORMAL_CHANNEL_RATE);
+			SetPlayerProgression(NUM_RACE_TRACKS);
+
+			NewObjectDefinitionType def = {.coord={0, -150, 0}, .slot=SPRITE_SLOT, .scale=1};
+
+			ObjNode* fatText = TextMesh_New("UNLOCKED\nEVERYTHING", 0, &def);
+			fatText->StatusBits |= STATUS_BIT_KEEPBACKFACES;
+
+			MakeTwitch(fatText, kTwitchCoinSpin);
+		}
 	}
 }
 
