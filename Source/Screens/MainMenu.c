@@ -200,7 +200,7 @@ static void UpdateMainMenuScreen(void)
 			ObjNode* fatText = TextMesh_New("UNLOCKED\nEVERYTHING", 0, &def);
 			fatText->StatusBits |= STATUS_BIT_KEEPBACKFACES;
 
-			MakeTwitch(fatText, kTwitchCoinSpin);
+			MakeTwitch(fatText, kTwitchPreset_WeaponFlip);
 		}
 	}
 }

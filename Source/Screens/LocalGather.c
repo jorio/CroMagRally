@@ -232,7 +232,7 @@ static int DoLocalGatherControls(void)
 		else
 		{
 			PlayEffect(EFFECT_BADSELECT);
-			MakeTwitch(gGatherPrompt, kTwitchBigWiggle);
+			MakeTwitch(gGatherPrompt, kTwitchPreset_PadlockWiggle);
 		}
 	}
 	else if (GetNewNeedStateAnyP(kNeed_UIConfirm))
@@ -241,7 +241,7 @@ static int DoLocalGatherControls(void)
 		if (gNumControllersMissing > 0)
 		{
 			PlayEffect(EFFECT_BADSELECT);
-			MakeTwitch(gGatherPrompt, kTwitchBigWiggle);
+			MakeTwitch(gGatherPrompt, kTwitchPreset_PadlockWiggle);
 		}
 	}
 	else if (IsCheatKeyComboDown())		// useful to test local multiplayer without having all controllers plugged in

@@ -2,40 +2,34 @@
 
 enum
 {
-	kTwitchScaleHard = 1,
-	kTwitchScaleSoft,
-	kTwitchDisplaceLTR,
-	kTwitchDisplaceRTL,
-	kTwitchLightDisplaceLTR,
-	kTwitchLightDisplaceRTL,
-	kTwitchLightDisplaceUTD,
-	kTwitchLightDisplaceDTU,
-	kTwitchYBounce,
-	kTwitchQuickWiggle,
-	kTwitchBigWiggle,
-	kTwitchSubtleWiggle,
-	kTwitchScaleUp,
-	kTwitchArrowheadSpin,
-	kTwitchCoinSpin,
-	kTwitchSweepFromLeft,
-	kTwitchSweepFromTop,
-	kTwitchScaleVanish,
+	kTwitchPreset_NULL = 0,
+	kTwitchPreset_MenuSelect,
+	kTwitchPreset_MenuDeselect,
+	kTwitchPreset_MenuWiggle,
+	kTwitchPreset_PadlockWiggle,
+	kTwitchPreset_DisplaceLTR,
+	kTwitchPreset_DisplaceRTL,
+	kTwitchPreset_SlideshowLTR,
+	kTwitchPreset_SlideshowRTL,
+	kTwitchPreset_ItemGain,
+	kTwitchPreset_ItemLoss,
+	kTwitchPreset_RankGain,
+	kTwitchPreset_RankLoss,
+	kTwitchPreset_ArrowheadSpin,
+	kTwitchPreset_WeaponFlip,
+	kTwitchPreset_NewBuff,
+	kTwitchPreset_NewWeapon,
+	kTwitchPreset_POWExpired,
 	kTwitchPresetCOUNT,
-};
 
-enum
-{
-	kTwitchClassScale = kTwitchPresetCOUNT,		// deliberately starting above last preset # so presets and classes cannot be mixed up
-	kTwitchClassSpinX,
-	kTwitchClassDisplaceX,
-	kTwitchClassDisplaceY,
-	kTwitchClassWiggleX,
-	kTwitchClassScaleVanish,
-};
+	kTwitchClass_Scale = kTwitchPresetCOUNT,		// deliberately starting above last preset # so presets and classes cannot be mixed up
+	kTwitchClass_SpinX,
+	kTwitchClass_DisplaceX,
+	kTwitchClass_DisplaceY,
+	kTwitchClass_WiggleX,
+	kTwitchClass_Shrink,
 
-enum
-{
-	kEaseLerp = 0,
+	kEaseLinear,
 	kEaseInQuad,
 	kEaseOutQuad,
 	kEaseOutCubic,

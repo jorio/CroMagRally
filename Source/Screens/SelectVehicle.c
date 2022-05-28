@@ -524,7 +524,7 @@ short	p;
 		else
 		{
 			PlayEffect(EFFECT_BADSELECT);
-			MakeTwitch(gVehiclePadlock, kTwitchBigWiggle);
+			MakeTwitch(gVehiclePadlock, kTwitchPreset_PadlockWiggle);
 		}
 	}
 	else
@@ -542,8 +542,8 @@ short	p;
 		PlayEffect(EFFECT_SELECTCLICK);
 		gSelectedVehicleIndex--;
 		UpdateSelectedVehicle();
-		MakeTwitch(gVehicleLeftArrow, kTwitchDisplaceLTR);
-		MakeTwitch(gVehicleName, kTwitchDisplaceRTL);
+		MakeTwitch(gVehicleLeftArrow, kTwitchPreset_DisplaceLTR);
+		MakeTwitch(gVehicleName, kTwitchPreset_DisplaceRTL);
 	}
 	else
 	if (GetNewNeedState(kNeed_UIRight, p) && (gSelectedVehicleIndex < NUM_LAND_CAR_TYPES-1))
@@ -551,8 +551,8 @@ short	p;
 		PlayEffect(EFFECT_SELECTCLICK);
 		gSelectedVehicleIndex++;
 		UpdateSelectedVehicle();
-		MakeTwitch(gVehicleRightArrow, kTwitchDisplaceRTL);
-		MakeTwitch(gVehicleName, kTwitchDisplaceLTR);
+		MakeTwitch(gVehicleRightArrow, kTwitchPreset_DisplaceRTL);
+		MakeTwitch(gVehicleName, kTwitchPreset_DisplaceLTR);
 	}
 
 	return(false);

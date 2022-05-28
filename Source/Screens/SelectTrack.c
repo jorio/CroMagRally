@@ -383,7 +383,7 @@ static Boolean DoTrackSelectControls(void)
 		if (IsSelectedTrackLocked())
 		{
 			PlayEffect(EFFECT_BADSELECT);
-			MakeTwitch(gTrackPadlock, kTwitchBigWiggle);
+			MakeTwitch(gTrackPadlock, kTwitchPreset_PadlockWiggle);
 		}
 		else
 		{
@@ -406,9 +406,9 @@ static Boolean DoTrackSelectControls(void)
 		gSelectedTrackIndex--;
 		PlayEffect(EFFECT_SELECTCLICK);
 		UpdateSelectedTrack();
-		MakeTwitch(gTrackLeftArrow, kTwitchDisplaceLTR);
-		MakeTwitch(gTrackImageIcon, kTwitchLightDisplaceRTL);
-		MakeTwitch(gTrackName, kTwitchDisplaceRTL);
+		MakeTwitch(gTrackLeftArrow, kTwitchPreset_DisplaceLTR);
+		MakeTwitch(gTrackImageIcon, kTwitchPreset_SlideshowRTL);
+		MakeTwitch(gTrackName, kTwitchPreset_DisplaceRTL);
 	}
 	else
 	if (GetNewNeedStateAnyP(kNeed_UIRight) && (gSelectedTrackIndex < (gNumTracksInSelection-1)))
@@ -416,9 +416,9 @@ static Boolean DoTrackSelectControls(void)
 		gSelectedTrackIndex++;
 		PlayEffect(EFFECT_SELECTCLICK);
 		UpdateSelectedTrack();
-		MakeTwitch(gTrackRightArrow, kTwitchDisplaceRTL);
-		MakeTwitch(gTrackImageIcon, kTwitchLightDisplaceLTR);
-		MakeTwitch(gTrackName, kTwitchDisplaceLTR);
+		MakeTwitch(gTrackRightArrow, kTwitchPreset_DisplaceRTL);
+		MakeTwitch(gTrackImageIcon, kTwitchPreset_SlideshowLTR);
+		MakeTwitch(gTrackName, kTwitchPreset_DisplaceLTR);
 	}
 
 	return(false);

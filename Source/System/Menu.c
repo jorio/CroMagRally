@@ -521,8 +521,8 @@ static void TwitchSelectionInOrOut(bool scaleIn)
 	obj->Scale.x = s * (scaleIn? 1.15: 1);
 	obj->Scale.y = s * (scaleIn? 1.15: 1);
 
-	if (GetSpecialData(obj, MenuNodeData)->sweepProgress >= 1)
-		MakeTwitch(obj, scaleIn ? kTwitchScaleHard : kTwitchScaleSoft);
+	if (!obj->TwitchNode)
+		MakeTwitch(obj, scaleIn ? kTwitchPreset_MenuSelect : kTwitchPreset_MenuDeselect);
 }
 
 static void TwitchSelection(void)
@@ -537,7 +537,7 @@ static void TwitchOutSelection(void)
 
 static void TwitchWiggleSelection(void)
 {
-	MakeTwitch(GetCurrentMenuItemObject(), kTwitchQuickWiggle);
+	MakeTwitch(GetCurrentMenuItemObject(), kTwitchPreset_MenuWiggle);
 }
 
 /****************************/
@@ -955,9 +955,9 @@ static void NavigateCycler(const MenuItem* entry)
 	}
 	else if (GetNewNeedStateAnyP(kNeed_UIConfirm))
 	{
-		MakeTwitch(GetCurrentMenuItemObject(), kTwitchScaleHard);
-		MakeTwitch(gNav->arrowObjects[0], kTwitchBigWiggle);
-		MakeTwitch(gNav->arrowObjects[1], kTwitchBigWiggle);
+		MakeTwitch(GetCurrentMenuItemObject(), kTwitchPreset_MenuSelect);
+		MakeTwitch(gNav->arrowObjects[0], kTwitchPreset_PadlockWiggle);
+		MakeTwitch(gNav->arrowObjects[1], kTwitchPreset_PadlockWiggle);
 		PlayEffect(EFFECT_BADSELECT);
 		return;
 	}
@@ -975,8 +975,8 @@ static void NavigateCycler(const MenuItem* entry)
 			{
 				PlayEffect(EFFECT_BADSELECT);
 				TwitchWiggleSelection();
-				MakeTwitch(gNav->arrowObjects[0], kTwitchBigWiggle);
-				MakeTwitch(gNav->arrowObjects[1], kTwitchBigWiggle);
+				MakeTwitch(gNav->arrowObjects[0], kTwitchPreset_PadlockWiggle);
+				MakeTwitch(gNav->arrowObjects[1], kTwitchPreset_PadlockWiggle);
 				return;
 			}
 
@@ -1008,9 +1008,9 @@ static void NavigateCycler(const MenuItem* entry)
 		RepositionArrows();
 
 		if (delta < 0)
-			MakeTwitch(gNav->arrowObjects[0], kTwitchDisplaceLTR);
+			MakeTwitch(gNav->arrowObjects[0], kTwitchPreset_DisplaceLTR);
 		else
-			MakeTwitch(gNav->arrowObjects[1], kTwitchDisplaceRTL);
+			MakeTwitch(gNav->arrowObjects[1], kTwitchPreset_DisplaceRTL);
 	}
 }
 
@@ -1032,9 +1032,9 @@ static void NavigateFloatRange(const MenuItem* entry)
 	}
 	else if (GetNewNeedStateAnyP(kNeed_UIConfirm))
 	{
-		MakeTwitch(GetCurrentMenuItemObject(), kTwitchScaleHard);
-		MakeTwitch(gNav->arrowObjects[0], kTwitchBigWiggle);
-		MakeTwitch(gNav->arrowObjects[1], kTwitchBigWiggle);
+		MakeTwitch(GetCurrentMenuItemObject(), kTwitchPreset_MenuSelect);
+		MakeTwitch(gNav->arrowObjects[0], kTwitchPreset_PadlockWiggle);
+		MakeTwitch(gNav->arrowObjects[1], kTwitchPreset_PadlockWiggle);
 		PlayEffect(EFFECT_BADSELECT);
 		return;
 	}
@@ -1099,9 +1099,9 @@ static void NavigateFloatRange(const MenuItem* entry)
 		// Adjust arrows
 		RepositionArrows();
 		if (delta < 0)
-			MakeTwitch(gNav->arrowObjects[0], kTwitchDisplaceLTR);
+			MakeTwitch(gNav->arrowObjects[0], kTwitchPreset_DisplaceLTR);
 		else
-			MakeTwitch(gNav->arrowObjects[1], kTwitchDisplaceRTL);
+			MakeTwitch(gNav->arrowObjects[1], kTwitchPreset_DisplaceRTL);
 
 		// Update cooldown timer
 		if (valueFrac == 1.0f || valueFrac == 0.0f)		// Force speed bump at 0% and 100%
@@ -1660,7 +1660,7 @@ static ObjNode* MakeText(const char* text, int row, int desiredCol, int textMesh
 	data->col = desiredCol;
 	data->sweepProgress = gTempInitialSweepFactor;
 
-	ObjNode* twitchDriver = MakeTwitch(node, kTwitchDisplaceLTR);
+	ObjNode* twitchDriver = MakeTwitch(node, kTwitchPreset_DisplaceLTR);
 	TwitchDef* twitchDef = GetTwitchParameters(twitchDriver);
 	twitchDef->amplitude = gTempForceSwipeRTL ? 50 : -50;
 	twitchDef->delay = -gTempInitialSweepFactor * (1.0f / gNav->style.sweepInSpeed);
@@ -1887,7 +1887,7 @@ static void LayOutMenu(int menuID)
 		gNav->darkenPane->Scale.y = newScale;
 		UpdateObjectTransforms(gNav->darkenPane);
 
-		ObjNode* driver = MakeTwitch(gNav->darkenPane, kTwitchScaleSoft);
+		ObjNode* driver = MakeTwitch(gNav->darkenPane, kTwitchPreset_MenuDeselect);
 		TwitchDef* twitchDef = GetTwitchParameters(driver);
 		twitchDef->amplitude = prevScale/newScale;
 	}

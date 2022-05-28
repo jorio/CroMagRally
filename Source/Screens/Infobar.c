@@ -834,16 +834,8 @@ static void Infobar_MovePlace(ObjNode* node)
 	{
 		if (gCameraStartupTimer <= 0)					// only twitch once the race has started
 		{
-			if (special->displayedValue > place)		// we're doing better
-			{
-				//ObjNode* twitchDriver = MakeTwitch(node, kTwitchScaleHard);
-				//GetTwitchParameters(twitchDriver)->amplitude = 1.3;
-				MakeTwitch(node, kTwitchLightDisplaceUTD);
-			}
-			else										// we're doing worse
-			{
-				MakeTwitch(node, kTwitchSubtleWiggle);
-			}
+			bool gain = place < special->displayedValue;	// gain if rank--
+			MakeTwitch(node, gain ? kTwitchPreset_RankGain : kTwitchPreset_RankLoss);
 		}
 
 		special->displayedValue = place;
@@ -895,7 +887,7 @@ enum
 				// earned POW, go active
 				SetObjectVisible(node, true);
 				special->state = kActive;
-				MakeTwitch(node, kTwitchSweepFromTop);
+				MakeTwitch(node, kTwitchPreset_NewWeapon);
 			}
 			break;
 
@@ -903,7 +895,7 @@ enum
 			if (!hasAnyPow)
 			{
 				// went inactive
-				MakeTwitch(node, kTwitchScaleVanish);
+				MakeTwitch(node, kTwitchPreset_POWExpired);
 				special->state = kVanishing;
 			}
 			break;
@@ -941,7 +933,7 @@ enum
 					special->displayedValue != -1)
 				{
 					node->StatusBits |= STATUS_BIT_KEEPBACKFACES;
-					MakeTwitch(node, kTwitchCoinSpin);
+					MakeTwitch(node, kTwitchPreset_WeaponFlip);
 				}
 
 				special->displayedValue = pi->powType;
@@ -963,10 +955,8 @@ enum
 
 				if (!node->TwitchNode)
 				{
-					if (special->displayedValue > pi->powQuantity)		// we lost an item
-						MakeTwitch(node, kTwitchLightDisplaceDTU);
-					else												// we gained an item
-						MakeTwitch(node, kTwitchLightDisplaceUTD);
+					bool gain = pi->powQuantity > special->displayedValue;		// gain if qty++
+					MakeTwitch(node, gain ? kTwitchPreset_ItemGain : kTwitchPreset_ItemLoss);
 				}
 
 				special->displayedValue = pi->powQuantity;
@@ -1097,7 +1087,7 @@ static void Infobar_MoveToken(ObjNode* node)
 	InfobarIconData* data = GetInfobarIconData(node);
 	if (hasToken && data->displayedValue != hasToken)
 	{
-		MakeTwitch(node, kTwitchArrowheadSpin);
+		MakeTwitch(node, kTwitchPreset_ArrowheadSpin);
 		node->StatusBits |= STATUS_BIT_KEEPBACKFACES;
 		data->displayedValue = hasToken;
 	}
@@ -1206,7 +1196,7 @@ enum
 				if (hasRow)
 				{
 					special->state = kActive;
-					MakeTwitch(objNode, kTwitchSweepFromLeft);
+					MakeTwitch(objNode, kTwitchPreset_NewBuff);
 					SetObjectVisible(objNode, true);
 				}
 				else
@@ -1219,7 +1209,7 @@ enum
 		case kActive:
 			if (!isTicking)		// Wait for ticking to end to change states
 			{
-				MakeTwitch(objNode, kTwitchScaleVanish);
+				MakeTwitch(objNode, kTwitchPreset_POWExpired);
 				special->state = kVanishing;
 			}
 			break;
@@ -1272,7 +1262,7 @@ enum
 				special->displayedValue = q;
 
 //				if (!objNode->TwitchNode)
-//					MakeTwitch(objNode, kTwitchScaleHard);
+//					MakeTwitch(objNode, kTwitchPreset_MenuSelect);
 			}
 
 			objNode->Scale.x = objNode->Scale.y *= .6f;

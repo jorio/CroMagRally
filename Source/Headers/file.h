@@ -144,6 +144,8 @@ void SetPlayerProgression(int numTracksCompleted);
 Ptr LoadDataFile(const char* path, long* outLength);
 char* LoadTextFile(const char* path, long* outLength);
 
+char* CSVIterator(char** csvCursor, bool* eolOut);
+
 OSErr SaveScoreboardFile(void);
 OSErr LoadScoreboardFile(void);
 

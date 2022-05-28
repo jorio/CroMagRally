@@ -2,160 +2,160 @@
 // (c)2022 Iliyas Jorio
 // This file is part of Cro-Mag Rally. https://github.com/jorio/cromagrally
 
+#include <stdlib.h>
 #include "game.h"
 
-static const TwitchDef kTwitchPresets[kTwitchPresetCOUNT] =
+#define REGISTER_ENUM_NAME(x) [(x)] = (#x)
+
+static const char* kEnumNames[] =
 {
-	[kTwitchScaleHard] =
-	{
-		.fxClass = kTwitchClassScale,
-		.duration = .20f,
-		.amplitude = 1.1f,
-		.easing = kEaseOutCubic
-	},
+	REGISTER_ENUM_NAME(kTwitchPreset_MenuSelect),
+	REGISTER_ENUM_NAME(kTwitchPreset_MenuDeselect),
+	REGISTER_ENUM_NAME(kTwitchPreset_MenuWiggle),
+	REGISTER_ENUM_NAME(kTwitchPreset_PadlockWiggle),
+	REGISTER_ENUM_NAME(kTwitchPreset_DisplaceLTR),
+	REGISTER_ENUM_NAME(kTwitchPreset_DisplaceRTL),
+	REGISTER_ENUM_NAME(kTwitchPreset_SlideshowLTR),
+	REGISTER_ENUM_NAME(kTwitchPreset_SlideshowRTL),
+	REGISTER_ENUM_NAME(kTwitchPreset_ItemGain),
+	REGISTER_ENUM_NAME(kTwitchPreset_ItemLoss),
+	REGISTER_ENUM_NAME(kTwitchPreset_RankGain),
+	REGISTER_ENUM_NAME(kTwitchPreset_RankLoss),
+	REGISTER_ENUM_NAME(kTwitchPreset_ArrowheadSpin),
+	REGISTER_ENUM_NAME(kTwitchPreset_WeaponFlip),
+	REGISTER_ENUM_NAME(kTwitchPreset_NewBuff),
+	REGISTER_ENUM_NAME(kTwitchPreset_NewWeapon),
+	REGISTER_ENUM_NAME(kTwitchPreset_POWExpired),
 
-	[kTwitchScaleSoft] =
-	{
-		.fxClass = kTwitchClassScale,
-		.duration = .14f,
-		.amplitude = 1.1f,
-		.easing = kEaseOutQuad
-	},
+	REGISTER_ENUM_NAME(kTwitchClass_Scale),
+	REGISTER_ENUM_NAME(kTwitchClass_SpinX),
+	REGISTER_ENUM_NAME(kTwitchClass_DisplaceX),
+	REGISTER_ENUM_NAME(kTwitchClass_DisplaceY),
+	REGISTER_ENUM_NAME(kTwitchClass_WiggleX),
+	REGISTER_ENUM_NAME(kTwitchClass_Shrink),
 
-	[kTwitchDisplaceLTR] =
-	{
-		.fxClass = kTwitchClassDisplaceX,
-		.duration = .20f,
-		.amplitude = -32,
-		.easing = kEaseOutQuad,
-	},
-
-	[kTwitchDisplaceRTL] =
-	{
-		.fxClass = kTwitchClassDisplaceX,
-		.duration = .20f,
-		.amplitude = +32,
-		.easing = kEaseOutQuad,
-	},
-
-	[kTwitchLightDisplaceLTR] =
-	{
-		.fxClass=kTwitchClassDisplaceX,
-		.duration = .10f,
-		.amplitude = -8,
-		.easing = kEaseOutQuad,
-	},
-
-	[kTwitchLightDisplaceRTL] =
-	{
-		.fxClass = kTwitchClassDisplaceX,
-		.duration = .10f,
-		.amplitude = +8,
-		.easing = kEaseOutQuad,
-	},
-
-	[kTwitchLightDisplaceDTU] =
-	{
-		.fxClass = kTwitchClassDisplaceY,
-		.duration = .20f,
-		.amplitude = +8,
-		.easing = kEaseOutQuad,
-	},
-
-	[kTwitchLightDisplaceUTD] =
-	{
-		.fxClass = kTwitchClassDisplaceY,
-		.duration = .20f,
-		.amplitude = -8,
-		.easing = kEaseOutQuad,
-	},
-
-	[kTwitchYBounce] =
-	{
-		.fxClass = kTwitchClassDisplaceY,
-		.duration = .20f,
-		.amplitude = -16	,
-		.easing = kEaseBounce0To0,
-	},
-
-	[kTwitchQuickWiggle] =
-	{
-		.fxClass = kTwitchClassWiggleX,
-		.duration = .35f,
-		.amplitude = 25,
-		.period = PI * 3,
-		.easing = kEaseLerp,
-	},
-
-	[kTwitchBigWiggle] =
-	{
-		.fxClass = kTwitchClassWiggleX,
-		.duration = .45f,
-		.amplitude = 25,
-		.period = PI * 4,
-		.easing = kEaseLerp,
-	},
-
-	[kTwitchSubtleWiggle] =
-	{
-		.fxClass = kTwitchClassWiggleX,
-		.duration = .25f,
-		.amplitude = 12,
-		.period = PI * 2,
-		.easing = kEaseLerp,
-	},
-
-	[kTwitchScaleUp] =
-	{
-		.fxClass = kTwitchClassScale,
-		.duration = .20f,
-		.amplitude = .8f,
-		.easing = kEaseInQuad,
-	},
-
-	[kTwitchArrowheadSpin] =
-	{
-		.fxClass = kTwitchClassSpinX,
-		.duration = 1.5f,
-		.amplitude = 1.0f,
-		.period = PI * 8,
-		.easing = kEaseOutQuad,
-	},
-
-	[kTwitchCoinSpin] =
-	{
-		.fxClass = kTwitchClassSpinX,
-		.duration = 0.35f,
-		.amplitude = 1.0f,
-		.period = PI,
-		.phase = -PI,
-		.easing = kEaseOutQuad,
-	},
-
-	[kTwitchSweepFromLeft] =
-	{
-		.fxClass = kTwitchClassDisplaceX,
-		.duration = 0.25f,
-		.amplitude = -64.0f,
-		.easing = kEaseOutBack, //kEaseOutQuad,
-	},
-
-	[kTwitchSweepFromTop] =
-	{
-		.fxClass = kTwitchClassDisplaceY,
-		.duration = 0.25f,
-		.amplitude = -64.0f,
-		.easing = kEaseOutBack, //kEaseOutQuad,
-	},
-
-	[kTwitchScaleVanish] =
-	{
-		.fxClass = kTwitchClassScaleVanish,
-		.duration = 0.25f,
-		.amplitude = 1,
-		.easing = kEaseInBack,
-	},
+	REGISTER_ENUM_NAME(kEaseLinear),
+	REGISTER_ENUM_NAME(kEaseInQuad),
+	REGISTER_ENUM_NAME(kEaseOutQuad),
+	REGISTER_ENUM_NAME(kEaseOutCubic),
+	REGISTER_ENUM_NAME(kEaseInBack),
+	REGISTER_ENUM_NAME(kEaseOutBack),
+	REGISTER_ENUM_NAME(kEaseBounce0To0),
 };
+
+static TwitchDef gTwitchPresets[kTwitchPresetCOUNT];
+static bool gTwitchPresetsLoaded = false;
+
+static int FindEnumString(const char* prefix, const char* column)
+{
+	if (column == NULL)
+	{
+		return -1;
+	}
+
+	size_t prefixLength = (prefix==NULL) ? 0 : strlen(prefix);
+
+	const int numNames = sizeof(kEnumNames) / sizeof(kEnumNames[0]);
+
+	for (int i = 0; i < numNames; i++)
+	{
+		const char* enumName = kEnumNames[i];
+
+		if (NULL != enumName
+			&& ((0 == prefixLength) || (0 == strncmp(enumName, prefix, prefixLength)))
+			&& 0 == strcmp(enumName + prefixLength, column))
+		{
+			return i;
+		}
+	}
+
+	return -1;
+}
+
+static void LoadTwitchPresets(void)
+{
+	char* csv = LoadTextFile(":system:twitch.csv", NULL);
+
+	bool eol = false;
+
+	char* csvReader = csv;
+	int state = 0;
+	TwitchDef* preset = NULL;
+
+	while (csvReader)
+	{
+		char* column = CSVIterator(&csvReader, &eol);
+
+		int n = -1;
+
+		if (!column)
+			goto nextColumn;
+
+		if (state != 0 && preset == NULL)
+			goto nextColumn;
+
+		switch (state)
+		{
+			case 0:
+				preset = NULL;
+				n = FindEnumString("kTwitchPreset_", column);
+				if (n >= 0 && n < kTwitchPresetCOUNT)
+				{
+					preset = &gTwitchPresets[n];
+				}
+				else if (0 != strcmp("PRESET", column))		// skip header row
+				{
+					DoFatalAlert("Unknown twitch preset name '%s'", column);
+				}
+				break;
+
+			case 1:
+				n = FindEnumString("kTwitchClass_", column);
+				if (n < 0)
+				{
+					DoFatalAlert("Unknown effect class '%s'", column);
+				}
+				preset->fxClass = n;
+				break;
+
+			case 2:
+				n = FindEnumString("kEase", column);
+				if (n < 0)
+				{
+					DoFatalAlert("Unknown easing type '%s'", column);
+				}
+				preset->easing = n;
+				break;
+
+			case 3:
+				preset->duration = atof(column);
+				break;
+
+			case 4:
+				preset->amplitude = atof(column);
+				break;
+
+			case 5:
+				preset->period = PI * atof(column);
+				break;
+
+			case 6:
+				preset->phase = PI * atof(column);
+				GAME_ASSERT(eol);
+				break;
+		}
+
+nextColumn:
+		if (eol)
+			state = 0;
+		else
+			state++;
+	}
+
+	SafeDisposePtr(csv);
+
+	gTwitchPresetsLoaded = true;
+}
 
 typedef struct
 {
@@ -175,7 +175,7 @@ static float Ease(float p, int easingType)
 {
 	switch (easingType)
 	{
-		case kEaseLerp:
+		case kEaseLinear:
 		default:
 			return p;
 
@@ -262,32 +262,32 @@ static void MoveUIEffectDriver(ObjNode* driver)
 
 	switch (effect->def.fxClass)
 	{
-		case kTwitchClassScale:
+		case kTwitchClass_Scale:
 			puppet->Scale.x = realS.x * Lerp(def->amplitude, 1, p);
 			puppet->Scale.y = realS.y * Lerp(def->amplitude, 1, p);
 			break;
 
-		case kTwitchClassScaleVanish:
+		case kTwitchClass_Shrink:
 			puppet->Scale.x = realS.x * Lerp(def->amplitude, 0, p);
 			puppet->Scale.y = realS.y * Lerp(def->amplitude, 0, p);
 			break;
 
-		case kTwitchClassDisplaceX:
+		case kTwitchClass_DisplaceX:
 			puppet->Coord.x += realS.x * Lerp(def->amplitude, 0, p);
 			break;
 
-		case kTwitchClassDisplaceY:
+		case kTwitchClass_DisplaceY:
 			puppet->Coord.y += realS.y * Lerp(def->amplitude, 0, p);
 			break;
 
-		case kTwitchClassWiggleX:
+		case kTwitchClass_WiggleX:
 		{
 			float dampen = 1 - p;
 			puppet->Coord.x += realS.x * def->amplitude * dampen * sinf(dampen * def->period + def->phase);
 			break;
 		}
 
-		case kTwitchClassSpinX:
+		case kTwitchClass_SpinX:
 		{
 			float wave = cosf(p * def->period + def->phase);
 
@@ -298,6 +298,10 @@ static void MoveUIEffectDriver(ObjNode* driver)
 
 			break;
 		}
+
+		default:
+			printf("Unknown effect class %d\n", effect->def.fxClass);
+			break;
 	}
 
 	UpdateObjectTransforms(puppet);
@@ -324,6 +328,11 @@ ObjNode* MakeTwitch(ObjNode* puppet, uint8_t preset)
 		return NULL;
 	}
 
+	if (!gTwitchPresetsLoaded)
+	{
+		LoadTwitchPresets();
+	}
+
 	if (puppet->TwitchNode)
 	{
 		DeleteObject(puppet->TwitchNode);
@@ -345,7 +354,7 @@ ObjNode* MakeTwitch(ObjNode* puppet, uint8_t preset)
 	{
 		.cookie = 'UIFX',
 		.puppet = puppet,
-		.def = kTwitchPresets[preset],
+		.def = gTwitchPresets[preset],
 		.timer = 0,
 	};
 

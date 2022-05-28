@@ -366,7 +366,7 @@ short	p;
 		MorphToSkeletonAnim(gSex[0]->Skeleton, 1, 5.0);
 		MorphToSkeletonAnim(gSex[1]->Skeleton, 0, 5.0);
 		gCharacterArrow->Coord.x = GetCharacterArrowHomeX();
-		MakeTwitch(gCharacterArrow, kTwitchDisplaceRTL);
+		MakeTwitch(gCharacterArrow, kTwitchPreset_DisplaceRTL);
 	}
 	else
 	if (GetNewNeedState(kNeed_UIRight, p) && (gSelectedCharacterIndex < 1))
@@ -376,7 +376,7 @@ short	p;
 		MorphToSkeletonAnim(gSex[0]->Skeleton, 0, 5.0);
 		MorphToSkeletonAnim(gSex[1]->Skeleton, 1, 5.0);
 		gCharacterArrow->Coord.x = GetCharacterArrowHomeX();
-		MakeTwitch(gCharacterArrow, kTwitchDisplaceLTR);
+		MakeTwitch(gCharacterArrow, kTwitchPreset_DisplaceLTR);
 	}
 	else
 	if (GetNewNeedState(kNeed_UIUp, p))
