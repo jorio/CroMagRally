@@ -33,6 +33,7 @@ static const char* kTwitchEnumNames[] =
 	REGISTER_ENUM_NAME(kTwitchPreset_MenuDeselect),
 	REGISTER_ENUM_NAME(kTwitchPreset_MenuWiggle),
 	REGISTER_ENUM_NAME(kTwitchPreset_MenuFadeIn),
+	REGISTER_ENUM_NAME(kTwitchPreset_MenuSweep),
 	REGISTER_ENUM_NAME(kTwitchPreset_PadlockWiggle),
 	REGISTER_ENUM_NAME(kTwitchPreset_DisplaceLTR),
 	REGISTER_ENUM_NAME(kTwitchPreset_DisplaceRTL),

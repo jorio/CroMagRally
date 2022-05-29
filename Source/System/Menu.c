@@ -100,7 +100,6 @@ const MenuStyle kDefaultMenuStyle =
 	.fadeOutSpeed		= (1.0f / 0.2f),
 	.asyncFadeOut		= true,
 	.fadeOutSceneOnExit	= true,
-	.sweepInSpeed		= (1.0f / 0.2f),
 	.standardScale		= .5f,
 	.rowHeight			= 40,
 	.uniformXExtent		= 0,
@@ -206,7 +205,7 @@ static void InitMenuNavigation(void)
 	{
 		.scale = 1,
 		.slot = nav->style.textSlot,
-		.flags = STATUS_BIT_OVERLAYPANE,
+		.flags = STATUS_BIT_OVERLAYPANE | STATUS_BIT_MOVEINPAUSE,
 	};
 	nav->arrowObjects[0] = TextMesh_New("<", 0, &arrowDef);
 	nav->arrowObjects[1] = TextMesh_New(">", 0, &arrowDef);
@@ -520,8 +519,7 @@ static void TwitchSelectionInOrOut(bool scaleIn)
 	obj->Scale.x = s * (scaleIn? 1.15: 1);
 	obj->Scale.y = s * (scaleIn? 1.15: 1);
 
-	if (!obj->TwitchNode)
-		MakeTwitch(obj, scaleIn ? kTwitchPreset_MenuSelect : kTwitchPreset_MenuDeselect);
+	MakeTwitch(obj, (scaleIn ? kTwitchPreset_MenuSelect : kTwitchPreset_MenuDeselect) | kTwitchFlags_Chain);
 }
 
 static void TwitchSelection(void)
@@ -1650,23 +1648,18 @@ static ObjNode* MakeText(const char* text, int row, int desiredCol, int textMesh
 	data->row = row;
 	data->col = desiredCol;
 
-
-	float sweepInDelay = (1.0f / gNav->style.sweepInSpeed);
-	float delay = -gTempInitialSweepFactor * sweepInDelay;
-
 	Twitch* fadeEffect = MakeTwitch(node, kTwitchPreset_MenuFadeIn);
 	if (fadeEffect)
 	{
-		fadeEffect->delay = delay;
-		fadeEffect->duration = 0.3f;
-	}
+		fadeEffect->delay = -gTempInitialSweepFactor * fadeEffect->duration;
 
-	Twitch* displaceEffect = MakeTwitch(node, kTwitchPreset_DisplaceLTR | kTwitchFlags_Chain);
-	if (displaceEffect)
-	{
-		displaceEffect->amplitude = gTempForceSwipeRTL ? 50 : -50;
-		displaceEffect->duration = sweepInDelay;
-		displaceEffect->delay = delay;
+		Twitch* displaceEffect = MakeTwitch(node, kTwitchPreset_MenuSweep | kTwitchFlags_Chain);
+		if (displaceEffect)
+		{
+			displaceEffect->delay = fadeEffect->delay;
+			displaceEffect->amplitude *= (gTempForceSwipeRTL ? 1 : -1);
+			displaceEffect->amplitude *= (1.0 + displaceEffect->delay);
+		}
 	}
 
 	return node;

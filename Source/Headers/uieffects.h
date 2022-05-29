@@ -9,6 +9,7 @@ enum
 	kTwitchPreset_MenuDeselect,
 	kTwitchPreset_MenuWiggle,
 	kTwitchPreset_MenuFadeIn,
+	kTwitchPreset_MenuSweep,
 	kTwitchPreset_PadlockWiggle,
 	kTwitchPreset_DisplaceLTR,
 	kTwitchPreset_DisplaceRTL,
