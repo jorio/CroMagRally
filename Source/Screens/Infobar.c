@@ -1471,8 +1471,8 @@ short	lapNum;
 		ObjNode* text = TextMesh_New(s, kTextMeshAlignCenter, &def);
         text->PlayerNum = playerNum;
 
-		MakeTwitch(text, kTwitchPreset_MenuSelect);
-		MakeTwitch(text, kTwitchPreset_FadeOutLapMessage | kTwitchFlags_Chain | kTwitchFlags_KillPuppet);
+		MakeTwitch(text, kTwitchPreset_LapMessageAppear);
+		MakeTwitch(text, kTwitchPreset_LapMessageFadeOut | kTwitchFlags_Chain | kTwitchFlags_KillPuppet);
 	}
 }
 
@@ -1723,7 +1723,7 @@ ObjNode	*newObj;
 
 	newObj = TextMesh_New(Localize(STR_LEVEL_1 + gTrackNum), kTextMeshAlignCenter, &def);
 
-	MakeTwitch(newObj, kTwitchPreset_FadeOutTrackName | kTwitchFlags_KillPuppet);
+	MakeTwitch(newObj, kTwitchPreset_TrackNameFadeOut | kTwitchFlags_KillPuppet);
 }
 
 
