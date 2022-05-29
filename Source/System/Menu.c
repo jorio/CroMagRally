@@ -1990,6 +1990,9 @@ int StartMenu(
 	gNav->menuFadeAlpha		= 0;
 	gNav->menuRow			= -1;
 
+	gTempInitialSweepFactor	= 0;
+	gTempForceSwipeRTL		= false;
+
 		/* LAY OUT MENU COMPONENTS */
 
 	gNav->darkenPane = nil;
