@@ -19,6 +19,8 @@ endif()
 set(CMAKE_OSX_DEPLOYMENT_TARGET "10.11" CACHE STRING "Minimum OS X deployment version")
 set(CMAKE_OSX_ARCHITECTURES "arm64;x86_64" CACHE STRING "Target macOS architectures")
 
+string(TOUPPER "${CMAKE_BUILD_TYPE}" CMAKE_BUILD_TYPE_UPPERCASE)
+
 project(${GAME_TARGET}
 	VERSION ${GAME_VERSION}
 	LANGUAGES C CXX
@@ -111,7 +113,6 @@ target_include_directories(${GAME_TARGET} PRIVATE
 	${GAME_SRCDIR}/Headers
 )
 
-target_link_libraries(${GAME_TARGET} ${GAME_LIBRARIES})
 
 #------------------------------------------------------------------------------
 # COMPILER/LINKER OPTIONS
@@ -141,11 +142,13 @@ if(NOT MSVC)
 	)
 
 	# Sanitizers in debug mode (Linux only)
-	if ((NOT APPLE) AND (CMAKE_BUILD_TYPE MATCHES DEBUG))
+	# When using a debugger, you should export LSAN_OPTIONS=detect_leaks=0
+	if ((NOT APPLE) AND (CMAKE_BUILD_TYPE_UPPERCASE MATCHES DEBUG))
 		list(INSERT GAME_LIBRARIES 0 asan ubsan)
-		add_compile_options(
+		target_compile_options(${GAME_TARGET} PRIVATE
 			-fsanitize=alignment
 			-fsanitize=address
+			-fsanitize=leak
 			-fsanitize=undefined
 			-fno-omit-frame-pointer
 		)
@@ -180,6 +183,8 @@ else()
 	set_target_properties(${GAME_TARGET} PROPERTIES LINK_FLAGS_DEBUG "/SUBSYSTEM:CONSOLE")
 	set_target_properties(${GAME_TARGET} PROPERTIES COMPILE_DEFINITIONS_DEBUG "_CONSOLE")
 endif()
+
+target_link_libraries(${GAME_TARGET} ${GAME_LIBRARIES})
 
 #------------------------------------------------------------------------------
 # PLATFORM-SPECIFIC PACKAGING
