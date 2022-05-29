@@ -2030,8 +2030,16 @@ int StartMenu(
 
 		gNav->idleTime += gFramesPerSecondFrac;
 
-		if (gNav->style.startButtonExits && gNav->style.canBackOutOfRootMenu && GetNewNeedStateAnyP(kNeed_UIStart))
+		if (GetNewNeedStateAnyP(kNeed_UIStart)
+			&& gNav->style.startButtonExits
+			&& gNav->style.canBackOutOfRootMenu
+			&& gNav->menuState != kMenuStateAwaitingPadPress
+			&& gNav->menuState != kMenuStateAwaitingKeyPress
+			&& gNav->menuState != kMenuStateAwaitingMouseClick
+			)
+		{
 			gNav->menuState = kMenuStateFadeOut;
+		}
 
 		switch (gNav->menuState)
 		{
