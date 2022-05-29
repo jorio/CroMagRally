@@ -59,14 +59,13 @@ static const char* kTwitchEnumNames[] =
 
 	REGISTER_ENUM_NAME(kTwitchClass_Heartbeat),
 	REGISTER_ENUM_NAME(kTwitchClass_Shrink),
-	REGISTER_ENUM_NAME(kTwitchClass_SpinX),
-	REGISTER_ENUM_NAME(kTwitchClass_DisplaceX),
-	REGISTER_ENUM_NAME(kTwitchClass_DisplaceY),
-	REGISTER_ENUM_NAME(kTwitchClass_WiggleX),
+	REGISTER_ENUM_NAME(kTwitchClass_Spin),
+	REGISTER_ENUM_NAME(kTwitchClass_Displace),
+	REGISTER_ENUM_NAME(kTwitchClass_Wiggle),
+	REGISTER_ENUM_NAME(kTwitchClass_AlphaFadeIn),
+	REGISTER_ENUM_NAME(kTwitchClass_AlphaFadeOut),
 	REGISTER_ENUM_NAME(kTwitchClass_MultAlphaFadeIn),
 	REGISTER_ENUM_NAME(kTwitchClass_MultAlphaFadeOut),
-	REGISTER_ENUM_NAME(kTwitchClass_OverrideAlphaFadeIn),
-	REGISTER_ENUM_NAME(kTwitchClass_OverrideAlphaFadeOut),
 
 	REGISTER_ENUM_NAME(kEaseLinear),
 	REGISTER_ENUM_NAME(kEaseInQuad),
@@ -162,6 +161,19 @@ static int FindEnumString(const char* prefix, const char* column)
 
 static void LoadTwitchPresets(void)
 {
+	enum
+	{
+		kCSVColumn_Preset,
+		kCSVColumn_Class,
+		kCSVColumn_AxisConstraint,
+		kCSVColumn_Easing,
+		kCSVColumn_Duration,
+		kCSVColumn_Amplitude,
+		kCSVColumn_Period,
+		kCSVColumn_Phase,
+		kCSVColumn_Delay,
+	};
+
 	memset(gTwitchPresets, 0, sizeof(gTwitchPresets));
 
 	char* csv = LoadTextFile(":system:twitch.csv", NULL);
@@ -169,72 +181,93 @@ static void LoadTwitchPresets(void)
 	bool eol = false;
 
 	char* csvReader = csv;
-	int state = 0;
+	int column = 0;
 	Twitch* preset = NULL;
 
 	while (csvReader)
 	{
-		char* column = CSVIterator(&csvReader, &eol);
+		char* cell = CSVIterator(&csvReader, &eol);
 
 		int n = -1;
 
-		if (!column)
+		if (!cell)
 			goto nextColumn;
 
-		if (state != 0 && preset == NULL)
+		if (column != 0 && preset == NULL)
 			goto nextColumn;
 
-		switch (state)
+		switch (column)
 		{
-			case 0:
+			case kCSVColumn_Preset:
 				preset = NULL;
-				n = FindEnumString("kTwitchPreset_", column);
+				n = FindEnumString("kTwitchPreset_", cell);
 				if (n >= 0 && n < kTwitchPresetCOUNT)
 				{
 					preset = &gTwitchPresets[n];
 				}
-				else if (0 != strcmp("PRESET", column))		// skip header row
+				else if (0 != strcmp("PRESET", cell))		// skip header row
 				{
-					DoFatalAlert("Unknown twitch preset name '%s'", column);
+					DoFatalAlert("Unknown twitch preset name '%s'", cell);
 				}
 				break;
 
-			case 1:
-				n = FindEnumString("kTwitchClass_", column);
+			case kCSVColumn_Class:
+				n = FindEnumString("kTwitchClass_", cell);
 				if (n < 0)
 				{
-					DoFatalAlert("Unknown effect class '%s'", column);
+					DoFatalAlert("Unknown effect class '%s'", cell);
 				}
 				preset->fxClass = n;
 				break;
 
-			case 2:
-				n = FindEnumString("kEase", column);
+			case kCSVColumn_AxisConstraint:
+			{
+				for (; cell && *cell; cell++)
+				{
+					switch (*cell)
+					{
+						case 'x': case 'X': preset->x = true; break;
+						case 'y': case 'Y': preset->y = true; break;
+						case 'z': case 'Z': preset->z = true; break;
+					}
+				}
+
+				if (!(preset->x || preset->y || preset->z))		// if the cell was empty, default to XY
+				{
+					preset->x = true;
+					preset->y = true;
+					preset->z = false;
+				}
+				break;
+			}
+
+			case kCSVColumn_Easing:
+				n = FindEnumString("kEase", cell);
 				if (n < 0)
 				{
-					DoFatalAlert("Unknown easing type '%s'", column);
+					DoFatalAlert("Unknown easing type '%s'", cell);
 				}
 				preset->easing = n;
 				break;
 
-			case 3:
-				preset->duration = atof(column);
+			case kCSVColumn_Duration:
+				preset->duration = atof(cell);
 				break;
 
-			case 4:
-				preset->amplitude = atof(column);
+			case kCSVColumn_Amplitude:
+				preset->amplitude = atof(cell);
 				break;
 
-			case 5:
-				preset->period = PI * atof(column);
+			case kCSVColumn_Period:
+				preset->period = PI * atof(cell);
 				break;
 
-			case 6:
-				preset->phase = PI * atof(column);
+			case kCSVColumn_Phase:
+				preset->phase = PI * atof(cell);
 				break;
 
-			case 7:
-				preset->delay = atof(column);
+			case kCSVColumn_Delay:
+				preset->delay = atof(cell);
 				break;
 
 			default:
@@ -244,9 +277,9 @@ static void LoadTwitchPresets(void)
 
 nextColumn:
 		if (eol)
-			state = 0;
+			column = 0;
 		else
-			state++;
+			column++;
 	}
 
 	SafeDisposePtr(csv);
@@ -314,6 +347,20 @@ static float Ease(float p, int easingType)
 
 #pragma mark - Twitch runtime
 
+static void MultScale(ObjNode* puppet, const Twitch* fx, float f)
+{
+	if (fx->x) puppet->Scale.x *= f;
+	if (fx->y) puppet->Scale.y *= f;
+	if (fx->z) puppet->Scale.z *= f;
+}
+
+static void Displace(ObjNode* puppet, const Twitch* fx, float f)
+{
+	if (fx->x) puppet->Coord.x += puppet->Scale.x * f;
+	if (fx->y) puppet->Coord.y += puppet->Scale.y * f;
+	if (fx->z) puppet->Coord.z += puppet->Scale.z * f;
+}
+
 static bool ApplyTwitch(ObjNode* puppet, const Twitch* fx, float timer)
 {
 	float duration = fx->duration;
@@ -340,44 +387,40 @@ static bool ApplyTwitch(ObjNode* puppet, const Twitch* fx, float timer)
 
 	p = Ease(p, fx->easing);
 
+	float f;
+
 	switch (fx->fxClass)
 	{
 		case kTwitchClass_Heartbeat:
-			puppet->Scale.x *= Lerp(fx->amplitude, 1, p);
-			puppet->Scale.y *= Lerp(fx->amplitude, 1, p);
+			f = Lerp(fx->amplitude, 1, p);
+			MultScale(puppet, fx, f);
 			break;
 
 		case kTwitchClass_Shrink:
-			puppet->Scale.x *= Lerp(fx->amplitude, EPS, p);
-			puppet->Scale.y *= Lerp(fx->amplitude, EPS, p);
+			f = Lerp(fx->amplitude, EPS, p);
+			MultScale(puppet, fx, f);
 			break;
 
-		case kTwitchClass_DisplaceX:
-			puppet->Coord.x += puppet->Scale.x * Lerp(fx->amplitude, 0, p);
+		case kTwitchClass_Displace:
+			f = Lerp(fx->amplitude, 0, p);
+			Displace(puppet, fx, f);
 			break;
 
-		case kTwitchClass_DisplaceY:
-			puppet->Coord.y += puppet->Scale.y * Lerp(fx->amplitude, 0, p);
+		case kTwitchClass_Wiggle:
+			f = 1 - p;		// dampening
+			f = fx->amplitude * f * sinf(f * fx->period + fx->phase);
+			Displace(puppet, fx, f);
 			break;
 
-		case kTwitchClass_WiggleX:
-		{
-			float dampen = 1 - p;
-			puppet->Coord.x += puppet->Scale.x * fx->amplitude * dampen * sinf(dampen * fx->period + fx->phase);
+		case kTwitchClass_Spin:
+			f = cosf(p * fx->period + fx->phase);
+
+			if (fabsf(f) < 0.2f)
+				f = 0.2f * (f < 0? -1: 1);
+
+			f *= fx->amplitude;
+			MultScale(puppet, fx, f);
 			break;
-		}
-
-		case kTwitchClass_SpinX:
-		{
-			float wave = cosf(p * fx->period + fx->phase);
-
-			if (fabsf(wave) < 0.2f)
-				wave = 0.2f * (wave < 0? -1: 1);
-
-			puppet->Scale.x = puppet->Scale.x * fx->amplitude * wave;
-
-			break;
-		}
 
 		case kTwitchClass_MultAlphaFadeIn:
 			puppet->ColorFilter.a *= Lerp(0, 1, p);
@@ -387,11 +430,11 @@ static bool ApplyTwitch(ObjNode* puppet, const Twitch* fx, float timer)
 			puppet->ColorFilter.a *= Lerp(1, 0, p);
 			break;
 
-		case kTwitchClass_OverrideAlphaFadeIn:
+		case kTwitchClass_AlphaFadeIn:
 			puppet->ColorFilter.a = Lerp(0, 1, p);
 			break;
 
-		case kTwitchClass_OverrideAlphaFadeOut:
+		case kTwitchClass_AlphaFadeOut:
 			puppet->ColorFilter.a = Lerp(1, 0, p);
 			break;
 

@@ -35,14 +35,13 @@ enum
 
 	kTwitchClass_Heartbeat = kTwitchPresetCOUNT,		// deliberately starting above last preset # so presets and classes cannot be mixed up
 	kTwitchClass_Shrink,
-	kTwitchClass_SpinX,
-	kTwitchClass_DisplaceX,
-	kTwitchClass_DisplaceY,
-	kTwitchClass_WiggleX,
+	kTwitchClass_Spin,
+	kTwitchClass_Displace,
+	kTwitchClass_Wiggle,
+	kTwitchClass_AlphaFadeIn,
+	kTwitchClass_AlphaFadeOut,
 	kTwitchClass_MultAlphaFadeIn,
 	kTwitchClass_MultAlphaFadeOut,
-	kTwitchClass_OverrideAlphaFadeIn,
-	kTwitchClass_OverrideAlphaFadeOut,
 
 	kEaseLinear,
 	kEaseInQuad,
@@ -66,6 +65,9 @@ typedef struct
 {
 	Byte fxClass;
 	Byte easing;
+	bool x;
+	bool y;
+	bool z;
 	float duration;
 	float amplitude;
 	float period;
