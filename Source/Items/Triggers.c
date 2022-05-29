@@ -1408,7 +1408,12 @@ short	teamNum;
 	else														// say "Score!"
 	{
 		if (gPlayerInfo[whoNode->PlayerNum].onThisMachine)
-			PlayAnnouncerSound(EFFECT_GOODJOB, false, 0);
+		{
+			if (gPlayerInfo[whoNode->PlayerNum].team == teamNum)
+				PlayAnnouncerSound(EFFECT_GOODJOB, false, 0);
+			else
+				PlayAnnouncerSound(EFFECT_COSTYA, false, 0);
+		}
 	}
 
 
