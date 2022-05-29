@@ -1102,6 +1102,12 @@ void DeleteObject(ObjNode	*theNode)
 	if (theNode->ShadowNode)
 		DeleteObject(theNode->ShadowNode);
 
+	if (theNode->TwitchNode)
+	{
+		theNode->TwitchNode = NULL;
+		DeleteObject(theNode->TwitchNode);
+	}
+
 
 			/* SEE IF NEED TO FREE UP SPECIAL MEMORY */
 

@@ -522,8 +522,8 @@ static void MoveTwitchDriver(ObjNode* driverNode)
 	{
 		bool killPuppet = driverData->deletePuppetOnCompletion;
 
-		DeleteObject(driverNode);
 		puppet->TwitchNode = NULL;
+		DeleteObject(driverNode);
 
 		if (killPuppet)
 		{
@@ -556,7 +556,9 @@ static void DestroyTwitchDriver(ObjNode* driver)
 {
 	TwitchDriverData* driverData = GetSpecialData(driver, TwitchDriverData);
 
-	if (driverData->puppet && driverData->puppet->TwitchNode == driver)
+	if (driverData->puppet
+		&& !IsObjectBeingDeleted(driverData->puppet)
+		&& driverData->puppet->TwitchNode == driver)
 	{
 		driverData->puppet->TwitchNode = NULL;
 	}
