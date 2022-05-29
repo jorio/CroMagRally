@@ -1419,6 +1419,13 @@ static void Infobar_MoveFlag(ObjNode* theNode)
 
 	if (SetObjectVisible(theNode, flagNum < numCapturedFlags))
 	{
+		if (data->displayedValue != 1)
+		{
+			data->displayedValue = 1;
+			theNode->StatusBits |= STATUS_BIT_KEEPBACKFACES;
+			MakeTwitch(theNode, kTwitchPreset_ArrowheadSpin);
+		}
+
 		ModifySpriteObjectFrame(theNode, INFOBAR_SObjType_RedTorch + team);
 		Infobar_RepositionIcon(theNode);
 	}
