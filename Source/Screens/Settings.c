@@ -90,6 +90,7 @@ static void OnChangeMSAA(const MenuItem* mi)
 		.coord = {0, 200, 0},
 		.scale = 0.2f,
 		.slot = tailNode->Slot + 1,
+		.flags = STATUS_BIT_OVERLAYPANE,
 	};
 
 	msaaWarning = TextMesh_New(Localize(STR_ANTIALIASING_CHANGE_WARNING), 0, &def);
