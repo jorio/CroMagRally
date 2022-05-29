@@ -34,6 +34,9 @@ static const char* kTwitchEnumNames[] =
 	REGISTER_ENUM_NAME(kTwitchPreset_MenuDeselect),
 	REGISTER_ENUM_NAME(kTwitchPreset_MenuWiggle),
 	REGISTER_ENUM_NAME(kTwitchPreset_MenuFadeIn),
+	REGISTER_ENUM_NAME(kTwitchPreset_MenuFadeOut),
+	REGISTER_ENUM_NAME(kTwitchPreset_MenuDarkenPaneResize),
+	REGISTER_ENUM_NAME(kTwitchPreset_MenuDarkenPaneVanish),
 	REGISTER_ENUM_NAME(kTwitchPreset_MenuSweep),
 	REGISTER_ENUM_NAME(kTwitchPreset_PadlockWiggle),
 	REGISTER_ENUM_NAME(kTwitchPreset_DisplaceLTR),
@@ -121,7 +124,12 @@ static void DisposeTwitch(Twitch* e)
 		return;
 
 #if _DEBUG
-	GAME_ASSERT_MESSAGE(!IsPooledTwitchFree(e), "double-freeing pooled ptr");
+	static bool detectedDoubleFree = false;
+	if (!detectedDoubleFree && IsPooledTwitchFree(e))
+	{
+		detectedDoubleFree = true;		// avoid endless double-free messages caused by final cleanup in DoFatalAlert
+		GAME_ASSERT_MESSAGE(false, "double-freeing pooled ptr");
+	}
 #endif
 
 	int i = gFreeTwitches;

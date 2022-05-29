@@ -56,7 +56,6 @@ typedef struct
 	int			row;
 	int			col;
 	float		pulsateTimer;
-	float		asyncFadeOutSpeed;
 	float		incrementCooldown;
 	int			nIncrements;
 } MenuNodeData;
@@ -532,20 +531,59 @@ static void TwitchOutSelection(void)
 	TwitchSelectionInOrOut(false);
 }
 
-static void TwitchWiggleSelection(void)
+/****************************/
+/*    DARKEN PANE           */
+/****************************/
+#pragma mark - Move calls
+
+static void MoveDarkenPane(ObjNode* node)
 {
-	MakeTwitch(GetCurrentMenuItemObject(), kTwitchPreset_MenuWiggle);
+	node->Scale.x = gGameView->panes[GetOverlayPaneNumber()].logicalWidth * (1.0f / 4.0f);
+	UpdateObjectTransforms(node);
+}
+
+static void RescaleDarkenPane(ObjNode* node, float totalHeight)
+{
+	float prevScale = node->Scale.y;
+	float newScale = 1.3f * totalHeight / GetSpriteInfo(SPRITE_GROUP_INFOBAR, INFOBAR_SObjType_OverlayBackground)->yadv;
+
+	node->Coord.y = gNav->style.yOffset;
+	node->Scale.y = newScale;
+	UpdateObjectTransforms(gNav->darkenPane);
+
+	Twitch* scaleEffect = MakeTwitch(gNav->darkenPane, kTwitchPreset_MenuDarkenPaneResize);
+	if (scaleEffect)
+	{
+		scaleEffect->amplitude = prevScale/newScale;
+	}
+}
+
+static ObjNode* MakeDarkenPane(void)
+{
+	ObjNode* pane;
+
+	NewObjectDefinitionType def =
+	{
+		.genre = CUSTOM_GENRE,
+		.flags = STATUS_BITS_FOR_2D | STATUS_BIT_MOVEINPAUSE | STATUS_BIT_OVERLAYPANE,
+		.slot = gNav->style.textSlot-1,
+		.scale = EPS,
+		.group = SPRITE_GROUP_INFOBAR,
+		.type = INFOBAR_SObjType_OverlayBackground,
+		.coord = {0, gNav->style.yOffset, 0},
+		.moveCall = MoveDarkenPane,
+	};
+
+	pane = MakeSpriteObject(&def);
+	pane->ColorFilter = (OGLColorRGBA) {0, 0, 0, gNav->style.darkenPaneOpacity};
+
+	return pane;
 }
 
 /****************************/
 /*    MENU MOVE CALLS       */
 /****************************/
 #pragma mark - Move calls
-
-static void MoveDarkenPane(ObjNode* node)
-{
-	node->ColorFilter.a = gNav->menuFadeAlpha * gNav->style.darkenPaneOpacity;
-}
 
 static void MoveGenericMenuItem(ObjNode* node, float baseAlpha)
 {
@@ -617,25 +655,6 @@ static void MoveControlBinding(ObjNode* node)
 	}
 
 	MoveGenericMenuItem(node, node->ColorFilter.a);
-}
-
-static void MoveAsyncFadeOutAndDelete(ObjNode* node)
-{
-	MenuNodeData* data = GetMenuNodeData(node);
-
-	node->ColorFilter.a -= gFramesPerSecondFrac * data->asyncFadeOutSpeed;
-	if (node->ColorFilter.a < 0.0f)
-	{
-		DeleteObject(node);
-	}
-}
-
-static void InstallAsyncFadeOut(ObjNode* node)
-{
-	MenuNodeData* data = GetMenuNodeData(node);
-
-	node->MoveCall = MoveAsyncFadeOutAndDelete;
-	data->asyncFadeOutSpeed = gNav->style.fadeOutSpeed;
 }
 
 /****************************/
@@ -963,7 +982,7 @@ static void NavigateCycler(const MenuItem* entry)
 				(index == GetCyclerNumChoices(entry)-1 && delta > 0))
 			{
 				PlayEffect(EFFECT_BADSELECT);
-				TwitchWiggleSelection();
+				MakeTwitch(GetCurrentMenuItemObject(), kTwitchPreset_MenuWiggle);
 				MakeTwitch(gNav->arrowObjects[0], kTwitchPreset_PadlockWiggle);
 				MakeTwitch(gNav->arrowObjects[1], kTwitchPreset_PadlockWiggle);
 				return;
@@ -1552,30 +1571,6 @@ static void AwaitMouseClick(void)
 /****************************/
 #pragma mark - Page Layout
 
-static ObjNode* MakeDarkenPane(void)
-{
-	ObjNode* pane;
-
-	NewObjectDefinitionType def =
-	{
-		.genre = CUSTOM_GENRE,
-		.flags = STATUS_BITS_FOR_2D | STATUS_BIT_MOVEINPAUSE | STATUS_BIT_OVERLAYPANE,
-		.slot = gNav->style.textSlot-1,
-		.scale = 1,
-		.group = SPRITE_GROUP_INFOBAR,
-		.type = INFOBAR_SObjType_OverlayBackground,
-		.coord = {0,16,0},
-	};
-
-	pane = MakeSpriteObject(&def);
-	pane->ColorFilter = (OGLColorRGBA) {0, 0, 0, 0};
-	pane->Scale.x = 480;
-	pane->Scale.y = 1;
-	pane->MoveCall = MoveDarkenPane;
-
-	return pane;
-}
-
 static void DeleteAllText(void)
 {
 	for (int row = 0; row < MAX_MENU_ROWS; row++)
@@ -1875,17 +1870,10 @@ static void LayOutMenu(int menuID)
 	float y = -totalHeight*.5f + gNav->style.yOffset;
 	y += firstHeight * gNav->style.rowHeight / 2.0f;
 
+	// Fit darken pane to new menu height
 	if (gNav->darkenPane)
 	{
-		float prevScale = gNav->darkenPane->Scale.y;
-		float newScale = 1.3f * totalHeight / GetSpriteInfo(SPRITE_GROUP_INFOBAR, INFOBAR_SObjType_OverlayBackground)->yadv;
-
-		gNav->darkenPane->Coord.y = gNav->style.yOffset;
-		gNav->darkenPane->Scale.y = newScale;
-		UpdateObjectTransforms(gNav->darkenPane);
-
-		Twitch* scaleEffect = MakeTwitch(gNav->darkenPane, kTwitchPreset_MenuDeselect);
-		scaleEffect->amplitude = prevScale/newScale;
+		RescaleDarkenPane(gNav->darkenPane, totalHeight);
 	}
 
 	gTempInitialSweepFactor = 0.0f;
@@ -2118,14 +2106,17 @@ int StartMenu(
 	{
 		if (gNav->darkenPane)
 		{
-			InstallAsyncFadeOut(gNav->darkenPane);
+			gNav->darkenPane->MoveCall = nil;
+			MakeTwitch(gNav->darkenPane, kTwitchPreset_MenuFadeOut | kTwitchFlags_KillPuppet);
+			MakeTwitch(gNav->darkenPane, kTwitchPreset_MenuDarkenPaneVanish | kTwitchFlags_Chain);
 		}
 
 		for (int row = 0; row < MAX_MENU_ROWS; row++)
 		{
 			if (gNav->menuObjects[row])
 			{
-				InstallAsyncFadeOut(gNav->menuObjects[row]);
+				gNav->menuObjects[row]->MoveCall = nil;
+				MakeTwitch(gNav->menuObjects[row], kTwitchPreset_MenuFadeOut | kTwitchFlags_KillPuppet);
 			}
 		}
 
