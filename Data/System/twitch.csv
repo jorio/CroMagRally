@@ -24,3 +24,4 @@ FadeOutTrackName,OverrideAlphaFadeOut,Linear,1,,,,2.5
 FinalPlaceReveal,Heartbeat,InExpo,0.7,0,,,
 YourTimeReveal,OverrideAlphaFadeIn,OutQuad,0.3,,,,2.5
 NewRecordReveal,Heartbeat,OutBack,0.3,1.6,,,2.5
+ScoreboardFadeIn,OverrideAlphaFadeIn,Linear,0.2,,,,

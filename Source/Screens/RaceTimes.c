@@ -295,18 +295,18 @@ static void LayOutScoreboardForTrack(void)
 	const char* lapStr = Localize(STR_LAP);
 	char text[128];
 
-	for (int i = 0; i < GAME_MIN(MAX_RECORDS_PER_SCREEN, MAX_RECORDS_PER_TRACK); i++)
+	for (int row = 0; row < GAME_MIN(MAX_RECORDS_PER_SCREEN, MAX_RECORDS_PER_TRACK); row++)
 	{
 		int n = 0;
 		ObjNode* nodes[MAX_RECORDS_PER_SCREEN];
 		memset(nodes, 0, sizeof(nodes));
 
-		const ScoreboardRecord* record = &gScoreboard.records[gScoreboardTrack][i];
+		const ScoreboardRecord* record = &gScoreboard.records[gScoreboardTrack][row];
 
 		float raceTime = SumLapTimes(record->lapTimes);
 
 		defRank.slot = slot++;
-		snprintf(text, sizeof(text), "#%d", i + 1);
+		snprintf(text, sizeof(text), "#%d", row + 1);
 		nodes[n++] = TextMesh_New(text, 0, &defRank);
 
 		if (raceTime <= 0)
@@ -356,7 +356,21 @@ static void LayOutScoreboardForTrack(void)
 		{
 			if (!nodes[n])
 				continue;
-			nodes[n]->ColorFilter = colors[i];
+			nodes[n]->ColorFilter = colors[row];
+
+			Twitch* t = MakeTwitch(nodes[n], kTwitchPreset_ItemLoss);
+			if (t)
+			{
+				t->delay = row * 0.05f;
+				t->amplitude *= 3;
+
+			}
+
+			t = MakeTwitch(nodes[n], kTwitchPreset_ScoreboardFadeIn | kTwitchFlags_Chain);
+			if (t)
+			{
+				t->delay = row * 0.05f;
+			}
 
 			if (!gRecordChainHead)
 				gRecordChainHead = nodes[n];
