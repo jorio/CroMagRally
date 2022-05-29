@@ -431,11 +431,11 @@ static bool ApplyTwitch(ObjNode* puppet, const Twitch* fx, float timer)
 			break;
 
 		case kTwitchClass_AlphaFadeIn:
-			puppet->ColorFilter.a = Lerp(0, 1, p);
+			puppet->ColorFilter.a = Lerp(0, fx->phase, p);
 			break;
 
 		case kTwitchClass_AlphaFadeOut:
-			puppet->ColorFilter.a = Lerp(1, 0, p);
+			puppet->ColorFilter.a = Lerp(fx->phase, 0, p);
 			break;
 
 		default:
@@ -631,6 +631,15 @@ Twitch* MakeTwitch(ObjNode* puppet, int presetAndFlags)
 	uint8_t presetNum = presetAndFlags & 0xFF;
 	GAME_ASSERT_MESSAGE(presetNum <= kTwitchPresetCOUNT, "Not a legal twitch preset");
 	*twitch = gTwitchPresets[presetNum];
+
+	// Save current alpha as "phase" for alpha fade effects
+	switch (twitch->fxClass)
+	{
+	case kTwitchClass_AlphaFadeIn:
+	case kTwitchClass_AlphaFadeOut:
+		twitch->phase = puppet->ColorFilter.a;
+		break;
+	}
 
 	return twitch;
 }
