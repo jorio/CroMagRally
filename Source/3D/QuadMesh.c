@@ -74,6 +74,7 @@ MOVertexArrayData* GetQuadMeshWithin(ObjNode* theNode)
 ObjNode* MakeQuadMeshObject(NewObjectDefinitionType* newObjDef, int quadCapacity, MOMaterialObject* material)
 {
 	// If no material was given, make a blank material
+	bool ownMaterial = false;
 	if (material == NULL)
 	{
 		MOMaterialData matData =
@@ -83,6 +84,7 @@ ObjNode* MakeQuadMeshObject(NewObjectDefinitionType* newObjDef, int quadCapacity
 			.diffuseColor		= (OGLColorRGBA) {1, 1, 1, 1},
 		};
 		material = MO_CreateNewObjectOfType(MO_TYPE_MATERIAL, 0, &matData);
+		ownMaterial = true;
 	}
 
 	if (newObjDef->genre == ILLEGAL_GENRE)
@@ -107,6 +109,13 @@ ObjNode* MakeQuadMeshObject(NewObjectDefinitionType* newObjDef, int quadCapacity
 	// Dispose of extra reference to mesh
 	MO_DisposeObjectReference(meshMO);
 	meshMO = NULL;
+
+	// Dispose of extra reference to material that we've created
+	if (ownMaterial)
+	{
+		MO_DisposeObjectReference(material);
+		material = NULL;
+	}
 
 	UpdateObjectTransforms(textNode);
 
