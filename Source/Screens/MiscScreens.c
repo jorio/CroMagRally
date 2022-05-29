@@ -57,10 +57,8 @@ static void MoveCreditFadePane(ObjNode *theNode);
 void DisplayPicture(const char* picturePath, float timeout)
 {
 OGLSetupInputType	viewDef;
-ObjNode				*keyText = NULL;
 bool				showAndBail = timeout <= 0;
 bool				doKeyText = timeout > 9;
-float				keyTextFadeIn = -2.0f;		// fade in after a small delay
 
 
 			/* SETUP VIEW */
@@ -97,8 +95,8 @@ float				keyTextFadeIn = -2.0f;		// fade in after a small delay
 		};
 
 		int strKey = gUserPrefersGamepad ? STR_PRESS_START : STR_PRESS_SPACE;
-		keyText = TextMesh_New(Localize(strKey), kTextMeshAlignCenter, &def);
-		keyText->ColorFilter.a = 0;
+		ObjNode* keyText = TextMesh_New(Localize(strKey), kTextMeshAlignCenter, &def);
+		MakeTwitch(keyText, kTwitchPreset_PressKeyPrompt);
 	}
 
 
@@ -137,12 +135,6 @@ float				keyTextFadeIn = -2.0f;		// fade in after a small delay
 				break;
 
 			timeout -= gFramesPerSecondFrac;
-
-			if (keyText)
-			{
-				keyTextFadeIn += gFramesPerSecondFrac;
-				keyText->ColorFilter.a = GAME_CLAMP(keyTextFadeIn * 3, 0, 1);
-			}
 		}
 
 				/* FADE OUT */

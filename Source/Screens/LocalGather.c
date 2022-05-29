@@ -207,7 +207,8 @@ OGLVector3D			fillDirection1 = { .9, -.3, -1 };
 	def2.coord.y = 220;
 	def2.scale = 0.27f;
 	ObjNode* pressEsc = TextMesh_New(Localize(STR_PRESS_ESC_TO_GO_BACK), 0, &def2);
-	pressEsc->ColorFilter = (OGLColorRGBA) {.25, .25, .25, 1};
+	pressEsc->ColorFilter = (OGLColorRGBA) {.5, .5, .5, 1};
+	MakeTwitch(pressEsc, kTwitchPreset_PressKeyPrompt);
 }
 
 

@@ -60,6 +60,7 @@ static const char* kTwitchEnumNames[] =
 	REGISTER_ENUM_NAME(kTwitchPreset_YourTimeReveal),
 	REGISTER_ENUM_NAME(kTwitchPreset_NewRecordReveal),
 	REGISTER_ENUM_NAME(kTwitchPreset_ScoreboardFadeIn),
+	REGISTER_ENUM_NAME(kTwitchPreset_PressKeyPrompt),
 
 	REGISTER_ENUM_NAME(kTwitchClass_Heartbeat),
 	REGISTER_ENUM_NAME(kTwitchClass_Shrink),

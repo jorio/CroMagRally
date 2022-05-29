@@ -29,3 +29,4 @@ FinalPlaceReveal,Heartbeat,xy,InExpo,0.7,0,,,
 YourTimeReveal,AlphaFadeIn,,OutQuad,0.3,,,,2.5
 NewRecordReveal,Heartbeat,xy,OutBack,0.3,1.6,,,2.5
 ScoreboardFadeIn,AlphaFadeIn,,Linear,0.2,,,,
+PressKeyPrompt,AlphaFadeIn,,Linear,0.33,,,,2
