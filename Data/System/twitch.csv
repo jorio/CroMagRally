@@ -22,8 +22,8 @@ WeaponFlip,Spin,x,OutQuad,0.35,1,1,-1,
 NewBuff,Displace,x,OutBack,0.25,-64,,,0.05
 NewWeapon,Displace,y,OutBack,0.25,-70,,,0.015
 POWExpired,Shrink,,InBack,0.25,1,,,0.025
-LapMessageAppear,Heartbeat,xy,OutQuad,0.5,1.2,,,
-LapMessageFadeOut,AlphaFadeOut,,Linear,0.5,,,,1
+LapMessageAppear,Heartbeat,xy,OutQuad,0.2,0.5,,,
+LapMessageFadeOut,AlphaFadeOut,,Linear,0.5,,,,1.25
 TrackNameFadeOut,AlphaFadeOut,,Linear,1,,,,2.5
 FinalPlaceReveal,Heartbeat,xy,InExpo,0.7,0,,,
 YourTimeReveal,AlphaFadeIn,,OutQuad,0.3,,,,2.5
