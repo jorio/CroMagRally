@@ -1,6 +1,6 @@
 PRESET,CLASS,EASING,DURATION,AMP,PERIOD,PHASE,DELAY
-MenuSelect,Scale,OutCubic,0.2,1.1,,,
-MenuDeselect,Scale,OutQuad,0.14,1.1,,,
+MenuSelect,Heartbeat,OutCubic,0.2,1.1,,,
+MenuDeselect,Heartbeat,OutQuad,0.14,1.1,,,
 MenuWiggle,WiggleX,Linear,0.35,25,3,,
 MenuFadeIn,MultAlphaFadeIn,OutQuad,0.2,,,,
 MenuSweep,DisplaceX,OutQuad,0.2,80,,,
@@ -14,9 +14,13 @@ ItemLoss,DisplaceY,OutQuad,0.2,8,,,
 RankGain,DisplaceY,OutQuad,0.2,-8,,,
 RankLoss,WiggleX,Linear,0.25,12,2,,
 ArrowheadSpin,SpinX,OutQuad,1.5,1,8,,
+GiantArrowheadSpin,SpinX,OutQuad,1,1,4,,
 WeaponFlip,SpinX,OutQuad,0.35,1,1,-1,
 NewBuff,DisplaceX,OutBack,0.25,-64,,,0.05
 NewWeapon,DisplaceY,OutBack,0.25,-70,,,0.015
 POWExpired,Shrink,InBack,0.25,1,,,0.025
 FadeOutLapMessage,OverrideAlphaFadeOut,Linear,0.5,,,,1
 FadeOutTrackName,OverrideAlphaFadeOut,Linear,1,,,,2.5
+FinalPlaceReveal,Heartbeat,InExpo,0.7,0,,,
+YourTimeReveal,OverrideAlphaFadeIn,OutQuad,0.3,,,,2.5
+NewRecordReveal,Heartbeat,OutBack,0.3,1.6,,,2.5

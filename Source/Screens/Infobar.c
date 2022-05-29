@@ -1486,6 +1486,21 @@ short	sex;
 	place = gPlayerInfo[playerNum].place;
 	sex = gPlayerInfo[playerNum].sex;
 
+	for (int i = 0; i < MAX_SUBICONS; i++)
+	{
+		if (gInfobarIconObjs[playerNum][ICON_PLACE][i])
+			SetObjectVisible(gInfobarIconObjs[playerNum][ICON_PLACE][i], false);
+
+		if (gInfobarIconObjs[playerNum][ICON_WRONGWAY][i])
+			SetObjectVisible(gInfobarIconObjs[playerNum][ICON_WRONGWAY][i], false);
+
+		if (gInfobarIconObjs[playerNum][ICON_LAP][i])
+			SetObjectVisible(gInfobarIconObjs[playerNum][ICON_LAP][i], false);
+
+		if (gInfobarIconObjs[playerNum][ICON_WEAPON_RACE][i])
+			SetObjectVisible(gInfobarIconObjs[playerNum][ICON_WEAPON_RACE][i], false);
+	}
+
 			/* ANNOUNCE PLACE */
 
 	PlayAnnouncerSound(EFFECT_1st + place, true, 1.0);
@@ -1521,22 +1536,25 @@ short	sex;
 
 	AppendNodeToChain(gFinalPlaceObj, ordinalObj);
 
+	MakeTwitch(gFinalPlaceObj, kTwitchPreset_FinalPlaceReveal);
+	MakeTwitch(ordinalObj, kTwitchPreset_FinalPlaceReveal);
+
 			/* MAKE RACE TIME TEXT */
 
 	if (IsRaceMode())
 	{
-		char timeStr[64];
-		snprintf(timeStr, sizeof(timeStr), "%s: %s", Localize(STR_YOUR_TIME), FormatRaceTime(GetRaceTime(playerNum)));
+		const char* timeStr = FormatRaceTime(GetRaceTime(playerNum));
 
 		NewObjectDefinitionType textDef =
 		{
 			.slot = GetChainTailNode(gFinalPlaceObj)->Slot + 1,
-			.coord = {0,100,0},
-			.scale = 0.4,
+			.coord = {0,90,0},
+			.scale = 0.8,
 		};
 		ObjNode* yourTimeObj = TextMesh_New(timeStr, 0, &textDef);
 
 		AppendNodeToChain(gFinalPlaceObj, yourTimeObj);
+		MakeTwitch(yourTimeObj, kTwitchPreset_YourTimeReveal | kTwitchFlags_HideDuringDelay);
 
 
 			/* MAKE NEW RECORD TEXT IF RANKED 1ST & SCOREBOARD WASN'T EMPTY */
@@ -1546,8 +1564,10 @@ short	sex;
 			&& SumLapTimes(gScoreboard.records[gTrackNum][1].lapTimes) > 0)
 		{
 			textDef.coord.y += 32;
+			textDef.scale = .4;
 			ObjNode* newRecordObj = TextMesh_New(Localize(STR_NEW_RECORD), 0, &textDef);
 			AppendNodeToChain(gFinalPlaceObj, newRecordObj);
+			MakeTwitch(newRecordObj, kTwitchPreset_NewRecordReveal | kTwitchFlags_HideDuringDelay);
 		}
 	}
 }

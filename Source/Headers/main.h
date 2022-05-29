@@ -9,7 +9,7 @@
 
 #define	GAME_FOV		1.1f
 
-#define	TRACK_COMPLETE_COOLDOWN_TIME	5.0				// n seconds
+#define	TRACK_COMPLETE_COOLDOWN_TIME	7.0f//5.0				// n seconds
 
 #define	NUM_FLAGS_TO_GET	6		// # flags to get in Capture Flag mode
 

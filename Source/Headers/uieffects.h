@@ -20,20 +20,24 @@ enum
 	kTwitchPreset_RankGain,
 	kTwitchPreset_RankLoss,
 	kTwitchPreset_ArrowheadSpin,
+	kTwitchPreset_GiantArrowheadSpin,
 	kTwitchPreset_WeaponFlip,
 	kTwitchPreset_NewBuff,
 	kTwitchPreset_NewWeapon,
 	kTwitchPreset_POWExpired,
 	kTwitchPreset_FadeOutLapMessage,
 	kTwitchPreset_FadeOutTrackName,
+	kTwitchPreset_FinalPlaceReveal,
+	kTwitchPreset_YourTimeReveal,
+	kTwitchPreset_NewRecordReveal,
 	kTwitchPresetCOUNT,
 
-	kTwitchClass_Scale = kTwitchPresetCOUNT,		// deliberately starting above last preset # so presets and classes cannot be mixed up
+	kTwitchClass_Heartbeat = kTwitchPresetCOUNT,		// deliberately starting above last preset # so presets and classes cannot be mixed up
+	kTwitchClass_Shrink,
 	kTwitchClass_SpinX,
 	kTwitchClass_DisplaceX,
 	kTwitchClass_DisplaceY,
 	kTwitchClass_WiggleX,
-	kTwitchClass_Shrink,
 	kTwitchClass_MultAlphaFadeIn,
 	kTwitchClass_MultAlphaFadeOut,
 	kTwitchClass_OverrideAlphaFadeIn,
@@ -43,6 +47,8 @@ enum
 	kEaseInQuad,
 	kEaseOutQuad,
 	kEaseOutCubic,
+	kEaseInExpo,
+	kEaseOutExpo,
 	kEaseInBack,
 	kEaseOutBack,
 	kEaseBounce0To0,
@@ -50,8 +56,9 @@ enum
 
 enum
 {
-	kTwitchFlags_Chain			= 0x100,
-	kTwitchFlags_KillPuppet		= 0x200,
+	kTwitchFlags_Chain				= 0x100,
+	kTwitchFlags_KillPuppet			= 0x200,
+	kTwitchFlags_HideDuringDelay	= 0x400,
 };
 
 typedef struct

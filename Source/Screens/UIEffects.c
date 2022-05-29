@@ -16,6 +16,7 @@ typedef struct
 	uint32_t			cookie;
 	uint8_t				chainLength;
 	bool				deletePuppetOnCompletion;
+	bool				hideDuringDelay;
 } TwitchDriverData;
 CheckSpecialDataStruct(TwitchDriverData);
 
@@ -44,19 +45,23 @@ static const char* kTwitchEnumNames[] =
 	REGISTER_ENUM_NAME(kTwitchPreset_RankGain),
 	REGISTER_ENUM_NAME(kTwitchPreset_RankLoss),
 	REGISTER_ENUM_NAME(kTwitchPreset_ArrowheadSpin),
+	REGISTER_ENUM_NAME(kTwitchPreset_GiantArrowheadSpin),
 	REGISTER_ENUM_NAME(kTwitchPreset_WeaponFlip),
 	REGISTER_ENUM_NAME(kTwitchPreset_NewBuff),
 	REGISTER_ENUM_NAME(kTwitchPreset_NewWeapon),
 	REGISTER_ENUM_NAME(kTwitchPreset_POWExpired),
 	REGISTER_ENUM_NAME(kTwitchPreset_FadeOutLapMessage),
 	REGISTER_ENUM_NAME(kTwitchPreset_FadeOutTrackName),
+	REGISTER_ENUM_NAME(kTwitchPreset_FinalPlaceReveal),
+	REGISTER_ENUM_NAME(kTwitchPreset_YourTimeReveal),
+	REGISTER_ENUM_NAME(kTwitchPreset_NewRecordReveal),
 
-	REGISTER_ENUM_NAME(kTwitchClass_Scale),
+	REGISTER_ENUM_NAME(kTwitchClass_Heartbeat),
+	REGISTER_ENUM_NAME(kTwitchClass_Shrink),
 	REGISTER_ENUM_NAME(kTwitchClass_SpinX),
 	REGISTER_ENUM_NAME(kTwitchClass_DisplaceX),
 	REGISTER_ENUM_NAME(kTwitchClass_DisplaceY),
 	REGISTER_ENUM_NAME(kTwitchClass_WiggleX),
-	REGISTER_ENUM_NAME(kTwitchClass_Shrink),
 	REGISTER_ENUM_NAME(kTwitchClass_MultAlphaFadeIn),
 	REGISTER_ENUM_NAME(kTwitchClass_MultAlphaFadeOut),
 	REGISTER_ENUM_NAME(kTwitchClass_OverrideAlphaFadeIn),
@@ -66,6 +71,8 @@ static const char* kTwitchEnumNames[] =
 	REGISTER_ENUM_NAME(kEaseInQuad),
 	REGISTER_ENUM_NAME(kEaseOutQuad),
 	REGISTER_ENUM_NAME(kEaseOutCubic),
+	REGISTER_ENUM_NAME(kEaseInExpo),
+	REGISTER_ENUM_NAME(kEaseOutExpo),
 	REGISTER_ENUM_NAME(kEaseInBack),
 	REGISTER_ENUM_NAME(kEaseOutBack),
 	REGISTER_ENUM_NAME(kEaseBounce0To0),
@@ -276,6 +283,12 @@ static float Ease(float p, int easingType)
 			return 1 - q*q*q;
 		}
 
+		case kEaseInExpo:
+			return p == 0 ? 0 : powf(2, 10*p - 10);
+
+		case kEaseOutExpo:
+			return p == 1 ? 1 : 1 - powf(2, -10*p);
+
 		case kEaseInBack:
 		{
 			float k = 1.7f;
@@ -319,7 +332,7 @@ static bool ApplyTwitch(ObjNode* puppet, const Twitch* fx, float timer)
 		p = 1;
 		done = true;
 	}
-	else if (p <= 0)	// delayed
+	else if (p < 0)	// delayed
 	{
 		p = 0;
 	}
@@ -328,14 +341,14 @@ static bool ApplyTwitch(ObjNode* puppet, const Twitch* fx, float timer)
 
 	switch (fx->fxClass)
 	{
-		case kTwitchClass_Scale:
+		case kTwitchClass_Heartbeat:
 			puppet->Scale.x *= Lerp(fx->amplitude, 1, p);
 			puppet->Scale.y *= Lerp(fx->amplitude, 1, p);
 			break;
 
 		case kTwitchClass_Shrink:
-			puppet->Scale.x *= Lerp(fx->amplitude, 0, p);
-			puppet->Scale.y *= Lerp(fx->amplitude, 0, p);
+			puppet->Scale.x *= Lerp(fx->amplitude, EPS, p);
+			puppet->Scale.y *= Lerp(fx->amplitude, EPS, p);
 			break;
 
 		case kTwitchClass_DisplaceX:
@@ -409,6 +422,8 @@ static void MoveTwitchDriver(ObjNode* driverNode)
 	OGLVector3D realS = puppet->Scale;
 	OGLVector3D realR = puppet->Rot;
 
+	bool anyEffectActive = false;
+
 	// Work through all effects in chain
 	int fxNum = 0;
 	while (fxNum < driverData->chainLength)
@@ -433,8 +448,10 @@ static void MoveTwitchDriver(ObjNode* driverNode)
 		}
 		else
 		{
-			driverData->timers[fxNum] += gFramesPerSecondFrac;
-			fxNum++;
+			driverData->timers[fxNum] += gFramesPerSecondFrac;	// tick effect timer
+			anyEffectActive |= driverData->timers[fxNum] >= driverData->fxChain[fxNum]->delay;
+
+			fxNum++;											// onto next effect in chain
 		}
 	}
 
@@ -457,6 +474,13 @@ static void MoveTwitchDriver(ObjNode* driverNode)
 		if (killPuppet)
 		{
 			DeleteObject(puppet);
+		}
+	}
+	else
+	{
+		if (driverData->hideDuringDelay)
+		{
+			SetObjectVisible(puppet, anyEffectActive);
 		}
 	}
 }
@@ -546,6 +570,7 @@ Twitch* MakeTwitch(ObjNode* puppet, int presetAndFlags)
 	}
 
 	driverData->deletePuppetOnCompletion |= (presetAndFlags & kTwitchFlags_KillPuppet);
+	driverData->hideDuringDelay |= (presetAndFlags & kTwitchFlags_HideDuringDelay);
 
 	Twitch* twitch = AllocTwitch();
 

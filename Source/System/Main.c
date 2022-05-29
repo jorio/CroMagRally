@@ -718,6 +718,7 @@ Byte	stage = 0;
 float	stageTimer;
 char	s[32];
 Boolean	done = false;
+ObjNode* bigArrowhead = NULL;
 
 	if (gFinalPlaceObj)
 	{
@@ -726,6 +727,10 @@ Boolean	done = false;
 	}
 
 	stageTimer = 0;
+
+	int tokensTallied = 0;
+
+	ObjNode* counterText = NULL;
 
 	while(!done)
 	{
@@ -743,7 +748,9 @@ Boolean	done = false;
 
 				case	0:
 				{
-						stageTimer = 1.5;										// reset stage timer
+						stageTimer = 1.0;										// reset stage timer
+
+						PlayEffect_Parms(EFFECT_GETPOW, 2 * FULL_CHANNEL_VOLUME, 2 * FULL_CHANNEL_VOLUME, NORMAL_CHANNEL_RATE * (0.7));
 
 						NewObjectDefinitionType def =
 						{
@@ -752,8 +759,10 @@ Boolean	done = false;
 							.coord		= {-64, 0, 0},
 							.slot 		= SPRITE_SLOT,
 							.scale		= 1.5,
+							.flags		= STATUS_BIT_KEEPBACKFACES,
 						};
-						MakeSpriteObject(&def);
+						bigArrowhead = MakeSpriteObject(&def);
+						MakeTwitch(bigArrowhead, kTwitchPreset_MenuSelect);
 						break;
 				}
 
@@ -762,9 +771,11 @@ Boolean	done = false;
 
 				case	1:
 				{
-						stageTimer = 1.5;										// reset stage timer
+						stageTimer = 1.0;										// reset stage timer
 
 								/* MAKE X */
+
+						PlayEffect_Parms(EFFECT_GETPOW, 2 * FULL_CHANNEL_VOLUME, 2 * FULL_CHANNEL_VOLUME, NORMAL_CHANNEL_RATE * (0.8));
 
 						NewObjectDefinitionType def =
 						{
@@ -774,17 +785,20 @@ Boolean	done = false;
 							.slot		= SPRITE_SLOT,
 							.scale		= 1.5,
 						};
-						MakeSpriteObject(&def);
+						ObjNode* bigX = MakeSpriteObject(&def);
+						MakeTwitch(bigX, kTwitchPreset_MenuSelect);
 						break;
 				}
 
-					/* SHOW COUNTER */
+					/* TALLY */
 
 				case	2:
 				{
-						stageTimer = 4.0;										// reset stage timer
+						stageTimer = 1.0f;
 
 								/* MAKE NUMBER */
+
+						PlayEffect_Parms(EFFECT_GETPOW, 2 * FULL_CHANNEL_VOLUME, 2 * FULL_CHANNEL_VOLUME, NORMAL_CHANNEL_RATE * (0.9));
 
 						NewObjectDefinitionType def =
 						{
@@ -793,18 +807,57 @@ Boolean	done = false;
 							.slot 		= SPRITE_SLOT,
 						};
 
-						snprintf(s, sizeof(s), "%d", gTotalTokens);
-						TextMesh_New(s, kTextMeshAlignCenter, &def);
+						counterText = TextMesh_New("0", kTextMeshAlignCenter, &def);
+						MakeTwitch(counterText, kTwitchPreset_MenuSelect);
+						break;
+				}
+
+				case	3:
+				{
+						stageTimer = .15f;
+
+								/* MAKE NUMBER */
+
+						PlayEffect_Parms(EFFECT_GETPOW, 2 * FULL_CHANNEL_VOLUME, 2 * FULL_CHANNEL_VOLUME, NORMAL_CHANNEL_RATE * (1.0f + 0.15f * tokensTallied));
+
+						tokensTallied++;
+
+						snprintf(s, sizeof(s), "%d", tokensTallied);
+
+						TextMesh_Update(s, kTextMeshAlignCenter, counterText);
+
+						MakeTwitch(counterText, kTwitchPreset_ItemGain);
+
+						if (tokensTallied < gTotalTokens)		// replay this stage
+						{
+							stage = 3;
+						}
+						else
+						{
+							stageTimer = 0;
+						}
+
+						break;
+				}
+
+					/* SHOW COUNTER */
+
+				case	4:
+				{
+						stageTimer = 4.0;										// reset stage timer
 
 						if (gTotalTokens == MAX_TOKENS)
+						{
 							PlayAnnouncerSound(EFFECT_COMPLETED, true, .3);
+							MakeTwitch(bigArrowhead, kTwitchPreset_GiantArrowheadSpin);
+						}
 						else
 							PlayAnnouncerSound(EFFECT_INCOMPLETE, true, .3);
 
 						break;
 				}
 
-				case	3:
+				case	5:
 						done = true;
 						break;
 
