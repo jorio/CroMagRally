@@ -133,6 +133,7 @@ if(NOT MSVC)
 		-Wall
 		-Wextra
 		-Wshadow
+		-Wstrict-aliasing=2
 		-Wno-multichar
 		-Wno-unknown-pragmas
 		$<$<CXX_COMPILER_ID:GNU>:-Wno-unused-but-set-variable>

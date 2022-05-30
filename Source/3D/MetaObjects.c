@@ -857,7 +857,7 @@ uint32_t				matFlags;
 
 	OGL_FixColorGamma(&diffColor2);
 
-	glColor4fv((GLfloat *)&diffColor2);				// set current diffuse color
+	glColor4fv(&diffColor2.r);						// set current diffuse color
 
 
 		/* SEE IF NEED TO ENABLE BLENDING */

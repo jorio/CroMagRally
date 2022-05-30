@@ -450,7 +450,7 @@ int	shadowType = theNode->Kind;
 
 			/* SUBMIT THE MATRIX */
 
-	glMultMatrixf((GLfloat *)&theNode->BaseTransformMatrix);
+	glMultMatrixf(theNode->BaseTransformMatrix.value);
 
 
 			/* SUBMIT SHADOW TEXTURE */
