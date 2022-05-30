@@ -1104,8 +1104,9 @@ void DeleteObject(ObjNode	*theNode)
 
 	if (theNode->TwitchNode)
 	{
-		theNode->TwitchNode = NULL;
-		DeleteObject(theNode->TwitchNode);
+		ObjNode* twitchNode = theNode->TwitchNode;
+		theNode->TwitchNode = NULL;					// detach from TwitchNode
+		DeleteObject(twitchNode);
 	}
 
 
