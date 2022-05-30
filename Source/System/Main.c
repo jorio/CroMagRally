@@ -124,7 +124,7 @@ OSErr		iErr;
 	iErr = FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":Skeletons", &bogus);
 	if (iErr)
 	{
-		DoFatalAlert("Cannot find Data folder.");
+		DoAlert("Cannot find Data folder.");
 		CleanQuit();
 	}
 

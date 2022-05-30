@@ -48,11 +48,10 @@ enum
 /*********************/
 
 static Byte gCurrentCar = 0;
+static int gLastWoahCar = -1;
+static int gLastCrappyCar = -1;
 static float gShadowCarStats[NUM_VEHICLE_PARAMETERS];
 static ObjNode* gCarModel = nil;
-
-static Byte gLastWoahCar = -1;
-static Byte gLastCrappyCar = -1;
 
 static const float kOneF = 1;
 

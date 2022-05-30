@@ -452,7 +452,7 @@ FSSpec		file;
 long		count;
 long		eof = 0;
 char		fileMagic[64];
-long		magicLength = strlen(magic) + 1;		// including null-terminator
+long		magicLength = (long) strlen(magic) + 1;		// including null-terminator
 
 	GAME_ASSERT(magicLength < (long) sizeof(fileMagic));
 
@@ -537,7 +537,7 @@ long				count;
 
 				/* WRITE MAGIC */
 
-	count = strlen(magic) + 1;
+	count = (long) strlen(magic) + 1;
 	iErr = FSWrite(refNum, &count, (Ptr) magic);
 	if (iErr)
 	{

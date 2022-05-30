@@ -1037,6 +1037,8 @@ OGLPoint3D			pt;
 		/* PUT EXPLOSION AT ENDPOINT */
 		/*****************************/
 
+	pt = endPoints[numSegments-1];
+
 	MakeSparkExplosion(pt.x, pt.y, pt.z, 500.0, PARTICLE_SObjType_WhiteSpark);
 	BlastCars(-1, pt.x, pt.y, pt.z, 300.0);
 
@@ -1579,6 +1581,8 @@ OGLPoint3D			pt;
 		/*****************************/
 		/* PUT EXPLOSION AT ENDPOINT */
 		/*****************************/
+
+	pt = endPoints[numSegments-1];
 
 	PlayEffect_Parms3D(EFFECT_ZAP, &goddess->Coord, NORMAL_CHANNEL_RATE, 6);
 

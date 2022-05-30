@@ -58,7 +58,7 @@ void DoAlert(const char* format, ...)
 	va_end(args);
 
 	printf("CMR Alert: %s\n", message);
-	SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Cro-Mag Rally", message, gSDLWindow);
+	SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Cro-Mag Rally", message, NULL);
 
 	Exit2D();
 }
