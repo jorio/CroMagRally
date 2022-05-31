@@ -355,7 +355,7 @@ Boolean	taken[NUM_LAND_CAR_TYPES];
 	}
 
 
-
+	SetDefaultCameraModeForAllPlayers();
 }
 
 #pragma mark -

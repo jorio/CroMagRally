@@ -239,16 +239,15 @@ int		p;
 		/* CALL SOME STUFF TO GET CAMERAS INTO POSITION & UPDATE DRAW CONTEXT INFO */
 
 	gFramesPerSecondFrac = 1.0/100.0;
-	UpdateCameras(true);														// prime them
+	UpdateCameras(true, false);							// prime them
 }
 
 
 /*************** UPDATE CAMERAS ***************/
 
-void UpdateCameras(Boolean priming)
+void UpdateCameras(Boolean priming, Boolean forceRefreshMode)
 {
 int		i;
-Boolean	changeMode;
 
 		/* CHECK FOR CAMERA KEY CONTROLS */
 
@@ -286,11 +285,14 @@ Boolean	changeMode;
 		{
 			gPlayerInfo[i].quickRearView = GetNeedState(kControlBit_RearView, i);
 
-			changeMode = GetNewNeedState(kNeed_CameraMode, i);
-
-			if (changeMode)
+			if (GetNewNeedState(kNeed_CameraMode, i))
 			{
 				gPlayerInfo[i].cameraMode++;
+				forceRefreshMode = true;
+			}
+
+			if (forceRefreshMode)
+			{
 				if (gPlayerInfo[i].cameraMode >= NUM_CAMERA_MODES)
 					gPlayerInfo[i].cameraMode = 0;
 
@@ -321,6 +323,30 @@ Boolean	changeMode;
 		if (gCameraStartupTimer < 0.0f)
 			gCameraStartupTimer = 0.0f;
 
+	}
+}
+
+
+/**************** SET DEFAULT CAMERA MODE FOR ALL PLAYERS ********************/
+//
+// This moves the camera away a smidge for players in tall panes
+//
+
+void SetDefaultCameraModeForAllPlayers(void)
+{
+	bool is2PTall = (gNumLocalPlayers == 2 && gGamePrefs.splitScreenMode2P == SPLITSCREEN_MODE_2P_TALL);
+	bool is3PTall = (gNumLocalPlayers == 3 && gGamePrefs.splitScreenMode2P == SPLITSCREEN_MODE_3P_TALL);
+
+	for (int i = 0; i < gNumTotalPlayers; i++)
+	{
+		if (is2PTall || (is3PTall && i == 2))	// P3 gets tall pane
+		{
+			gPlayerInfo[i].cameraMode = CAMERA_MODE_NORMAL2;
+		}
+		else
+		{
+			gPlayerInfo[i].cameraMode = CAMERA_MODE_NORMAL1;
+		}
 	}
 }
 

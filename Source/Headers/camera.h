@@ -12,5 +12,6 @@ enum
 };
 
 void InitCameras(void);
-void UpdateCameras(Boolean priming);
+void SetDefaultCameraModeForAllPlayers(void);
+void UpdateCameras(Boolean priming, Boolean forceRefreshMode);
 void DrawLensFlare(void);

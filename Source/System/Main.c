@@ -157,8 +157,8 @@ void InitDefaultPrefs(void)
 
 	gGamePrefs.language				= GetBestLanguageIDFromSystemLocale();
 	gGamePrefs.difficulty			= DIFFICULTY_MEDIUM;
-	gGamePrefs.splitScreenMode2P	= SPLITSCREEN_MODE_2P_WIDE;
-	gGamePrefs.splitScreenMode3P	= SPLITSCREEN_MODE_3P_WIDE;
+	gGamePrefs.splitScreenMode2P	= SPLITSCREEN_MODE_2P_TALL;
+	gGamePrefs.splitScreenMode3P	= SPLITSCREEN_MODE_3P_TALL;
 	gGamePrefs.monitorNum			= 0;			// main monitor by default
 	gGamePrefs.fullscreen			= true;
 	gGamePrefs.tagDuration 			= 3;
@@ -1097,7 +1097,7 @@ void MoveEverything(void)
 	MoveObjects();
 	MoveSplineObjects();
 	MoveParticleGroups();
-	UpdateCameras(false);							// update cameras for ALL players
+	UpdateCameras(false, false);				// update cameras for ALL players
 	CalcPlayerPlaces();							// determinw who is in what place
 	UpdateSkidMarks();							// update skid marks
 	UpdateLiquidAnimation();					// update liquid animation
