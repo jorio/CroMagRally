@@ -8,11 +8,20 @@
 #include <time.h>
 
 #define MAX_RECORDS_PER_SCREEN 5
+#define NODES_PER_RECORD 6
+#define MAX_TODAYS_RECORDS 64
 
 Scoreboard gScoreboard;
 
 static Byte gScoreboardTrack = 0;
 static ObjNode* gRecordChainHead = 0;
+
+static struct
+{
+	int active : 1;
+	int track : 7;
+	int rank : 8;
+} gTodaysRecords[MAX_TODAYS_RECORDS];
 
 static void OnScoreboardTrackChanged(const MenuItem* mi);
 static void LayOutScoreboardForTrack(void);
@@ -83,6 +92,36 @@ float GetRaceTime(int playerNum)
 	return SumLapTimes(gPlayerInfo[playerNum].lapTimes);
 }
 
+static int GetNumRecordsToday(void)
+{
+	int n;
+
+	for (n = 0; n < MAX_TODAYS_RECORDS; n++)
+	{
+		if (gTodaysRecords[n].active == 0)
+			break;
+	}
+
+	return n;
+}
+
+static Boolean IsNewRecord(int track, int rank)
+{
+	for (int i = 0; i < MAX_TODAYS_RECORDS; i++)
+	{
+		if (gTodaysRecords[i].active == 0)
+		{
+			return false;
+		}
+		else if (gTodaysRecords[i].track == track && gTodaysRecords[i].rank == rank)
+		{
+			return true;
+		}
+	}
+
+	return false;
+}
+
 // Returns new rank, or negative value if not rankable
 int SaveRaceTime(int playerNum)
 {
@@ -146,6 +185,13 @@ int SaveRaceTime(int playerNum)
 	myRecord->place			= pi->place;
 	myRecord->sex			= pi->sex;
 	myRecord->skin			= pi->skin;
+
+	int todaysRecordNum = GetNumRecordsToday();
+	if (todaysRecordNum >= MAX_TODAYS_RECORDS)
+		todaysRecordNum = MAX_TODAYS_RECORDS-1;
+	gTodaysRecords[todaysRecordNum].active = 1;
+	gTodaysRecords[todaysRecordNum].track = gTrackNum;
+	gTodaysRecords[todaysRecordNum].rank = rank;
 
 	// Save the file
 	SaveScoreboardFile();
@@ -247,6 +293,12 @@ void DoScoreboardScreen(void)
 {
 	GAME_ASSERT(gRecordChainHead == NULL);
 
+	int numRecordsToday = GetNumRecordsToday();
+	if (numRecordsToday >= 1)
+	{
+		gScoreboardTrack = gTodaysRecords[numRecordsToday-1].track;
+	}
+
 	SetupScoreboardScreen();
 
 	MenuStyle style = kDefaultMenuStyle;
@@ -290,6 +342,7 @@ static void LayOutScoreboardForTrack(void)
 	NewObjectDefinitionType defTime = {.coord = {x-20, y, 0}, .scale = 0.6,};
 	NewObjectDefinitionType defLaps = {.coord = {x+150, y, 0}, .scale = 0.2,};
 	NewObjectDefinitionType defDate = {.coord = {x+260, y, 0}, .scale = 0.2,};
+	NewObjectDefinitionType defNew  = {.coord = {x-130, y, 0}, .scale = 0.75,};
 
 	short slot = MENU_SLOT;
 	const char* lapAbbrev = Localize(STR_LAP_ABBREV);
@@ -298,16 +351,26 @@ static void LayOutScoreboardForTrack(void)
 	for (int row = 0; row < GAME_MIN(MAX_RECORDS_PER_SCREEN, MAX_RECORDS_PER_TRACK); row++)
 	{
 		int n = 0;
-		ObjNode* nodes[MAX_RECORDS_PER_SCREEN];
+		ObjNode* nodes[NODES_PER_RECORD];
 		memset(nodes, 0, sizeof(nodes));
 
 		const ScoreboardRecord* record = &gScoreboard.records[gScoreboardTrack][row];
 
 		float raceTime = SumLapTimes(record->lapTimes);
 
-		defRank.slot = slot++;
-		snprintf(text, sizeof(text), "#%d", row + 1);
-		nodes[n++] = TextMesh_New(text, 0, &defRank);
+		if (IsNewRecord(gScoreboardTrack, row))
+		{
+			defNew.slot = slot++;
+			nodes[n++] = TextMesh_New("NEW!", 0, &defNew);
+			nodes[n-1]->Rot.z = -PI/8;
+			nodes[n-1]->ColorFilter = (OGLColorRGBA) { .8, .2, .2, 1 };
+		}
+		else
+		{
+			defRank.slot = slot++;
+			snprintf(text, sizeof(text), "#%d", row + 1);
+			nodes[n++] = TextMesh_New(text, 0, &defRank);
+		}
 
 		if (raceTime <= 0)
 		{
@@ -316,7 +379,6 @@ static void LayOutScoreboardForTrack(void)
 		}
 		else
 		{
-
 			defTime.slot = slot++;
 			nodes[n++] = TextMesh_New(FormatRaceTime(raceTime), kTextMeshAlignLeft, &defTime);
 
@@ -352,11 +414,17 @@ static void LayOutScoreboardForTrack(void)
 		}
 
 
-		for (n = 0; n < MAX_RECORDS_PER_SCREEN; n++)
+
+		for (n = 0; n < NODES_PER_RECORD; n++)
 		{
 			if (!nodes[n])
 				continue;
-			nodes[n]->ColorFilter = colors[row];
+
+			OGLColorRGBA oldColor = nodes[n]->ColorFilter;
+			if (oldColor.r == 1 && oldColor.g == 1 && oldColor.b == 1)		// do gradient if the node doesn't set a custom color
+			{
+				nodes[n]->ColorFilter = colors[row];
+			}
 
 			Twitch* t = MakeTwitch(nodes[n], kTwitchPreset_ItemLoss);
 			if (t)
@@ -383,6 +451,7 @@ static void LayOutScoreboardForTrack(void)
 		defDate.coord.y += 60;
 		defRank.coord.y += 60;
 		defCar.coord.y += 60;
+		defNew.coord.y += 60;
 	}
 }
 
