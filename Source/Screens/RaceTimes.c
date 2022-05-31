@@ -35,7 +35,7 @@ char* FormatRaceTime(float t)
 {
 	if (t <= 0)
 	{
-		return "-'--\v.--";
+		return "0'00\v.00";
 	}
 
 	static char timeBuf[16];

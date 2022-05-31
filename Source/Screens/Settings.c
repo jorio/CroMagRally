@@ -149,9 +149,6 @@ const MenuItem gSettingsMenuTree[] =
 	},
 
 	{.id='graf'},
-	{kMISpacer, .customHeight=.5f },
-	{kMILabel, STR_FULLSCREEN_HINT, .customHeight=.5f },
-	{kMISpacer, .customHeight=.5f },
 	{
 		kMICycler1, STR_FULLSCREEN,
 		.callback=OnToggleFullscreen,
@@ -177,6 +174,9 @@ const MenuItem gSettingsMenuTree[] =
 			},
 		},
 	},
+	{kMISpacer, .customHeight=.5f },
+	{kMILabel, STR_FULLSCREEN_HINT, .customHeight=.5f },
+	{kMISpacer, .customHeight=.5f },
 
 	{.id='lang'},
 	{kMIPick, STR_ENGLISH,	.id=LANGUAGE_ENGLISH,	.callback=OnPickLanguage,	.next='BACK'},

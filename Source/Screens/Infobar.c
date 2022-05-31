@@ -25,6 +25,7 @@ static void Infobar_MovePlace(ObjNode* objNode);
 static void Infobar_MoveInventoryPOW(ObjNode* objNode);
 static void Infobar_MoveWrongWay(ObjNode* objNode);
 static void Infobar_DrawStartingLight(Byte whichPane);
+static void Infobar_MoveRaceTimer(ObjNode* objNode);
 static void Infobar_MoveLap(ObjNode* objNode);
 static void Infobar_MoveToken(ObjNode* objNode);
 static void Infobar_MovePOWTimer(ObjNode* objNode);
@@ -50,12 +51,15 @@ static void MovePressAnyKey(ObjNode *theNode);
 
 #define MAX_SUBICONS				12
 
+#define MAX_POWTIMERS 6
+
 enum
 {
 	ICON_PLACE	 = 0,		// 1st, 2nd, 3rd etc.
 	ICON_MAP,
 	ICON_STARTLIGHT,
 	ICON_LAP,
+	ICON_RACETIMER,
 	ICON_WRONGWAY,			// Big red X
 	ICON_TOKEN,				// Tournament mode arrowheads
 	ICON_WEAPON_RACE,		// Weapon/nitro inventory in race modes
@@ -104,7 +108,8 @@ static const IconPlacement gIconInfo[NUM_INFOBAR_ICONTYPES] =
 	[ICON_PLACE]		= { kAnchorTopLeft,		  64,  48, 0.9f,   0 },
 	[ICON_MAP]			= { kAnchorBottomRight,	 -80, -84, 0.5f,   0 },
 	[ICON_STARTLIGHT]	= { kAnchorCenter,		   0, -72, 1.0f,   0 },
-	[ICON_LAP]			= { kAnchorBottomLeft,	  51, -48, 0.7f,   0 },
+	[ICON_RACETIMER]	= { kAnchorBottomLeft,	  80, -29, 0.4f,   0 },
+	[ICON_LAP]			= { kAnchorBottomLeft,	  36, -42, 0.8f,   0 },
 	[ICON_WRONGWAY]		= { kAnchorCenter,		   0, -72, 1.5f,   0 },
 	[ICON_TOKEN]		= { kAnchorTopRight,	-196,  24, 0.4f,  26 },
 	[ICON_WEAPON_RACE]	= { kAnchorTop,			 -16,  36, 0.9f,  42 },
@@ -114,8 +119,6 @@ static const IconPlacement gIconInfo[NUM_INFOBAR_ICONTYPES] =
 	[ICON_POWTIMER]		= { kAnchorTopLeft,		  29, 144, 0.8f,   0 },
 	[ICON_FLAG]			= { kAnchorTopRight,	  19-6*36,  36, 0.5f,  32 },
 };
-
-#define MAX_POWTIMERS 6
 
 static const struct
 {
@@ -206,6 +209,22 @@ static float GetIconY(Byte whichPane, int iconID)
 			return dy + lh * 0.5f;
 	}
 }
+
+
+/****************** HIDE ICON OBJECTS *********************/
+
+static void HideIconObjects(int playerNum, int iconType)
+{
+	for (int i = 0; i < MAX_SUBICONS; i++)
+	{
+		ObjNode* icon = gInfobarIconObjs[playerNum][iconType][i];
+		if (icon)
+		{
+			SetObjectVisible(icon, false);
+		}
+	}
+}
+
 
 #pragma mark -
 
@@ -471,6 +490,7 @@ static void Infobar_MakeIcon(uint8_t type, uint8_t flags)
 	static void (*moveCallbacks[NUM_INFOBAR_ICONTYPES])(ObjNode*) =
 	{
 		[ICON_PLACE]			= Infobar_MovePlace,
+		[ICON_RACETIMER]		= Infobar_MoveRaceTimer,
 		[ICON_LAP]				= Infobar_MoveLap,
 		[ICON_WRONGWAY]			= Infobar_MoveWrongWay,
 		[ICON_TOKEN]			= Infobar_MoveToken,
@@ -580,6 +600,7 @@ static void MakeInfobar(void)
 		Infobar_MakeIcon(ICON_PLACE, 1);		// ordinal
 		Infobar_MakeIcon(ICON_WRONGWAY, 0);
 		Infobar_MakeIcon(ICON_LAP, 0);
+		Infobar_MakeIcon(ICON_RACETIMER, 0x80);
 	}
 
 	switch (gGameMode)
@@ -1050,6 +1071,16 @@ int		oldTimer;
 
 
 
+/********************** DRAW RACE TIMER *************************/
+
+static void Infobar_MoveRaceTimer(ObjNode* node)
+{
+	if (!SetObjectVisible(node, gGamePrefs.raceTimer))
+		return;
+
+	TextMesh_Update(FormatRaceTime(GetRaceTime(node->PlayerNum)), kTextMeshAlignLeft, node);
+	Infobar_RepositionIcon(node);
+}
 
 
 /********************** DRAW LAP *************************/
@@ -1493,20 +1524,13 @@ short	sex;
 	place = gPlayerInfo[playerNum].place;
 	sex = gPlayerInfo[playerNum].sex;
 
-	for (int i = 0; i < MAX_SUBICONS; i++)
-	{
-		if (gInfobarIconObjs[playerNum][ICON_PLACE][i])
-			SetObjectVisible(gInfobarIconObjs[playerNum][ICON_PLACE][i], false);
+			/* HIDE MOST OF THE INFOBAR */
 
-		if (gInfobarIconObjs[playerNum][ICON_WRONGWAY][i])
-			SetObjectVisible(gInfobarIconObjs[playerNum][ICON_WRONGWAY][i], false);
-
-		if (gInfobarIconObjs[playerNum][ICON_LAP][i])
-			SetObjectVisible(gInfobarIconObjs[playerNum][ICON_LAP][i], false);
-
-		if (gInfobarIconObjs[playerNum][ICON_WEAPON_RACE][i])
-			SetObjectVisible(gInfobarIconObjs[playerNum][ICON_WEAPON_RACE][i], false);
-	}
+	HideIconObjects(playerNum, ICON_PLACE);
+	HideIconObjects(playerNum, ICON_WRONGWAY);
+	HideIconObjects(playerNum, ICON_LAP);
+	HideIconObjects(playerNum, ICON_WEAPON_RACE);
+	HideIconObjects(playerNum, ICON_RACETIMER);
 
 			/* ANNOUNCE PLACE */
 

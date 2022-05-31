@@ -33,7 +33,7 @@ static const MenuItem gPauseMenuTree[] =
 
 	{kMIPick, STR_RESUME_GAME, .id='resu', .next='EXIT' },
 
-	{kMIPick, STR_SETTINGS, .callback=RegisterSettingsMenu, .next='sett' },
+	{kMISpacer, .customHeight=.3f},
 
 	// 2P split-screen mode chooser
 	{
@@ -71,10 +71,28 @@ static const MenuItem gPauseMenuTree[] =
 		},
 	},
 
+	// Race timer
+	{
+		.type = kMICycler1,
+		.text = STR_RACE_TIMER,
+		.cycler=
+		{
+			.valuePtr=&gGamePrefs.raceTimer,
+			.choices=
+			{
+					{STR_RACE_TIMER_HIDDEN, 0},
+					{STR_RACE_TIMER_VISIBLE, 1}
+			},
+		},
+	},
+
+	{kMIPick, STR_SETTINGS, .callback=RegisterSettingsMenu, .next='sett' },
+
+	{kMISpacer, .customHeight=.3f},
 
 	{kMIPick, STR_RETIRE_GAME, .id='bail', .next='EXIT' },
 
-	{kMIPick, STR_QUIT_APPLICATION, .id='quit', .next='EXIT' },
+//	{kMIPick, STR_QUIT_APPLICATION, .id='quit', .next='EXIT' },
 
 	{ 0 },
 };

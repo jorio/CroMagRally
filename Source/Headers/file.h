@@ -70,6 +70,7 @@ typedef struct
 	Byte	monitorNum;
 	Byte	musicVolumePercent;
 	Byte	sfxVolumePercent;
+	Byte	raceTimer;
 
 	InputBinding bindings[NUM_CONTROL_NEEDS];
 	Boolean	gamepadRumble;
