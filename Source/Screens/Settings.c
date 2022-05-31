@@ -8,8 +8,8 @@
 
 static void OnPickLanguage(const MenuItem* mi)
 {
+	gGamePrefs.language = mi->id;
 	LoadLocalizedStrings(gGamePrefs.language);
-	LayoutCurrentMenuAgain();
 }
 
 static void OnToggleFullscreen(const MenuItem* mi)
@@ -103,10 +103,18 @@ static void OnChangeMSAA(const MenuItem* mi)
 const MenuItem gSettingsMenuTree[] =
 {
 	{.id='sett'},
-	{kMIPick, STR_CONFIGURE_KEYBOARD, .next='keyb', .customHeight=.75f },
-	{kMIPick, STR_CONFIGURE_GAMEPAD, .next='gpad', .customHeight=.75f},
+	{kMIPick, STR_CONTROLS, .next='ctrl'},
+	{kMIPick, STR_SOUND, .next='soun'},
+	{kMIPick, STR_GRAPHICS, .next='graf'},
+	{kMIPick, STR_LANGUAGE, .next='lang'},
+
+	{.id='ctrl'},
+	{kMIPick, STR_CONFIGURE_KEYBOARD, .next='keyb' },
+	{kMIPick, STR_CONFIGURE_GAMEPAD, .next='gpad' },
+
+	{.id='soun'},
 	{
-			kMICycler1, STR_MUSIC,
+		kMICycler1, STR_MUSIC,
 		.callback=OnAdjustMusicVolume,
 		.cycler=
 		{
@@ -121,10 +129,9 @@ const MenuItem gSettingsMenuTree[] =
 				{STR_VOLUME_100, 100},
 			}
 		},
-		.customHeight=.75f
 	},
 	{
-			kMICycler1, STR_SFX,
+		kMICycler1, STR_SFX,
 		.callback=OnAdjustSFXVolume,
 		.cycler=
 		{
@@ -139,8 +146,12 @@ const MenuItem gSettingsMenuTree[] =
 				{STR_VOLUME_100, 100},
 			}
 		},
-		.customHeight=.75f
 	},
+
+	{.id='graf'},
+	{kMISpacer, .customHeight=.5f },
+	{kMILabel, STR_FULLSCREEN_HINT, .customHeight=.5f },
+	{kMISpacer, .customHeight=.5f },
 	{
 		kMICycler1, STR_FULLSCREEN,
 		.callback=OnToggleFullscreen,
@@ -149,7 +160,6 @@ const MenuItem gSettingsMenuTree[] =
 			.valuePtr=&gGamePrefs.fullscreen,
 			.choices={ {STR_OFF, 0}, {STR_ON, 1} },
 		},
-		.customHeight=.75f
 	},
 	{
 		kMICycler1, STR_ANTIALIASING,
@@ -166,24 +176,15 @@ const MenuItem gSettingsMenuTree[] =
 				{STR_MSAA_8X, 3},
 			},
 		},
-		.customHeight = .75f
 	},
-	{
-			kMICycler1, STR_LANGUAGE, .cycler=
-		{
-			.valuePtr=&gGamePrefs.language, .choices=
-			{
-				{STR_LANGUAGE_NAME, LANGUAGE_ENGLISH},
-				{STR_LANGUAGE_NAME, LANGUAGE_FRENCH},
-				{STR_LANGUAGE_NAME, LANGUAGE_GERMAN},
-				{STR_LANGUAGE_NAME, LANGUAGE_SPANISH},
-				{STR_LANGUAGE_NAME, LANGUAGE_ITALIAN},
-				{STR_LANGUAGE_NAME, LANGUAGE_SWEDISH},
-			}
-		},
-		.callback=OnPickLanguage,
-		.customHeight=.75f
-	},
+
+	{.id='lang'},
+	{kMIPick, STR_ENGLISH,	.id=LANGUAGE_ENGLISH,	.callback=OnPickLanguage,	.next='BACK'},
+	{kMIPick, STR_FRENCH,	.id=LANGUAGE_FRENCH,	.callback=OnPickLanguage,	.next='BACK'},
+	{kMIPick, STR_GERMAN,	.id=LANGUAGE_GERMAN,	.callback=OnPickLanguage,	.next='BACK'},
+	{kMIPick, STR_SPANISH,	.id=LANGUAGE_SPANISH,	.callback=OnPickLanguage,	.next='BACK'},
+	{kMIPick, STR_ITALIAN,	.id=LANGUAGE_ITALIAN,	.callback=OnPickLanguage,	.next='BACK'},
+	{kMIPick, STR_SWEDISH,	.id=LANGUAGE_SWEDISH,	.callback=OnPickLanguage,	.next='BACK'},
 
 	{ .id='keyb' },
 	{kMISpacer, .customHeight=.35f },
