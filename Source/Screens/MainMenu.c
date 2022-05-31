@@ -94,10 +94,10 @@ static const MenuItem gMainMenuTree[] =
 	{kMIPick, STR_CLEAR_SAVED_GAME, .next='clrs', .getLayoutFlags=IsClearSavedGameAvailable, .customHeight=.7 },
 
 	{ .id='xtra' },
-	{kMIPick, STR_HELP,				.id=MENU_EXITCODE_HELP,		.next='EXIT' },
-	{kMIPick, STR_CREDITS,			.id=MENU_EXITCODE_CREDITS,	.next='EXIT', .callback=OnPickCredits },
 	{kMIPick, STR_SCOREBOARD,		.id=MENU_EXITCODE_SCOREBOARD,	.next='EXIT' },
 	{kMIPick, STR_PHYSICS_EDITOR,	.id=MENU_EXITCODE_PHYSICS,	.next='EXIT' },
+	{kMIPick, STR_CREDITS,			.id=MENU_EXITCODE_CREDITS,	.next='EXIT', .callback=OnPickCredits },
+	{kMIPick, STR_HELP,				.id=MENU_EXITCODE_HELP,		.next='EXIT' },
 
 	{ .id='mpgm' },
 	{kMIPick, STR_RACE,			.callback=OnPickGameMode, .id=GAME_MODE_MULTIPLAYERRACE,	.next='EXIT' },

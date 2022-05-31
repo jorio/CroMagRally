@@ -928,6 +928,126 @@ static void MoveCredit(ObjNode *theNode)
 
 void DoHelpScreen(void)
 {
-	DisplayPicture(":images:Help.jpg", 20);
+OGLSetupInputType	viewDef;
+OGLColorRGBA		ambientColor = { .5, .5, .5, 1 };
+OGLColorRGBA		fillColor1 = { 1.0, 1.0, 1.0, 1 };
+OGLVector3D			fillDirection1 = { .9, -.3, -1 };
+
+			/**************/
+			/* SETUP VIEW */
+			/**************/
+
+	OGL_NewViewDef(&viewDef);
+
+	viewDef.camera.fov 				= .3;
+	viewDef.camera.hither 			= 10;
+	viewDef.camera.yon 				= 3000;
+	viewDef.camera.from[0].z		= 700;
+
+	viewDef.view.clearColor 		= (OGLColorRGBA) { 0, 0, 0, 1 };
+	viewDef.styles.useFog			= false;
+	viewDef.view.pillarboxRatio		= PILLARBOX_RATIO_4_3;
+
+	viewDef.lights.ambientColor 	= ambientColor;
+	viewDef.lights.numFillLights 	= 1;
+	viewDef.lights.fillDirection[0] = fillDirection1;
+	viewDef.lights.fillColor[0] 	= fillColor1;
+
+	viewDef.view.fontName			= "rockfont";
+
+	OGL_SetupGameView(&viewDef);
+
+
+	MakeFadeEvent(true);
+
+
+
+				/************/
+				/* LOAD ART */
+				/************/
+
+	MakeScrollingBackgroundPattern();
+
+	int loadTexFlagsBackup = gLoadTextureFlags;
+	gLoadTextureFlags |= kLoadTextureFlags_NearestNeighbor;
+	LoadSpriteGroup(SPRITE_GROUP_MAINMENU, "qrcodes", 0);
+	gLoadTextureFlags = loadTexFlagsBackup;
+
+
+			/*****************/
+			/* BUILD OBJECTS */
+			/*****************/
+
+	float startY = -92;
+
+	NewObjectDefinitionType textDef =
+	{
+			.scale = 0.32f,
+			.coord = {-130, startY, 0},
+			.slot = SPRITE_SLOT,
+	};
+
+	TextMesh_New("PANGEA'S CRO-MAG HOMEPAGE\nWITH HINTS, TIPS AND CHEATS:", kTextMeshAlignBottom | kTextMeshAlignLeft, &textDef);
+
+	textDef.coord.y += 0.4 * 64;
+	ObjNode* url1 = TextMesh_New("PANGEASOFT.NET/CROMAG", kTextMeshAlignLeft, &textDef);
+
+	textDef.coord.y += 0.4 * 64 * 6;
+	TextMesh_New("HOMEPAGE OF THE MODERN VERSION\nAND SOURCE CODE REPOSITORY:", kTextMeshAlignBottom | kTextMeshAlignLeft, &textDef);
+
+	textDef.coord.y += 0.4 * 64;
+	ObjNode* url2 = TextMesh_New("GITHUB.COM/JORIO/CROMAGRALLY", kTextMeshAlignLeft, &textDef);
+
+	url1->ColorFilter = url2->ColorFilter = (OGLColorRGBA) { .8, .2, .2, 1 };
+
+	textDef.coord.x = 0;
+	textDef.coord.y = 220;
+	textDef.scale = 0.27f;
+	ObjNode* pressEsc = TextMesh_New(Localize(STR_PRESS_ESC_TO_GO_BACK), 0, &textDef);
+	pressEsc->ColorFilter = (OGLColorRGBA) {.5, .5, .5, 1};
+	MakeTwitch(pressEsc, kTwitchPreset_PressKeyPrompt);
+
+	NewObjectDefinitionType qrCodeDef =
+	{
+		.scale = 3.0f,
+		.coord = {-200, startY-3, 0},
+		.group = SPRITE_GROUP_MAINMENU,
+		.type = 1,
+		.slot = SPRITE_SLOT,
+	};
+	MakeSpriteObject(&qrCodeDef);
+
+	qrCodeDef.coord.y += 0.4*64*7;
+	qrCodeDef.type = 2;
+	MakeSpriteObject(&qrCodeDef);
+
+			/*************/
+			/* MAIN LOOP */
+			/*************/
+
+	CalcFramesPerSecond();
+	ReadKeyboard();
+
+	while (!UserWantsOut())
+	{
+		CalcFramesPerSecond();
+		ReadKeyboard();
+		MoveObjects();
+		OGL_DrawScene(DrawObjects);
+	}
+
+
+			/***********/
+			/* CLEANUP */
+			/***********/
+
+	OGL_FadeOutScene(DrawObjects, MoveObjects);
+
+	DeleteAllObjects();
+	FreeAllSkeletonFiles(-1);
+	DisposeAllBG3DContainers();
+	DisposeSpriteGroup(SPRITE_GROUP_MAINMENU);
+	OGL_DisposeGameView();
+
 }
 
