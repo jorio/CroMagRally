@@ -94,7 +94,7 @@ bool				doKeyText = timeout > 9;
 			.slot		= SPRITE_SLOT,
 		};
 
-		int strKey = gUserPrefersGamepad ? STR_PRESS_START : STR_PRESS_SPACE;
+		int strKey = gUserPrefersGamepad ? STR_PRESS_START_TO_CONTINUE : STR_PRESS_SPACE_TO_CONTINUE;
 		ObjNode* keyText = TextMesh_New(Localize(strKey), kTextMeshAlignCenter, &def);
 		MakeTwitch(keyText, kTwitchPreset_PressKeyPrompt);
 	}
