@@ -106,8 +106,6 @@ void LoadSpriteGroup(int groupNum, const char* atlasName, int flags)
 ObjNode *MakeSpriteObject(NewObjectDefinitionType *newObjDef)
 {
 ObjNode				*newObj;
-MOSpriteObject		*spriteMO;
-MOSpriteData		spriteData;
 
 			/* ERROR CHECK */
 
@@ -126,21 +124,7 @@ MOSpriteData		spriteData;
 	if (newObj == nil)
 		return(nil);
 
-	CreateBaseGroup(newObj);
-
-			/* MAKE SPRITE META-OBJECT */
-
-	spriteData.group	= newObjDef->group;
-	spriteData.type		= newObjDef->type;
-
-	spriteMO = MO_CreateNewObjectOfType(MO_TYPE_SPRITE, 0, &spriteData);
-	GAME_ASSERT(spriteMO);
-
-
-			/* ATTACH META OBJECT TO OBJNODE */
-
-	MO_AppendToGroup(newObj->BaseGroup, spriteMO);
-	MO_DisposeObjectReference(spriteMO);
+	UpdateObjectTransforms(newObj);
 
 	return(newObj);
 }
@@ -149,31 +133,10 @@ MOSpriteData		spriteData;
 
 void ModifySpriteObjectFrame(ObjNode *theNode, short type)
 {
-MOSpriteObject		*spriteMO = NULL;
-
 	GAME_ASSERT(theNode->Genre == SPRITE_GENRE);
 
 	if (type == theNode->Type)		// see if it is the same
 		return;						// (Type should have been set in ObjNode ctor via NewObjectDefinitionType.type)
-
-
-			/* FIND SPRITE MO */
-
-	for (int i = 0; i < theNode->BaseGroup->objectData.numObjectsInGroup; i++)
-	{
-		if (theNode->BaseGroup->objectData.groupContents[i]->type == MO_TYPE_SPRITE)
-		{
-			spriteMO = (MOSpriteObject*) theNode->BaseGroup->objectData.groupContents[i];
-			break;
-		}
-	}
-
-	GAME_ASSERT_MESSAGE(spriteMO, "MOSpriteObject not found");
-
-			/* UPDATE INFO */
-
-	spriteMO->objectData.group	= theNode->Group;							// set group
-	spriteMO->objectData.type 	= type;										// set group subtype
 
 	theNode->Type = type;
 }

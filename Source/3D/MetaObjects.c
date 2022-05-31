@@ -35,9 +35,6 @@ static void MO_CalcBoundingBox_Recurse(MetaObjectPtr object, OGLBoundingBox *bBo
 static void SetMetaObjectToPicture(MOPictureObject *pictObj, const char *inData, int destPixelFormat);
 static void MO_DisposeObject_Picture(MOPictureObject *obj);
 
-static void SetMetaObjectToSprite(MOSpriteObject *spriteObj, MOSpriteData *inData);
-static void MO_DisposeObject_Sprite(MOSpriteObject *obj);
-
 
 /****************************/
 /*    CONSTANTS             */
@@ -174,10 +171,6 @@ MetaObjectPtr	mo;
 				break;
 		}
 
-		case	MO_TYPE_SPRITE:
-				SetMetaObjectToSprite(mo, data);
-				break;
-
 		default:
 				DoFatalAlert("MO_CreateNewObjectOfType: object type not recognized");
 	}
@@ -226,10 +219,6 @@ int					size;
 
 		case	MO_TYPE_PICTURE:
 				size = sizeof(MOPictureObject);
-				break;
-
-		case	MO_TYPE_SPRITE:
-				size = sizeof(MOSpriteObject);
 				break;
 
 		default:
@@ -414,51 +403,6 @@ MOMaterialData	matData;
 }
 
 
-/******************* SET META OBJECT TO SPRITE ********************/
-//
-// INPUT:	mo = meta object which has already been allocated and added to linked list.
-//
-// This takes the given input data and copies it.
-//
-
-static void SetMetaObjectToSprite(MOSpriteObject *spriteObj, MOSpriteData *inData)
-{
-MOSpriteData	*spriteData = &spriteObj->objectData;
-
-	spriteData->group = inData->group;
-	spriteData->type = inData->type;
-}
-
-
-
-#if 0
-
-#pragma mark -
-
-/*************** SET PICTURE OBJECT COORDS TO MOUSE *******************/
-
-void MO_SetPictureObjectCoordsToMouse(OGLSetupOutputType *info, MOPictureObject *obj)
-{
-MOPictureData	*picData = &obj->objectData;				//  point to pic obj's data
-Point			pt;
-int				x,y,w,h;
-
-//	SetPort(GetWindowPort(info->window));
-	GetMouse(&pt);										// get mouse screen coords
-
-			/* CONVERT SCREEN COORD TO OPENGL COORD */
-
-	OGL_GetCurrentViewport(info, &x, &y, &w, &h, 0);
-
-
-	picData->drawCoord.x = -1.0f + (float)pt.h / (float)w * 2.0f;
-	picData->drawCoord.y = 1.0f - (float)pt.v / (float)h * 2.0f;
-
-}
-
-#endif
-
-
 
 #pragma mark -
 
@@ -567,10 +511,6 @@ MOVertexArrayObject	*vObj;
 
 		case	MO_TYPE_PICTURE:
 				MO_DrawPicture(object);
-				break;
-
-		case	MO_TYPE_SPRITE:
-				MO_DrawSprite(object);
 				break;
 
 		default:
@@ -925,22 +865,6 @@ const MOPictureData	*picData = &picObj->objectData;
 	OGL_PopState();
 }
 
-/************************ MO: DRAW SPRITE **************************/
-//
-// Assume that the matrices are already set to identity
-//
-// Also, assume that the projection matrix is already the identity matrix.
-//
-
-void MO_DrawSprite(const MOSpriteObject *spriteObj)
-{
-const MOSpriteData	*spriteData = &spriteObj->objectData;
-char text[2] = { spriteData->type, 0 };
-
-	Atlas_ImmediateDraw(spriteData->group, text,
-						kTextMeshAlignCenter | kTextMeshAlignMiddle | kTextMeshKeepCurrentProjection);
-}
-
 
 
 #pragma mark -
@@ -996,11 +920,6 @@ MOVertexArrayObject	*vObj;
 			case	MO_TYPE_PICTURE:
 					MO_DisposeObject_Picture(obj);
 					break;
-
-			case	MO_TYPE_SPRITE:
-					MO_DisposeObject_Sprite(obj);
-					break;
-
 		}
 
 			/* DELETE THE OBJECT NODE */
@@ -1106,12 +1025,6 @@ MOPictureData *data = &obj->objectData;
 
 	MO_DisposeObjectReference(data->material);
 	data->material = NULL;
-}
-
-/****************** DISPOSE OBJECT: SPRITE *******************/
-
-static void MO_DisposeObject_Sprite(MOSpriteObject *obj)
-{
 }
 
 

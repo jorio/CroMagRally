@@ -18,7 +18,6 @@ enum
 	MO_TYPE_MATERIAL	=	'matl',
 	MO_TYPE_MATRIX		=	'mtrx',
 	MO_TYPE_PICTURE		=	'pict',
-	MO_TYPE_SPRITE		=	'sprt'
 };
 
 	/* OBJECT SUBTYPES */
@@ -158,22 +157,6 @@ typedef struct
 }MOPictureObject;
 
 
-		/*****************/
-		/* SPRITE OBJECT */
-		/*****************/
-
-typedef struct
-{
-	int					group;
-	int					type;
-}MOSpriteData;
-
-typedef struct
-{
-	MetaObjectHeader	objectHeader;
-	MOSpriteData		objectData;
-}MOSpriteObject;
-
 //-----------------------------
 
 void MO_InitHandler(void);
@@ -192,8 +175,5 @@ void MO_DuplicateVertexArrayData(MOVertexArrayData *inData, MOVertexArrayData *o
 void MO_DisposeObject_Geometry_VertexArray(MOVertexArrayData *data);
 void MO_CalcBoundingBox(MetaObjectPtr object, OGLBoundingBox *bBox);
 MOMaterialObject *MO_GetTextureFromFile(const char* path, int destPixelFormat);
-//void MO_SetPictureObjectCoordsToMouse(OGLSetupOutputType *info, MOPictureObject *obj);
-
-void MO_DrawSprite(const MOSpriteObject *spriteObj);
 void MO_VertexArray_OffsetUVs(MetaObjectPtr object, float du, float dv);
 void MO_Object_OffsetUVs(MetaObjectPtr object, float du, float dv);

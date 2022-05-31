@@ -824,7 +824,6 @@ short			skelType, playerNum;
 					break;
 
 			case	DISPLAY_GROUP_GENRE:
-			case	SPRITE_GENRE:
 			case	QUADMESH_GENRE:
 					if (theNode->BaseGroup)
 					{
@@ -843,6 +842,20 @@ short			skelType, playerNum;
 						}
 					}
 					break;
+
+			case	SPRITE_GENRE:
+			{
+					GAME_ASSERT(theNode->Type > 0 && theNode->Type <= 255);
+
+					char text[2] = { (char) theNode->Type, 0 };
+					int spriteFlags = kTextMeshAlignCenter | kTextMeshAlignMiddle | kTextMeshKeepCurrentProjection;
+
+					OGL_PushState();
+					glMultMatrixf(theNode->BaseTransformMatrix.value);
+					Atlas_ImmediateDraw(theNode->Group, text, spriteFlags);
+					OGL_PopState();
+					break;
+			}
 
 			case	CUSTOM_GENRE:
 					if (theNode->CustomDrawFunction)
