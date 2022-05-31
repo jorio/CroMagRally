@@ -1326,7 +1326,6 @@ static char* UpdateDebugText(void)
 		"\nCHAN:\t%d\v/%d"
 		"\nUIFX:\t%d"
 		"\nRES:\t%d\vX\r%d\v/%d"
-		"\nRACE:\t%s"
 		"\nAS\vTEER\r:\t%+.02f"
 		"\nSTEER:\t%+.02f%s"
 		,
@@ -1343,7 +1342,6 @@ static char* UpdateDebugText(void)
 		gGameWindowWidth,
 		gGameWindowHeight,
 		gNumSplitScreenPanes,
-		FormatRaceTime(GetRaceTime(0)),
 		gPlayerInfo[0].analogSteering.x,
 		gPlayerInfo[0].steering,
 		gPlayerInfo[0].steering == gPlayerInfo[0].analogSteering.x? "": "*"

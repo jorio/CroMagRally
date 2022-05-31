@@ -26,6 +26,7 @@ static void Infobar_MoveInventoryPOW(ObjNode* objNode);
 static void Infobar_MoveWrongWay(ObjNode* objNode);
 static void Infobar_DrawStartingLight(Byte whichPane);
 static void Infobar_MoveRaceTimer(ObjNode* objNode);
+static void Infobar_MoveLapTimer(ObjNode* objNode);
 static void Infobar_MoveLap(ObjNode* objNode);
 static void Infobar_MoveToken(ObjNode* objNode);
 static void Infobar_MovePOWTimer(ObjNode* objNode);
@@ -59,7 +60,9 @@ enum
 	ICON_MAP,
 	ICON_STARTLIGHT,
 	ICON_LAP,
-	ICON_RACETIMER,
+	ICON_RACETIMER1,
+	ICON_RACETIMER2,
+	ICON_LAPTIMER,
 	ICON_WRONGWAY,			// Big red X
 	ICON_TOKEN,				// Tournament mode arrowheads
 	ICON_WEAPON_RACE,		// Weapon/nitro inventory in race modes
@@ -105,10 +108,12 @@ typedef struct
 
 static const IconPlacement gIconInfo[NUM_INFOBAR_ICONTYPES] =
 {
-	[ICON_PLACE]		= { kAnchorTopLeft,		  64,  48, 0.9f,   0 },
-	[ICON_MAP]			= { kAnchorBottomRight,	 -80, -84, 0.5f,   0 },
+	[ICON_PLACE]		= { kAnchorTopLeft,		  68,  48, 0.9f,   0 },
+	[ICON_MAP]			= { kAnchorBottomRight,	 -72, -72, 0.5f,   0 },
 	[ICON_STARTLIGHT]	= { kAnchorCenter,		   0, -72, 1.0f,   0 },
-	[ICON_RACETIMER]	= { kAnchorBottomLeft,	  80, -29, 0.4f,   0 },
+	[ICON_RACETIMER1]	= { kAnchorBottomLeft,	  80, -29, 0.4f,   0 },
+	[ICON_RACETIMER2]	= { kAnchorBottomLeft,	  14, -29, 0.6f,   0 },
+	[ICON_LAPTIMER]		= { kAnchorBottomLeft,	  14, -100, 0.3f,   0 },
 	[ICON_LAP]			= { kAnchorBottomLeft,	  36, -42, 0.8f,   0 },
 	[ICON_WRONGWAY]		= { kAnchorCenter,		   0, -72, 1.5f,   0 },
 	[ICON_TOKEN]		= { kAnchorTopRight,	-196,  24, 0.4f,  26 },
@@ -490,7 +495,9 @@ static void Infobar_MakeIcon(uint8_t type, uint8_t flags)
 	static void (*moveCallbacks[NUM_INFOBAR_ICONTYPES])(ObjNode*) =
 	{
 		[ICON_PLACE]			= Infobar_MovePlace,
-		[ICON_RACETIMER]		= Infobar_MoveRaceTimer,
+		[ICON_RACETIMER1]		= Infobar_MoveRaceTimer,
+		[ICON_RACETIMER2]		= Infobar_MoveRaceTimer,
+		[ICON_LAPTIMER]			= Infobar_MoveLapTimer,
 		[ICON_LAP]				= Infobar_MoveLap,
 		[ICON_WRONGWAY]			= Infobar_MoveWrongWay,
 		[ICON_TOKEN]			= Infobar_MoveToken,
@@ -600,7 +607,12 @@ static void MakeInfobar(void)
 		Infobar_MakeIcon(ICON_PLACE, 1);		// ordinal
 		Infobar_MakeIcon(ICON_WRONGWAY, 0);
 		Infobar_MakeIcon(ICON_LAP, 0);
-		Infobar_MakeIcon(ICON_RACETIMER, 0x80);
+
+		Infobar_MakeIcon(ICON_RACETIMER1, 0x80);
+		Infobar_MakeIcon(ICON_RACETIMER2, 0x80);
+		Infobar_MakeIcon(ICON_LAPTIMER, 0x80);
+		Infobar_MakeIcon(ICON_LAPTIMER, 0x81);
+		Infobar_MakeIcon(ICON_LAPTIMER, 0x82);
 	}
 
 	switch (gGameMode)
@@ -1075,11 +1087,60 @@ int		oldTimer;
 
 static void Infobar_MoveRaceTimer(ObjNode* node)
 {
-	if (!SetObjectVisible(node, gGamePrefs.raceTimer))
+	InfobarIconData* data = GetInfobarIconData(node);
+
+	bool visible = false;
+	if (data->type == ICON_RACETIMER1)
+		visible = gGamePrefs.raceTimer == 1;
+	else if (data->type == ICON_RACETIMER2)
+		visible = gGamePrefs.raceTimer == 2;
+
+	if (!SetObjectVisible(node, visible))
 		return;
 
 	TextMesh_Update(FormatRaceTime(GetRaceTime(node->PlayerNum)), kTextMeshAlignLeft, node);
 	Infobar_RepositionIcon(node);
+}
+
+
+/********************** DRAW LAP TIMER *************************/
+
+static void Infobar_MoveLapTimer(ObjNode* node)
+{
+	if (!SetObjectVisible(node, gGamePrefs.raceTimer == 2))
+		return;
+
+	InfobarIconData* data = GetInfobarIconData(node);
+	char buf[24];
+
+	int lap = data->sub;
+	float lapTime = gPlayerInfo[node->PlayerNum].lapTimes[lap];
+
+	int timeHash = (int) (lapTime * 1000.0f);
+
+	if (data->displayedValue != timeHash)
+	{
+		if (timeHash <= 0)
+		{
+			snprintf(buf, sizeof(buf), "%s%d: -",
+					Localize(STR_LAP_ABBREV),
+					lap + 1);
+		}
+		else
+		{
+			snprintf(buf, sizeof(buf), "%s%d: %s",
+					Localize(STR_LAP_ABBREV),
+					lap + 1,
+					FormatRaceTime(lapTime));
+		}
+
+		TextMesh_Update(buf, kTextMeshAlignLeft, node);
+	}
+
+
+	Infobar_RepositionIconTemp(node);
+	node->Coord.y += 20 * lap;
+	UpdateObjectTransforms(node);
 }
 
 
@@ -1088,6 +1149,9 @@ static void Infobar_MoveRaceTimer(ObjNode* node)
 static void Infobar_MoveLap(ObjNode* node)
 {
 int	lap,playerNum;
+
+	if (!SetObjectVisible(node, gGamePrefs.raceTimer != 2))
+		return;
 
 			/*******************************/
 			/* DRAW THE CURRENT LAP NUMBER */
@@ -1530,7 +1594,9 @@ short	sex;
 	HideIconObjects(playerNum, ICON_WRONGWAY);
 	HideIconObjects(playerNum, ICON_LAP);
 	HideIconObjects(playerNum, ICON_WEAPON_RACE);
-	HideIconObjects(playerNum, ICON_RACETIMER);
+	HideIconObjects(playerNum, ICON_RACETIMER1);
+	HideIconObjects(playerNum, ICON_RACETIMER2);
+	HideIconObjects(playerNum, ICON_LAPTIMER);
 
 			/* ANNOUNCE PLACE */
 

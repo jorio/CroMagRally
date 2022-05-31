@@ -81,7 +81,8 @@ static const MenuItem gPauseMenuTree[] =
 			.choices=
 			{
 					{STR_RACE_TIMER_HIDDEN, 0},
-					{STR_RACE_TIMER_VISIBLE, 1}
+					{STR_RACE_TIMER_SIMPLE, 1},
+					{STR_RACE_TIMER_DETAILED, 2},
 			},
 		},
 	},

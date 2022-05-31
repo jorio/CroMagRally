@@ -292,7 +292,7 @@ static void LayOutScoreboardForTrack(void)
 	NewObjectDefinitionType defDate = {.coord = {x+260, y, 0}, .scale = 0.2,};
 
 	short slot = MENU_SLOT;
-	const char* lapStr = Localize(STR_LAP);
+	const char* lapAbbrev = Localize(STR_LAP_ABBREV);
 	char text[128];
 
 	for (int row = 0; row < GAME_MIN(MAX_RECORDS_PER_SCREEN, MAX_RECORDS_PER_TRACK); row++)
@@ -321,9 +321,9 @@ static void LayOutScoreboardForTrack(void)
 			nodes[n++] = TextMesh_New(FormatRaceTime(raceTime), kTextMeshAlignLeft, &defTime);
 
 			text[0] = '\0';
-			snprintfcat(text, sizeof(text), "%c1: %s", lapStr[0], FormatRaceTime(record->lapTimes[0]));
-			snprintfcat(text, sizeof(text), "\n%c2: %s", lapStr[0], FormatRaceTime(record->lapTimes[1]));
-			snprintfcat(text, sizeof(text), "\n%c3: %s", lapStr[0], FormatRaceTime(record->lapTimes[2]));
+			snprintfcat(text, sizeof(text), "%s1: %s", lapAbbrev, FormatRaceTime(record->lapTimes[0]));
+			snprintfcat(text, sizeof(text), "\n%s2: %s", lapAbbrev, FormatRaceTime(record->lapTimes[1]));
+			snprintfcat(text, sizeof(text), "\n%s3: %s", lapAbbrev, FormatRaceTime(record->lapTimes[2]));
 
 			defLaps.slot = slot++;
 			nodes[n++] = TextMesh_New(text, kTextMeshAlignLeft, &defLaps);
