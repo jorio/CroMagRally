@@ -918,6 +918,11 @@ static void NavigatePick(const MenuItem* entry)
 
 static int GetCyclerNumChoices(const MenuItem* entry)
 {
+	if (entry->cycler.isDynamicallyGenerated)
+	{
+		return entry->cycler.generator.generateNumChoices();
+	}
+
 	for (int i = 0; i < MAX_MENU_CYCLER_CHOICES; i++)
 	{
 		if (entry->cycler.choices[i].text == STR_NULL)
@@ -929,6 +934,11 @@ static int GetCyclerNumChoices(const MenuItem* entry)
 
 static int GetValueIndexInCycler(const MenuItem* entry, uint8_t value)
 {
+	if (entry->cycler.isDynamicallyGenerated)
+	{
+		return value;
+	}
+
 	for (int i = 0; i < MAX_MENU_CYCLER_CHOICES; i++)
 	{
 		if (entry->cycler.choices[i].text == STR_NULL)
@@ -939,6 +949,18 @@ static int GetValueIndexInCycler(const MenuItem* entry, uint8_t value)
 	}
 
 	return -1;
+}
+
+static Byte GetCyclerValueForIndex(const MenuItem* entry, int index)
+{
+	if (entry->cycler.isDynamicallyGenerated)
+	{
+		return index;
+	}
+	else
+	{
+		return entry->cycler.choices[index].value;
+	}
 }
 
 static void NavigateCycler(const MenuItem* entry)
@@ -992,7 +1014,8 @@ static void NavigateCycler(const MenuItem* entry)
 				index = PositiveModulo(index + delta, GetCyclerNumChoices(entry));
 			else
 				index = 0;
-			*entry->cycler.valuePtr = entry->cycler.choices[index].value;
+
+			*entry->cycler.valuePtr = GetCyclerValueForIndex(entry, index);
 			PlayEffect_Parms(kSfxCycle, FULL_CHANNEL_VOLUME, FULL_CHANNEL_VOLUME, NORMAL_CHANNEL_RATE /2 + 4096 * index);
 		}
 		else
@@ -1668,6 +1691,12 @@ static const char* GetMenuItemLabel(const MenuItem* entry)
 static const char* GetCyclerValueText(int row)
 {
 	const MenuItem* entry = &gNav->menu[row];
+
+	if (entry->cycler.isDynamicallyGenerated)
+	{
+		return entry->cycler.generator.generateChoiceString(*entry->cycler.valuePtr);
+	}
+
 	int index = GetValueIndexInCycler(entry, *entry->cycler.valuePtr);
 	if (index >= 0)
 		return Localize(entry->cycler.choices[index].text);

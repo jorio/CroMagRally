@@ -5,6 +5,7 @@
 
 #include "game.h"
 #include "menu.h"
+#include <SDL.h>
 
 static void OnPickLanguage(const MenuItem* mi)
 {
@@ -41,6 +42,34 @@ static void OnPickResetGamepadBindings(const MenuItem* mi)
 	ResetDefaultGamepadBindings();
 	PlayEffect(EFFECT_BOOM);
 	LayoutCurrentMenuAgain();
+}
+
+static int GetNumDisplays(void)
+{
+	return SDL_GetNumVideoDisplays();
+}
+
+static const char* GetDisplayName(Byte value)
+{
+	static char textBuf[8];
+	snprintf(textBuf, sizeof(textBuf), "%d", value+1);
+	return textBuf;
+}
+
+static int ShouldDisplayMonitorCycler(const MenuItem* mi)
+{
+#if __APPLE__
+	// Monitor hot-switching doesn't work too well on macOS,
+	// so don't expose the option unless the game was started on a non-default display.
+
+	if (gGamePrefs.monitorNum == 0)
+	{
+		return kMILayoutFlagHidden;
+	}
+#endif
+
+	// Expose the option if we have more than one display
+	return (GetNumDisplays() <= 1) ? kMILayoutFlagHidden : 0;
 }
 
 static int ShouldDisplayMSAA(const MenuItem* mi)
@@ -156,6 +185,21 @@ const MenuItem gSettingsMenuTree[] =
 		{
 			.valuePtr=&gGamePrefs.fullscreen,
 			.choices={ {STR_OFF, 0}, {STR_ON, 1} },
+		},
+	},
+	{
+		kMICycler1, STR_PREFERRED_DISPLAY,
+		.callback = OnToggleFullscreen,
+		.getLayoutFlags = ShouldDisplayMonitorCycler,
+		.cycler =
+		{
+			.valuePtr = &gGamePrefs.monitorNum,
+			.isDynamicallyGenerated = true,
+			.generator =
+			{
+				.generateNumChoices = GetNumDisplays,
+				.generateChoiceString = GetDisplayName,
+			},
 		},
 	},
 	{

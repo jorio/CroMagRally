@@ -148,7 +148,11 @@ retryVideo:
 		SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 1 << gCurrentAntialiasingLevel);
 	}
 
-	int display = 0;
+	int display = gGamePrefs.monitorNum;
+	if (display >= SDL_GetNumVideoDisplays())
+	{
+		display = 0;
+	}
 
 	SDL_Rect displayBounds = { .x = 0, .y = 0, .w = 640, .h = 480 };
 	SDL_GetDisplayUsableBounds(display, &displayBounds);

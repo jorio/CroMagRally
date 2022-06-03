@@ -22,11 +22,23 @@ typedef enum
 typedef struct
 {
 	Byte*			valuePtr;
-	struct
+
+	bool			isDynamicallyGenerated;
+
+	union
 	{
-		LocStrID	text;
-		uint8_t		value;
-	} choices[MAX_MENU_CYCLER_CHOICES];
+		struct
+		{
+			LocStrID	text;
+			uint8_t		value;
+		} choices[MAX_MENU_CYCLER_CHOICES];
+
+		struct
+		{
+			int				(*generateNumChoices)(void);
+			const char*		(*generateChoiceString)(Byte value);
+		} generator;
+	};
 } MenuCyclerData;
 
 typedef struct
