@@ -19,12 +19,18 @@ endif()
 set(CMAKE_OSX_DEPLOYMENT_TARGET "10.11" CACHE STRING "Minimum OS X deployment version")
 set(CMAKE_OSX_ARCHITECTURES "arm64;x86_64" CACHE STRING "Target macOS architectures")
 
-string(TOUPPER "${CMAKE_BUILD_TYPE}" CMAKE_BUILD_TYPE_UPPERCASE)
-
 project(${GAME_TARGET}
 	VERSION ${GAME_VERSION}
 	LANGUAGES C CXX
 )
+
+option(SANITIZE "Build with asan/ubsan" OFF)
+
+if(SANITIZE)
+	message("Sanitizers enabled")
+else()
+	message("Sanitizers disabled (pass -DSANITIZE=1 to enable)")
+endif()
 
 #------------------------------------------------------------------------------
 # GLOBAL OPTIONS (BEFORE ADDING SUBDIRECTORIES)
@@ -144,7 +150,7 @@ if(NOT MSVC)
 
 	# Sanitizers in debug mode (Linux only)
 	# When using a debugger, you should export LSAN_OPTIONS=detect_leaks=0
-	if ((NOT APPLE) AND (CMAKE_BUILD_TYPE_UPPERCASE MATCHES DEBUG))
+	if(SANITIZE)
 		list(INSERT GAME_LIBRARIES 0 asan ubsan)
 		target_compile_options(${GAME_TARGET} PRIVATE
 			-fsanitize=alignment
