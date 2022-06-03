@@ -1105,16 +1105,70 @@ static void Infobar_MoveRaceTimer(ObjNode* node)
 
 /********************** DRAW LAP TIMER *************************/
 
+static void MakeLapDiff(ObjNode* parent)
+{
+	char buf[24];
+
+	int playerNum = parent->PlayerNum;
+	int playerLap = gPlayerInfo[playerNum].lapNum;
+
+	if (playerLap < 2)
+		return;
+
+	float currentLapTime = gPlayerInfo[playerNum].lapTimes[playerLap-1];
+	float previousLapTime = gPlayerInfo[playerNum].lapTimes[playerLap-2];
+	float diff = currentLapTime - previousLapTime;
+
+	OGLColorRGBA color;
+	if (diff <= 0.0f)
+	{
+		color = (OGLColorRGBA) {0.2, 1.0, 0.2, 1.0};
+		snprintf(buf, sizeof(buf), "  -%s", FormatRaceTime(fabsf(diff)));
+	}
+	else
+	{
+		color = (OGLColorRGBA) {1.0, 0.2, 0.2, 1.0};
+		snprintf(buf, sizeof(buf), "  +%s", FormatRaceTime(fabsf(diff)));
+	}
+
+	NewObjectDefinitionType def =
+	{
+		.slot = parent->Slot,
+		.coord = parent->Coord,
+		.scale = parent->Scale.x,
+		.player = parent->PlayerNum,
+		.flags = parent->StatusBits,
+		.projection = parent->Projection,
+	};
+	def.coord.x = TextMesh_GetExtents(parent).right;
+	ObjNode* tm = TextMesh_New(buf, kTextMeshAlignLeft, &def);
+	tm->ColorFilter = color;
+	MakeTwitch(tm, kTwitchPreset_NewBuff);
+	MakeTwitch(tm, kTwitchPreset_LapDiffFadeOut | kTwitchFlags_Chain);
+}
+
 static void Infobar_MoveLapTimer(ObjNode* node)
 {
+	const OGLColorRGBA mutedColor = {.75, .75, .75, 1};
+	const OGLColorRGBA activeColor = {1,1,1,1};
+
+	enum	// states
+	{
+		kFutureLap,
+		kCurrentLap,
+		kPastLap
+	};
+
 	if (!SetObjectVisible(node, gGamePrefs.raceTimer == 2))
+	{
 		return;
+	}
 
 	InfobarIconData* data = GetInfobarIconData(node);
 	char buf[24];
 
-	int lap = data->sub;
-	float lapTime = gPlayerInfo[node->PlayerNum].lapTimes[lap];
+	int objLap = data->sub;
+	float lapTime = gPlayerInfo[node->PlayerNum].lapTimes[objLap];
 
 	int timeHash = (int) (lapTime * 1000.0f);
 
@@ -1123,23 +1177,55 @@ static void Infobar_MoveLapTimer(ObjNode* node)
 		if (timeHash <= 0)
 		{
 			snprintf(buf, sizeof(buf), "%s%d: -",
-					Localize(STR_LAP_ABBREV),
-					lap + 1);
+					 Localize(STR_LAP_ABBREV),
+					 objLap + 1);
 		}
 		else
 		{
 			snprintf(buf, sizeof(buf), "%s%d: %s",
-					Localize(STR_LAP_ABBREV),
-					lap + 1,
-					FormatRaceTime(lapTime));
+					 Localize(STR_LAP_ABBREV),
+					 objLap + 1,
+					 FormatRaceTime(lapTime));
 		}
 
 		TextMesh_Update(buf, kTextMeshAlignLeft, node);
 	}
 
+	short currentPlayerLap = gPlayerInfo[node->PlayerNum].lapNum;
+	if (currentPlayerLap < 0)		// negative before crossing first finish line at start of race
+		currentPlayerLap = 0;
+
+
+	switch (data->state)
+	{
+		case kFutureLap:
+			if (currentPlayerLap == objLap)
+			{
+				data->state = kCurrentLap;
+				MakeTwitch(node, kTwitchPreset_MenuSelect);
+			}
+			else
+			{
+				node->ColorFilter = mutedColor;
+			}
+			break;
+
+		case kCurrentLap:
+			node->ColorFilter = activeColor;
+			if (currentPlayerLap != objLap)
+			{
+				data->state = kPastLap;
+				MakeLapDiff(node);
+			}
+			break;
+
+		case kPastLap:
+			node->ColorFilter = mutedColor;
+			break;
+	}
 
 	Infobar_RepositionIconTemp(node);
-	node->Coord.y += 20 * lap;
+	node->Coord.y += 20 * objLap;
 	UpdateObjectTransforms(node);
 }
 

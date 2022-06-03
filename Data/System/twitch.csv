@@ -24,6 +24,7 @@ NewWeapon,Displace,y,OutBack,0.25,-70,,,0.015
 POWExpired,Shrink,,InBack,0.25,1,,,0.025
 LapMessageAppear,Heartbeat,xy,OutQuad,0.2,0.5,,,
 LapMessageFadeOut,AlphaFadeOut,,Linear,0.5,,,,1.25
+LapDiffFadeOut,AlphaFadeOut,,Linear,0.5,,,,2.5
 TrackNameFadeOut,AlphaFadeOut,,Linear,1,,,,2.5
 FinalPlaceReveal,Heartbeat,xy,InExpo,0.7,0,,,
 YourTimeReveal,AlphaFadeIn,,OutQuad,0.3,,,,2.5

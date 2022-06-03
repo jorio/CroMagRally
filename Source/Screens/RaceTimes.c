@@ -44,7 +44,7 @@ char* FormatRaceTime(float t)
 {
 	if (t <= 0)
 	{
-		return "0'00\v.00";
+		return "0:00\v.00";
 	}
 
 	static char timeBuf[16];
@@ -53,7 +53,7 @@ char* FormatRaceTime(float t)
 	int sec = ((int) t) % 60;
 	int cent = ((int) (t * 100.0f)) % 100;
 
-	snprintf(timeBuf, sizeof(timeBuf), "%d'%02d\v.%02d", min, sec, cent);
+	snprintf(timeBuf, sizeof(timeBuf), "%d:%02d\v.%02d", min, sec, cent);
 
 	return timeBuf;
 }

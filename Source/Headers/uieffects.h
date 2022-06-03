@@ -30,6 +30,7 @@ enum
 	kTwitchPreset_POWExpired,
 	kTwitchPreset_LapMessageAppear,
 	kTwitchPreset_LapMessageFadeOut,
+	kTwitchPreset_LapDiffFadeOut,
 	kTwitchPreset_TrackNameFadeOut,
 	kTwitchPreset_FinalPlaceReveal,
 	kTwitchPreset_YourTimeReveal,

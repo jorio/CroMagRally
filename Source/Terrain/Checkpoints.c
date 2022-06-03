@@ -35,6 +35,20 @@ short				gNumLapsThisRace = LAPS_PER_RACE;
 short				gWorstHumanPlace;
 
 
+void NextLap(short p)
+{
+	gPlayerInfo[p].lapNum++;
+
+	if (gPlayerInfo[p].lapNum >= gNumLapsThisRace)					// see if completed race
+		PlayerCompletedRace(p);
+	else
+		ShowLapNum(p);
+
+
+	for (int i = 0; i < gNumCheckpoints; i++)
+		gPlayerInfo[p].checkpointTagged[i] = false;
+}
+
 /*********************** UPDATE PLAYER CHECKPOINTS ***************************/
 
 void UpdatePlayerCheckpoints(short p)
@@ -58,15 +72,6 @@ OGLVector2D	checkToCheck,aim,deltaVec;
 				return;
 	}
 
-
-			/* SEE IF THIS PLAYER HAS ALREADY COMPLETED THE RACE */
-
-	if (gPlayerInfo[p].raceComplete)
-	{
-
-
-
-	}
 
 			/* GET PLAYER'S MOVEMENT LINE SEGMENT */
 
@@ -120,12 +125,7 @@ OGLVector2D	checkToCheck,aim,deltaVec;
 
 					if (count > (gNumCheckpoints / 2))									// if crossed at least 50% of the checkpoints then assume we did a full lap
 					{
-						gPlayerInfo[p].lapNum++;
-
-						if (gPlayerInfo[p].lapNum >= gNumLapsThisRace)					// see if completed race
-							PlayerCompletedRace(p);
-						else
-							ShowLapNum(p);
+						NextLap(p);
 					}
 				}
 						/* RESET ALL CHECKPOINT TAGS WHENEVER WE CROSS THE FINISH LINE*/

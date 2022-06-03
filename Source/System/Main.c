@@ -1029,6 +1029,14 @@ static void PlayArea(void)
 			}
 		}
 
+		if (GetKeyState(SDL_SCANCODE_L) &&
+			GetKeyState(SDL_SCANCODE_A) &&
+			GetNewKeyState(SDL_SCANCODE_P))
+		{
+			gPlayerInfo[0].cheated = true;
+			NextLap(0);
+		}
+
 		if (GetNewKeyState(SDL_SCANCODE_SCROLLLOCK))		// hide/show infobar
 		{
 			gHideInfobar = !gHideInfobar;

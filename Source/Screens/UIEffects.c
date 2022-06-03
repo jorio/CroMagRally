@@ -55,6 +55,7 @@ static const char* kTwitchEnumNames[] =
 	REGISTER_ENUM_NAME(kTwitchPreset_POWExpired),
 	REGISTER_ENUM_NAME(kTwitchPreset_LapMessageAppear),
 	REGISTER_ENUM_NAME(kTwitchPreset_LapMessageFadeOut),
+	REGISTER_ENUM_NAME(kTwitchPreset_LapDiffFadeOut),
 	REGISTER_ENUM_NAME(kTwitchPreset_TrackNameFadeOut),
 	REGISTER_ENUM_NAME(kTwitchPreset_FinalPlaceReveal),
 	REGISTER_ENUM_NAME(kTwitchPreset_YourTimeReveal),

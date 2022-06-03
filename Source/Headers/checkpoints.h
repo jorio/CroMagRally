@@ -22,7 +22,7 @@ typedef struct
 void UpdatePlayerCheckpoints(short p);
 void PlayerCompletedRace(short playerNum);
 void CalcPlayerPlaces(void);
-
+void NextLap(short p);
 
 
 #endif
