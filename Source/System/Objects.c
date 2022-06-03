@@ -136,6 +136,7 @@ unsigned long flags = newObjDef->flags;
 	newNodePtr->StatusBits = flags;
 	newNodePtr->Projection = newObjDef->projection;
 	newNodePtr->CustomDrawFunction = newObjDef->drawCall;
+	newNodePtr->PlayerNum = newObjDef->player;
 
 /*	newNodePtr->Flag[0] =
 	newNodePtr->Flag[1] =

@@ -246,6 +246,7 @@ static const float shadowScale[NUM_LAND_CAR_TYPES] =
 		.slot		= PLAYER_SLOT,
 		.moveCall	= MovePlayer_Car,
 		.scale		= PLAYER_CAR_SCALE,
+		.player		= playerNum,
 	};
 	newObj = MakeNewDisplayGroupObject(&def);
 	if (newObj == nil)
@@ -253,7 +254,6 @@ static const float shadowScale[NUM_LAND_CAR_TYPES] =
 
 	gPlayerInfo[playerNum].objNode 	= newObj;
 
-	newObj->PlayerNum = playerNum;
 	newObj->Rot.y = rotY;
 
 
@@ -2721,6 +2721,7 @@ ObjNode			*wheel,*link;
 			.coord		= {0,0,0},
 			.slot		= theCar->Slot+1,
 			.scale		= theCar->Scale.x,
+			.player		= playerNum,			// set playernum in this obj
 		};
 		if (carType == CAR_TYPE_CHARIOT)
 			def.flags |= STATUS_BIT_CLIPALPHA;
@@ -2730,7 +2731,6 @@ ObjNode			*wheel,*link;
 			DoFatalAlert("CreateCarWheelsAndHead: MakeNewDisplayGroupObject failed!");
 
 		wheel->WheelSpinRot = 0;
-		wheel->PlayerNum = playerNum;						// set playernum in this obj
 
 		link->ChainNode = wheel;							// add to chain link
 		link = wheel;
@@ -2751,13 +2751,13 @@ ObjNode			*wheel,*link;
 		.animNum	= PLAYER_ANIM_SIT,
 		.slot		= theCar->Slot+1,
 		.scale		= BROG_SCALE,
+		.player		= playerNum,						// set playernum in this obj
 	};
 
 	wheel = MakeNewSkeletonObject(&def);
 	if (wheel == nil)
 		DoFatalAlert("CreateCarWheelsAndHead: MakeNewSkeletonObject failed!");
 
-	wheel->PlayerNum = playerNum;						// set playernum in this obj
 
 	link->ChainNode = wheel;							// add to chain link
 

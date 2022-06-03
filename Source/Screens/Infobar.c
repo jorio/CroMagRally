@@ -533,12 +533,12 @@ static void Infobar_MakeIcon(uint8_t type, uint8_t flags)
 	{
 		ObjNode* obj = NULL;
 
+		def.player = GetPlayerNum(pane);		// TODO: maybe revise this for net games
+
 		if (isText)
 			obj = TextMesh_New("?", kTextMeshAlignLeft, &def);
 		else
 			obj = MakeSpriteObject(&def);
-
-		obj->PlayerNum = GetPlayerNum(pane);		// TODO: maybe revise this for net games
 
 		InfobarIconData* special = GetInfobarIconData(obj);
 		special->type = type;
@@ -1613,6 +1613,7 @@ short	sex;
 		.slot		= SPRITE_SLOT,
 		.moveCall	= MoveFinalPlace,
 		.scale		= 1.5,
+		.player		= playerNum,								// only show for this player
 	};
 
 	if (gGamePrefs.language == LANGUAGE_FRENCH)					// french has shorter ordinals, keep sprite centered
@@ -1621,8 +1622,6 @@ short	sex;
 	}
 
 	gFinalPlaceObj = MakeSpriteObject(&spriteDef);
-
-	gFinalPlaceObj->PlayerNum = playerNum;						// only show for this player
 
 			/* MAKE ORDINAL SPRITE ON TOP OF NUMBER */
 
@@ -1744,6 +1743,7 @@ void ShowWinLose(short playerNum, Byte mode, short winner)
 		.flags		= STATUS_BIT_ONLYSHOWTHISPLAYER,
 		.slot		= SPRITE_SLOT,
 		.scale		= .8f,
+		.player		= playerNum,				// only show for this player
 	};
 
 	switch(mode)
@@ -1786,12 +1786,7 @@ void ShowWinLose(short playerNum, Byte mode, short winner)
 					gWinLoseString[playerNum] = TextMesh_New(Localize(STR_YOU_LOSE), 0, &def);
 				}
 				break;
-
 	}
-
-
-	gWinLoseString[playerNum]->PlayerNum = playerNum;						// only show for this player
-
 }
 
 

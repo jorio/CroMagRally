@@ -349,6 +349,7 @@ typedef struct
 	Byte		type;
 	Byte		animNum;
 	Byte		projection;
+	Byte		player;
 	uint16_t	slot;
 	OGLPoint3D	coord;
 	uint32_t	flags;

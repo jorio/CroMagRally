@@ -77,6 +77,7 @@ ObjNode			*newObj;
 		.slot		= PLAYER_SLOT,
 		.moveCall	= MovePlayer_Submarine,
 		.scale		= 1.0,
+		.player		= playerNum,
 	};
 
 	newObj = MakeNewDisplayGroupObject(&def);
@@ -84,7 +85,6 @@ ObjNode			*newObj;
 		return(false);
 
 
-	newObj->PlayerNum = playerNum;
 	newObj->Rot.y = rotY;
 	newObj->CType = CTYPE_MISC|CTYPE_PLAYER;
 
