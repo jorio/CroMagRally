@@ -267,6 +267,7 @@ typedef struct
 	float		tireFriction;				// when travelling perpendicular to motion
 	float		carGravity;
 	float		slopeRatioAdjuster;			// bigger == able to climb steep hills easier, smaller == bounce off walls more.
+	float		terrainHeight;
 	UserCarStats	carStats[NUM_CAR_TYPES_TOTAL];
 } UserPhysics;
 

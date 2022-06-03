@@ -1047,6 +1047,13 @@ static void NavigateCycler(const MenuItem* entry)
 
 static void NavigateFloatRange(const MenuItem* entry)
 {
+enum
+{
+	kSaneIncrement = 0,
+	kInsaneIncrement = 20,
+	kSuperInsaneIncrement = 59,
+};
+
 	int delta = 0;
 
 	if (GetNeedStateAnyP(kNeed_UILeft)
@@ -1090,6 +1097,10 @@ static void NavigateFloatRange(const MenuItem* entry)
 		}
 
 		float deltaFrac = delta * entry->floatRange.incrementFrac;
+
+		if (data->nIncrements > kSuperInsaneIncrement)
+			deltaFrac *= 20;
+
 		float valueFrac = *entry->floatRange.valuePtr / *entry->floatRange.equilibriumPtr;
 		valueFrac += deltaFrac;
 
@@ -1137,7 +1148,7 @@ static void NavigateFloatRange(const MenuItem* entry)
 		// Update cooldown timer
 		if (valueFrac == 1.0f || valueFrac == 0.0f)		// Force speed bump at 0% and 100%
 		{
-			data->incrementCooldown = .5f;
+			data->incrementCooldown = .3f;
 			data->nIncrements = 0;
 		}
 		else
@@ -1146,6 +1157,12 @@ static void NavigateFloatRange(const MenuItem* entry)
 			const int nCooldowns = sizeof(kCooldownProgression) / sizeof(kCooldownProgression[0]);
 
 			data->incrementCooldown = kCooldownProgression[ GAME_MIN(data->nIncrements, nCooldowns-1) ];
+
+			if (data->nIncrements > kSuperInsaneIncrement)
+				data->incrementCooldown = 1/30.0f;
+			else if (data->nIncrements > kInsaneIncrement)
+				data->incrementCooldown = 1/15.0f;
+
 			data->nIncrements++;
 		}
 	}

@@ -123,6 +123,10 @@ float				y;
 	else
 		y = GetTerrainY(x,z) + 100.0f;				// get y coord of patch
 
+	if (fabsf(gUserPhysics.terrainHeight) < EPS)
+		y *= EPS;									// prevent z-fighting if user set terrain height to 0
+	else
+		y *= gUserPhysics.terrainHeight;
 
 
 			/***************/

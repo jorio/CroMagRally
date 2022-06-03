@@ -1118,6 +1118,8 @@ Ptr						tempBuffer16 = nil;
 
 	yScale = TERRAIN_POLYGON_SIZE / g3DTileSize;						// need to scale original geometry units to game units
 
+	yScale *= gUserPhysics.terrainHeight;
+
 	Alloc_2d_array(float, gMapYCoords, gTerrainTileDepth+1, gTerrainTileWidth+1);	// alloc 2D array for map
 
 	hand = GetResource('YCrd',1000);

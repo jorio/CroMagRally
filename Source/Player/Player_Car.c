@@ -109,6 +109,7 @@ const UserPhysics kDefaultPhysics =
 	.tireFriction			= 10000.0,
 	.carGravity				= 6500.0f,
 	.slopeRatioAdjuster		= .7f,
+	.terrainHeight			= 1,
 
 	.carStats = // parameter values 0..7
 	{
@@ -137,6 +138,7 @@ const UserPhysics kiOSPhysicsConsts =
 	.tireFriction			= 5000.0,			// when travelling perpendicular to motion
 	.carGravity				= 9000.0,
 	.slopeRatioAdjuster		= .7,				// bigger == able to climb steep hills easier, smaller == bounce off walls more.
+	.terrainHeight			= 1,				// actually set per-track in iOS version.
 	.carStats =
 	{
 		[CAR_TYPE_MAMMOTH]		= {{5, 3, 5, 8}},
