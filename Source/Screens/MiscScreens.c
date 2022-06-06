@@ -901,7 +901,7 @@ static const float sizes[] =
 		.scale = 1,
 		.group = SPRITE_GROUP_INFOBAR,
 		.type = INFOBAR_SObjType_OverlayBackgroundH,
-		.coord = {270,0,0},
+		.coord = {255,0,0},
 	};
 
 	ObjNode* pane = MakeSpriteObject(&def);
@@ -917,7 +917,11 @@ static const float sizes[] =
 static void MoveCredit(ObjNode *theNode)
 {
 	theNode->Coord.y -= .13f * gFramesPerSecondFrac * 240.0f;
-	UpdateObjectTransforms(theNode);
+
+	bool withinBounds = theNode->Coord.y > -280 && theNode->Coord.y < 280;
+
+	if (SetObjectVisible(theNode, withinBounds))
+		UpdateObjectTransforms(theNode);
 }
 
 
