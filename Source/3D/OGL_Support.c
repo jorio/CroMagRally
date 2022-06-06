@@ -1333,6 +1333,8 @@ static char* UpdateDebugText(void)
 		"\nRES:\t%d\vX\r%d\v/%d"
 		"\nAS\vTEER\r:\t%+.02f"
 		"\nSTEER:\t%+.02f%s"
+		"\nX:\t\t%d"
+		"\nZ:\t\t%d"
 		,
 		(int)(gFramesPerSecond + .5f),
 		gPolysThisFrame,
@@ -1350,7 +1352,9 @@ static char* UpdateDebugText(void)
 		gNumSplitScreenPanes,
 		gPlayerInfo[0].analogSteering.x,
 		gPlayerInfo[0].steering,
-		gPlayerInfo[0].steering == gPlayerInfo[0].analogSteering.x? "": "*"
+		gPlayerInfo[0].steering == gPlayerInfo[0].analogSteering.x? "": "*",
+		(int) gPlayerInfo[0].coord.x,
+		(int) gPlayerInfo[0].coord.z
 	);
 
 	return debugTextBuffer;

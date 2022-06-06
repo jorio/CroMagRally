@@ -329,6 +329,14 @@ static const short aimAtPlayer[NUM_TRACKS][4] =
 
 Boolean	isSolid = itemPtr->parm[3] & 1;
 
+	if (itemPtr->parm[0] >= 4)
+	{
+#if _DEBUG
+		printf("Illegal tree type #%d %ld %ld\n", itemPtr->parm[0], x, z);
+#endif
+		return false;
+	}
+
 	NewObjectDefinitionType def =
 	{
 		.group 		= MODEL_GROUP_LEVELSPECIFIC,
