@@ -360,12 +360,12 @@ OGLVector3D			fillDirection2 = { -1, -.2, -.5 };
 
 	NewObjectDefinitionType versionDef =
 	{
-		.coord = {280, -220, 0},
+		.coord = {-318, -230, 0},
 		.scale = .25f,
-		.slot = FADE_SLOT
+		.slot = MENU_SLOT
 	};
-	ObjNode* versionText = TextMesh_New(PROJECT_VERSION, kTextMeshAlignRight, &versionDef);
-	versionText->ColorFilter = (OGLColorRGBA) {.5f, .5f, .5f, .5f};
+	ObjNode* versionText = TextMesh_New(PROJECT_VERSION, kTextMeshAlignLeft, &versionDef);
+	versionText->ColorFilter = (OGLColorRGBA) {.75f, .75f, .75f, .75f};
 
 
 			/* SETUP TITLE MENU */
