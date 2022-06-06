@@ -94,6 +94,7 @@ extern int						gGameWindowWidth;
 extern int						gNumObjectNodes;
 extern int						gNumObjectsInBG3DGroupList[MAX_BG3D_GROUPS];
 extern int						gNumPointers;
+extern int						gNumTexturesAllocated;
 extern int						gNumSplitScreenPanes;
 extern int						gPolysThisFrame;
 extern int						gTheAge;

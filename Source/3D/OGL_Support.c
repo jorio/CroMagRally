@@ -89,6 +89,8 @@ static uint8_t		gGammaRamp8[256];
 static uint16_t		gGammaRamp5[32];
 static float		gGammaRampF[256];
 
+int			gNumTexturesAllocated = 0;
+
 
 
 /******************** OGL BOOT *****************/
@@ -920,6 +922,8 @@ GLuint	textureName;
 	if (OGL_CheckError())
 		DoFatalAlert("OGL_TextureMap_Load: glGenTextures failed!");
 
+	gNumTexturesAllocated++;
+
 	glBindTexture(GL_TEXTURE_2D, textureName);				// this is now the currently active texture
 	if (OGL_CheckError())
 		DoFatalAlert("OGL_TextureMap_Load: glBindTexture failed!");
@@ -1321,6 +1325,7 @@ static char* UpdateDebugText(void)
 		"\nTRIS:\t%d"
 		"\nOBJS:\t%d"
 		"\nVRAM:\t%d\vK"
+		"\nTEX:\t%d"
 		"\nPTRS:\t%d"
 		"\nTILES:\t%d\v/%d"
 		"\nCHAN:\t%d\v/%d"
@@ -1333,6 +1338,7 @@ static char* UpdateDebugText(void)
 		gPolysThisFrame,
 		gNumObjectNodes,
 		gVRAMUsedThisFrame / 1024,
+		gNumTexturesAllocated,
 		gNumPointers,
 		MAX_SUPERTILES - gNumFreeSupertiles,
 		MAX_SUPERTILES,

@@ -180,13 +180,6 @@ ObjNode* InitParticleSystem(void)
 }
 
 
-/******************** DISPOSE PARTICLE SYSTEM **********************/
-
-void DisposeParticleSystem(void)
-{
-}
-
-
 /******************** DELETE ALL PARTICLE GROUPS *********************/
 
 void DeleteAllParticleGroups(void)

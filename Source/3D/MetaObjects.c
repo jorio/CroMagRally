@@ -1095,7 +1095,11 @@ MOMaterialData		*data = &obj->objectData;
 		/* DISPOSE OF TEXTURE NAMES */
 
 	if (data->numMipmaps > 0)
+	{
 		glDeleteTextures(data->numMipmaps, &data->textureName[0]);
+
+		gNumTexturesAllocated -= data->numMipmaps;
+	}
 }
 
 

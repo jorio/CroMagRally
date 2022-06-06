@@ -367,7 +367,7 @@ static const char* names[] =
 static void FreeConqueredScreen(void)
 {
 	DeleteAllObjects();
-	DisposeParticleSystem();
+	DeleteAllParticleGroups();
 	DisposeAllBG3DContainers();
 	OGL_DisposeGameView();
 }
@@ -596,7 +596,7 @@ OGLSetupInputType	viewDef;
 static void FreeWinScreen(void)
 {
 	DeleteAllObjects();
-	DisposeParticleSystem();
+	DeleteAllParticleGroups();
 	FreeAllSkeletonFiles(-1);
 	DisposeAllBG3DContainers();
 	OGL_DisposeGameView();

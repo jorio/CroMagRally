@@ -199,7 +199,11 @@ int	i;
 			/* FREE ALL TEXTURE NAMES */
 
 	for (i = 0; i < gNumUniqueSuperTiles; i++)
+	{
 		glDeleteTextures(1, &gSuperTileTextureNames[i]);
+		gNumTexturesAllocated--;
+	}
+
 	gNumUniqueSuperTiles = 0;
 
 	if (gTileGrid)														// free old array

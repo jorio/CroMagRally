@@ -1429,7 +1429,6 @@ static void CleanupLevel(void)
 	DisposeSuperTileMemoryList();
 	DisposeTerrain();
 	DeleteAllParticleGroups();
-	DisposeParticleSystem();
 	DisposeFences();
 
 	DisposeAllBG3DContainers();

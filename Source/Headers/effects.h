@@ -107,7 +107,6 @@ Boolean AddParticleToGroup(NewParticleDefType *def);
 void MoveParticleGroups(void);
 Boolean VerifyParticleGroupMagicNum(short group, uint32_t magicNum);
 Boolean ParticleHitObject(ObjNode *theNode, uint16_t inFlags);
-void DisposeParticleSystem(void);
 
 void MakePuff(float x, float y, float z);
 void MakeSparkExplosion(float x, float y, float z, float force, short sparkTexture);
