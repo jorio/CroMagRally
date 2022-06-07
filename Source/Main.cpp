@@ -120,6 +120,26 @@ static void ParseCommandLine(int argc, char** argv)
 	}
 }
 
+static void GetInitialWindowSize(int display, int& width, int& height)
+{
+	const float aspectRatio = 16.0f / 9.0f;
+	const float screenCoverage = 2.0f / 3.0f;
+
+	SDL_Rect displayBounds = { .x = 0, .y = 0, .w = 640, .h = 480 };
+	SDL_GetDisplayUsableBounds(display, &displayBounds);
+
+	if (displayBounds.w > displayBounds.h)
+	{
+		width	= displayBounds.h * screenCoverage * aspectRatio;
+		height	= displayBounds.h * screenCoverage;
+	}
+	else
+	{
+		width	= displayBounds.w * screenCoverage;
+		height	= displayBounds.w * screenCoverage / aspectRatio;
+	}
+}
+
 static void Boot()
 {
 	// Start our "machine"
@@ -154,10 +174,9 @@ retryVideo:
 		display = 0;
 	}
 
-	SDL_Rect displayBounds = { .x = 0, .y = 0, .w = 640, .h = 480 };
-	SDL_GetDisplayUsableBounds(display, &displayBounds);
-	int initialWidth	= displayBounds.w * 2 / 3;
-	int initialHeight	= displayBounds.h * 2 / 3;
+	int initialWidth = 640;
+	int initialHeight = 480;
+	GetInitialWindowSize(display, initialWidth, initialHeight);
 
 	gSDLWindow = SDL_CreateWindow(
 			"Cro-Mag Rally " PROJECT_VERSION,
