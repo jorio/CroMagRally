@@ -437,7 +437,8 @@ ObjNode	*newObj;
 
 	newObj->CType 			= CTYPE_MISC|CTYPE_AVOID;
 	newObj->CBits			= CBITS_ALLSOLID;
-	CreateCollisionBoxFromBoundingBox(newObj,.9,1);
+
+	CreateCollisionBoxFromBoundingBox(newObj, .75f, 1);
 
 	return(true);													// item was added
 }
