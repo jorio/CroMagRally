@@ -1888,9 +1888,14 @@ ObjNode	*newObj;
 	{
 		.coord		= {0,0,0},
 		.slot 		= SPRITE_SLOT,
-		.scale 	    = .8f,
+		.scale		= .8f,
 		.flags		= STATUS_BIT_HIDEINPAUSE,
 	};
+
+	if (gNumSplitScreenPanes > 1)		// prevent track name from overflowing tall splitscreen panes
+	{
+		def.scale = .5f;
+	}
 
 	newObj = TextMesh_New(Localize(STR_LEVEL_1 + gTrackNum), kTextMeshAlignCenter, &def);
 
