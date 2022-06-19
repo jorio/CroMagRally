@@ -798,8 +798,7 @@ static const CreditLine lines[] =
 	{0, 3, .text=""},
 	{2, 0, .text="WWW.PANGEASOFT.NET"},
 	{0, 2, .text=""},
-	{2, 0, .text="GITHUB.COM/"},
-	{2, 0, .text="JORIO/CROMAGRALLY"},
+	{2, 0, .text="GITHUB.COM/JORIO"},
 	{-1,0, .text=""},
 };
 
@@ -868,7 +867,7 @@ static const float sizes[] =
 	{
 		NewObjectDefinitionType def =
 		{
-			.coord		= {315, y, 0},
+			.coord		= {310, y, 0},
 			.moveCall	= MoveCredit,
 			.scale		= .8 * sizes[lines[i].size],
 			.slot 		= PARTICLE_SLOT-1,		// in this rare case we want to draw text before particles
@@ -997,10 +996,10 @@ OGLVector3D			fillDirection1 = { .9, -.3, -1 };
 	ObjNode* url1 = TextMesh_New("PANGEASOFT.NET/CROMAG", kTextMeshAlignLeft, &textDef);
 
 	textDef.coord.y += 0.4 * 64 * 6;
-	TextMesh_New("HOMEPAGE OF THE MODERN VERSION\nAND SOURCE CODE REPOSITORY:", kTextMeshAlignBottom | kTextMeshAlignLeft, &textDef);
+	TextMesh_New("HOMEPAGE OF THE MODERN VERSION\nOF CRO-MAG RALLY:", kTextMeshAlignBottom | kTextMeshAlignLeft, &textDef);
 
 	textDef.coord.y += 0.4 * 64;
-	ObjNode* url2 = TextMesh_New("GITHUB.COM/JORIO/CROMAGRALLY", kTextMeshAlignLeft, &textDef);
+	ObjNode* url2 = TextMesh_New("JORIO.ITCH.IO/CROMAGRALLY", kTextMeshAlignLeft, &textDef);
 
 	url1->ColorFilter = url2->ColorFilter = (OGLColorRGBA) { .8, .2, .2, 1 };
 
