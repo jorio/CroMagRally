@@ -119,7 +119,7 @@ static void OnChangeMSAA(const MenuItem* mi)
 		.coord = {0, 200, 0},
 		.scale = 0.2f,
 		.slot = tailNode->Slot + 1,
-		.flags = STATUS_BIT_OVERLAYPANE,
+		.flags = STATUS_BIT_OVERLAYPANE | STATUS_BIT_MOVEINPAUSE,
 	};
 
 	msaaWarning = TextMesh_New(Localize(STR_ANTIALIASING_CHANGE_WARNING), 0, &def);
@@ -127,6 +127,8 @@ static void OnChangeMSAA(const MenuItem* mi)
 	msaaWarning->Special[0] = msaaWarningCookie;
 
 	AppendNodeToChain(object, msaaWarning);
+
+	MakeTwitch(msaaWarning, kTwitchPreset_MenuSelect);
 }
 
 const MenuItem gSettingsMenuTree[] =
