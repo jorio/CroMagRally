@@ -551,8 +551,6 @@ long				count;
 	iErr = FSWrite(refNum, &count, payloadPtr);
 	FSClose(refNum);
 
-	memcpy(&gDiskShadowPrefs, &gGamePrefs, sizeof(gGamePrefs));
-
 	printf("Wrote %s\n", file.cName);
 
 	return iErr;
@@ -585,14 +583,11 @@ OSErr LoadPrefs(void)
 
 void SavePrefs(void)
 {
-#if _DEBUG
 	// If prefs didn't change relative to what's on disk, don't bother rewriting them
 	if (0 == memcmp(&gDiskShadowPrefs, &gGamePrefs, sizeof(gGamePrefs)))
 	{
 		return;
 	}
-
-#endif
 
 	SaveUserDataFile("Prefs", PREFS_MAGIC, sizeof(PrefsType), (Ptr)&gGamePrefs);
 
