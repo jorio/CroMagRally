@@ -239,7 +239,7 @@ def copy_documentation(proj, appdir, full=True):
     if full:
         shutil.copytree("docs", F"{appdir}/Documentation")
         os.remove(F"{appdir}/Documentation/screenshot.webp")
-        for docfile in ["CHANGELOG.md"]:
+        for docfile in ["CHANGELOG.md", "SECRETS.md"]:
             shutil.copy(docfile, F"{appdir}/Documentation")
 
 def package_windows(proj: Project):
