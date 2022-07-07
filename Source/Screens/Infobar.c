@@ -850,6 +850,10 @@ static int LocalizeOrdinalSprite(int place, int sex)
 				return sex==1? INFOBAR_SObjType_PlaceRE: INFOBAR_SObjType_PlaceER;
 			else
 				return INFOBAR_SObjType_PlaceE;
+			break;
+
+		case LANGUAGE_ITALIAN:
+			return sex==1? INFOBAR_SObjType_PlaceA: INFOBAR_SObjType_PlaceO;
 	}
 }
 
@@ -1702,9 +1706,13 @@ short	sex;
 		.player		= playerNum,								// only show for this player
 	};
 
-	if (gGamePrefs.language == LANGUAGE_FRENCH)					// french has shorter ordinals, keep sprite centered
+	// Keep sprite centered for shorter ordinals in French/Italian
+	switch (gGamePrefs.language)
 	{
-		spriteDef.coord.x += 18;
+		case LANGUAGE_FRENCH:
+		case LANGUAGE_ITALIAN:
+			spriteDef.coord.x += 18;
+			break;
 	}
 
 	gFinalPlaceObj = MakeSpriteObject(&spriteDef);
