@@ -9,6 +9,7 @@ void DisplayPicture(const char* picturePath, float timeout);
 void DoPaused(void);
 void ShowAgePicture(int age);
 void ShowLoadingPicture(void);
+void SetupGenericMenuScreen(bool withEscPrompt);
 
 void DoMainMenuScreen(void);
 

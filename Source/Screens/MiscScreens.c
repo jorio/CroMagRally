@@ -1,7 +1,8 @@
 /****************************/
 /*   	MISCSCREENS.C	    */
-/* (c)1999 Pangea Software  */
 /* By Brian Greenstone      */
+/* (c)1999 Pangea Software  */
+/* (c)2022 Iliyas Jorio     */
 /****************************/
 
 
@@ -178,6 +179,75 @@ FSSpec	spec;
 	DisplayPicture(&spec, -1);
 #endif
 }
+
+
+#pragma mark -
+
+/***************** SETUP GENERIC MENU SCREEN *******************/
+
+void SetupGenericMenuScreen(bool withEscPrompt)
+{
+	OGLSetupInputType	viewDef;
+	OGLColorRGBA		ambientColor = { .1, .1, .1, 1 };
+	OGLColorRGBA		fillColor1 = { 1.0, 1.0, 1.0, 1 };
+	OGLColorRGBA		fillColor2 = { .3, .3, .3, 1 };
+	OGLVector3D			fillDirection1 = { .9, -.7, -1 };
+	OGLVector3D			fillDirection2 = { -1, -.2, -.5 };
+
+
+			/**************/
+			/* SETUP VIEW */
+			/**************/
+
+	OGL_NewViewDef(&viewDef);
+
+	viewDef.camera.fov 				= 1;
+	viewDef.camera.hither 			= 10;
+	viewDef.camera.yon 				= 3000;
+	viewDef.camera.from[0].z		= 700;
+	viewDef.camera.from[0].y		= 250;
+	viewDef.view.clearColor 		= (OGLColorRGBA) {0,0,0, 1.0f};
+	viewDef.styles.useFog			= false;
+	viewDef.view.pillarboxRatio		= PILLARBOX_RATIO_4_3;
+	viewDef.view.fontName			= "rockfont";
+
+	OGLVector3D_Normalize(&fillDirection1, &fillDirection1);
+	OGLVector3D_Normalize(&fillDirection2, &fillDirection2);
+
+	viewDef.lights.ambientColor 	= ambientColor;
+	viewDef.lights.numFillLights 	= 2;
+	viewDef.lights.fillDirection[0] = fillDirection1;
+	viewDef.lights.fillDirection[1] = fillDirection2;
+	viewDef.lights.fillColor[0] 	= fillColor1;
+	viewDef.lights.fillColor[1] 	= fillColor2;
+
+	OGL_SetupGameView(&viewDef);
+
+
+
+			/*****************/
+			/* BUILD OBJECTS */
+			/*****************/
+
+	MakeFadeEvent(true);
+
+	MakeScrollingBackgroundPattern();
+
+	if (withEscPrompt)
+	{
+		NewObjectDefinitionType def2 =
+				{
+						.scale = 0.27f,
+						.coord = {0, 220, 0},
+						.slot = SPRITE_SLOT,
+				};
+
+		ObjNode* pressEsc = TextMesh_New(Localize(STR_PRESS_ESC_TO_GO_BACK), 0, &def2);
+		pressEsc->ColorFilter = (OGLColorRGBA) {.5, .5, .5, 1};
+		MakeTwitch(pressEsc, kTwitchPreset_PressKeyPrompt);
+	}
+}
+
 
 
 
@@ -931,45 +1001,12 @@ static void MoveCredit(ObjNode *theNode)
 
 void DoHelpScreen(void)
 {
-OGLSetupInputType	viewDef;
-OGLColorRGBA		ambientColor = { .5, .5, .5, 1 };
-OGLColorRGBA		fillColor1 = { 1.0, 1.0, 1.0, 1 };
-OGLVector3D			fillDirection1 = { .9, -.3, -1 };
-
-			/**************/
-			/* SETUP VIEW */
-			/**************/
-
-	OGL_NewViewDef(&viewDef);
-
-	viewDef.camera.fov 				= .3;
-	viewDef.camera.hither 			= 10;
-	viewDef.camera.yon 				= 3000;
-	viewDef.camera.from[0].z		= 700;
-
-	viewDef.view.clearColor 		= (OGLColorRGBA) { 0, 0, 0, 1 };
-	viewDef.styles.useFog			= false;
-	viewDef.view.pillarboxRatio		= PILLARBOX_RATIO_4_3;
-
-	viewDef.lights.ambientColor 	= ambientColor;
-	viewDef.lights.numFillLights 	= 1;
-	viewDef.lights.fillDirection[0] = fillDirection1;
-	viewDef.lights.fillColor[0] 	= fillColor1;
-
-	viewDef.view.fontName			= "rockfont";
-
-	OGL_SetupGameView(&viewDef);
-
-
-	MakeFadeEvent(true);
-
+	SetupGenericMenuScreen(true);
 
 
 				/************/
 				/* LOAD ART */
 				/************/
-
-	MakeScrollingBackgroundPattern();
 
 	int loadTexFlagsBackup = gLoadTextureFlags;
 	gLoadTextureFlags |= kLoadTextureFlags_NearestNeighbor;
@@ -1002,13 +1039,6 @@ OGLVector3D			fillDirection1 = { .9, -.3, -1 };
 	ObjNode* url2 = TextMesh_New("JORIO.ITCH.IO/CROMAGRALLY", kTextMeshAlignLeft, &textDef);
 
 	url1->ColorFilter = url2->ColorFilter = (OGLColorRGBA) { .8, .2, .2, 1 };
-
-	textDef.coord.x = 0;
-	textDef.coord.y = 220;
-	textDef.scale = 0.27f;
-	ObjNode* pressEsc = TextMesh_New(Localize(STR_PRESS_ESC_TO_GO_BACK), 0, &textDef);
-	pressEsc->ColorFilter = (OGLColorRGBA) {.5, .5, .5, 1};
-	MakeTwitch(pressEsc, kTwitchPreset_PressKeyPrompt);
 
 	NewObjectDefinitionType qrCodeDef =
 	{

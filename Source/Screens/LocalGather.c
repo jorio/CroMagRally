@@ -9,6 +9,7 @@
 /****************************/
 
 #include "game.h"
+#include "miscscreens.h"
 #include <SDL.h>
 
 
@@ -150,45 +151,7 @@ Boolean DoLocalGatherScreen(void)
 
 static void SetupLocalGatherScreen(void)
 {
-OGLSetupInputType	viewDef;
-OGLColorRGBA		ambientColor = { .5, .5, .5, 1 };
-OGLColorRGBA		fillColor1 = { 1.0, 1.0, 1.0, 1 };
-OGLVector3D			fillDirection1 = { .9, -.3, -1 };
-
-			/**************/
-			/* SETUP VIEW */
-			/**************/
-
-	OGL_NewViewDef(&viewDef);
-
-	viewDef.camera.fov 				= .3;
-	viewDef.camera.hither 			= 10;
-	viewDef.camera.yon 				= 3000;
-	viewDef.camera.from[0].z		= 700;
-
-	viewDef.view.clearColor 		= (OGLColorRGBA) { 0, 0, 0, 1 };
-	viewDef.styles.useFog			= false;
-	viewDef.view.pillarboxRatio		= PILLARBOX_RATIO_4_3;
-
-	viewDef.lights.ambientColor 	= ambientColor;
-	viewDef.lights.numFillLights 	= 1;
-	viewDef.lights.fillDirection[0] = fillDirection1;
-	viewDef.lights.fillColor[0] 	= fillColor1;
-
-	viewDef.view.fontName			= "rockfont";
-
-	OGL_SetupGameView(&viewDef);
-
-
-
-				/************/
-				/* LOAD ART */
-				/************/
-
-			/* MAKE BACKGROUND PICTURE OBJECT */
-
-//	MakeBackgroundPictureObject(":images:CharSelectScreen.jpg");
-	MakeScrollingBackgroundPattern();
+	SetupGenericMenuScreen(true);
 
 
 			/*****************/
@@ -203,12 +166,6 @@ OGLVector3D			fillDirection1 = { .9, -.3, -1 };
 	};
 
 	gGatherPrompt = TextMesh_NewEmpty(256, &def2);
-
-	def2.coord.y = 220;
-	def2.scale = 0.27f;
-	ObjNode* pressEsc = TextMesh_New(Localize(STR_PRESS_ESC_TO_GO_BACK), 0, &def2);
-	pressEsc->ColorFilter = (OGLColorRGBA) {.5, .5, .5, 1};
-	MakeTwitch(pressEsc, kTwitchPreset_PressKeyPrompt);
 }
 
 

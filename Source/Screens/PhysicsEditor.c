@@ -167,41 +167,7 @@ void DoPhysicsEditor(void)
 
 static void SetupPhysicsEditorScreen(void)
 {
-OGLSetupInputType	viewDef;
-OGLColorRGBA		ambientColor = { .1, .1, .1, 1 };
-OGLColorRGBA		fillColor1 = { 1.0, 1.0, 1.0, 1 };
-OGLColorRGBA		fillColor2 = { .3, .3, .3, 1 };
-OGLVector3D			fillDirection1 = { .9, -.7, -1 };
-OGLVector3D			fillDirection2 = { -1, -.2, -.5 };
-
-
-			/**************/
-			/* SETUP VIEW */
-			/**************/
-
-	OGL_NewViewDef(&viewDef);
-
-	viewDef.camera.fov 				= 1;
-	viewDef.camera.hither 			= 10;
-	viewDef.camera.yon 				= 3000;
-	viewDef.camera.from[0].z		= 700;
-	viewDef.camera.from[0].y		= 250;
-	viewDef.view.clearColor 		= (OGLColorRGBA) {0,0,0, 1.0f};
-	viewDef.styles.useFog			= false;
-	viewDef.view.pillarboxRatio	= PILLARBOX_RATIO_4_3;
-	viewDef.view.fontName			= "rockfont";
-
-	OGLVector3D_Normalize(&fillDirection1, &fillDirection1);
-	OGLVector3D_Normalize(&fillDirection2, &fillDirection2);
-
-	viewDef.lights.ambientColor 	= ambientColor;
-	viewDef.lights.numFillLights 	= 2;
-	viewDef.lights.fillDirection[0] = fillDirection1;
-	viewDef.lights.fillDirection[1] = fillDirection2;
-	viewDef.lights.fillColor[0] 	= fillColor1;
-	viewDef.lights.fillColor[1] 	= fillColor2;
-
-	OGL_SetupGameView(&viewDef);
+	SetupGenericMenuScreen(false);
 
 
 				/************/
@@ -229,14 +195,6 @@ OGLVector3D			fillDirection2 = { -1, -.2, -.5 };
 		.rot = 0,
 	};
 	gCarModel = MakeNewDisplayGroupObject(&modelDef);
-
-			/* BACKGROUND */
-
-	MakeScrollingBackgroundPattern();
-
-			/* FADE IN */
-
-	MakeFadeEvent(true);
 
 
 	UpdateShadowCarStats();
