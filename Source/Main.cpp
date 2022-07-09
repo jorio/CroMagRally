@@ -102,6 +102,10 @@ static void ParseCommandLine(int argc, char** argv)
 			gCommandLine.vsync = 1;
 		else if (argument == "--adaptive-vsync")
 			gCommandLine.vsync = -1;
+		else if (argument == "--host")
+			gCommandLine.netHost = true;
+		else if (argument == "--join")
+			gCommandLine.netJoin = true;
 #if 0
 		else if (argument == "--fullscreen-resolution")
 		{

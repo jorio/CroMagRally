@@ -1647,7 +1647,25 @@ void GameMain(void)
 
 //	HideCursor();
 
-
+	if (gCommandLine.netHost)
+	{
+		gNetGameInProgress = true;
+		gIsNetworkHost = true;
+		gIsNetworkClient = false;
+		gGameMode = GAME_MODE_MULTIPLAYERRACE;
+		if (gCommandLine.bootToTrack != 0)
+			gTrackNum = gCommandLine.bootToTrack - 1;
+		SetupNetworkHosting();
+	}
+	else
+	if (gCommandLine.netJoin)
+	{
+		gNetGameInProgress = true;
+		gIsNetworkHost = false;
+		gIsNetworkClient = true;
+		SetupNetworkJoin();
+	}
+	else
 	if (gCommandLine.bootToTrack != 0)
 	{
 		gGameMode = GAME_MODE_PRACTICE;

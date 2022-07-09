@@ -115,6 +115,8 @@ typedef struct
 	int		vsync;
 	int		bootToTrack;
 	int		car;
+	bool	netHost;
+	bool	netJoin;
 } CommandLineOptions;
 
 //=================================================
