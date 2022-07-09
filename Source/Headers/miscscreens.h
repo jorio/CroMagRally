@@ -29,6 +29,8 @@ Boolean DoVehicleSelectScreen(short whichPlayer, Boolean allowAborting);
 
 Boolean DoLocalGatherScreen(void);
 
+Boolean DoNetGatherScreen(void);
+
 void DoPhysicsEditor(void);
 
 void RegisterSettingsMenu(const MenuItem* junk);

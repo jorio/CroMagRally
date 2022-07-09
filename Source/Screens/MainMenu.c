@@ -75,7 +75,7 @@ static const MenuItem gMainMenuTree[] =
 	{kMIPick, STR_2PLAYER,	.id=2, .callback=OnConfirmPlayMenu, .next='mpgm' },
 	{kMIPick, STR_3PLAYER,	.id=3, .callback=OnConfirmPlayMenu, .next='mpgm' },
 	{kMIPick, STR_4PLAYER,	.id=4, .callback=OnConfirmPlayMenu, .next='mpgm' },
-//	{kMIPick, STR_NET_GAME,	.id=0, .callback=OnConfirmPlayMenu, .next='netg' },
+	{kMIPick, STR_NET_GAME,	.id=0, .callback=OnConfirmPlayMenu, .next='netg' },
 
 	{ .id='optn' },
 	{
@@ -120,7 +120,7 @@ static const MenuItem gMainMenuTree[] =
 
 	{ .id='netg' },
 	{kMIPick, STR_HOST_NET_GAME, .callback=OnPickHostOrJoin, .id=0, .next='mpgm' }, // host gets to select game type
-	{kMIPick, STR_JOIN_NET_GAME, .callback=OnPickHostOrJoin, .id=1 },
+	{kMIPick, STR_JOIN_NET_GAME, .callback=OnPickHostOrJoin, .id=1, .next='EXIT' },
 
 	{ .id='clrs' },
 	{kMILabel, .text=STR_CLEAR_SAVED_GAME_TEXT_1 },

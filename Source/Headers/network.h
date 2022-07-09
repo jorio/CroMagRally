@@ -113,3 +113,14 @@ void GetVehicleSelectionFromNetPlayers(void);
 
 void EndNetworkGame(void);
 void PlayerBroadcastNullPacket(void);
+
+
+//===============================================================================
+// Low-level networking routines
+
+void Net_Tick(void);
+bool Net_IsLobbyBroadcastOpen(void);
+void Net_CreateLobby(void);
+void Net_CloseLobby(void);
+void Net_CreateLobbySearch(void);
+void Net_CloseLobbySearch(void);

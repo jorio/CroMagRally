@@ -15,6 +15,7 @@ typedef void* NSpPlayerLeftMessage;
 #include "game.h"
 #include "network.h"
 #include "window.h"
+#include "miscscreens.h"
 #include <stdlib.h>
 
 /**********************/
@@ -159,6 +160,8 @@ OSErr	iErr;
 
 Boolean SetupNetworkHosting(void)
 {
+	Net_CreateLobby();
+	DoNetGatherScreen();
 	IMPLEMENT_ME_SOFT();
 	return true;
 #if 0
@@ -271,6 +274,8 @@ failure:
 
 Boolean SetupNetworkJoin(void)
 {
+	Net_CreateLobbySearch();
+	DoNetGatherScreen();
 	IMPLEMENT_ME_SOFT();
 	return true;
 #if 0
