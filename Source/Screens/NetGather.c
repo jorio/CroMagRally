@@ -12,6 +12,8 @@
 #include "network.h"
 #include "miscscreens.h"
 
+extern NSpGameReference gNetGame;
+
 
 /****************************/
 /*    PROTOTYPES            */
@@ -43,31 +45,55 @@ static void UpdateNetGatherPrompt(void)
 	{
 		if (Net_IsLobbyBroadcastOpen())
 		{
-			TextMesh_Update("WAITING FOR PLAYERS\nON LOCAL NETWORK...", 0, gGatherPrompt);
+			int numClientsConnectedToHost = NSpGame_GetNumPlayersConnectedToHost(gNetGame);
+			switch (numClientsConnectedToHost)
+			{
+				case 0:
+					snprintf(buf, sizeof(buf), "WAITING FOR PLAYERS\nON LOCAL NETWORK...");
+					break;
+
+				case 1:
+					snprintf(buf, sizeof(buf), "1 PLAYER CONNECTED\n\nPRESS ENTER TO BEGIN");
+					break;
+
+				default:
+					snprintf(buf, sizeof(buf), "%d PLAYERS CONNECTED\n\nPRESS ENTER TO BEGIN", numClientsConnectedToHost);
+					break;
+			}
+
+			TextMesh_Update(buf, 0, gGatherPrompt);
 		}
 		else
 		{
-			TextMesh_Update("COULDN'T CREATE THE GAME.", 0, gGatherPrompt);
+			TextMesh_Update("FAILED TO HOST GAME\nON LOCAL NETWORK.", 0, gGatherPrompt);
 		}
 	}
 	else if (gIsNetworkClient)
 	{
-		switch (gNumLobbiesFound)
+		if (Net_IsLobbyBroadcastOpen())
 		{
-			case 0:
-				snprintf(buf, sizeof(buf), "LOOKING FOR GAMES\nON LOCAL NETWORK...");
-				break;
+			switch (gNumLobbiesFound)
+			{
+				case 0:
+					snprintf(buf, sizeof(buf), "LOOKING FOR GAMES\nON LOCAL NETWORK...");
+					break;
 
-			case 1:
-				snprintf(buf, sizeof(buf), "FOUND A GAME\nON LOCAL NETWORK.");
-				break;
+				case 1:
+					snprintf(buf, sizeof(buf), "FOUND A GAME\nON LOCAL NETWORK.");
+					break;
 
-			default:
-				snprintf(buf, sizeof(buf), "FOUND %d GAMES\nON LOCAL NETWORK.", gNumLobbiesFound);
-				break;
+				default:
+					snprintf(buf, sizeof(buf), "FOUND %d GAMES\nON LOCAL NETWORK.", gNumLobbiesFound);
+					break;
+			}
+
+			TextMesh_Update(buf, 0, gGatherPrompt);
+		}
+		else
+		{
+			TextMesh_Update("FAILED TO SEARCH FOR GAMES\nON LOCAL NETWORK.", 0, gGatherPrompt);
 		}
 
-		TextMesh_Update(buf, 0, gGatherPrompt);
 	}
 }
 

@@ -1,10 +1,10 @@
 /****************************/
 /*   	  NETWORK.C	   	    */
-/* (c)2000 Pangea Software  */
 /* By Brian Greenstone      */
+/* (c)2000 Pangea Software  */
+/* (c)2022 Iliyas Jorio     */
 /****************************/
 
-typedef void* NSpMessageHeader;
 typedef void* NSpPlayerLeftMessage;
 
 
@@ -54,7 +54,7 @@ Boolean		gIsNetworkHost = false;
 Boolean		gIsNetworkClient = false;
 Boolean		gNetGameInProgress = false;
 
-void* /*NSpGameReference*/	gNetGame = nil;
+NSpGameReference	gNetGame = nil;
 
 #if 0
 static Str31				gameName;
@@ -160,76 +160,23 @@ OSErr	iErr;
 
 Boolean SetupNetworkHosting(void)
 {
-	Net_CreateLobby();
-	DoNetGatherScreen();
-	IMPLEMENT_ME_SOFT();
-	return true;
-#if 0
-OSStatus 					status;
-Boolean 					okHit;
-NSpProtocolListReference	theList = NULL;
-NSpProtocolReference 		atRef;
-
-	GammaOn();
-	Enter2D(true);
-
-	MyFlushEvents();
-
-    gNetGame = nil;
-
-	gHostSendCounter = 0;
-	gTimeoutCounter = 0;
-
 			/* GET SOME NAMES */
 
+/*
 	CopyPString(gPlayerSaveData.playerName, gNetPlayerName);
 	// TODO: this is probably STR_RACE + gGameMode - GAME_MODE_MULTIPLAYERRACE
 	GetIndStringC(gameName, 1000 + gGamePrefs.language, 16 + (gGameMode - GAME_MODE_MULTIPLAYERRACE));	// name of game is game mode string
-
-	password[0] = 0;
-
-
-			/* CREATE A PROTOCOL LIST */
-
-	status = NSpProtocolList_New(NULL, &theList);
-	if (status)
-		DoFatalAlert("SetupNetworkHosting: NSpProtocolList_New failed!");
-
-	if (!gOSX)
-	{
-		atRef = NSpProtocol_CreateAppleTalk(gameName,kNBPType, 0,0);		// create appletalk protocol ref
-		NSpProtocolList_Append(theList, atRef);								// append protocol refs
-	}
-
-			/* DO HOSTING UI */
-			//
-			//	Note!  Do NOT pass in string constants, as the user can change these values
-			//
-
-
-	TurnOffISp();
-	InitCursor();
-	okHit = NSpDoModalHostDialog(theList, gameName, gNetPlayerName, password, nil);
-	TurnOnISp();
-	if (!okHit)
-		goto failure;
-
+*/
 
 			/* NEW HOST GAME */
 
-	status = NSpGame_Host(&gNetGame, theList, MAX_PLAYERS, gameName,
-				password, gNetPlayerName, 0, kNSpClientServer, 0);
-	if (status || (gNetGame==nil))
-	{
-		DoAlert("SetupNetworkHosting: NSpGame_Host failed!");
-		ShowSystemErr_NonFatal(status);	//----------
-		goto failure;
-	}
+	//status = NSpGame_Host(&gNetGame, theList, MAX_PLAYERS, gameName, password, gNetPlayerName, 0, kNSpClientServer, 0);
+	gNetGame = Net_CreateLobby();
 
 
 			/* LET USERS JOIN IN */
 
-	if (Host_DoGatherPlayersDialog())
+	if (DoNetGatherScreen())
 		goto failure;
 
 
@@ -239,30 +186,18 @@ NSpProtocolReference 		atRef;
 		/*************************************/
 
 	if (HostSendGameConfigInfo())
-	    goto failure;
+		goto failure;
 
-	HideCursor();
-	return(false);
+	return false;
 
 
 			/* SOMETHING WENT WRONG, SO BE GRACEFUL */
 
 failure:
+	Net_CloseLobby();
+	NSpGame_Dispose(gNetGame, 0);
 
-    if (gNetGame)
-    {
-        NSpGame_Dispose(gNetGame, 0);
-        gNetGame = nil;
-    }
-
-	if (theList != nil)
-		NSpProtocolList_Dispose(theList);
-
-	HideCursor();
-
-	Exit2D();
-	return(true);
-#endif
+	return true;
 }
 
 
