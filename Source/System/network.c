@@ -85,7 +85,18 @@ Boolean		gJoinNetworkGame = false;
 
 void InitNetworkManager(void)
 {
-	IMPLEMENT_ME_SOFT();
+#if _WIN32
+	WSADATA wsaData;
+	int result = WSAStartup(MAKEWORD(2, 2), &wsaData);
+	if (result != 0)
+	{
+		printf("WSAStartup failed: %d\n", result);
+		return;
+	}
+#endif
+
+	gNetSprocketInitialized = true;
+
 #if 0
 OSStatus    iErr;
 
@@ -102,6 +113,19 @@ OSStatus    iErr;
 		gNetSprocketInitialized = true;
 	}
 #endif
+}
+
+
+/******************* SHuTDOWN NETWORK MANAGER *********************/
+
+void ShutdownNetworkManager(void)
+{
+	if (gNetSprocketInitialized)
+	{
+#if _WIN32
+		WSACleanup();
+#endif
+	}
 }
 
 

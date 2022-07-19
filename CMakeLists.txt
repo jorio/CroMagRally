@@ -91,6 +91,8 @@ set(GAME_LIBRARIES
 )
 
 if(WIN32)
+	list(APPEND GAME_LIBRARIES "ws2_32")
+
 	# "WIN32" here is equivalent to /SUBSYSTEM:WINDOWS for MSVC
 	add_executable(${GAME_TARGET} WIN32
 		${GAME_ALL_SOURCES}

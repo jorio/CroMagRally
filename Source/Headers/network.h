@@ -2,7 +2,6 @@
 // network.h
 //
 
-//#include <NetSprocket.h>
 #include "main.h"
 #include "netsprocket.h"
 
@@ -97,6 +96,7 @@ typedef struct
 
 
 void InitNetworkManager(void);
+void ShutdownNetworkManager(void);
 Boolean SetupNetworkHosting(void);
 Boolean SetupNetworkJoin(void);
 void ClientTellHostLevelIsPrepared(void);

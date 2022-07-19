@@ -3,23 +3,35 @@
 /* (c)2022 Iliyas Jorio     */
 /****************************/
 
+#if _WIN32
+#include <winsock2.h>
+#include <ws2tcpip.h>
+typedef int ssize_t;
+typedef int socklen_t;
+#define MSG_NOSIGNAL 0
+#define SOCKFMT "%llu"
+#else
 #include <arpa/inet.h>
-#include <errno.h>
+#include <netdb.h>
 #include <netinet/in.h>
+#include <sys/socket.h>
+#include <unistd.h>
+#define closesocket(x) close(x)
+#define SOCKFMT "%d"
+#endif
+
+#include <errno.h>
+#include <fcntl.h>
 #include <stdio.h>
 #include <string.h>
-#include <sys/socket.h>
 #include <sys/types.h>
-#include <unistd.h>
-#include <fcntl.h>
-#include <netdb.h>
 #include <time.h>
 
 #include "game.h"
 #include "network.h"
 
-#define LOBBY_PORT 21812
-#define LOBBY_PORT_STR "21812"
+#define LOBBY_PORT 49959
+#define LOBBY_PORT_STR "49959"
 #define LOBBY_BROADCAST_INTERVAL 1.0f
 
 #define PENDING_CONNECTIONS_QUEUE 10
@@ -28,9 +40,17 @@
 
 #define NSPGAME_COOKIE32 'NSpG'
 
+#if _WIN32
+#define kSocketError_WouldBlock			WSAEWOULDBLOCK
+#define kSocketError_AddressInUse		WSAEADDRINUSE
+#else
+#define kSocketError_WouldBlock			EAGAIN
+#define kSocketError_AddressInUse		EADDRINUSE
+#endif
+
 typedef struct
 {
-	int sockfd;
+	sockfd_t sockfd;
 	bool boundForListening;
 	float timeUntilNextBroadcast;
 } LobbyBroadcast;
@@ -40,7 +60,7 @@ typedef struct
 	struct sockaddr_in				hostAddr;
 
 	// Host: TCP socket to listen on
-	int								sockfd;
+	sockfd_t						sockfd;
 
 	bool							isHosting;
 	bool							isAdvertising;
@@ -58,7 +78,7 @@ typedef struct
 
 static LobbyBroadcast gLobbyBroadcast =
 {
-	.sockfd = -1,
+	.sockfd = INVALID_SOCKET,
 	.timeUntilNextBroadcast = 0,
 };
 
@@ -71,35 +91,64 @@ static uint32_t gOutboundMessageCounter = 1;
 
 static bool IsKnownLobbyAddress(const struct sockaddr_in* remoteAddr);
 static void JoinLobby(const LobbyInfo* lobby);
-static int CreateGameSocket(bool bindIt);
+static sockfd_t CreateGameSocket(bool bindIt);
 static NSpCMRGame* UnboxGameReference(NSpGameReference gameRef);
 static NSpGameReference NSpGame_Alloc(void);
+
+#pragma mark - Cross-platform compat
+
+int GetSocketError(void)
+{
+#if _WIN32
+	return WSAGetLastError();
+#else
+	return errno;
+#endif
+}
+
+bool IsSocketValid(sockfd_t sockfd)
+{
+	return sockfd != INVALID_SOCKET;
+}
+
+bool MakeSocketNonBlocking(sockfd_t sockfd)
+{
+#if _WIN32
+	u_long flags = 1;  // 0=blocking, 1=non-blocking
+	return NO_ERROR == ioctlsocket(sockfd, FIONBIO, &flags);
+#else
+	int flags = fcntl(sockfd, F_GETFL, 0);
+	flags |= O_NONBLOCK;
+	return -1 != fcntl(sockfd, F_SETFL, flags);
+#endif
+}
 
 #pragma mark - Lobby broadcast
 
 bool Net_IsLobbyBroadcastOpen(void)
 {
-	return gLobbyBroadcast.sockfd >= 0;
+	return IsSocketValid(gLobbyBroadcast.sockfd);
 }
 
 static bool CreateLobbyBroadcastSocket(void)
 {
-	int sockfd = -1;
+	sockfd_t sockfd = INVALID_SOCKET;
 
 	sockfd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-	if (-1 == sockfd)
+	if (!IsSocketValid(sockfd))
 	{
+		printf("%s: socket failed: %d\n", __func__, GetSocketError());
 		goto fail;
 	}
 
 	int broadcast = 1;
-	int sockoptRC = setsockopt(sockfd, SOL_SOCKET, SO_BROADCAST, &broadcast, sizeof(broadcast));
+	int sockoptRC = setsockopt(sockfd, SOL_SOCKET, SO_BROADCAST, (void*) &broadcast, sizeof(broadcast));
 	if (-1 == sockoptRC)
 	{
 		goto fail;
 	}
 
-	if (-1 == fcntl(sockfd, F_SETFL, O_NONBLOCK))
+	if (!MakeSocketNonBlocking(sockfd))
 	{
 		goto fail;
 	}
@@ -107,25 +156,27 @@ static bool CreateLobbyBroadcastSocket(void)
 	gLobbyBroadcast.sockfd = sockfd;
 	gLobbyBroadcast.boundForListening = false;
 	gLobbyBroadcast.timeUntilNextBroadcast = 0;
+
+	printf("%s: socket " SOCKFMT "\n", __func__, gLobbyBroadcast.sockfd);
 	return true;
 
 fail:
-	if (sockfd >= 0)
+	if (IsSocketValid(sockfd))
 	{
-		close(sockfd);
-		sockfd = -1;
+		closesocket(sockfd);
+		sockfd = INVALID_SOCKET;
 	}
 	return false;
 }
 
 static void DisposeLobbyBroadcastSocket(void)
 {
-	if (gLobbyBroadcast.sockfd >= 0)
+	if (IsSocketValid(gLobbyBroadcast.sockfd))
 	{
-		close(gLobbyBroadcast.sockfd);
+		closesocket(gLobbyBroadcast.sockfd);
 	}
 
-	gLobbyBroadcast.sockfd = -1;
+	gLobbyBroadcast.sockfd = INVALID_SOCKET;
 	gLobbyBroadcast.timeUntilNextBroadcast = 0;
 }
 
@@ -149,7 +200,7 @@ static void SendLobbyBroadcastMessage(void)
 	{
 		.sin_family = AF_INET,
 		.sin_port = htons(LOBBY_PORT),
-		.sin_addr = {INADDR_BROADCAST},
+		.sin_addr.s_addr = INADDR_BROADCAST,
 	};
 
 	ssize_t rc = sendto(
@@ -163,7 +214,7 @@ static void SendLobbyBroadcastMessage(void)
 
 	if (rc == -1)
 	{
-		printf("%s: sendto: error %d\n", __func__, errno);
+		printf("%s: sendto(" SOCKFMT ") : error % d\n", __func__, gLobbyBroadcast.sockfd, GetSocketError());
 	}
 }
 
@@ -184,13 +235,13 @@ static void ReceiveLobbyBroadcastMessage(void)
 
 	if (receivedBytes == -1)
 	{
-		if (errno == EAGAIN)
+		if (GetSocketError() == kSocketError_WouldBlock)
 		{
 			return;
 		}
 		else
 		{
-			printf("%s: error %d\n", __func__, errno);
+			printf("%s: error %d\n", __func__, GetSocketError());
 		}
 	}
 	else
@@ -240,14 +291,14 @@ static void JoinLobby(const LobbyInfo* lobby)
 	{
 		.sin_family = AF_INET,
 		.sin_port = htons(LOBBY_PORT),//lobby->hostAddr.sin_port,
-		.sin_addr = {lobby->hostAddr.sin_addr.s_addr},
+		.sin_addr.s_addr = lobby->hostAddr.sin_addr.s_addr,
 	};
 
 	int connectRC = connect(sock, (const struct sockaddr*) &bindAddr, sizeof(bindAddr));
 
 	if (connectRC == -1)
 	{
-		printf("%s: connect failed: %d\n", __func__, errno);
+		printf("%s: connect failed: %d\n", __func__, GetSocketError());
 		return;
 	}
 
@@ -260,7 +311,7 @@ static void JoinLobby(const LobbyInfo* lobby)
 
 	ssize_t rc = send( //sendto(
 			sock,
-			&message,
+			(const char*) &message,
 			sizeof(message),
 			MSG_NOSIGNAL
 //			(struct sockaddr*) &bindAddr,
@@ -279,11 +330,11 @@ static bool AcceptNewClient(NSpGameReference gameRef)
 {
 	NSpCMRGame* game = UnboxGameReference(gameRef);
 
-	int newSocket = -1;
+	sockfd_t newSocket = INVALID_SOCKET;
 
 	newSocket = accept(game->sockfd, NULL, NULL);
 
-	if (newSocket == -1)	// nobody's trying to connect right now
+	if (!IsSocketValid(newSocket))	// nobody's trying to connect right now
 	{
 		goto fail;
 	}
@@ -291,7 +342,7 @@ static bool AcceptNewClient(NSpGameReference gameRef)
 	printf("A new player's knocking at the door...\n");
 
 	// make the socket non-blocking
-	if (-1 == fcntl(newSocket, F_SETFL, O_NONBLOCK))
+	if (!MakeSocketNonBlocking(newSocket))
 	{
 		goto fail;
 	}
@@ -310,18 +361,19 @@ static bool AcceptNewClient(NSpGameReference gameRef)
 	return true;
 
 fail:
-	if (newSocket >= 0)
+	if (IsSocketValid(newSocket))
 	{
-		close(newSocket);
+		closesocket(newSocket);
+		newSocket = INVALID_SOCKET;
 	}
 	return false;
 }
 
 #pragma mark - Message socket
 
-static int CreateGameSocket(bool bindIt)
+static sockfd_t CreateGameSocket(bool bindIt)
 {
-	int sockfd = -1;
+	sockfd_t sockfd = INVALID_SOCKET;
 	struct addrinfo* res = NULL;
 
 	struct addrinfo hints =
@@ -340,17 +392,14 @@ static int CreateGameSocket(bool bindIt)
 	struct addrinfo* goodRes = res;  // TODO: actually walk through res
 
 	sockfd = socket(goodRes->ai_family, goodRes->ai_socktype, goodRes->ai_protocol);
-	if (-1 == sockfd)
+	if (!IsSocketValid(sockfd))
 	{
 		goto fail;
 	}
 
-	if (bindIt)
+	if (bindIt && !MakeSocketNonBlocking(sockfd))
 	{
-		if (-1 == fcntl(sockfd, F_SETFL, O_NONBLOCK))
-		{
-			goto fail;
-		}
+		goto fail;
 	}
 
 //	int set = 1;
@@ -364,7 +413,7 @@ static int CreateGameSocket(bool bindIt)
 		int bindRC = bind(sockfd, goodRes->ai_addr, goodRes->ai_addrlen);
 		if (0 != bindRC)
 		{
-			printf("%s: bind failed: %d\n", __func__, errno);
+			printf("%s: bind failed: %d\n", __func__, GetSocketError());
 			goto fail;
 		}
 	}
@@ -380,12 +429,12 @@ fail:
 		freeaddrinfo(res);
 		res = NULL;
 	}
-	if (sockfd >= 0)
+	if (IsSocketValid(sockfd))
 	{
-		close(sockfd);
-		sockfd = -1;
+		closesocket(sockfd);
+		sockfd = INVALID_SOCKET;
 	}
-	return -1;
+	return INVALID_SOCKET;
 }
 
 #pragma mark - Basic message
@@ -396,7 +445,7 @@ bool CheckIncomingMessage(const void* message, ssize_t length)
 
 	if (length < (ssize_t) sizeof(NSpMessageHeader)			// buffer should be big enough for header before we read from it
 		|| header->version != kNSpCMRProtocol4CC			// bad protocol magic
-		|| header->messageLen < length						// buffer should be big enough for full message
+		|| (ssize_t) header->messageLen < length			// buffer should be big enough for full message
 		)
 	{
 		return false;
@@ -435,7 +484,7 @@ NSpMessageHeader* NSpMessage_Get(NSpGameReference gameRef)
 			// TODO: if received 0 bytes, the client is probably gone
 			if (recvRC != -1 && recvRC != 0)
 			{
-				printf("Got %zu bytes from client %d - %d\n", recvRC, i, errno);
+				printf("Got %d bytes from client %d - %d\n", recvRC, i, GetSocketError());
 
 				if (CheckIncomingMessage(msg, recvRC))
 				{
@@ -468,9 +517,9 @@ NSpGameReference Net_CreateLobby(void)
 	NSpCMRGame* game = UnboxGameReference(gHostingGame);
 	game->isHosting = true;
 	game->sockfd = CreateGameSocket(true);
-	printf("Host TCP socket: %d\n", game->sockfd);
+	printf("Host TCP socket: %d\n", (int) game->sockfd);
 
-	if (game->sockfd == -1)
+	if (!IsSocketValid(game->sockfd))
 	{
 		goto fail;
 	}
@@ -523,11 +572,13 @@ void Net_CreateLobbySearch(void)
 	int bindRC = bind(gLobbyBroadcast.sockfd, (struct sockaddr*) &bindAddr, sizeof(bindAddr));
 	if (0 != bindRC)
 	{
-		printf("%s: bind failed: %d\n", __func__, errno);
-		if (errno == EADDRINUSE)
+		printf("%s: bind failed: %d\n", __func__, GetSocketError());
+
+		if (GetSocketError() == kSocketError_AddressInUse)
 		{
 			printf("(addr in use)\n");
 		}
+
 		DisposeLobbyBroadcastSocket();
 		return;
 	}
@@ -548,11 +599,11 @@ static NSpGameReference NSpGame_Alloc(void)
 	gHostingGame = (NSpGameReference) game;
 
 	game->cookie = NSPGAME_COOKIE32;
-	game->sockfd = -1;
+	game->sockfd = INVALID_SOCKET;
 	game->numClientsConnected = 0;
 	for (int i = 0; i < MAX_CLIENTS; i++)
 	{
-		game->hostToClientSockets[i] = -1;
+		game->hostToClientSockets[i] = INVALID_SOCKET;
 	}
 
 	return (NSpGameReference) game;
@@ -581,18 +632,18 @@ int NSpGame_Dispose(NSpGameReference inGame, int disposeFlags)
 		return noErr;
 	}
 
-	if (game->sockfd != -1)
+	if (IsSocketValid(game->sockfd))
 	{
-		close(game->sockfd);
-		game->sockfd = -1;
+		closesocket(game->sockfd);
+		game->sockfd = INVALID_SOCKET;
 	}
 
 	for (int i = 0; i < MAX_CLIENTS; i++)
 	{
-		if (game->hostToClientSockets[i] != -1)
+		if (IsSocketValid(game->hostToClientSockets[i]))
 		{
-			close(game->hostToClientSockets[i]);
-			game->hostToClientSockets[i] = -1;
+			closesocket(game->hostToClientSockets[i]);
+			game->hostToClientSockets[i] = INVALID_SOCKET;
 		}
 	}
 	game->numClientsConnected = 0;

@@ -1,6 +1,12 @@
 #pragma once
 
-#include <netinet/in.h>
+#if _WIN32
+#include <winsock2.h>
+typedef SOCKET sockfd_t;
+#else
+typedef int sockfd_t;
+#define INVALID_SOCKET -1
+#endif
 
 #define MAX_CLIENTS 6
 #define kNSpCMRProtocol4CC 'CMR1'

@@ -99,6 +99,7 @@ static Boolean	beenHere = false;
 		SavePlayerFile();								// save player if any
 
 		EndNetworkGame();								// remove me from any active network game
+		ShutdownNetworkManager();
 
 		DisposeTerrain();								// dispose of any memory allocated by terrain manager
 		DisposeAllBG3DContainers();						// nuke all models
