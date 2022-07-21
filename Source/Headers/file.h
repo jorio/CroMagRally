@@ -117,6 +117,9 @@ typedef struct
 	int		car;
 	bool	netHost;
 	bool	netJoin;
+	int		display;
+	int		windowedWidth;
+	int		windowedHeight;
 } CommandLineOptions;
 
 //=================================================

@@ -106,6 +106,19 @@ static void ParseCommandLine(int argc, char** argv)
 			gCommandLine.netHost = true;
 		else if (argument == "--join")
 			gCommandLine.netJoin = true;
+		else if (argument == "--display")
+		{
+			GAME_ASSERT_MESSAGE(i + 1 < argc, "display # unspecified");
+			gCommandLine.display = atoi(argv[i + 1]);
+			i += 1;
+		}
+		else if (argument == "--windowed-resolution")
+		{
+			GAME_ASSERT_MESSAGE(i + 2 < argc, "windowed width & height unspecified");
+			gCommandLine.windowedWidth = atoi(argv[i + 1]);
+			gCommandLine.windowedHeight = atoi(argv[i + 2]);
+			i += 2;
+		}
 #if 0
 		else if (argument == "--fullscreen-resolution")
 		{
@@ -172,15 +185,36 @@ retryVideo:
 		SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 1 << gCurrentAntialiasingLevel);
 	}
 
+	// Determine display
 	int display = gGamePrefs.monitorNum;
+
+	// Display # given on CLI takes precedence over prefs
+	if (gCommandLine.display != 0)
+	{
+		display = gCommandLine.display - 1;
+		gGamePrefs.monitorNum = display;
+		SavePrefs();
+		printf("Will try display %d\n", display);
+	}
+
 	if (display >= SDL_GetNumVideoDisplays())
 	{
 		display = 0;
 	}
 
+	// Determine initial window size
 	int initialWidth = 640;
 	int initialHeight = 480;
-	GetInitialWindowSize(display, initialWidth, initialHeight);
+	if (gCommandLine.windowedWidth != 0 && gCommandLine.windowedHeight != 0)
+	{
+		// Window size given on CLI takes precedence
+		initialWidth = gCommandLine.windowedWidth;
+		initialHeight = gCommandLine.windowedHeight;
+	}
+	else
+	{
+		GetInitialWindowSize(display, initialWidth, initialHeight);
+	}
 
 	gSDLWindow = SDL_CreateWindow(
 			"Cro-Mag Rally " PROJECT_VERSION,
