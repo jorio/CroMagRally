@@ -23,15 +23,11 @@ typedef void* NSpPlayerLeftMessage;
 /**********************/
 
 static void InitPlayerNamesListBox(Rect *r, WindowPtr myDialog);
-//static pascal Boolean GatherGameDialogCallback (DialogRef dp,EventRecord *event, short *item);
 static void ShowNamesOfJoinedPlayers(void);
 static OSErr Client_WaitForGameConfigInfo(void);
-//static pascal Boolean Client_WaitForGameConfigInfoDialogCallback (DialogRef dp,EventRecord *event, short *item);
 static OSErr HostSendGameConfigInfo(void);
 static void HandleGameConfigMessage(NetConfigMessageType *inMessage);
-//static Boolean HandleOtherNetMessage(NSpMessageHeader	*message);
-//static void PlayerUnexpectedlyLeavesGame(NSpPlayerLeftMessage *mess);
-static OSErr  Host_DoGatherPlayersDialog(void);
+static Boolean HandleOtherNetMessage(NSpMessageHeader	*message);
 static Boolean PlayerReceiveVehicleTypeFromOthers(short *playerNum, short *charType, short *sex);
 
 /****************************/
@@ -49,6 +45,7 @@ static Boolean PlayerReceiveVehicleTypeFromOthers(short *playerNum, short *charT
 static int	gNumGatheredPlayers = 0;			// this is only used during gathering, gNumRealPlayers should be used during game!
 
 int			gNetSequenceState = kNetSequence_Offline;
+int			gNetSequenceError = 0;
 
 Boolean		gNetSprocketInitialized = false;
 
@@ -176,14 +173,6 @@ OSErr	iErr;
 #pragma mark -
 
 
-
-/****************** SETUP NETWORK HOSTING *********************/
-//
-// Called when this computer's user has selected to be a host for a net game.
-//
-// OUTPUT:  true == cancelled.
-//
-
 void UpdateNetSequence(void)
 {
 	switch (gNetSequenceState)
@@ -214,8 +203,6 @@ void UpdateNetSequence(void)
 			}
 			break;
 
-
-
 		case kNetSequence_ClientSearchingForGames:
 			if (Net_GetNumLobbiesFound() > 0)
 			{
@@ -244,6 +231,46 @@ void UpdateNetSequence(void)
 				}
 			}
 			break;
+
+		case kNetSequence_ClientJoiningGame:
+		{
+			NSpMessageHeader* message = NSpMessage_Get(gNetGame);
+
+			if (message)
+			{
+				switch (message->what)
+				{
+					case	kNetConfigureMessage:										// GOT GAME START INFO
+						HandleGameConfigMessage((NetConfigMessageType *)message);
+						gNetSequenceState = kNetSequence_ClientJoinedGame;
+						break;
+
+					case 	kNSpGameTerminated:											// Host terminated the game :(
+						break;
+
+					case	kNSpJoinApproved:
+						break;
+
+					case	kNSpPlayerLeft:												// see if someone decided to un-join
+						ShowNamesOfJoinedPlayers();
+						break;
+
+					case	kNSpPlayerJoined:
+						ShowNamesOfJoinedPlayers();
+						break;
+
+					case	kNSpError:
+						DoFatalAlert("Client_WaitForGameConfigInfoDialogCallback: message == kNSpError");
+						break;
+
+					default:
+						HandleOtherNetMessage(message);
+						break;
+				}
+			}
+
+			break;
+		}
 
 		case kNetSequence_WaitingForPlayerVehicles1:
 		case kNetSequence_WaitingForPlayerVehicles2:
@@ -282,6 +309,14 @@ void UpdateNetSequence(void)
 	}
 }
 
+
+
+/****************** SETUP NETWORK HOSTING *********************/
+//
+// Called when this computer's user has selected to be a host for a net game.
+//
+// OUTPUT:  true == cancelled.
+//
 Boolean SetupNetworkHosting(void)
 {
 	gNetSequenceState = kNetSequence_HostOffline;
@@ -340,7 +375,7 @@ failure:
 
 Boolean SetupNetworkJoin(void)
 {
-OSStatus			status;
+OSStatus			status = noErr;
 
 	gNetSequenceState = kNetSequence_ClientOffline;
 
@@ -405,7 +440,6 @@ int					i;
 
 	NSpReleaseAddressReference(theAddress);							// always dispose of this after _Join
 
-#endif
 
 			/* WAIT WHILE OTHERS JOIN ALSO */
 
@@ -421,6 +455,7 @@ int					i;
 
 //	HideCursor();
 //	Exit2D();
+#endif
 	return status;
 }
 
@@ -957,19 +992,24 @@ got_config:
 
 static void HandleGameConfigMessage(NetConfigMessageType *inMessage)
 {
-	IMPLEMENT_ME_SOFT();
-#if 0
+	//TODO: fill in player info
+
 	gGameMode 			= inMessage->gameMode;
 	gTheAge 			= inMessage->age;
 	gTrackNum 			= inMessage->trackNum;
 	gNumRealPlayers 	= inMessage->numPlayers;
 	gMyNetworkPlayerNum = inMessage->playerNum;
+
+	// TODO: Make this stuff transient!
+	puts("TODO: make net game settings transient!");
 	gGamePrefs.difficulty = inMessage->difficulty;
 	gGamePrefs.tagDuration = inMessage->tagDuration;
-
+#if 0
 	if ((inMessage->numAgesCompleted & AGE_MASK_AGE) > GetNumAgesCompleted())	// if better than our current game, then pseudo-logout that saved game
 		gSavedPlayerIsLoaded = false;
 	gPlayerSaveData.numAgesCompleted = inMessage->numAgesCompleted;
+#else
+	gGamePrefs.tournamentProgression.numTracksCompleted = inMessage->numTracksCompleted;
 #endif
 }
 

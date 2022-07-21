@@ -88,6 +88,8 @@ static NSpGameReference gHostingGame = NULL;
 
 static uint32_t gOutboundMessageCounter = 1;
 
+static int gLastQueriedSocketError = 0;
+
 static bool IsKnownLobbyAddress(const struct sockaddr_in* remoteAddr);
 static NSpGameReference JoinLobby(const LobbyInfo* lobby);
 static sockfd_t CreateGameSocket(bool bindIt);
@@ -99,10 +101,16 @@ static NSpGameReference NSpGame_Alloc(void);
 int GetSocketError(void)
 {
 #if _WIN32
-	return WSAGetLastError();
+	gLastQueriedSocketError = WSAGetLastError();
 #else
-	return errno;
+	gLastQueriedSocketError = errno;
 #endif
+	return gLastQueriedSocketError;
+}
+
+int GetLastSocketError(void)
+{
+	return gLastQueriedSocketError;
 }
 
 bool IsSocketValid(sockfd_t sockfd)
@@ -325,6 +333,13 @@ static NSpGameReference JoinLobby(const LobbyInfo* lobby)
 		goto fail;
 	}
 
+	// make it blocking AFTER connecting
+	if (!MakeSocketNonBlocking(sockfd))
+	{
+		printf("%s: non-blocking failed: %d\n", __func__, GetSocketError());
+		goto fail;
+	}
+
 	NSpJoinRequestMessage message;
 	NSpClearMessageHeader(&message.header);
 	message.header.to = kNSpHostOnly;
@@ -477,7 +492,17 @@ fail:
 
 #pragma mark - Basic message
 
-bool CheckIncomingMessage(const void* message, ssize_t length)
+void NSpClearMessageHeader(NSpMessageHeader* h)
+{
+	memset(h, 0, sizeof(NSpMessageHeader));
+	h->version = kNSpCMRProtocol4CC;
+	h->when = 0;
+	h->id = gOutboundMessageCounter;
+
+	gOutboundMessageCounter++;
+}
+
+static bool CheckIncomingMessage(const void* message, ssize_t length)
 {
 	const NSpMessageHeader* header = (const NSpMessageHeader*) message;
 
@@ -492,51 +517,54 @@ bool CheckIncomingMessage(const void* message, ssize_t length)
 	return true;
 }
 
-void NSpClearMessageHeader(NSpMessageHeader* h)
+static NSpMessageHeader* PollSocket(sockfd_t sockfd)
 {
-	memset(h, 0, sizeof(NSpMessageHeader));
-	h->version = kNSpCMRProtocol4CC;
-	h->when = 0;
-	h->id = gOutboundMessageCounter;
+	char msg[256];
 
-	gOutboundMessageCounter++;
+	ssize_t recvRC = recv(
+		sockfd,
+		msg,
+		sizeof(msg),
+		MSG_NOSIGNAL
+	);
+
+	// TODO: if received 0 bytes, the client is probably gone
+	if (recvRC != -1 && recvRC != 0)
+	{
+		printf("Got %d bytes from socket %d - %d\n", (int)recvRC, sockfd, GetSocketError());
+
+		if (CheckIncomingMessage(msg, recvRC))
+		{
+			char* buf = AllocPtr(recvRC);
+			memcpy(buf, msg, recvRC);
+			return (NSpMessageHeader*) buf;
+		}
+	}
+
+	return NULL;
 }
 
 NSpMessageHeader* NSpMessage_Get(NSpGameReference gameRef)
 {
-	char msg[256];
-
 	NSpCMRGame* game = UnboxGameReference(gameRef);
 
 	if (game->isHosting)
 	{
 		for (int i = 0; i < game->numClientsConnected; i++)
 		{
-			ssize_t recvRC = recv(
-					game->hostToClientSockets[i],
-					msg,
-					sizeof(msg),
-					MSG_NOSIGNAL
-					);
-
-			// TODO: if received 0 bytes, the client is probably gone
-			if (recvRC != -1 && recvRC != 0)
+			NSpMessageHeader* message = PollSocket(game->hostToClientSockets[i]);
+			if (message)
 			{
-				printf("Got %d bytes from client %d - %d\n", recvRC, i, GetSocketError());
-
-				if (CheckIncomingMessage(msg, recvRC))
-				{
-					char* buf = AllocPtr(recvRC);
-					memcpy(buf, msg, recvRC);
-					return (NSpMessageHeader*) buf;
-				}
-
-//				OnIncomingMessage(msg, recvRC);
+				return message;
 			}
 		}
-	}
 
-	return NULL;
+		return NULL;
+	}
+	else
+	{
+		return PollSocket(game->sockfd);
+	}
 }
 
 #pragma mark - Create and kill lobby
@@ -552,7 +580,7 @@ NSpGameReference Net_CreateLobby(void)
 		goto fail;
 	}
 
-	NSpCMRGame* game = UnboxGameReference(gHostingGame);
+	NSpCMRGame *game = UnboxGameReference(gHostingGame);
 	game->isHosting = true;
 	game->sockfd = CreateGameSocket(true);
 	printf("Host TCP socket: %d\n", (int) game->sockfd);
@@ -818,7 +846,5 @@ void Net_Tick(void)
 		{
 			printf("Accepted client #%d\n", newClient);
 		}
-
-		NSpMessageHeader* hello = NSpMessage_Get(gHostingGame);
 	}
 }

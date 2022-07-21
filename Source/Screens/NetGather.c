@@ -108,8 +108,15 @@ static void UpdateNetGatherPrompt(void)
 	switch (gNetSequenceState)
 	{
 		case kNetSequence_Error:
-			snprintf(buf, sizeof(buf), "NETWORK ERROR");
+		{
+#if _WIN32
+			char errorChar = 'W';
+#else
+			char errorChar = 'U';
+#endif
+			snprintf(buf, sizeof(buf), "NETWORK ERROR %c-%d", errorChar, GetLastSocketError());
 			break;
+		}
 
 		case kNetSequence_HostWaitingForAnyPlayersToJoinLobby:
 			snprintf(buf, sizeof(buf), "WAITING FOR PLAYERS\nON LOCAL NETWORK...");
@@ -145,6 +152,12 @@ static void UpdateNetGatherPrompt(void)
 			break;
 		}
 
+		case kNetSequence_ClientJoiningGame:
+		{
+			snprintf(buf, sizeof(buf), "JOINED THE GAME.\nWAITING FOR HOST...");
+			break;
+		}
+
 		case kNetSequence_WaitingForPlayerVehicles1:
 		case kNetSequence_WaitingForPlayerVehicles2:
 		case kNetSequence_WaitingForPlayerVehicles3:
@@ -158,7 +171,7 @@ static void UpdateNetGatherPrompt(void)
 			break;
 
 		default:
-			snprintf(buf, sizeof(buf), "#%d", gNetSequenceState);
+			snprintf(buf, sizeof(buf), "SEQ %d", gNetSequenceState);
 			break;
 	}
 
@@ -293,6 +306,7 @@ static int DoNetGatherControls(void)
 			break;
 
 		case kNetSequence_HostStartingGame:
+		case kNetSequence_ClientJoinedGame:
 		case kNetSequence_GotAllPlayerVehicles:
 			return 1;
 	}

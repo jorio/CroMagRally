@@ -121,20 +121,20 @@ enum
 	kNetSequence_Offline,
 	kNetSequence_Error,
 	
-	kNetSequence_HostOffline,
+	kNetSequence_HostOffline = 100,
 	kNetSequence_HostCreatedLobby,
 	kNetSequence_HostWaitingForAnyPlayersToJoinLobby,
 	kNetSequence_HostWaitingForMorePlayersToJoinLobby,
 	kNetSequence_HostReadyToStartGame,
 	kNetSequence_HostStartingGame,
 	
-	kNetSequence_ClientOffline,
+	kNetSequence_ClientOffline = 200,
 	kNetSequence_ClientSearchingForGames,
 	kNetSequence_ClientFoundGames,
 	kNetSequence_ClientJoiningGame,
-	kNetSequence_ClientWaitingForGameConfigInfo,
+	kNetSequence_ClientJoinedGame,
 
-	kNetSequence_WaitingForPlayerVehicles1,
+	kNetSequence_WaitingForPlayerVehicles1 = 300,
 	kNetSequence_WaitingForPlayerVehicles2,
 	kNetSequence_WaitingForPlayerVehicles3,
 	kNetSequence_WaitingForPlayerVehicles4,
@@ -146,10 +146,14 @@ enum
 	kNetSequence_GotAllPlayerVehicles,
 };
 
+void UpdateNetSequence(void);
+
 
 //===============================================================================
 // Low-level networking routines
 
+int GetSocketError(void);
+int GetLastSocketError(void);
 void Net_Tick(void);
 bool Net_IsLobbyBroadcastOpen(void);
 NSpGameReference Net_CreateLobby(void);
@@ -159,3 +163,4 @@ void Net_CloseLobbySearch(void);
 int Net_GetNumLobbiesFound(void);
 NSpGameReference Net_JoinLobby(int lobbyNum);
 const char* Net_GetLobbyAddress(int lobbyNum);
+NSpMessageHeader* NSpMessage_Get(NSpGameReference gameRef);
