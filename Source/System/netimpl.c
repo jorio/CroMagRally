@@ -379,9 +379,12 @@ fail:
 
 #pragma mark - Host lobby
 
-static int AcceptNewClient(NSpGameReference gameRef)
+int NSpGame_AcceptNewClient(NSpGameReference gameRef)
 {
+	int newClient = -1;
 	NSpCMRGame* game = UnboxGameReference(gameRef);
+
+	GAME_ASSERT(game->isHosting);
 
 	sockfd_t newSocket = INVALID_SOCKET;
 
@@ -392,8 +395,6 @@ static int AcceptNewClient(NSpGameReference gameRef)
 		goto fail;
 	}
 
-	printf("A new player's knocking at the door...\n");
-
 	// make the socket non-blocking
 	if (!MakeSocketNonBlocking(newSocket))
 	{
@@ -402,14 +403,19 @@ static int AcceptNewClient(NSpGameReference gameRef)
 
 	if (game->numClientsConnected < MAX_PLAYERS)
 	{
-		game->hostToClientSockets[game->numClientsConnected] = newSocket;
+		newClient = game->numClientsConnected;
+		game->hostToClientSockets[newClient] = newSocket;
 		game->numClientsConnected++;
 	}
 	else
 	{
 		// All slots used up
+		// TODO: tell the client that the game is full?
+		printf("%s: A new client wants to connect, but the game is full!\n", __func__);
 		goto fail;
 	}
+
+	printf("%s: Accepted client #%d\n", __func__, newClient);
 
 	return game->numClientsConnected - 1;
 
@@ -836,15 +842,6 @@ void Net_Tick(void)
 		else
 		{
 			ReceiveLobbyBroadcastMessage();
-		}
-	}
-
-	if (gHostingGame)
-	{
-		int newClient = AcceptNewClient(gHostingGame);
-		if (newClient >= 0)
-		{
-			printf("Accepted client #%d\n", newClient);
 		}
 	}
 }

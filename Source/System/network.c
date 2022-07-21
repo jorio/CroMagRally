@@ -178,6 +178,7 @@ void UpdateNetSequence(void)
 	switch (gNetSequenceState)
 	{
 		case kNetSequence_HostWaitingForAnyPlayersToJoinLobby:
+			NSpGame_AcceptNewClient(gNetGame);
 			if (NSpGame_GetNumPlayersConnectedToHost(gNetGame) > 0)
 			{
 				gNetSequenceState = kNetSequence_HostWaitingForMorePlayersToJoinLobby;
@@ -185,6 +186,7 @@ void UpdateNetSequence(void)
 			break;
 
 		case kNetSequence_HostWaitingForMorePlayersToJoinLobby:
+			NSpGame_AcceptNewClient(gNetGame);
 			if (NSpGame_GetNumPlayersConnectedToHost(gNetGame) == 0)
 			{
 				gNetSequenceState = kNetSequence_HostWaitingForAnyPlayersToJoinLobby;

@@ -88,6 +88,7 @@ void NSpClearMessageHeader(NSpMessageHeader* h);
 
 int NSpMessage_Send(NSpGameReference inGame, NSpMessageHeader* inMessage, int inFlags);
 
+int NSpGame_AcceptNewClient(NSpGameReference gameRef);				// not a true NetSprocket call
 int NSpGame_GetNumPlayersConnectedToHost(NSpGameReference inGame);  // not a true NetSprocket call
 
 int NSpGame_Dispose(NSpGameReference inGame, int disposeFlags);
