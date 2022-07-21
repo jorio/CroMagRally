@@ -50,6 +50,12 @@ enum
 	kNSpSendFlag_Registered		= 0x00400000		// will be sent immediately (guaranteed, in order)
 };
 
+enum
+{
+	kNSpGameFlag_DontAdvertise = 0x00000001,
+	kNSpGameFlag_ForceTerminateGame = 0x00000002
+};
+
 typedef int32_t						NSpPlayerID;
 
 typedef struct sockaddr_in*			NSpAddressReference;

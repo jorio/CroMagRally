@@ -48,6 +48,7 @@ static void UpdateNetGatherPrompt(void)
 {
 	static char buf[256];
 
+#if 0
 	if (gIsNetworkHost)
 	{
 		if (Net_IsLobbyBroadcastOpen())
@@ -79,18 +80,19 @@ static void UpdateNetGatherPrompt(void)
 	{
 		if (Net_IsLobbyBroadcastOpen())
 		{
-			switch (gNumLobbiesFound)
+			int numLobbiesFound = Net_GetNumLobbiesFound();
+			switch (numLobbiesFound)
 			{
 				case 0:
 					snprintf(buf, sizeof(buf), "LOOKING FOR GAMES\nON LOCAL NETWORK...");
 					break;
 
 				case 1:
-					snprintf(buf, sizeof(buf), "FOUND A GAME\nON LOCAL NETWORK.");
+					snprintf(buf, sizeof(buf), "FOUND A GAME AT\n%s", Net_GetLobbyAddress(0));
 					break;
 
 				default:
-					snprintf(buf, sizeof(buf), "FOUND %d GAMES\nON LOCAL NETWORK.", gNumLobbiesFound);
+					snprintf(buf, sizeof(buf), "FOUND %d GAMES\nON LOCAL NETWORK.", numLobbiesFound);
 					break;
 			}
 
@@ -100,8 +102,68 @@ static void UpdateNetGatherPrompt(void)
 		{
 			TextMesh_Update("FAILED TO SEARCH FOR GAMES\nON LOCAL NETWORK.", 0, gGatherPrompt);
 		}
-
 	}
+#endif
+
+	switch (gNetSequenceState)
+	{
+		case kNetSequence_Error:
+			snprintf(buf, sizeof(buf), "NETWORK ERROR");
+			break;
+
+		case kNetSequence_HostWaitingForAnyPlayersToJoinLobby:
+			snprintf(buf, sizeof(buf), "WAITING FOR PLAYERS\nON LOCAL NETWORK...");
+			break;
+
+		case kNetSequence_HostWaitingForMorePlayersToJoinLobby:
+			int numClientsConnectedToHost = NSpGame_GetNumPlayersConnectedToHost(gNetGame);
+			if (numClientsConnectedToHost == 1)
+			{
+				snprintf(buf, sizeof(buf), "1 PLAYER CONNECTED\n\nPRESS ENTER TO BEGIN");
+			}
+			else
+			{
+				snprintf(buf, sizeof(buf), "%d PLAYERS CONNECTED\n\nPRESS ENTER TO BEGIN", numClientsConnectedToHost);
+			}
+			break;
+
+		case kNetSequence_ClientSearchingForGames:
+			snprintf(buf, sizeof(buf), "SEARCHING FOR GAMES\nON LOCAL NETWORK...");
+			break;
+
+		case kNetSequence_ClientFoundGames:
+		{
+			int numLobbiesFound = Net_GetNumLobbiesFound();
+			if (numLobbiesFound == 1)
+			{
+				snprintf(buf, sizeof(buf), "FOUND A GAME AT\n%s", Net_GetLobbyAddress(0));
+			}
+			else
+			{
+				snprintf(buf, sizeof(buf), "FOUND %d GAMES\nON LOCAL NETWORK.", numLobbiesFound);
+			}
+			break;
+		}
+
+		case kNetSequence_WaitingForPlayerVehicles1:
+		case kNetSequence_WaitingForPlayerVehicles2:
+		case kNetSequence_WaitingForPlayerVehicles3:
+		case kNetSequence_WaitingForPlayerVehicles4:
+		case kNetSequence_WaitingForPlayerVehicles5:
+		case kNetSequence_WaitingForPlayerVehicles6:
+		case kNetSequence_WaitingForPlayerVehicles7:
+		case kNetSequence_WaitingForPlayerVehicles8:
+		case kNetSequence_WaitingForPlayerVehicles9:
+			snprintf(buf, sizeof(buf), "THE OTHER PLAYERS\nARE READYING UP...\n");
+			break;
+
+		default:
+			snprintf(buf, sizeof(buf), "#%d", gNetSequenceState);
+			break;
+	}
+
+
+	TextMesh_Update(buf, 0, gGatherPrompt);
 }
 
 
@@ -141,7 +203,10 @@ Boolean DoNetGatherScreen(void)
 
 		CalcFramesPerSecond();
 		ReadKeyboard();
+
 		Net_Tick();
+		UpdateNetSequence();
+
 		MoveObjects();
 		OGL_DrawScene(DrawObjects);
 	}
@@ -210,10 +275,30 @@ static int DoNetGatherControls(void)
 			Net_CloseLobbySearch();
 		}
 
+		EndNetworkGame();
+
 		return -1;
 	}
 
 
+
+
+	switch (gNetSequenceState)
+	{
+		case kNetSequence_HostWaitingForMorePlayersToJoinLobby:
+			if (GetNewNeedStateAnyP(kNeed_UIConfirm))
+			{
+				gNetSequenceState = kNetSequence_HostReadyToStartGame;
+			}
+			break;
+
+		case kNetSequence_HostStartingGame:
+		case kNetSequence_GotAllPlayerVehicles:
+			return 1;
+	}
+
+
+#if 0
 	if (GetNewNeedStateAnyP(kNeed_UIConfirm))
 	{
 		if (HostReadyToStartGame())
@@ -221,6 +306,19 @@ static int DoNetGatherControls(void)
 			return 1;
 		}
 	}
+
+	if (gIsNetworkClient
+		&& gNetGame == NULL
+		&& Net_GetNumLobbiesFound() > 0)
+	{
+		printf("Attempting to join lobby 0...\n");
+		gNetGame = Net_JoinLobby(0);
+		if (gNetGame)
+		{
+			return 1;
+		}
+	}
+#endif
 
 	return 0;
 }

@@ -48,6 +48,8 @@ static Boolean PlayerReceiveVehicleTypeFromOthers(short *playerNum, short *charT
 
 static int	gNumGatheredPlayers = 0;			// this is only used during gathering, gNumRealPlayers should be used during game!
 
+int			gNetSequenceState = kNetSequence_Offline;
+
 Boolean		gNetSprocketInitialized = false;
 
 Boolean		gIsNetworkHost = false;
@@ -136,8 +138,8 @@ void ShutdownNetworkManager(void)
 
 void EndNetworkGame(void)
 {
-	IMPLEMENT_ME_SOFT();
-#if 0
+//	IMPLEMENT_ME_SOFT();
+#if 1
 OSErr	iErr;
 
 	if ((!gNetGameInProgress) || (!gNetGame))								// only if we're running a net game
@@ -147,7 +149,7 @@ OSErr	iErr;
 
 	if (gIsNetworkHost)
 	{
-		Wait(40);						// do this pause to let clients sync up so they don't get the terminate message prematurely
+//		Wait(40);						// do this pause to let clients sync up so they don't get the terminate message prematurely
 		iErr = NSpGame_Dispose(gNetGame, kNSpGameFlag_ForceTerminateGame);	// do not renegotiate a new host
 		if (iErr)
 			DoFatalAlert("EndNetworkGame: NSpGame_Dispose failed!");
@@ -182,8 +184,109 @@ OSErr	iErr;
 // OUTPUT:  true == cancelled.
 //
 
+void UpdateNetSequence(void)
+{
+	switch (gNetSequenceState)
+	{
+		case kNetSequence_HostWaitingForAnyPlayersToJoinLobby:
+			if (NSpGame_GetNumPlayersConnectedToHost(gNetGame) > 0)
+			{
+				gNetSequenceState = kNetSequence_HostWaitingForMorePlayersToJoinLobby;
+			}
+			break;
+
+		case kNetSequence_HostWaitingForMorePlayersToJoinLobby:
+			if (NSpGame_GetNumPlayersConnectedToHost(gNetGame) == 0)
+			{
+				gNetSequenceState = kNetSequence_HostWaitingForAnyPlayersToJoinLobby;
+			}
+			break;
+
+		case kNetSequence_HostReadyToStartGame:
+			Net_CloseLobby();
+			if (noErr == HostSendGameConfigInfo())
+			{
+				gNetSequenceState = kNetSequence_HostStartingGame;
+			}
+			else
+			{
+				gNetSequenceState = kNetSequence_Error;
+			}
+			break;
+
+
+
+		case kNetSequence_ClientSearchingForGames:
+			if (Net_GetNumLobbiesFound() > 0)
+			{
+				gNetSequenceState = kNetSequence_ClientFoundGames;
+			}
+			break;
+
+		case kNetSequence_ClientFoundGames:
+			if (Net_GetNumLobbiesFound() == 0)
+			{
+				gNetSequenceState = kNetSequence_ClientSearchingForGames;
+			}
+			else
+			{
+				Net_CloseLobbySearch();
+
+				gNetGame = Net_JoinLobby(0);
+
+				if (gNetGame)
+				{
+					gNetSequenceState = kNetSequence_ClientJoiningGame;
+				}
+				else
+				{
+					gNetSequenceState = kNetSequence_Error;
+				}
+			}
+			break;
+
+		case kNetSequence_WaitingForPlayerVehicles1:
+		case kNetSequence_WaitingForPlayerVehicles2:
+		case kNetSequence_WaitingForPlayerVehicles3:
+		case kNetSequence_WaitingForPlayerVehicles4:
+		case kNetSequence_WaitingForPlayerVehicles5:
+		case kNetSequence_WaitingForPlayerVehicles6:
+		case kNetSequence_WaitingForPlayerVehicles7:
+		case kNetSequence_WaitingForPlayerVehicles8:
+		case kNetSequence_WaitingForPlayerVehicles9:
+		{
+//			int count = 1;																// start count @ 1 since we have our own local info already
+			int count = gNetSequenceState - kNetSequence_WaitingForPlayerVehicles1;
+
+			if (count >= gNumRealPlayers)
+			{
+				gNetSequenceState = kNetSequence_GotAllPlayerVehicles;
+			}
+			else
+			{
+				short playerNum;
+				short charType;
+				short sex;
+
+				if (PlayerReceiveVehicleTypeFromOthers(&playerNum, &charType, &sex))		// check for network message
+				{
+					gPlayerInfo[playerNum].vehicleType = charType;					// save this player's type
+					gPlayerInfo[playerNum].sex = sex;								// save this player's sex
+					gNetSequenceState++;											// inc count of received info
+				}
+			}
+
+			break;
+		}
+
+	}
+}
+
 Boolean SetupNetworkHosting(void)
 {
+	gNetSequenceState = kNetSequence_HostOffline;
+
+
 			/* GET SOME NAMES */
 
 /*
@@ -197,6 +300,8 @@ Boolean SetupNetworkHosting(void)
 	//status = NSpGame_Host(&gNetGame, theList, MAX_PLAYERS, gameName, password, gNetPlayerName, 0, kNSpClientServer, 0);
 	gNetGame = Net_CreateLobby();
 
+	gNetSequenceState = kNetSequence_HostWaitingForAnyPlayersToJoinLobby;
+
 
 			/* LET USERS JOIN IN */
 
@@ -205,12 +310,14 @@ Boolean SetupNetworkHosting(void)
 
 
 
+#if 0
 		/*************************************/
 		/* TELL ALL CLIENT PLAYERS SOME INFO */
 		/*************************************/
 
 	if (HostSendGameConfigInfo())
 		goto failure;
+#endif
 
 	return false;
 
@@ -233,10 +340,22 @@ failure:
 
 Boolean SetupNetworkJoin(void)
 {
-	Net_CreateLobbySearch();
+OSStatus			status;
+
+	gNetSequenceState = kNetSequence_ClientOffline;
+
+	if (Net_CreateLobbySearch())
+	{
+		gNetSequenceState = kNetSequence_ClientSearchingForGames;
+	}
+	else
+	{
+		gNetSequenceState = kNetSequence_Error;
+	}
+
 	DoNetGatherScreen();
-	IMPLEMENT_ME_SOFT();
-	return true;
+//	IMPLEMENT_ME_SOFT();
+//	return true;
 #if 0
 NSpAddressReference	theAddress;
 OSStatus			status;
@@ -286,6 +405,7 @@ int					i;
 
 	NSpReleaseAddressReference(theAddress);							// always dispose of this after _Join
 
+#endif
 
 			/* WAIT WHILE OTHERS JOIN ALSO */
 
@@ -299,10 +419,9 @@ int					i;
         }
 	}
 
-	HideCursor();
-	Exit2D();
+//	HideCursor();
+//	Exit2D();
 	return status;
-#endif
 }
 
 
@@ -1277,6 +1396,8 @@ NetPlayerCharTypeMessage	outMess;
 void GetVehicleSelectionFromNetPlayers(void)
 {
 	IMPLEMENT_ME_SOFT();
+	gNetSequenceState = kNetSequence_WaitingForPlayerVehicles1;
+	DoNetGatherScreen();
 #if 0
 short	playerNum, charType, count, sex;
 

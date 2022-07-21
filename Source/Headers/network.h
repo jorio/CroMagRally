@@ -114,6 +114,38 @@ void GetVehicleSelectionFromNetPlayers(void);
 void EndNetworkGame(void);
 void PlayerBroadcastNullPacket(void);
 
+//===============================================================================
+
+enum
+{
+	kNetSequence_Offline,
+	kNetSequence_Error,
+	
+	kNetSequence_HostOffline,
+	kNetSequence_HostCreatedLobby,
+	kNetSequence_HostWaitingForAnyPlayersToJoinLobby,
+	kNetSequence_HostWaitingForMorePlayersToJoinLobby,
+	kNetSequence_HostReadyToStartGame,
+	kNetSequence_HostStartingGame,
+	
+	kNetSequence_ClientOffline,
+	kNetSequence_ClientSearchingForGames,
+	kNetSequence_ClientFoundGames,
+	kNetSequence_ClientJoiningGame,
+	kNetSequence_ClientWaitingForGameConfigInfo,
+
+	kNetSequence_WaitingForPlayerVehicles1,
+	kNetSequence_WaitingForPlayerVehicles2,
+	kNetSequence_WaitingForPlayerVehicles3,
+	kNetSequence_WaitingForPlayerVehicles4,
+	kNetSequence_WaitingForPlayerVehicles5,
+	kNetSequence_WaitingForPlayerVehicles6,
+	kNetSequence_WaitingForPlayerVehicles7,
+	kNetSequence_WaitingForPlayerVehicles8,
+	kNetSequence_WaitingForPlayerVehicles9,
+	kNetSequence_GotAllPlayerVehicles,
+};
+
 
 //===============================================================================
 // Low-level networking routines
@@ -122,5 +154,8 @@ void Net_Tick(void);
 bool Net_IsLobbyBroadcastOpen(void);
 NSpGameReference Net_CreateLobby(void);
 void Net_CloseLobby(void);
-void Net_CreateLobbySearch(void);
+bool Net_CreateLobbySearch(void);
 void Net_CloseLobbySearch(void);
+int Net_GetNumLobbiesFound(void);
+NSpGameReference Net_JoinLobby(int lobbyNum);
+const char* Net_GetLobbyAddress(int lobbyNum);

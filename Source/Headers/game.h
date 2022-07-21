@@ -91,7 +91,7 @@ extern int						gLoadTextureFlags;
 extern int						gGameMode;
 extern int						gGameWindowHeight;
 extern int						gGameWindowWidth;
-extern int						gNumLobbiesFound;
+extern int						gNetSequenceState;
 extern int						gNumObjectNodes;
 extern int						gNumObjectsInBG3DGroupList[MAX_BG3D_GROUPS];
 extern int						gNumPointers;
