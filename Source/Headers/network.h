@@ -38,7 +38,7 @@ typedef struct
 	int32_t				trackNum;							// which track to play for battle modes
 	int32_t				playerNum;							// this player's index
 	int32_t				numPlayers;							// # players in net game
-	int16_t				numAgesCompleted;					// pass saved game value to clients so we're all the same here
+	int16_t				numTracksCompleted;					// pass saved game value to clients so we're all the same here
 	int16_t				difficulty;							// pass host's difficulty setting so we're in sync
 	int16_t				tagDuration;						// # minutes in tag game
 }NetConfigMessageType;

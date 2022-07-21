@@ -35,6 +35,13 @@ static int DoNetGatherControls(void);
 static ObjNode* gGatherPrompt = NULL;
 
 
+static bool HostReadyToStartGame(void)
+{
+	return gIsNetworkHost
+		&& Net_IsLobbyBroadcastOpen()
+		&& NSpGame_GetNumPlayersConnectedToHost(gNetGame)
+		;
+}
 
 
 static void UpdateNetGatherPrompt(void)
@@ -204,6 +211,15 @@ static int DoNetGatherControls(void)
 		}
 
 		return -1;
+	}
+
+
+	if (GetNewNeedStateAnyP(kNeed_UIConfirm))
+	{
+		if (HostReadyToStartGame())
+		{
+			return 1;
+		}
 	}
 
 	return 0;

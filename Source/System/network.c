@@ -549,21 +549,25 @@ OSStatus	status;
 
 static OSErr HostSendGameConfigInfo(void)
 {
-	IMPLEMENT_ME_SOFT();
-	return unimpErr;
-#if 0
 OSStatus				status;
-NetConfigMessageType			message;
+NetConfigMessageType	message;
+#if 0
 NSpPlayerEnumerationPtr	playerList;
 NSpPlayerID				hostID,clientID;
 short					i,p;
 NSpPlayerInfoPtr		playerInfoPtr;
+#endif
 
 			/* GET PLAYER INFO */
 
+#if 0
 	hostID = NSpPlayer_GetMyID(gNetGame);							// get my/host ID
 	status = NSpPlayer_GetEnumeration(gNetGame, &playerList);
 	gNumRealPlayers = playerList->count;							// get # players (host + clients)
+#else
+	int numClients = NSpGame_GetNumPlayersConnectedToHost(gNetGame);
+	gNumRealPlayers = 1 + numClients;
+#endif
 
 	gMyNetworkPlayerNum = 0;										// the host is always player #0
 
@@ -576,7 +580,8 @@ NSpPlayerInfoPtr		playerInfoPtr;
 			// specific info for each client.
 			//
 
-	p = 1;															// start assigning player nums at 1 since Host is always #0
+	int p = 1;														// start assigning player nums at 1 since Host is always #0
+#if 0
 	for (i = 0; i < gNumRealPlayers; i++)
 	{
 		playerInfoPtr =  playerList->playerInfo[i];					// point to NSp's player info list
@@ -584,6 +589,15 @@ NSpPlayerInfoPtr		playerInfoPtr;
 		gPlayerInfo[i].nspPlayerID = clientID = playerInfoPtr->id;	// get NSp's playerID (for use when player leaves game)
 
 		if (clientID != hostID)										// don't send start info to myself/host
+
+#else
+	for (int i = 0; i < numClients; i++)
+	{
+		int clientID = kNSpClientID0 + i;
+
+		gPlayerInfo[i].nspPlayerID = clientID;						// get NSp's playerID (for use when player leaves game)
+#endif
+
 		{
 					/* MAKE NEW MESSAGE */
 
@@ -597,7 +611,7 @@ NSpPlayerInfoPtr		playerInfoPtr;
 			message.trackNum		= gTrackNum;					// set track #
 			message.numPlayers 		= gNumRealPlayers;				// set # players
 			message.playerNum 		= p++;							// set player #
-			message.numAgesCompleted = gPlayerSaveData.numAgesCompleted;
+			message.numTracksCompleted = gGamePrefs.tournamentProgression.numTracksCompleted;
 			message.difficulty		= gGamePrefs.difficulty;		// set difficulty
 			message.tagDuration		= gGamePrefs.tagDuration;		// set tag duration
 
@@ -614,10 +628,11 @@ NSpPlayerInfoPtr		playerInfoPtr;
 			/* CLEAN UP */
 			/************/
 
+#if 0
 	NSpPlayer_ReleaseEnumeration(gNetGame,playerList);					// dispose of player list
+#endif
 
 	return(status);
-#endif
 }
 
 

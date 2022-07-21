@@ -13,11 +13,13 @@ typedef int sockfd_t;
 
 typedef enum
 {
-	// Send message to all connected players (host is not a player!)
+	// Send message to all connected players
 	kNSpAllPlayers				= 0,
 
 	// Used to send a message to the NSp game's host
 	kNSpHostID					= 1,
+
+	kNSpClientID0				= 2,
 
 	// For use in a headless server setup
 	kNSpHostOnly				= -1,

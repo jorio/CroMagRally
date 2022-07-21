@@ -1655,7 +1655,8 @@ void GameMain(void)
 		gGameMode = GAME_MODE_MULTIPLAYERRACE;
 		if (gCommandLine.bootToTrack != 0)
 			gTrackNum = gCommandLine.bootToTrack - 1;
-		SetupNetworkHosting();
+		if (!SetupNetworkHosting())
+			PlayGame();
 	}
 	else
 	if (gCommandLine.netJoin)
@@ -1663,7 +1664,8 @@ void GameMain(void)
 		gNetGameInProgress = true;
 		gIsNetworkHost = false;
 		gIsNetworkClient = true;
-		SetupNetworkJoin();
+		if (!SetupNetworkJoin())
+			PlayGame();
 	}
 	else
 	if (gCommandLine.bootToTrack != 0)

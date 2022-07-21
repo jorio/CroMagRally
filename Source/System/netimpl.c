@@ -320,13 +320,13 @@ static void JoinLobby(const LobbyInfo* lobby)
 
 	if (rc == -1)
 	{
-		puts("Error sending");
+		printf("%s: Error sending message\n", __func__);
 	}
 }
 
 #pragma mark - Host lobby
 
-static bool AcceptNewClient(NSpGameReference gameRef)
+static int AcceptNewClient(NSpGameReference gameRef)
 {
 	NSpCMRGame* game = UnboxGameReference(gameRef);
 
@@ -358,7 +358,7 @@ static bool AcceptNewClient(NSpGameReference gameRef)
 		goto fail;
 	}
 
-	return true;
+	return game->numClientsConnected - 1;
 
 fail:
 	if (IsSocketValid(newSocket))
@@ -366,7 +366,7 @@ fail:
 		closesocket(newSocket);
 		newSocket = INVALID_SOCKET;
 	}
-	return false;
+	return -1;
 }
 
 #pragma mark - Message socket
@@ -666,6 +666,77 @@ int NSpGame_GetNumPlayersConnectedToHost(NSpGameReference inGame)
 	return game->numClientsConnected;
 }
 
+#pragma mark - NSpMessage
+
+int NSpMessage_Send(NSpGameReference gameRef, NSpMessageHeader* header, int flags)
+{
+	NSpCMRGame* game = UnboxGameReference(gameRef);
+
+	if (!game)
+	{
+		return 1;
+	}
+
+	GAME_ASSERT(header->messageLen >= sizeof(NSpMessageHeader));
+	GAME_ASSERT_MESSAGE(flags == kNSpSendFlag_Registered, "only reliable messages are supported");
+
+	if (game->isHosting)
+	{
+		switch (header->to)
+		{
+			case kNSpAllPlayers:
+				GAME_ASSERT_MESSAGE(false, "implement me: send to all players");
+				break;
+
+			case kNSpHostID:
+			case kNSpHostOnly:
+				GAME_ASSERT_MESSAGE(false, "Host cannot send itself a message");
+				break;
+
+			default:
+			{
+				int clientSlot = header->to - kNSpClientID0;
+
+				GAME_ASSERT(clientSlot >= 0);
+				GAME_ASSERT(clientSlot < MAX_CLIENTS);
+
+				if (!IsSocketValid(game->hostToClientSockets[clientSlot]))
+				{
+					printf("%s: invalid socket for client %d\n", __func__, clientSlot);
+					return 2;
+				}
+
+				ssize_t sendRC = send(
+					game->hostToClientSockets[clientSlot],
+					(char*) header,
+					header->messageLen,
+					MSG_NOSIGNAL
+				);
+
+				if (sendRC == -1)
+				{
+					printf("%s: error sending message to client %d\n", __func__, clientSlot);
+				}
+				else
+				{
+					printf("%s: sent message %d (%d bytes) to client %d\n", __func__, header->what, header->messageLen, clientSlot);
+				}
+
+				break;
+			}
+		}
+	}
+	else
+	{
+		GAME_ASSERT_MESSAGE(header->to == kNSpHostOnly || header->to == kNSpHostID,
+			"Clients may only communicate with the host");
+
+		IMPLEMENT_ME_SOFT();
+	}
+
+	return 0;
+}
+
 #pragma mark - Network system tick
 
 void Net_Tick(void)
@@ -684,9 +755,10 @@ void Net_Tick(void)
 
 	if (gHostingGame)
 	{
-		if (AcceptNewClient(gHostingGame))
+		int newClient = AcceptNewClient(gHostingGame);
+		if (newClient >= 0)
 		{
-			printf("Just accepted a new client!\n");
+			printf("Accepted client #%d\n", newClient);
 		}
 
 		NSpMessageHeader* hello = NSpMessage_Get(gHostingGame);
