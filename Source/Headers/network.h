@@ -156,7 +156,7 @@ int GetSocketError(void);
 int GetLastSocketError(void);
 void Net_Tick(void);
 bool Net_IsLobbyBroadcastOpen(void);
-NSpGameReference Net_CreateLobby(void);
+NSpGameReference Net_CreateHostedGame(void);
 void Net_CloseLobby(void);
 bool Net_CreateLobbySearch(void);
 void Net_CloseLobbySearch(void);

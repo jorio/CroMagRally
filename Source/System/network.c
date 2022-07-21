@@ -335,7 +335,15 @@ Boolean SetupNetworkHosting(void)
 			/* NEW HOST GAME */
 
 	//status = NSpGame_Host(&gNetGame, theList, MAX_PLAYERS, gameName, password, gNetPlayerName, 0, kNSpClientServer, 0);
-	gNetGame = Net_CreateLobby();
+	gNetGame = Net_CreateHostedGame();
+
+	if (!gNetGame)
+	{
+		gNetSequenceState = kNetSequence_Error;
+		// Don't goto failure; show the error to the player
+		DoNetGatherScreen();
+		return true;
+	}
 
 	gNetSequenceState = kNetSequence_HostWaitingForAnyPlayersToJoinLobby;
 

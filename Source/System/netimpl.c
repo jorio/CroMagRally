@@ -84,8 +84,6 @@ static LobbyBroadcast gLobbyBroadcast =
 static LobbyInfo gLobbiesFound[MAX_LOBBIES];
 static int gNumLobbiesFound = 0;
 
-static NSpGameReference gHostingGame = NULL;
-
 static uint32_t gOutboundMessageCounter = 1;
 
 static int gLastQueriedSocketError = 0;
@@ -577,16 +575,18 @@ NSpMessageHeader* NSpMessage_Get(NSpGameReference gameRef)
 
 NSpGameReference Net_CreateLobby(void)
 {
-	GAME_ASSERT_MESSAGE(gHostingGame == NULL, "Already hosting a game");
+//	GAME_ASSERT_MESSAGE(gHostingGame == NULL, "Already hosting a game");
 
-	gHostingGame = NSpGame_Alloc();
+	NSpGameReference gameRef = NULL;
+	NSpCMRGame *game = NULL;
 
 	if (!CreateLobbyBroadcastSocket())
 	{
 		goto fail;
 	}
 
-	NSpCMRGame *game = UnboxGameReference(gHostingGame);
+	gameRef = NSpGame_Alloc();
+	game = UnboxGameReference(gameRef);
 	game->isHosting = true;
 	game->sockfd = CreateGameSocket(true);
 	printf("Host TCP socket: %d\n", (int) game->sockfd);
@@ -604,13 +604,14 @@ NSpGameReference Net_CreateLobby(void)
 		goto fail;
 	}
 
-	return gHostingGame;
+	return gameRef;
 
 fail:
 	DisposeLobbyBroadcastSocket();
 
-	NSpGame_Dispose(gHostingGame, 0);
-	gHostingGame = NULL;
+	NSpGame_Dispose(gameRef, 0);
+	gameRef = NULL;
+	game = NULL;
 
 	return NULL;
 }
@@ -688,7 +689,7 @@ const char* Net_GetLobbyAddress(int lobbyNum)
 static NSpGameReference NSpGame_Alloc(void)
 {
 	NSpCMRGame* game = AllocPtrClear(sizeof(NSpCMRGame));
-	gHostingGame = (NSpGameReference) game;
+	game = (NSpGameReference) game;
 
 	game->cookie = NSPGAME_COOKIE32;
 	game->sockfd = INVALID_SOCKET;
