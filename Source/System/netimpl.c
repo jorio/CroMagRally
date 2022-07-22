@@ -64,17 +64,16 @@ typedef struct
 
 typedef struct NSpCMRGame
 {
-	// Host: TCP socket to listen on
-	// Client: TCP socket to talk to host
-	sockfd_t						sockfd;
+	sockfd_t					hostListenSocket;
+	sockfd_t					clientToHostSocket;
 
-	bool							isHosting;
-	bool							isAdvertising;
+	bool						isHosting;
+	bool						isAdvertising;
 
-	int								numClients;
-	NSpCMRClient					clients[MAX_CLIENTS];
+	int							numClients;
+	NSpCMRClient				clients[MAX_CLIENTS];
 
-	uint32_t						cookie;
+	uint32_t					cookie;
 } NSpCMRGame;
 
 typedef struct
@@ -101,6 +100,7 @@ static sockfd_t CreateGameSocket(bool bindIt);
 static NSpCMRGame* UnboxGameReference(NSpGameReference gameRef);
 static NSpGameReference NSpGame_Alloc(void);
 static void NSpCMRClient_Clear(NSpCMRClient* client);
+static int SendOnSocket(sockfd_t sockfd, NSpMessageHeader* header);
 
 #pragma mark - Cross-platform compat
 
@@ -146,6 +146,16 @@ static const char* FormatAddress(struct sockaddr_in hostAddr)
 	snprintfcat(hostname, sizeof(hostname), ":%d", hostAddr.sin_port);
 
 	return hostname;
+}
+
+static const char* FourCCToString(uint32_t fourcc)
+{
+	static char cstr[5];
+	cstr[0] = (fourcc >> 24) & 0xFF;
+	cstr[1] = (fourcc >> 16) & 0xFF;
+	cstr[2] = (fourcc >> 8) & 0xFF;
+	cstr[3] = (fourcc) & 0xFF;
+	return cstr;
 }
 
 #pragma mark - Lobby broadcast
@@ -353,25 +363,17 @@ static NSpGameReference JoinLobby(const LobbyInfo* lobby)
 	message.header.messageLen = sizeof(NSpJoinRequestMessage);
 	snprintf(message.name, sizeof(message.name), "CLIENT");
 
-	ssize_t rc = send( //sendto(
-			sockfd,
-			(const char*) &message,
-			sizeof(message),
-			MSG_NOSIGNAL
-//			(struct sockaddr*) &bindAddr,
-//			sizeof(bindAddr)
-			);
+	int rc = SendOnSocket(sockfd, &message.header);
 
-	if (rc == -1)
+	if (rc != kNSpRC_OK)
 	{
-		printf("%s: Error sending message\n", __func__);
 		goto fail;
 	}
 
 	NSpGameReference gameRef = NSpGame_Alloc();
 	NSpCMRGame* game = UnboxGameReference(gameRef);
 	game->isHosting = false;
-	game->sockfd = sockfd;
+	game->clientToHostSocket = sockfd;
 	return gameRef;
 
 fail:
@@ -394,7 +396,7 @@ int NSpGame_AcceptNewClient(NSpGameReference gameRef)
 
 	sockfd_t newSocket = INVALID_SOCKET;
 
-	newSocket = accept(game->sockfd, NULL, NULL);
+	newSocket = accept(game->hostListenSocket, NULL, NULL);
 
 	if (!IsSocketValid(newSocket))	// nobody's trying to connect right now
 	{
@@ -430,12 +432,7 @@ int NSpGame_AcceptNewClient(NSpGameReference gameRef)
 		deniedMessage.header.messageLen = sizeof(NSpMessageHeader);
 		snprintf(deniedMessage.reason, sizeof(deniedMessage.reason), "THE GAME IS FULL.");
 
-		send(
-			newSocket,
-			(char*) &deniedMessage,
-			deniedMessage.header.messageLen,
-			MSG_NOSIGNAL
-		);
+		SendOnSocket(newSocket, &deniedMessage.header);
 
 		goto fail;
 	}
@@ -555,12 +552,12 @@ static bool CheckIncomingMessage(const void* message, ssize_t length)
 
 static NSpMessageHeader* PollSocket(sockfd_t sockfd)
 {
-	char msg[256];
+	char payload[256];
 
 	ssize_t recvRC = recv(
 		sockfd,
-		msg,
-		sizeof(msg),
+		payload,
+		sizeof(payload),
 		MSG_NOSIGNAL
 	);
 
@@ -569,10 +566,11 @@ static NSpMessageHeader* PollSocket(sockfd_t sockfd)
 	{
 		printf("Got %d bytes from socket %d - %d\n", (int)recvRC, sockfd, GetSocketError());
 
-		if (CheckIncomingMessage(msg, recvRC))
+		if (CheckIncomingMessage(payload, recvRC))
 		{
 			char* buf = AllocPtr(recvRC);
-			memcpy(buf, msg, recvRC);
+			memcpy(buf, payload, recvRC);
+			printf("Got message '%s'\n", FourCCToString(((NSpMessageHeader*)buf)->what));
 			return (NSpMessageHeader*) buf;
 		}
 	}
@@ -605,7 +603,7 @@ NSpMessageHeader* NSpMessage_Get(NSpGameReference gameRef)
 	}
 	else
 	{
-		return PollSocket(game->sockfd);
+		return PollSocket(game->clientToHostSocket);
 	}
 }
 
@@ -665,16 +663,14 @@ NSpGameReference Net_CreateHostedGame(void)
 	gameRef = NSpGame_Alloc();
 	game = UnboxGameReference(gameRef);
 	game->isHosting = true;
-	game->sockfd = CreateGameSocket(true);
-	printf("Host TCP socket: %d\n", (int) game->sockfd);
+	game->hostListenSocket = CreateGameSocket(true);
 
-	if (!IsSocketValid(game->sockfd))
+	if (!IsSocketValid(game->hostListenSocket))
 	{
 		goto fail;
 	}
 
-	int listenRC = listen(game->sockfd, PENDING_CONNECTIONS_QUEUE);
-	printf("ListenRC: %d\n", listenRC);
+	int listenRC = listen(game->hostListenSocket, PENDING_CONNECTIONS_QUEUE);
 
 	if (listenRC != 0)
 	{
@@ -769,7 +765,8 @@ static NSpGameReference NSpGame_Alloc(void)
 	game = (NSpGameReference) game;
 
 	game->cookie = NSPGAME_COOKIE32;
-	game->sockfd = INVALID_SOCKET;
+	game->hostListenSocket = INVALID_SOCKET;
+	game->clientToHostSocket = INVALID_SOCKET;
 	game->numClients = 0;
 	for (int i = 0; i < MAX_CLIENTS; i++)
 	{
@@ -802,10 +799,16 @@ int NSpGame_Dispose(NSpGameReference inGame, int disposeFlags)
 		return kNSpRC_NoGame;
 	}
 
-	if (IsSocketValid(game->sockfd))
+	if (IsSocketValid(game->clientToHostSocket))
 	{
-		closesocket(game->sockfd);
-		game->sockfd = INVALID_SOCKET;
+		closesocket(game->clientToHostSocket);
+		game->clientToHostSocket = INVALID_SOCKET;
+	}
+
+	if (IsSocketValid(game->hostListenSocket))
+	{
+		closesocket(game->hostListenSocket);
+		game->hostListenSocket = INVALID_SOCKET;
 	}
 
 	for (int i = 0; i < MAX_CLIENTS; i++)
@@ -875,6 +878,36 @@ int NSpGame_ClientIDToSlot(NSpGameReference gameRef, NSpPlayerID id)
 
 #pragma mark - NSpMessage
 
+static int SendOnSocket(sockfd_t sockfd, NSpMessageHeader* header)
+{
+	GAME_ASSERT(header->messageLen >= sizeof(NSpMessageHeader));
+
+	if (!IsSocketValid(sockfd))
+	{
+		printf("%s: invalid socket %d\n", __func__, (int) sockfd);
+		return kNSpRC_InvalidSocket;
+	}
+
+	ssize_t sendRC = send(
+		sockfd,
+		(char*) header,
+		header->messageLen,
+		MSG_NOSIGNAL
+	);
+
+	if (sendRC == -1)
+	{
+		printf("%s: error sending message on socket %d\n", __func__, (int) sockfd);
+		return kNSpRC_SendFailed;
+	}
+	else
+	{
+		printf("%s: sent message '%s' (%d bytes) on socket %d\n",
+			__func__, FourCCToString(header->what), header->messageLen, (int) sockfd);
+		return kNSpRC_OK;
+	}
+}
+
 int NSpMessage_Send(NSpGameReference gameRef, NSpMessageHeader* header, int flags)
 {
 	NSpCMRGame* game = UnboxGameReference(gameRef);
@@ -884,7 +917,6 @@ int NSpMessage_Send(NSpGameReference gameRef, NSpMessageHeader* header, int flag
 		return kNSpRC_NoGame;
 	}
 
-	GAME_ASSERT(header->messageLen >= sizeof(NSpMessageHeader));
 	GAME_ASSERT_MESSAGE(flags == kNSpSendFlag_Registered, "only reliable messages are supported");
 
 	if (game->isHosting)
@@ -907,42 +939,17 @@ int NSpMessage_Send(NSpGameReference gameRef, NSpMessageHeader* header, int flag
 				GAME_ASSERT(clientSlot >= 0);
 				GAME_ASSERT(clientSlot < MAX_CLIENTS);
 
-				if (!IsSocketValid(game->clients[clientSlot].sockfd))
-				{
-					printf("%s: invalid socket for client %d\n", __func__, clientSlot);
-					return kNSpRC_InvalidSocket;
-				}
-
-				ssize_t sendRC = send(
-					game->clients[clientSlot].sockfd,
-					(char*) header,
-					header->messageLen,
-					MSG_NOSIGNAL
-				);
-
-				if (sendRC == -1)
-				{
-					printf("%s: error sending message to client %d\n", __func__, clientSlot);
-					return kNSpRC_SendFailed;
-				}
-				else
-				{
-					printf("%s: sent message %d (%d bytes) to client %d\n", __func__, header->what, header->messageLen, clientSlot);
-				}
-
-				break;
+				return SendOnSocket(game->clients[clientSlot].sockfd, header);
 			}
 		}
 	}
 	else
 	{
-		GAME_ASSERT_MESSAGE(header->to == kNSpHostOnly || header->to == kNSpHostID,
-			"Clients may only communicate with the host");
+//		GAME_ASSERT_MESSAGE(header->to == kNSpHostOnly || header->to == kNSpHostID,
+//			"Clients may only communicate with the host");
 
-		IMPLEMENT_ME_SOFT();
+		return SendOnSocket(game->clientToHostSocket, header);
 	}
-
-	return kNSpRC_OK;
 }
 
 #pragma mark - NSpCMRClient

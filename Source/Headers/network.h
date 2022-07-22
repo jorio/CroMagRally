@@ -16,12 +16,12 @@ enum
 
 enum
 {
-	kNetConfigureMessage = 1,
-	kNetSyncMessage,
-	kNetHostControlInfoMessage,
-	kNetClientControlInfoMessage,
-	kNetPlayerCharTypeMessage,
-	kNetNullPacket,
+	kNetConfigureMessage			= 'ncfg',
+	kNetSyncMessage					= 'sync',
+	kNetHostControlInfoMessage		= 'hctl',
+	kNetClientControlInfoMessage	= 'cctl',
+	kNetPlayerCharTypeMessage		= 'char',
+	kNetNullPacket					= 'null',
 };
 
 		/***************************/

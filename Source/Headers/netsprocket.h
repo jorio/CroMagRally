@@ -30,20 +30,19 @@ typedef enum
 
 enum
 {
-	kNSpError                   = -1,
-	kNSpSystemMessagePrefix     = (int32_t)0x80000000,
-	kNSpJoinRequest             = kNSpSystemMessagePrefix | 0x00000001,
-	kNSpJoinApproved            = kNSpSystemMessagePrefix | 0x00000002,
-	kNSpJoinDenied              = kNSpSystemMessagePrefix | 0x00000003,
-	kNSpPlayerJoined            = kNSpSystemMessagePrefix | 0x00000004,
-	kNSpPlayerLeft              = kNSpSystemMessagePrefix | 0x00000005,
-	kNSpHostChanged             = kNSpSystemMessagePrefix | 0x00000006,
-	kNSpGameTerminated          = kNSpSystemMessagePrefix | 0x00000007,
-	kNSpGroupCreated            = kNSpSystemMessagePrefix | 0x00000008,
-	kNSpGroupDeleted            = kNSpSystemMessagePrefix | 0x00000009,
-	kNSpPlayerAddedToGroup      = kNSpSystemMessagePrefix | 0x0000000A,
-	kNSpPlayerRemovedFromGroup  = kNSpSystemMessagePrefix | 0x0000000B,
-	kNSpPlayerTypeChanged       = kNSpSystemMessagePrefix | 0x0000000C,
+	kNSpError					= 'ERR!',
+	kNSpJoinRequest				= 'JREQ',
+	kNSpJoinApproved			= 'JACK',
+	kNSpJoinDenied				= 'JDNY',
+	kNSpPlayerJoined			= 'PJND',
+	kNSpPlayerLeft				= 'PLFT',
+	kNSpHostChanged				= 'HCHG',
+	kNSpGameTerminated			= 'FINI',
+	kNSpGroupCreated			= 'GNEW',
+	kNSpGroupDeleted			= 'GDEL',
+	kNSpPlayerAddedToGroup		= 'P+GR',
+	kNSpPlayerRemovedFromGroup	= 'P-GR',
+	kNSpPlayerTypeChanged		= 'PTCH',
 };
 
 enum
