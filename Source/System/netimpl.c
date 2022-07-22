@@ -255,14 +255,14 @@ static void SendLobbyBroadcastMessage(void)
 
 static void ReceiveLobbyBroadcastMessage(void)
 {
-	char buf[256];
+	char message[kNSpMaxMessageLength];
 	struct sockaddr_in remoteAddr;
 	socklen_t remoteAddrLen = sizeof(remoteAddr);
 
 	ssize_t receivedBytes = recvfrom(
 		gLobbyBroadcast.sockfd,
-		buf,
-		sizeof(buf),
+		message,
+		sizeof(message),
 		0,
 		(struct sockaddr*) &remoteAddr,
 		&remoteAddrLen
@@ -281,6 +281,8 @@ static void ReceiveLobbyBroadcastMessage(void)
 	}
 	else
 	{
+		// TODO: Check payload!!
+
 		if (gNumLobbiesFound < MAX_LOBBIES &&
 			!IsKnownLobbyAddress(&remoteAddr))
 		{
@@ -535,55 +537,72 @@ void NSpClearMessageHeader(NSpMessageHeader* h)
 	gOutboundMessageCounter++;
 }
 
-static bool CheckIncomingMessage(const void* message, ssize_t length)
-{
-	const NSpMessageHeader* header = (const NSpMessageHeader*) message;
-
-	if (length < (ssize_t) sizeof(NSpMessageHeader)			// buffer should be big enough for header before we read from it
-		|| header->version != kNSpCMRProtocol4CC			// bad protocol magic
-		|| (ssize_t) header->messageLen < length			// buffer should be big enough for full message
-		)
-	{
-		return false;
-	}
-
-	return true;
-}
-
 static NSpMessageHeader* PollSocket(sockfd_t sockfd)
 {
-	char payload[256];
+	char messageBuf[kNSpMaxMessageLength];
 
+	// Read header
 	ssize_t recvRC = recv(
 		sockfd,
-		payload,
-		sizeof(payload),
+		messageBuf,
+		sizeof(NSpMessageHeader),
 		MSG_NOSIGNAL
 	);
 
-	// TODO: if received 0 bytes, the client is probably gone
-	if (recvRC != -1 && recvRC != 0)
+	// TODO: if received 0 bytes, our peer is probably gone
+	// if -1, probably EAGAIN since our sockets are non-blocking
+	if (recvRC == -1 || recvRC == 0)
 	{
-		if (CheckIncomingMessage(payload, recvRC))
-		{
-			char* buf = AllocPtr(recvRC);
-			memcpy(buf, payload, recvRC);
-			NSpMessageHeader* message = (NSpMessageHeader*) buf;
-			printf("Got message '%s' (%d bytes) from socket %d\n",
-				FourCCToString(message->what), message->messageLen, (int) sockfd);
-			return (NSpMessageHeader*) buf;
-		}
-		else
-		{
-			printf("Got invalid message (%d bytes) from socket %d\n", (int) recvRC, (int) sockfd);
-		}
-	}
-	else
-	{
-		//printf("recv returned %d\n", (int) recvRC);
+		return NULL;
 	}
 
-	return NULL;
+	size_t gotBytes = recvRC;
+	if (gotBytes < sizeof(NSpMessageHeader))
+	{
+		printf("%s: not enough bytes: %ld\n", __func__, gotBytes);
+		return NULL;
+	}
+
+	NSpMessageHeader* header = (NSpMessageHeader*) messageBuf;
+
+	if (header->version != kNSpCMRProtocol4CC)
+	{
+		printf("%s: bad protocol %08x\n", __func__, header->version);
+		return NULL;
+	}
+
+	if (header->messageLen > kNSpMaxPayloadLength
+		|| header->messageLen < sizeof(NSpMessageHeader))
+	{
+		printf("%s: invalid message length %u\n", __func__, header->messageLen);
+		return NULL;
+	}
+
+	if (header->messageLen > sizeof(NSpMessageHeader))
+	{
+		// Read rest of payload
+		recvRC = recv(
+			sockfd,
+			messageBuf + sizeof(NSpMessageHeader),
+			header->messageLen - sizeof(NSpMessageHeader),
+			MSG_NOSIGNAL
+		);
+
+		// TODO: if received 0 bytes, the client is probably gone
+		// if -1, probably EAGAIN since our sockets are non-blocking
+		if (recvRC == -1)
+		{
+			printf("%s: couldn't read payload\n", __func__);
+			return NULL;
+		}
+	}
+
+	char* returnBuf = AllocPtr(header->messageLen);
+	memcpy(returnBuf, messageBuf, header->messageLen);
+	NSpMessageHeader* returnMessage = (NSpMessageHeader*) returnBuf;
+	printf("Got message '%s' (%d bytes) from socket %d\n",
+		FourCCToString(returnMessage->what), returnMessage->messageLen, (int) sockfd);
+	return returnMessage;
 }
 
 NSpMessageHeader* NSpMessage_Get(NSpGameReference gameRef)
@@ -908,6 +927,8 @@ int NSpGame_ClientIDToSlot(NSpGameReference gameRef, NSpPlayerID id)
 static int SendOnSocket(sockfd_t sockfd, NSpMessageHeader* header)
 {
 	GAME_ASSERT(header->messageLen >= sizeof(NSpMessageHeader));
+	GAME_ASSERT(header->messageLen <= kNSpMaxMessageLength);
+	GAME_ASSERT(header->version == kNSpCMRProtocol4CC);
 
 	if (!IsSocketValid(sockfd))
 	{

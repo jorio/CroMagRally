@@ -19,6 +19,8 @@ typedef int sockfd_t;
 #define MAX_CLIENTS 6
 #define kNSpCMRProtocol4CC 'CMR1'
 #define kNSpPlayerNameLength 32
+#define kNSpMaxPayloadLength 256
+#define kNSpMaxMessageLength (kNSpMaxPayloadLength + sizeof(NSpMessageHeader))
 
 typedef enum
 {
@@ -85,7 +87,7 @@ typedef struct NSpCMRGame*			NSpGameReference;
 
 typedef struct
 {
-	uint32_t						version;		// NetSprocket version cookie
+	uint32_t						version;		// Protocol version cookie. It's an int, so we can only talk to peers with matching endianness
 	int32_t							what;			// The kind of message (e.g. player joined)
 	NSpPlayerID						from;			// ID of the sender
 	NSpPlayerID						to;				// (player or group) id of the intended recipient

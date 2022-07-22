@@ -174,6 +174,8 @@ OSErr	iErr;
 
 void UpdateNetSequence(void)
 {
+	NSpMessageHeader* message = NULL;
+
 	switch (gNetSequenceState)
 	{
 		case kNetSequence_HostWaitingForAnyPlayersToJoinLobby:
@@ -181,7 +183,7 @@ void UpdateNetSequence(void)
 		{
 			NSpGame_AcceptNewClient(gNetGame);
 
-			NSpMessageHeader* message = NSpMessage_Get(gNetGame);
+			message = NSpMessage_Get(gNetGame);
 
 			if (message) switch (message->what)
 			{
@@ -248,7 +250,7 @@ void UpdateNetSequence(void)
 
 		case kNetSequence_ClientJoiningGame:
 		{
-			NSpMessageHeader* message = NSpMessage_Get(gNetGame);
+			message = NSpMessage_Get(gNetGame);
 
 			if (message) switch (message->what)
 			{
@@ -295,8 +297,8 @@ void UpdateNetSequence(void)
 		case kNetSequence_WaitingForPlayerVehicles8:
 		case kNetSequence_WaitingForPlayerVehicles9:
 		{
-//			int count = 1;																// start count @ 1 since we have our own local info already
 			int count = gNetSequenceState - kNetSequence_WaitingForPlayerVehicles1;
+			count++;																	// start count @ 1 since we have our own local info already
 
 			if (count >= gNumRealPlayers)
 			{
@@ -318,7 +320,12 @@ void UpdateNetSequence(void)
 
 			break;
 		}
+	}
 
+	if (message)
+	{
+		NSpMessage_Release(gNetGame, message);
+		message = NULL;
 	}
 }
 
@@ -1446,14 +1453,15 @@ NetPlayerCharTypeMessage	outMess;
 
 	status = NSpMessage_Send(gNetGame, &outMess.h, kNSpSendFlag_Registered);
 	if (status)
+	{
 		DoFatalAlert("PlayerBroadcastVehicleType: NSpMessage_Send failed!");
+	}
 }
 
 /***************** GET VEHICLE SELECTION FROM NET PLAYERS ***********************/
 
 void GetVehicleSelectionFromNetPlayers(void)
 {
-	IMPLEMENT_ME_SOFT();
 	gNetSequenceState = kNetSequence_WaitingForPlayerVehicles1;
 	DoNetGatherScreen();
 #if 0
