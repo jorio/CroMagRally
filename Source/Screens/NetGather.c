@@ -39,7 +39,7 @@ static bool HostReadyToStartGame(void)
 {
 	return gIsNetworkHost
 		&& Net_IsLobbyBroadcastOpen()
-		&& NSpGame_GetNumPlayersConnectedToHost(gNetGame)
+		&& NSpGame_GetNumClients(gNetGame)
 		;
 }
 
@@ -47,63 +47,6 @@ static bool HostReadyToStartGame(void)
 static void UpdateNetGatherPrompt(void)
 {
 	static char buf[256];
-
-#if 0
-	if (gIsNetworkHost)
-	{
-		if (Net_IsLobbyBroadcastOpen())
-		{
-			int numClientsConnectedToHost = NSpGame_GetNumPlayersConnectedToHost(gNetGame);
-			switch (numClientsConnectedToHost)
-			{
-				case 0:
-					snprintf(buf, sizeof(buf), "WAITING FOR PLAYERS\nON LOCAL NETWORK...");
-					break;
-
-				case 1:
-					snprintf(buf, sizeof(buf), "1 PLAYER CONNECTED\n\nPRESS ENTER TO BEGIN");
-					break;
-
-				default:
-					snprintf(buf, sizeof(buf), "%d PLAYERS CONNECTED\n\nPRESS ENTER TO BEGIN", numClientsConnectedToHost);
-					break;
-			}
-
-			TextMesh_Update(buf, 0, gGatherPrompt);
-		}
-		else
-		{
-			TextMesh_Update("FAILED TO HOST GAME\nON LOCAL NETWORK.", 0, gGatherPrompt);
-		}
-	}
-	else if (gIsNetworkClient)
-	{
-		if (Net_IsLobbyBroadcastOpen())
-		{
-			int numLobbiesFound = Net_GetNumLobbiesFound();
-			switch (numLobbiesFound)
-			{
-				case 0:
-					snprintf(buf, sizeof(buf), "LOOKING FOR GAMES\nON LOCAL NETWORK...");
-					break;
-
-				case 1:
-					snprintf(buf, sizeof(buf), "FOUND A GAME AT\n%s", Net_GetLobbyAddress(0));
-					break;
-
-				default:
-					snprintf(buf, sizeof(buf), "FOUND %d GAMES\nON LOCAL NETWORK.", numLobbiesFound);
-					break;
-			}
-
-			TextMesh_Update(buf, 0, gGatherPrompt);
-		}
-		else
-		{
-			TextMesh_Update("FAILED TO SEARCH FOR GAMES\nON LOCAL NETWORK.", 0, gGatherPrompt);
-		}
-	}
-#endif
 
 	switch (gNetSequenceState)
 	{
@@ -123,7 +66,7 @@ static void UpdateNetGatherPrompt(void)
 			break;
 
 		case kNetSequence_HostWaitingForMorePlayersToJoinLobby:
-			int numClientsConnectedToHost = NSpGame_GetNumPlayersConnectedToHost(gNetGame);
+			int numClientsConnectedToHost = NSpGame_GetNumClients(gNetGame);
 			if (numClientsConnectedToHost == 1)
 			{
 				snprintf(buf, sizeof(buf), "1 PLAYER CONNECTED\n\nPRESS ENTER TO BEGIN");

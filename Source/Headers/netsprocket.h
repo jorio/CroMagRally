@@ -10,6 +10,7 @@ typedef int sockfd_t;
 
 #define MAX_CLIENTS 6
 #define kNSpCMRProtocol4CC 'CMR1'
+#define kNSpPlayerNameLength 32
 
 typedef enum
 {
@@ -23,6 +24,8 @@ typedef enum
 
 	// For use in a headless server setup
 	kNSpHostOnly				= -1,
+
+	kNSpUnspecifiedEndpoint		= -2,
 }NSpPlayerSpecials;
 
 enum
@@ -56,6 +59,16 @@ enum
 	kNSpGameFlag_ForceTerminateGame = 0x00000002
 };
 
+enum
+{
+	kNSpRC_OK					= 0,
+	kNSpRC_Failed				= -1,
+	kNSpRC_SendFailed			= -2,
+	kNSpRC_InvalidClient		= -3,
+	kNSpRC_InvalidSocket		= -4,
+	kNSpRC_NoGame				= -5,
+};
+
 typedef int32_t						NSpPlayerID;
 
 typedef struct sockaddr_in*			NSpAddressReference;
@@ -76,8 +89,14 @@ typedef struct
 typedef struct
 {
 	NSpMessageHeader				header;
-	char							name[32];
+	char							name[kNSpPlayerNameLength];
 } NSpJoinRequestMessage;
+
+typedef struct
+{
+	NSpMessageHeader 				header;
+	char							reason[256];
+} NSpJoinDeniedMessage;
 
 typedef struct
 {
@@ -88,7 +107,12 @@ void NSpClearMessageHeader(NSpMessageHeader* h);
 
 int NSpMessage_Send(NSpGameReference inGame, NSpMessageHeader* inMessage, int inFlags);
 
-int NSpGame_AcceptNewClient(NSpGameReference gameRef);				// not a true NetSprocket call
-int NSpGame_GetNumPlayersConnectedToHost(NSpGameReference inGame);  // not a true NetSprocket call
-
 int NSpGame_Dispose(NSpGameReference inGame, int disposeFlags);
+
+// The following functions aren't true NetSprocket calls.
+bool NSpGame_IsValidClientID(NSpGameReference gameRef, NSpPlayerID id);
+NSpPlayerID NSpGame_ClientSlotToID(NSpGameReference gameRef, int slot);
+int NSpGame_ClientIDToSlot(NSpGameReference gameRef, NSpPlayerID id);
+int NSpGame_AcceptNewClient(NSpGameReference gameRef);
+int NSpGame_AckJoinRequest(NSpGameReference gameRef, NSpMessageHeader* inMessage);
+int NSpGame_GetNumClients(NSpGameReference inGame);

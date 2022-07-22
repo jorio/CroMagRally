@@ -164,3 +164,4 @@ int Net_GetNumLobbiesFound(void);
 NSpGameReference Net_JoinLobby(int lobbyNum);
 const char* Net_GetLobbyAddress(int lobbyNum);
 NSpMessageHeader* NSpMessage_Get(NSpGameReference gameRef);
+void NSpMessage_Release(NSpGameReference gameRef, NSpMessageHeader* message);

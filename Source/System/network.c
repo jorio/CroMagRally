@@ -178,20 +178,33 @@ void UpdateNetSequence(void)
 	switch (gNetSequenceState)
 	{
 		case kNetSequence_HostWaitingForAnyPlayersToJoinLobby:
+		case kNetSequence_HostWaitingForMorePlayersToJoinLobby:
+		{
 			NSpGame_AcceptNewClient(gNetGame);
-			if (NSpGame_GetNumPlayersConnectedToHost(gNetGame) > 0)
+
+			NSpMessageHeader* message = NSpMessage_Get(gNetGame);
+
+			if (message) switch (message->what)
+			{
+				case kNSpJoinRequest:
+				{
+					// Acknowledge the request
+					NSpGame_AckJoinRequest(gNetGame, message);
+					break;
+				}
+			}
+
+			if (NSpGame_GetNumClients(gNetGame) > 0)
 			{
 				gNetSequenceState = kNetSequence_HostWaitingForMorePlayersToJoinLobby;
 			}
-			break;
-
-		case kNetSequence_HostWaitingForMorePlayersToJoinLobby:
-			NSpGame_AcceptNewClient(gNetGame);
-			if (NSpGame_GetNumPlayersConnectedToHost(gNetGame) == 0)
+			else if (NSpGame_GetNumClients(gNetGame) == 0)
 			{
 				gNetSequenceState = kNetSequence_HostWaitingForAnyPlayersToJoinLobby;
 			}
+
 			break;
+		}
 
 		case kNetSequence_HostReadyToStartGame:
 			Net_CloseLobby();
@@ -238,37 +251,36 @@ void UpdateNetSequence(void)
 		{
 			NSpMessageHeader* message = NSpMessage_Get(gNetGame);
 
-			if (message)
+			if (message) switch (message->what)
 			{
-				switch (message->what)
-				{
-					case	kNetConfigureMessage:										// GOT GAME START INFO
-						HandleGameConfigMessage((NetConfigMessageType *)message);
-						gNetSequenceState = kNetSequence_ClientJoinedGame;
-						break;
+				case	kNetConfigureMessage:										// GOT GAME START INFO
+					HandleGameConfigMessage((NetConfigMessageType *)message);
+					gNetSequenceState = kNetSequence_ClientJoinedGame;
+					break;
 
-					case 	kNSpGameTerminated:											// Host terminated the game :(
-						break;
+				case 	kNSpGameTerminated:											// Host terminated the game :(
+					break;
 
-					case	kNSpJoinApproved:
-						break;
+				case	kNSpJoinApproved:
+					puts("Join approved!");
+					// TODO: Store our client ID.
+					break;
 
-					case	kNSpPlayerLeft:												// see if someone decided to un-join
-						ShowNamesOfJoinedPlayers();
-						break;
+				case	kNSpPlayerLeft:												// see if someone decided to un-join
+					ShowNamesOfJoinedPlayers();
+					break;
 
-					case	kNSpPlayerJoined:
-						ShowNamesOfJoinedPlayers();
-						break;
+				case	kNSpPlayerJoined:
+					ShowNamesOfJoinedPlayers();
+					break;
 
-					case	kNSpError:
-						DoFatalAlert("Client_WaitForGameConfigInfoDialogCallback: message == kNSpError");
-						break;
+				case	kNSpError:
+					DoFatalAlert("kNetSequence_ClientJoiningGame: message == kNSpError");
+					break;
 
-					default:
-						HandleOtherNetMessage(message);
-						break;
-				}
+				default:
+					HandleOtherNetMessage(message);
+					break;
 			}
 
 			break;
@@ -729,7 +741,7 @@ NSpPlayerInfoPtr		playerInfoPtr;
 	status = NSpPlayer_GetEnumeration(gNetGame, &playerList);
 	gNumRealPlayers = playerList->count;							// get # players (host + clients)
 #else
-	int numClients = NSpGame_GetNumPlayersConnectedToHost(gNetGame);
+	int numClients = NSpGame_GetNumClients(gNetGame);
 	gNumRealPlayers = 1 + numClients;
 #endif
 
@@ -1527,6 +1539,7 @@ Boolean							gotType = false;
 
 static Boolean HandleOtherNetMessage(NSpMessageHeader	*message)
 {
+	printf("%s: %08x\n", __func__, message->what);
 	IMPLEMENT_ME_SOFT(); return true;
 #if 0
 
