@@ -814,6 +814,17 @@ int NSpGame_Dispose(NSpGameReference inGame, int disposeFlags)
 		return kNSpRC_NoGame;
 	}
 
+	// If we're terminating the game, tell people about it.
+	if (disposeFlags & kNSpGameFlag_ForceTerminateGame)
+	{
+		NSpGameTerminatedMessage byeMessage;
+		NSpClearMessageHeader(&byeMessage.header);
+		byeMessage.header.what = kNSpGameTerminated;
+		byeMessage.header.to = kNSpAllPlayers;
+		byeMessage.header.from = kNSpHostOnly;
+		NSpMessage_Send(inGame, &byeMessage.header, kNSpSendFlag_Registered);
+	}
+
 	if (IsSocketValid(game->clientToHostSocket))
 	{
 		closesocket(game->clientToHostSocket);
@@ -829,6 +840,7 @@ int NSpGame_Dispose(NSpGameReference inGame, int disposeFlags)
 	for (int i = 0; i < MAX_CLIENTS; i++)
 	{
 		NSpCMRClient* client = &game->clients[i];
+
 		if (IsSocketValid(client->sockfd))
 		{
 			closesocket(client->sockfd);

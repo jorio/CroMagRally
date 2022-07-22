@@ -1,3 +1,11 @@
+// Cro-Mag Rally low-level networking layer
+//
+// This is loosely inspired from the NetSprocket API,
+// but it's NOT an accurate implementation of NetSprocket.
+//
+// If you're looking for a drop-in replacement for NetSocket,
+// check out OpenPlay: https://github.com/mistysoftware/openplay
+
 #pragma once
 
 #if _WIN32
@@ -5,7 +13,7 @@
 typedef SOCKET sockfd_t;
 #else
 typedef int sockfd_t;
-#define INVALID_SOCKET -1
+#define INVALID_SOCKET (-1)
 #endif
 
 #define MAX_CLIENTS 6
@@ -28,6 +36,7 @@ typedef enum
 	kNSpUnspecifiedEndpoint		= -2,
 }NSpPlayerSpecials;
 
+// All-caps 4CCs are reserved for internal use.
 enum
 {
 	kNSpError					= 'ERR!',
@@ -101,6 +110,19 @@ typedef struct
 {
 	NSpMessageHeader 				header;
 } NSpJoinApprovedMessage;
+
+typedef struct
+{
+	NSpMessageHeader 				header;
+} NSpGameTerminatedMessage;
+
+typedef struct
+{
+	NSpMessageHeader 				header;
+	uint32_t						playerCount;
+	NSpPlayerID 					playerID;
+	char							playerName[kNSpPlayerNameLength];
+} NSpPlayerLeftMessage;
 
 void NSpClearMessageHeader(NSpMessageHeader* h);
 

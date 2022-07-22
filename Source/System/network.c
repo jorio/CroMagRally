@@ -1,11 +1,9 @@
 /****************************/
-/*   	  NETWORK.C	   	    */
+/* HIGH-LEVEL NETWORKING    */
 /* By Brian Greenstone      */
 /* (c)2000 Pangea Software  */
 /* (c)2022 Iliyas Jorio     */
 /****************************/
-
-typedef void* NSpPlayerLeftMessage;
 
 
 /***************/
@@ -14,7 +12,6 @@ typedef void* NSpPlayerLeftMessage;
 
 #include "game.h"
 #include "network.h"
-#include "window.h"
 #include "miscscreens.h"
 #include <stdlib.h>
 
@@ -147,6 +144,7 @@ OSErr	iErr;
 	if (gIsNetworkHost)
 	{
 //		Wait(40);						// do this pause to let clients sync up so they don't get the terminate message prematurely
+		Net_CloseLobby();
 		iErr = NSpGame_Dispose(gNetGame, kNSpGameFlag_ForceTerminateGame);	// do not renegotiate a new host
 		if (iErr)
 			DoFatalAlert("EndNetworkGame: NSpGame_Dispose failed!");
@@ -155,6 +153,7 @@ OSErr	iErr;
 			/* CLIENTS CAN JUST BAIL NORMALLY */
 	else
 	{
+		Net_CloseLobbySearch();
 		iErr = NSpGame_Dispose(gNetGame, 0);
 		if (iErr)
 			DoFatalAlert("EndNetworkGame: NSpGame_Dispose failed!");
