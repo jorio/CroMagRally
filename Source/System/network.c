@@ -1427,8 +1427,6 @@ short								n,i;
 
 void PlayerBroadcastVehicleType(void)
 {
-	IMPLEMENT_ME_SOFT();
-#if 0
 OSStatus					status;
 NetPlayerCharTypeMessage	outMess;
 
@@ -1450,7 +1448,6 @@ NetPlayerCharTypeMessage	outMess;
 	status = NSpMessage_Send(gNetGame, &outMess.h, kNSpSendFlag_Registered);
 	if (status)
 		DoFatalAlert("PlayerBroadcastVehicleType: NSpMessage_Send failed!");
-#endif
 }
 
 /***************** GET VEHICLE SELECTION FROM NET PLAYERS ***********************/
@@ -1494,8 +1491,6 @@ short	playerNum, charType, count, sex;
 
 static Boolean PlayerReceiveVehicleTypeFromOthers(short *playerNum, short *charType, short *sex)
 {
-	IMPLEMENT_ME_SOFT(); return false;
-#if 0
 NetPlayerCharTypeMessage		*mess;
 NSpMessageHeader 				*inMess;
 Boolean							gotType = false;
@@ -1506,6 +1501,7 @@ Boolean							gotType = false;
 		switch(inMess->what)
 		{
 			case	kNetPlayerCharTypeMessage:
+					puts("Got kNetPlayerCharTypeMessage");
 					mess = (NetPlayerCharTypeMessage *)inMess;
 
 					*playerNum	= mess->playerNum;					// get player #
@@ -1526,7 +1522,6 @@ Boolean							gotType = false;
 	}
 
 	return(gotType);
-#endif
 }
 
 

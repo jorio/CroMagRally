@@ -564,15 +564,23 @@ static NSpMessageHeader* PollSocket(sockfd_t sockfd)
 	// TODO: if received 0 bytes, the client is probably gone
 	if (recvRC != -1 && recvRC != 0)
 	{
-		printf("Got %d bytes from socket %d - %d\n", (int)recvRC, sockfd, GetSocketError());
-
 		if (CheckIncomingMessage(payload, recvRC))
 		{
 			char* buf = AllocPtr(recvRC);
 			memcpy(buf, payload, recvRC);
-			printf("Got message '%s'\n", FourCCToString(((NSpMessageHeader*)buf)->what));
+			NSpMessageHeader* message = (NSpMessageHeader*) buf;
+			printf("Got message '%s' (%d bytes) from socket %d\n",
+				FourCCToString(message->what), message->messageLen, (int) sockfd);
 			return (NSpMessageHeader*) buf;
 		}
+		else
+		{
+			printf("Got invalid message (%d bytes) from socket %d\n", (int) recvRC, (int) sockfd);
+		}
+	}
+	else
+	{
+		//printf("recv returned %d\n", (int) recvRC);
 	}
 
 	return NULL;
@@ -594,6 +602,13 @@ NSpMessageHeader* NSpMessage_Get(NSpGameReference gameRef)
 				// and we don't want them to forge a bogus ID anyway.
 				message->from = NSpGame_ClientSlotToID(gameRef, i);
 				GAME_ASSERT(NSpGame_IsValidClientID(gameRef, message->from));
+
+				// Forward broadcast messages
+				if (message->to == kNSpAllPlayers)
+				{
+					// TODO: if we ever do UDP, we'll need to decide what to do with the flags below
+					NSpMessage_Send(gameRef, message, kNSpSendFlag_Registered);
+				}
 
 				return message;
 			}
@@ -924,8 +939,22 @@ int NSpMessage_Send(NSpGameReference gameRef, NSpMessageHeader* header, int flag
 		switch (header->to)
 		{
 			case kNSpAllPlayers:
-				GAME_ASSERT_MESSAGE(false, "implement me: send to all players");
-				break;
+			{
+				int anyError = 0;
+				for (int i = 0; i < MAX_CLIENTS; i++)
+				{
+					if (IsSocketValid(game->clients[i].sockfd)
+						&& game->clients[i].didJoinRequestHandshake)
+					{
+						int rc = SendOnSocket(game->clients[i].sockfd, header);
+						if (rc != kNSpRC_OK)
+						{
+							anyError = rc;
+						}
+					}
+				}
+				return anyError;
+			}
 
 			case kNSpHostID:
 			case kNSpHostOnly:
