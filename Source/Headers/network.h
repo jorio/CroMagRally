@@ -5,14 +5,6 @@
 #include "main.h"
 #include "netsprocket.h"
 
-enum
-{
-	kStandardMessageSize	= 256,	//0,
-	kBufferSize				= 200000, 	//0,
-	kQElements				= 200,
-	kTimeout				= 0
-};
-
 
 enum
 {

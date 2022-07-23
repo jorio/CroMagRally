@@ -51,15 +51,6 @@ Boolean		gNetGameInProgress = false;
 
 NSpGameReference	gNetGame = nil;
 
-#if 0
-static Str31				gameName;
-static Str31				gNetPlayerName;
-static Str31				password;
-static Str31				kJoinDialogLabel = "Choose a Game:";
-#endif
-
-//ListHandle		gTheList;
-//short			gNumRowsInList;
 Str32			gPlayerNameStrings[MAX_PLAYERS];
 
 uint32_t			gClientSendCounter[MAX_PLAYERS];
@@ -68,9 +59,6 @@ int				gTimeoutCounter;
 
 NetHostControlInfoMessageType	gHostOutMess;
 NetClientControlInfoMessageType	gClientOutMess;
-
-Boolean		gHostNetworkGame = false;
-Boolean		gJoinNetworkGame = false;
 
 
 /******************* INIT NETWORK MANAGER *********************/
@@ -91,23 +79,6 @@ void InitNetworkManager(void)
 #endif
 
 	gNetSprocketInitialized = true;
-
-#if 0
-OSStatus    iErr;
-
-	if ((!gOSX) || OSX_PACKAGE)
-	{
-	            /*********************/
-	            /* INIT NET SPROCKET */
-	            /*********************/
-
-		iErr = NSpInitialize(sizeof(NetHostControlInfoMessageType), kBufferSize, kQElements, kGameID, kTimeout);
-	    if (iErr)
-	        DoFatalAlert("InitNetworkManager: NSpInitialize failed!");
-
-		gNetSprocketInitialized = true;
-	}
-#endif
 }
 
 
@@ -131,8 +102,6 @@ void ShutdownNetworkManager(void)
 
 void EndNetworkGame(void)
 {
-//	IMPLEMENT_ME_SOFT();
-#if 1
 OSErr	iErr;
 
 	if ((!gNetGameInProgress) || (!gNetGame))								// only if we're running a net game
@@ -157,7 +126,6 @@ OSErr	iErr;
 		if (iErr)
 			DoFatalAlert("EndNetworkGame: NSpGame_Dispose failed!");
 	}
-#endif
 
 
 	gNetGameInProgress 	= false;
@@ -168,8 +136,9 @@ OSErr	iErr;
 }
 
 
-#pragma mark -
+#pragma mark - Net sequence
 
+/****************** NETWORK SEQUENCE *********************/
 
 void UpdateNetSequence(void)
 {
@@ -267,11 +236,11 @@ void UpdateNetSequence(void)
 					break;
 
 				case	kNSpPlayerLeft:												// see if someone decided to un-join
-					ShowNamesOfJoinedPlayers();
+//					ShowNamesOfJoinedPlayers();
 					break;
 
 				case	kNSpPlayerJoined:
-					ShowNamesOfJoinedPlayers();
+//					ShowNamesOfJoinedPlayers();
 					break;
 
 				case	kNSpError:
@@ -329,6 +298,8 @@ void UpdateNetSequence(void)
 }
 
 
+#pragma mark - Host/Join
+
 
 /****************** SETUP NETWORK HOSTING *********************/
 //
@@ -372,15 +343,6 @@ Boolean SetupNetworkHosting(void)
 
 
 
-#if 0
-		/*************************************/
-		/* TELL ALL CLIENT PLAYERS SOME INFO */
-		/*************************************/
-
-	if (HostSendGameConfigInfo())
-		goto failure;
-#endif
-
 	return false;
 
 
@@ -416,306 +378,8 @@ OSStatus			status = noErr;
 	}
 
 	DoNetGatherScreen();
-//	IMPLEMENT_ME_SOFT();
-//	return true;
-#if 0
-NSpAddressReference	theAddress;
-OSStatus			status;
-int					i;
 
-
-//	GameScreenToBlack();
-	GammaOn();
-	Enter2D(true);
-
-	MyFlushEvents();
-	InitCursor();
-
-	gNetGame = nil;
-
-	for (i = 0; i < MAX_PLAYERS; i++)
-		gClientSendCounter[i] = 0;
-	gTimeoutCounter = 0;
-
-	CopyPString(gPlayerSaveData.playerName, gNetPlayerName);		// use loaded player's name
-	password[0] = 0;
-
-			/* DO UI FOR JOINING GAME */
-			//
-			//	passing an empty string (not nil) for the type causes NetSprocket to use the game id passed in to initialize
-			//
-
-	TurnOffISp();
-	theAddress = NSpDoModalJoinDialog(kNBPType, kJoinDialogLabel, gNetPlayerName, password, NULL);
-	TurnOnISp();
-
-	if (theAddress == NULL)		// The user cancelled
-	{
-		HideCursor();
-		return(true);
-	}
-
-
-				/* JOIN IN */
-
-	status = NSpGame_Join(&gNetGame, theAddress, gNetPlayerName, password, 0, NULL, 0, 0);
-	if (status)
-	{
-		HideCursor();
-		return(true);												// an error will occur if user selects "blank" line in dialog above (sounds like an NSp bug to me!)
-	}
-
-	NSpReleaseAddressReference(theAddress);							// always dispose of this after _Join
-
-
-			/* WAIT WHILE OTHERS JOIN ALSO */
-
-	status = Client_WaitForGameConfigInfo();
-	if (status)
-	{
-        if (gNetGame)
-        {
-            NSpGame_Dispose(gNetGame, 0);
-            gNetGame = nil;
-        }
-	}
-
-//	HideCursor();
-//	Exit2D();
-#endif
 	return status;
-}
-
-
-#pragma mark -
-
-/********************* DO MY CUSTOM GATHER GAME DIALOG **********************/
-//
-// Displays dialog which shows all currently gathered players.
-//
-// OUTPUT: OSErr = noErr if all's well.
-//
-
-static OSErr  Host_DoGatherPlayersDialog(void)
-{
- 	IMPLEMENT_ME_SOFT();
-	return unimpErr;
-#if 0
-DialogRef 		myDialog;
-DialogItemType			itemType,itemHit;
-ControlHandle	itemHandle;
-Rect			itemRect;
-Boolean			dialogDone,cancelled = false;
-ModalFilterUPP	myProc;
-
-	FlushEvents (everyEvent, REMOVE_ALL_EVENTS);
-	FlushEventQueue(GetMainEventQueue());
-
-	gNumGatheredPlayers = 0;												// noone gathered yet
-
-	myDialog = GetNewDialog(130,nil,MOVE_TO_FRONT);
-
-
-			/* SET OUTLINE FOR USERITEM */
-
-	GetDialogItem(myDialog,1,&itemType,(Handle *)&itemHandle,&itemRect);					// default button
-	SetDialogItem(myDialog, 2, userItem, (Handle)NewUserItemUPP(DoBold), &itemRect);
-
-
-			/* INIT LIST BOX */
-
-	GetDialogItem(myDialog,4,&itemType,(Handle *)&itemHandle,&itemRect);					// player's box
-	SetDialogItem(myDialog,4, userItem,(Handle)NewUserItemUPP(DoOutline), &itemRect);
-	InitPlayerNamesListBox(&itemRect,GetDialogWindow(myDialog));													// create list manager list
-
-
-				/*************/
-				/* DO DIALOG */
-				/*************/
-
-	dialogDone = false;
-	myProc = NewModalFilterUPP(GatherGameDialogCallback);
-	while(dialogDone == false)
-	{
-		ModalDialog(myProc, &itemHit);
-		switch (itemHit)
-		{
-			case 	3:
-					cancelled = true;
-					dialogDone = true;
-					break;
-
-			case	1:									// see if PLAY
-					dialogDone = true;
-					break;
-		}
-	}
-
-		/* STOP ADVERTISING THIS GAME SINCE WE'RE ALL SET TO GO */
-
-	NSpGame_EnableAdvertising(gNetGame, nil, false);
-
-
-			/* CLEANUP */
-
-	DisposeModalFilterUPP(myProc);
-	DisposeDialog(myDialog);
-
-	GameScreenToBlack();
-	return(cancelled);
-#endif
-}
-
-
-/******************** INIT GATHER LIST BOX *************************/
-//
-// Creates the List Manager list box which will contain a list of all the joiners in this game.
-//
-
-#if 0
-static void InitPlayerNamesListBox(Rect *r, WindowPtr myDialog)
-{
-Rect	dataBounds;
-Point	cSize;
-
-	r->right -= 15;														// make room for scroll bars & outline
-	r->top += 1;
-	r->bottom -= 1;
-	r->left += 1;
-
-	gNumRowsInList = 0;
-	SetRect(&dataBounds,0,0,1,gNumRowsInList);							// no entries yet
-	cSize.h = cSize.v = 0;
-	gTheList = LNew(r, &dataBounds, cSize, 0, myDialog, true, false, false, false);
-
-	ShowNamesOfJoinedPlayers();
-}
-#endif
-
-
-
-/**************** GATHER GAME DIALOG CALLBACK *************************/
-
-#if 0
-static Boolean GatherGameDialogCallback (DialogRef dp,EventRecord *event, short *item)
-{
-	IMPLEMENT_ME_SOFT();
-	return true;
-#if 0
-char 			c;
-Point			eventPoint;
-static	long	tick = 0;
-NSpMessageHeader	*message;
-
-	dp; item;
-
-				/* HANDLE DIALOG EVENTS */
-
-	SetPort(GetDialogPort(dp));										// make sure we're drawing to this dialog
-
-	switch(event->what)
-	{
-		case	keyDown:								// we have a key press
-				c = event->message & 0x00FF;			// what character is it?
-				break;
-
-		case	mouseDown:								// mouse was clicked
-				eventPoint = event->where;				// get the location of click
-				GlobalToLocal (&eventPoint);			// got to make it local
-				break;
-	}
-
-			/*******************************************/
-			/* CHECK FOR OTHER PLAYERS WANTING TO JOIN */
-			/*******************************************/
-
-	while ((message = NSpMessage_Get(gNetGame)) != NULL)	// read Net message
-	{
-		switch(message->what)
-		{
-			case	kNSpPlayerLeft:						// see if someone decided to un-join
-					ShowNamesOfJoinedPlayers();
-					break;
-
-			case 	kNSpPlayerJoined:					// see if we've got a new player joining
-			case	kNSpJoinRequest:
-					ShowNamesOfJoinedPlayers();
-					break;
-
-			default:
-					HandleOtherNetMessage(message);
-		}
-		NSpMessage_Release(gNetGame, message);
-	}
-
-			/* KEEP MUSIC PLAYING */
-
-	if (gSongPlayingFlag)
-		MoviesTask(gSongMovie, 0);
-
-	return(false);
-#endif
-}
-#endif
-
-
-/***************** SHOW NAMES OF JOINED PLAYERS ************************/
-//
-// For the Gather Game and Wait for Config dialogs, it displays list of joined players by updating
-// the List Manager list for this dialog.
-//
-
-static void ShowNamesOfJoinedPlayers(void)
-{
-	IMPLEMENT_ME_SOFT();
-#if 0
-short	i;
-Cell	theCell;
-NSpPlayerEnumerationPtr	players;
-OSStatus	status;
-
-
-	status = NSpPlayer_GetEnumeration(gNetGame, &players);
-	if (status != noErr)
-		return;
-
-		/* COPY NBP NAMES INTO LIST BUFFER */
-
-	gNumGatheredPlayers =  players->count;
-	for (i=0; i < gNumGatheredPlayers; i++)
-	{
-		NSpPlayerInfoPtr	thePlayer;
-
-		NSpPlayer_GetInfo(gNetGame, players->playerInfo[i]->id, &thePlayer);
-
-		CopyPStr(thePlayer->name, gPlayerNameStrings[i]);
-	}
-
-	NSpPlayer_ReleaseEnumeration(gNetGame, players);
-
-
-		/* DELETE ALL EXISTING ROWS IN LIST */
-
-	LDelRow(0, 0, gTheList);
-	gNumRowsInList = 0;
-
-
-			/* ADD NAMES TO LIST */
-
-	if (gNumGatheredPlayers > 0)
-		LAddRow(gNumGatheredPlayers, 0, gTheList);		// create rows
-
-
-	for (i=0; i < gNumGatheredPlayers; i++)
-	{
-		if (i == (gNumGatheredPlayers-1))				// reactivate draw on last cell
-			LSetDrawingMode(true,gTheList);							// turn on updating
-		theCell.h = 0;
-		theCell.v = i;
-		LSetCell(&gPlayerNameStrings[i][1], gPlayerNameStrings[i][0], theCell, gTheList);
-		gNumRowsInList++;
-	}
-#endif
 }
 
 
@@ -732,23 +396,11 @@ static OSErr HostSendGameConfigInfo(void)
 {
 OSStatus				status;
 NetConfigMessageType	message;
-#if 0
-NSpPlayerEnumerationPtr	playerList;
-NSpPlayerID				hostID,clientID;
-short					i,p;
-NSpPlayerInfoPtr		playerInfoPtr;
-#endif
 
 			/* GET PLAYER INFO */
 
-#if 0
-	hostID = NSpPlayer_GetMyID(gNetGame);							// get my/host ID
-	status = NSpPlayer_GetEnumeration(gNetGame, &playerList);
-	gNumRealPlayers = playerList->count;							// get # players (host + clients)
-#else
 	int numClients = NSpGame_GetNumClients(gNetGame);
-	gNumRealPlayers = 1 + numClients;
-#endif
+	gNumRealPlayers = 1 + numClients;								// get # players (host + clients)
 
 	gMyNetworkPlayerNum = 0;										// the host is always player #0
 
@@ -762,23 +414,14 @@ NSpPlayerInfoPtr		playerInfoPtr;
 			//
 
 	int p = 1;														// start assigning player nums at 1 since Host is always #0
-#if 0
-	for (i = 0; i < gNumRealPlayers; i++)
-	{
-		playerInfoPtr =  playerList->playerInfo[i];					// point to NSp's player info list
 
-		gPlayerInfo[i].nspPlayerID = clientID = playerInfoPtr->id;	// get NSp's playerID (for use when player leaves game)
-
-		if (clientID != hostID)										// don't send start info to myself/host
-
-#else
 	for (int i = 0; i < numClients; i++)
 	{
 		int clientID = kNSpClientID0 + i;
 
 		gPlayerInfo[i].nspPlayerID = clientID;						// get NSp's playerID (for use when player leaves game)
-#endif
 
+//		if (clientID != hostID)										// don't send start info to myself/host
 		{
 					/* MAKE NEW MESSAGE */
 
@@ -809,206 +452,8 @@ NSpPlayerInfoPtr		playerInfoPtr;
 			/* CLEAN UP */
 			/************/
 
-#if 0
-	NSpPlayer_ReleaseEnumeration(gNetGame,playerList);					// dispose of player list
-#endif
-
 	return(status);
 }
-
-
-
-
-/******************** WAIT FOR GAME CONFIGURATION INFO *****************************/
-//
-// Waits for others to join and then Host to tell me which player # I am et.al.
-//
-// OUTPUT:	OSErr == noErr if all went well, otherwise aborted.
-//
-
-static OSErr Client_WaitForGameConfigInfo(void)
-{
-	IMPLEMENT_ME_SOFT();
-	return unimpErr;
-#if 0
-DialogRef	myDialog;
-Boolean		dialogDone,cancelled;
-DialogItemType			itemType,itemHit,i;
-ControlHandle	itemHandle;
-Rect			itemRect;
-ModalFilterUPP	myProc;
-NSpPlayerEnumerationPtr	playerList;
-NSpPlayerInfoPtr		playerInfoPtr;
-
-	FlushEvents (everyEvent, REMOVE_ALL_EVENTS);
-	FlushEventQueue(GetMainEventQueue());
-	gNumGatheredPlayers = 0;												// noone gathered yet
-
-
-			/* FIRST GET GAME PLAYER ID'S */
-
-	NSpPlayer_GetEnumeration(gNetGame, &playerList);
-	gNumRealPlayers = playerList->count;									// get # players (host + clients)
-	for (i = 0; i < gNumRealPlayers; i++)
-	{
-		playerInfoPtr =  playerList->playerInfo[i];					// point to NSp's player info list
-		gPlayerInfo[i].nspPlayerID = playerInfoPtr->id;					// get NSp's playerID (for use when player leaves game)
-	}
-	NSpPlayer_ReleaseEnumeration(gNetGame,playerList);					// dispose of player list
-
-
-			/********************************************/
-			/* MAKE "WAITING FOR OTHERS TO JOIN" DIALOG */
-			/********************************************/
-
-	myDialog = GetNewDialog(131,nil,MOVE_TO_FRONT);
-
-
-			/* SET OUTLINE FOR USERITEM */
-
-	GetDialogItem(myDialog,1,&itemType,(Handle *)&itemHandle,&itemRect);					// default button
-	SetDialogItem(myDialog, 3, userItem, (Handle)NewUserItemUPP(DoBold), &itemRect);
-
-
-			/* INIT LIST BOX */
-
-	GetDialogItem(myDialog,4,&itemType,(Handle *)&itemHandle,&itemRect);					// player's box
-	SetDialogItem(myDialog,4, userItem,(Handle)NewUserItemUPP(DoOutline), &itemRect);
-	InitPlayerNamesListBox(&itemRect,GetDialogWindow(myDialog));													// create list manager list
-
-
-	/* LET'S WAIT FOR HOST TO TELL US SOMETHING, OR WE CAN ALWAYS CANCEL */
-
-	dialogDone = cancelled = false;
-	myProc = NewModalFilterUPP(Client_WaitForGameConfigInfoDialogCallback);
-	while(dialogDone == false)
-	{
-		ModalDialog(myProc, &itemHit);
-		switch (itemHit)
-		{
-				/* PLAYER CANCELLED */
-
-			case 	1:
-					cancelled = true;
-					dialogDone = true;
-//					NSpGame_Dispose(gNetGame, 0);											// tell host that I'm gone
-					EndNetworkGame();
-					break;
-
-			case	100:
-					dialogDone = true;
-					break;
-			default:
-				dialogDone = false;
-			break;
-		}
-	}
-
-	DisposeModalFilterUPP(myProc);
-	DisposeDialog(myDialog);
-	return(cancelled);
-#endif
-}
-
-
-/********************* WAIT FOR GAME CONFIG INFO: DIALOG CALLBACK ***************************/
-//
-// Returns TRUE if game start info was received.  Upon return, "item" will be set to 100.
-//
-
-#if 0
-static Boolean Client_WaitForGameConfigInfoDialogCallback (DialogRef dp,EventRecord *event, short *item)
-{
-	IMPLEMENT_ME_SOFT();
-	return false;
-#if 0
-NSpMessageHeader *message;
-Boolean handled = false;
-
-	SetPort(GetDialogPort(dp));										// make sure we're drawing to this dialog
-
-
-			/* HANDLE NET SPROCKET EVENTS */
-
-	while ((message = NSpMessage_Get(gNetGame)) != nil)							// get message from Net
-	{
-		switch(message->what)													// handle message
-		{
-			case	kNetConfigureMessage:										// GOT GAME START INFO
-					HandleGameConfigMessage((NetConfigMessageType *)message);
-					*item = 100;
-					handled = true;
-					goto got_config;
-					break;
-
-			case 	kNSpGameTerminated:											// Host terminated the game :(
-					*item = 1;
-					handled = true;
-					break;
-
-			case	kNSpJoinApproved:
-					break;
-
-			case	kNSpPlayerLeft:												// see if someone decided to un-join
-					ShowNamesOfJoinedPlayers();
-					break;
-
-			case	kNSpPlayerJoined:
-					ShowNamesOfJoinedPlayers();
-					break;
-
-			case	kNSpError:
-					DoFatalAlert("Client_WaitForGameConfigInfoDialogCallback: message == kNSpError");
-					break;
-
-			default:
-					HandleOtherNetMessage(message);
-
-		}
-		NSpMessage_Release(gNetGame, message);										// dispose of message
-	}
-
-got_config:
-
-			/* HANDLE DIALOG EVENTS */
-
-	switch (event->what)
-	{
-		case keyDown:
-			switch (event->message & charCodeMask)
-			{
-				case 	0x03:  					// Enter
-				case 	0x0D: 					// Return
-						*item = 1;
-						handled = true;
-						break;
-
-				case 	0x1B:  					// Escape
-						*item = 1;
-						handled = true;
-						break;
-
-				case 	'.':  					// Command-period
-						if (event->modifiers & cmdKey)
-						{
-							*item = 1;
-							handled = true;
-						}
-						break;
-			}
-	}
-
-			/* KEEP MUSIC PLAYING */
-
-	if (gSongPlayingFlag)
-		MoviesTask(gSongMovie, 0);
-
-
-	return(handled);
-#endif
-}
-#endif
-
 
 
 
@@ -1017,9 +462,19 @@ got_config:
 // Called while polling in Client_WaitForGameConfigInfoDialogCallback.
 //
 
-static void HandleGameConfigMessage(NetConfigMessageType *inMessage)
+void HandleGameConfigMessage(NetConfigMessageType *inMessage)
 {
 	//TODO: fill in player info
+#if 0
+	NSpPlayer_GetEnumeration(gNetGame, &playerList);
+	gNumRealPlayers = playerList->count;									// get # players (host + clients)
+	for (i = 0; i < gNumRealPlayers; i++)
+	{
+		playerInfoPtr =  playerList->playerInfo[i];					// point to NSp's player info list
+		gPlayerInfo[i].nspPlayerID = playerInfoPtr->id;					// get NSp's playerID (for use when player leaves game)
+	}
+	NSpPlayer_ReleaseEnumeration(gNetGame,playerList);					// dispose of player list
+#endif
 
 	gGameMode 			= inMessage->gameMode;
 	gTheAge 			= inMessage->age;
@@ -1031,13 +486,7 @@ static void HandleGameConfigMessage(NetConfigMessageType *inMessage)
 	puts("TODO: make net game settings transient!");
 	gGamePrefs.difficulty = inMessage->difficulty;
 	gGamePrefs.tagDuration = inMessage->tagDuration;
-#if 0
-	if ((inMessage->numAgesCompleted & AGE_MASK_AGE) > GetNumAgesCompleted())	// if better than our current game, then pseudo-logout that saved game
-		gSavedPlayerIsLoaded = false;
-	gPlayerSaveData.numAgesCompleted = inMessage->numAgesCompleted;
-#else
 	gGamePrefs.tournamentProgression.numTracksCompleted = inMessage->numTracksCompleted;
-#endif
 }
 
 
@@ -1154,7 +603,7 @@ NSpMessageHeader 		*inMess;
 						break;
 
 				case	kNSpError:
-						DoFatalAlert("HostWaitForPlayersToPrepareLevel: message == kNSpError");
+						DoFatalAlert("ClientTellHostLevelIsPrepared: message == kNSpError");
 						break;
 
 				case	kNetPlayerCharTypeMessage:
@@ -1440,27 +889,6 @@ void GetVehicleSelectionFromNetPlayers(void)
 {
 	gNetSequenceState = kNetSequence_WaitingForPlayerVehicles1;
 	DoNetGatherScreen();
-#if 0
-short	playerNum, charType, count, sex;
-
-	ShowLoadingPicture();													// show something while we wait
-
-	count = 1;																// start count @ 1 since we have our own local info already
-
-	do
-	{
-		if (PlayerReceiveVehicleTypeFromOthers(&playerNum, &charType, &sex))		// check for network message
-		{
-			gPlayerInfo[playerNum].vehicleType = charType;					// save this player's type
-			gPlayerInfo[playerNum].sex = sex;								// save this player's sex
-			count++;														// inc count of received info
-		}
-
-		if (gSongPlayingFlag)												// keep music playing
-			MoviesTask(gSongMovie, 0);
-
-	}while(count < gNumRealPlayers);
-#endif
 }
 
 
@@ -1472,7 +900,7 @@ short	playerNum, charType, count, sex;
 // OUTPUT: true if got a char type, playerNum/charType
 //
 
-static Boolean PlayerReceiveVehicleTypeFromOthers(short *playerNum, short *charType, short *sex)
+Boolean PlayerReceiveVehicleTypeFromOthers(short *playerNum, short *charType, short *sex)
 {
 NetPlayerCharTypeMessage		*mess;
 NSpMessageHeader 				*inMess;
@@ -1515,7 +943,7 @@ Boolean							gotType = false;
 // OUTPUT: returns TRUE if game terminated
 //
 
-static Boolean HandleOtherNetMessage(NSpMessageHeader	*message)
+Boolean HandleOtherNetMessage(NSpMessageHeader	*message)
 {
 	printf("%s: %s\n", __func__, NSp4CCString(message->what));
 
