@@ -59,9 +59,11 @@ void ShutdownSkeletonManager(void)
 {
 	FreeAllSkeletonFiles(-1);
 
-	Free_2d_array(gLocalTriMeshesOfSkelType);
-	gLocalTriMeshesOfSkelType = nil;
-
+	if (gLocalTriMeshesOfSkelType)
+	{
+		Free_2d_array(gLocalTriMeshesOfSkelType);
+		gLocalTriMeshesOfSkelType = nil;
+	}
 }
 
 
