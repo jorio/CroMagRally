@@ -126,19 +126,17 @@ enum
 	kNetSequence_ClientJoiningGame,
 	kNetSequence_ClientJoinedGame,
 
-	kNetSequence_WaitingForPlayerVehicles1 = 300,
-	kNetSequence_WaitingForPlayerVehicles2,
-	kNetSequence_WaitingForPlayerVehicles3,
-	kNetSequence_WaitingForPlayerVehicles4,
-	kNetSequence_WaitingForPlayerVehicles5,
-	kNetSequence_WaitingForPlayerVehicles6,
-	kNetSequence_WaitingForPlayerVehicles7,
-	kNetSequence_WaitingForPlayerVehicles8,
-	kNetSequence_WaitingForPlayerVehicles9,
+	kNetSequence_WaitingForPlayerVehicles = 300,
 	kNetSequence_GotAllPlayerVehicles,
+
+	kNetSequence_HostWaitForPlayersToPrepareLevel = 400,
+	kNetSequence_ClientWaitForSyncFromHost,
+
+	kNetSequence_GameLoop = 500,
 };
 
-void UpdateNetSequence(void);
+
+bool UpdateNetSequence(void);
 
 
 //===============================================================================

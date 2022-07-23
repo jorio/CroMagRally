@@ -101,15 +101,7 @@ static void UpdateNetGatherPrompt(void)
 			break;
 		}
 
-		case kNetSequence_WaitingForPlayerVehicles1:
-		case kNetSequence_WaitingForPlayerVehicles2:
-		case kNetSequence_WaitingForPlayerVehicles3:
-		case kNetSequence_WaitingForPlayerVehicles4:
-		case kNetSequence_WaitingForPlayerVehicles5:
-		case kNetSequence_WaitingForPlayerVehicles6:
-		case kNetSequence_WaitingForPlayerVehicles7:
-		case kNetSequence_WaitingForPlayerVehicles8:
-		case kNetSequence_WaitingForPlayerVehicles9:
+		case kNetSequence_WaitingForPlayerVehicles:
 			snprintf(buf, sizeof(buf), "THE OTHER PLAYERS\nARE READYING UP...\n");
 			break;
 
@@ -237,8 +229,6 @@ static int DoNetGatherControls(void)
 	}
 
 
-
-
 	switch (gNetSequenceState)
 	{
 		case kNetSequence_HostWaitingForMorePlayersToJoinLobby:
@@ -251,31 +241,10 @@ static int DoNetGatherControls(void)
 		case kNetSequence_HostStartingGame:
 		case kNetSequence_ClientJoinedGame:
 		case kNetSequence_GotAllPlayerVehicles:
+		case kNetSequence_GameLoop:
 			return 1;
 	}
 
-
-#if 0
-	if (GetNewNeedStateAnyP(kNeed_UIConfirm))
-	{
-		if (HostReadyToStartGame())
-		{
-			return 1;
-		}
-	}
-
-	if (gIsNetworkClient
-		&& gNetGame == NULL
-		&& Net_GetNumLobbiesFound() > 0)
-	{
-		printf("Attempting to join lobby 0...\n");
-		gNetGame = Net_JoinLobby(0);
-		if (gNetGame)
-		{
-			return 1;
-		}
-	}
-#endif
 
 	return 0;
 }

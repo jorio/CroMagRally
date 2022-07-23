@@ -14,18 +14,15 @@
 #include "network.h"
 #include "miscscreens.h"
 #include <stdlib.h>
+#include <SDL.h>
 
 /**********************/
 /*     PROTOTYPES     */
 /**********************/
 
-static void InitPlayerNamesListBox(Rect *r, WindowPtr myDialog);
-static void ShowNamesOfJoinedPlayers(void);
-static OSErr Client_WaitForGameConfigInfo(void);
 static OSErr HostSendGameConfigInfo(void);
 static void HandleGameConfigMessage(NetConfigMessageType *inMessage);
 static Boolean HandleOtherNetMessage(NSpMessageHeader	*message);
-static Boolean PlayerReceiveVehicleTypeFromOthers(short *playerNum, short *charType, short *sex);
 static void PlayerUnexpectedlyLeavesGame(NSpPlayerLeftMessage *mess);
 
 /****************************/
@@ -39,9 +36,9 @@ static void PlayerUnexpectedlyLeavesGame(NSpPlayerLeftMessage *mess);
 /**********************/
 
 static int	gNumGatheredPlayers = 0;			// this is only used during gathering, gNumRealPlayers should be used during game!
+static int	gPlayerSyncCounter = 0;
 
 int			gNetSequenceState = kNetSequence_Offline;
-int			gNetSequenceError = 0;
 
 Boolean		gNetSprocketInitialized = false;
 
@@ -133,6 +130,7 @@ OSErr	iErr;
 	gIsNetworkClient	= false;
 	gNetGame			= nil;
 	gNumGatheredPlayers	= 0;
+	gPlayerSyncCounter	= 0;
 }
 
 
@@ -140,7 +138,7 @@ OSErr	iErr;
 
 /****************** NETWORK SEQUENCE *********************/
 
-void UpdateNetSequence(void)
+bool UpdateNetSequence(void)
 {
 	NSpMessageHeader* message = NULL;
 
@@ -255,38 +253,80 @@ void UpdateNetSequence(void)
 			break;
 		}
 
-		case kNetSequence_WaitingForPlayerVehicles1:
-		case kNetSequence_WaitingForPlayerVehicles2:
-		case kNetSequence_WaitingForPlayerVehicles3:
-		case kNetSequence_WaitingForPlayerVehicles4:
-		case kNetSequence_WaitingForPlayerVehicles5:
-		case kNetSequence_WaitingForPlayerVehicles6:
-		case kNetSequence_WaitingForPlayerVehicles7:
-		case kNetSequence_WaitingForPlayerVehicles8:
-		case kNetSequence_WaitingForPlayerVehicles9:
+		case kNetSequence_WaitingForPlayerVehicles:
 		{
-			int count = gNetSequenceState - kNetSequence_WaitingForPlayerVehicles1;
-			count++;																	// start count @ 1 since we have our own local info already
-
-			if (count >= gNumRealPlayers)
+			if (gPlayerSyncCounter >= gNumRealPlayers)
 			{
 				gNetSequenceState = kNetSequence_GotAllPlayerVehicles;
 			}
 			else
 			{
-				short playerNum;
-				short charType;
-				short sex;
+				message = NSpMessage_Get(gNetGame);					// get message
 
-				if (PlayerReceiveVehicleTypeFromOthers(&playerNum, &charType, &sex))		// check for network message
+				if (message) switch (message->what)
 				{
-					gPlayerInfo[playerNum].vehicleType = charType;					// save this player's type
-					gPlayerInfo[playerNum].sex = sex;								// save this player's sex
-					gNetSequenceState++;											// inc count of received info
+					case	kNetPlayerCharTypeMessage:
+						puts("Got kNetPlayerCharTypeMessage");
+						NetPlayerCharTypeMessage *mess = (NetPlayerCharTypeMessage *) message;
+
+						// TODO: Check player num
+
+						gPlayerInfo[mess->playerNum].vehicleType = mess->vehicleType;	// save this player's type
+						gPlayerInfo[mess->playerNum].sex = mess->sex;					// save this player's sex
+						gPlayerSyncCounter++;											// inc count of received info
+
+						break;
+
+					default:
+						HandleOtherNetMessage(message);
 				}
 			}
 
 			break;
+		}
+
+
+		case kNetSequence_HostWaitForPlayersToPrepareLevel:
+		{
+			message = NSpMessage_Get(gNetGame);					// get message
+			if (message) switch (message->what)
+			{
+				case	kNetSyncMessage:
+					gPlayerSyncCounter++;								// we got another player
+					if (gPlayerSyncCounter == gNumRealPlayers)			// see if that's all of them
+						gNetSequenceState = kNetSequence_GameLoop;
+					break;
+
+				case	kNSpError:
+					DoFatalAlert("HostWaitForPlayersToPrepareLevel: message == kNSpError");
+					break;
+
+				default:
+					HandleOtherNetMessage(message);
+			}
+			break;
+		}
+
+
+		case kNetSequence_ClientWaitForSyncFromHost:
+		{
+			message = NSpMessage_Get(gNetGame);
+
+			if (message) switch (message->what)
+			{
+				case kNetSyncMessage:
+					gNetSequenceState = kNetSequence_GameLoop;
+					puts("Got sync from host! Let's go!");
+					break;
+
+				case kNetPlayerCharTypeMessage:
+					printf("!!!!!!! Got ANOTHER chartypemessage when I was waiting for sync!!\n");
+					break;
+
+				default:
+					HandleOtherNetMessage(message);
+					break;
+			}
 		}
 	}
 
@@ -294,6 +334,11 @@ void UpdateNetSequence(void)
 	{
 		NSpMessage_Release(gNetGame, message);
 		message = NULL;
+		return true;
+	}
+	else
+	{
+		return false;
 	}
 }
 
@@ -503,43 +548,34 @@ void HostWaitForPlayersToPrepareLevel(void)
 {
 OSStatus				status;
 NetSyncMessageType		outMess;
-NSpMessageHeader 		*inMess;
-Boolean 				sync = false;
-short					n = 1;					// start @ 1 because the host (us) is already ready
-
 int						startTick = TickCount();
 
 		/********************************/
 		/* WAIT FOR ALL CLIENTS TO SYNC */
 		/********************************/
 
-	while(!sync)
+	gPlayerSyncCounter = 1;
+	gNetSequenceState = kNetSequence_HostWaitForPlayersToPrepareLevel;
+
+	while (gNetSequenceState == kNetSequence_HostWaitForPlayersToPrepareLevel)
 	{
-		inMess = NSpMessage_Get(gNetGame);					// get message
-		if (inMess)
+		bool gotMess = UpdateNetSequence();
+
+		if ((TickCount() - startTick) > (60 * 15))			// if no response for 15 seconds, then time out
 		{
-			switch(inMess->what)
-			{
-				case	kNetSyncMessage:
-						n++;								// we got another player
-						if (n == gNumRealPlayers)				// see if that's all of them
-							sync = true;
-						break;
-
-				case	kNSpError:
-						DoFatalAlert("HostWaitForPlayersToPrepareLevel: message == kNSpError");
-						break;
-
-				default:
-						HandleOtherNetMessage(inMess);
-			}
-			NSpMessage_Release(gNetGame, inMess);			// dispose of message
+			DoFatalAlert("No Response from host, something has gone wrong.");
 		}
 
-		if ((TickCount() - startTick) > (60 * 60 * 2))			// if no response for 2 minutes, then time out
+		if (!gotMess && gNetSequenceState != kNetSequence_GameLoop)
 		{
-			DoFatalAlert("No Response from other player(s), something has gone wrong.");
+			SDL_Delay(100);
 		}
+	}
+
+	if (gNetSequenceState != kNetSequence_GameLoop)
+	{
+		// Something went wrong
+		return;
 	}
 
 	puts("---GOT SYNC FROM ALL PLAYERS---");
@@ -570,8 +606,7 @@ void ClientTellHostLevelIsPrepared(void)
 {
 OSStatus				status;
 NetSyncMessageType		outMess;
-Boolean 				sync = false;
-NSpMessageHeader 		*inMess;
+int						startTick = TickCount();
 
 		/***********************************/
 		/* TELL THE HOST THAT WE ARE READY */
@@ -590,30 +625,24 @@ NSpMessageHeader 		*inMess;
 		/**************************/
 		/* WAIT FOR HOST TO REPLY */
 		/**************************/
+		//
+		// We're in-game now, so don't switch back to NetGather!
+		//
 
-	while(!sync)
+	gNetSequenceState = kNetSequence_ClientWaitForSyncFromHost;
+
+	while (gNetSequenceState == kNetSequence_ClientWaitForSyncFromHost)
 	{
-		inMess = NSpMessage_Get(gNetGame);											// get message
-		if (inMess)
+		bool gotMess = UpdateNetSequence();
+
+		if ((TickCount() - startTick) > (60 * 15))			// if no response for 15 seconds, then time out
 		{
-			switch(inMess->what)
-			{
-				case	kNetSyncMessage:
-						sync = true;
-						break;
+			DoFatalAlert("No Response from host, something has gone wrong.");
+		}
 
-				case	kNSpError:
-						DoFatalAlert("ClientTellHostLevelIsPrepared: message == kNSpError");
-						break;
-
-				case	kNetPlayerCharTypeMessage:
-						printf("!!!!!!! Got ANOTHER chartypemessage when I was waiting for sync!!\n");
-						break;
-
-				default:
-						HandleOtherNetMessage(inMess);
-			}
-			NSpMessage_Release(gNetGame, inMess);									// dispose of message
+		if (!gotMess && gNetSequenceState != kNetSequence_GameLoop)
+		{
+			SDL_Delay(100);
 		}
 	}
 }
@@ -788,7 +817,6 @@ void HostReceive_ControlInfoFromClients(void)
 NetClientControlInfoMessageType		*mess;
 NSpMessageHeader 					*inMess;
 uint32_t								tick;
-Boolean								gotIt = false;
 short								n,i;
 
 
@@ -887,53 +915,12 @@ NetPlayerCharTypeMessage	outMess;
 
 void GetVehicleSelectionFromNetPlayers(void)
 {
-	gNetSequenceState = kNetSequence_WaitingForPlayerVehicles1;
+	gPlayerSyncCounter = 1;																	// start count @ 1 since we have our own local info already
+	gNetSequenceState = kNetSequence_WaitingForPlayerVehicles;
 	DoNetGatherScreen();
 }
 
 
-
-/*************** PLAYER RECEIVE CHARACTER TYPE FROM OTHERS ***********************/
-//
-// Receive above message from other players.
-//
-// OUTPUT: true if got a char type, playerNum/charType
-//
-
-Boolean PlayerReceiveVehicleTypeFromOthers(short *playerNum, short *charType, short *sex)
-{
-NetPlayerCharTypeMessage		*mess;
-NSpMessageHeader 				*inMess;
-Boolean							gotType = false;
-
-	inMess = NSpMessage_Get(gNetGame);					// get message
-	if (inMess)
-	{
-		switch(inMess->what)
-		{
-			case	kNetPlayerCharTypeMessage:
-					puts("Got kNetPlayerCharTypeMessage");
-					mess = (NetPlayerCharTypeMessage *)inMess;
-
-					*playerNum	= mess->playerNum;					// get player #
-					*charType	= mess->vehicleType;				// get character type
-					*sex		= mess->sex;						// get character sex
-					gotType 	= true;
-					break;
-
-			case	kNSpError:
-					DoFatalAlert("PlayerReceiveVehicleTypeFromOthers: message == kNSpError");
-					break;
-
-			default:
-					HandleOtherNetMessage(inMess);
-
-		}
-		NSpMessage_Release(gNetGame, inMess);			// dispose of message
-	}
-
-	return(gotType);
-}
 
 
 /******************* HANDLE OTHER NET MESSAGE ***********************/

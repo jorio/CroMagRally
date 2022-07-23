@@ -895,12 +895,21 @@ static void PlayArea(void)
 	// everyone is ready, then we can start all at once.
 	//
 
+	if (gNetGameInProgress)
+	{
+		if (gIsNetworkHost)
+			HostWaitForPlayersToPrepareLevel();
+		else if (gIsNetworkClient)
+			ClientTellHostLevelIsPrepared();
 
-	if (gIsNetworkHost)
-		HostWaitForPlayersToPrepareLevel();
-	else
-	if (gIsNetworkClient)
-		ClientTellHostLevelIsPrepared();
+		if (gNetSequenceState != kNetSequence_GameLoop)
+		{
+			// something went wrong
+			puts("Net sequence failed to enter game loop!");
+			EndNetworkGame();
+			return;
+		}
+	}
 
 
 			/* PREP STUFF */
