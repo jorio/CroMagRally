@@ -148,7 +148,7 @@ static const char* FormatAddress(struct sockaddr_in hostAddr)
 	return hostname;
 }
 
-static const char* FourCCToString(uint32_t fourcc)
+const char* NSp4CCString(uint32_t fourcc)
 {
 	static char cstr[5];
 	cstr[0] = (fourcc >> 24) & 0xFF;
@@ -592,7 +592,7 @@ static NSpMessageHeader* PollSocket(sockfd_t sockfd)
 		// if -1, probably EAGAIN since our sockets are non-blocking
 		if (recvRC == -1)
 		{
-			printf("%s: couldn't read payload\n", __func__);
+			printf("%s: couldn't read payload for message '%s'\n", __func__, NSp4CCString(header->what));
 			return NULL;
 		}
 	}
@@ -601,7 +601,7 @@ static NSpMessageHeader* PollSocket(sockfd_t sockfd)
 	memcpy(returnBuf, messageBuf, header->messageLen);
 	NSpMessageHeader* returnMessage = (NSpMessageHeader*) returnBuf;
 	printf("Got message '%s' (%d bytes) from socket %d\n",
-		FourCCToString(returnMessage->what), returnMessage->messageLen, (int) sockfd);
+		NSp4CCString(returnMessage->what), returnMessage->messageLen, (int) sockfd);
 	return returnMessage;
 }
 
@@ -951,7 +951,7 @@ static int SendOnSocket(sockfd_t sockfd, NSpMessageHeader* header)
 	else
 	{
 		printf("%s: sent message '%s' (%d bytes) on socket %d\n",
-			__func__, FourCCToString(header->what), header->messageLen, (int) sockfd);
+			__func__, NSp4CCString(header->what), header->messageLen, (int) sockfd);
 		return kNSpRC_OK;
 	}
 }

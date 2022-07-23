@@ -26,14 +26,13 @@ static OSErr HostSendGameConfigInfo(void);
 static void HandleGameConfigMessage(NetConfigMessageType *inMessage);
 static Boolean HandleOtherNetMessage(NSpMessageHeader	*message);
 static Boolean PlayerReceiveVehicleTypeFromOthers(short *playerNum, short *charType, short *sex);
+static void PlayerUnexpectedlyLeavesGame(NSpPlayerLeftMessage *mess);
 
 /****************************/
 /*    CONSTANTS             */
 /****************************/
 
 #define	DATA_TIMEOUT	2						// # seconds for data to timeout
-
-#define	kNBPType		"CMR5"
 
 /**********************/
 /*     VARIABLES      */
@@ -67,8 +66,8 @@ uint32_t			gClientSendCounter[MAX_PLAYERS];
 uint32_t			gHostSendCounter;
 int				gTimeoutCounter;
 
-//NetHostControlInfoMessageType	gHostOutMess;
-//NetClientControlInfoMessageType	gClientOutMess;
+NetHostControlInfoMessageType	gHostOutMess;
+NetClientControlInfoMessageType	gClientOutMess;
 
 Boolean		gHostNetworkGame = false;
 Boolean		gJoinNetworkGame = false;
@@ -1053,8 +1052,6 @@ static void HandleGameConfigMessage(NetConfigMessageType *inMessage)
 
 void HostWaitForPlayersToPrepareLevel(void)
 {
-	IMPLEMENT_ME_SOFT();
-#if 0
 OSStatus				status;
 NetSyncMessageType		outMess;
 NSpMessageHeader 		*inMess;
@@ -1090,16 +1087,13 @@ int						startTick = TickCount();
 			NSpMessage_Release(gNetGame, inMess);			// dispose of message
 		}
 
-		if (gSongPlayingFlag)												// keep music playing
-			MoviesTask(gSongMovie, 0);
-
 		if ((TickCount() - startTick) > (60 * 60 * 2))			// if no response for 2 minutes, then time out
 		{
 			DoFatalAlert("No Response from other player(s), something has gone wrong.");
 		}
 	}
 
-
+	puts("---GOT SYNC FROM ALL PLAYERS---");
 
 		/*******************************/
 		/* TELL ALL CIENTS WE'RE READY */
@@ -1113,7 +1107,6 @@ int						startTick = TickCount();
 	status = NSpMessage_Send(gNetGame, &outMess.h, kNSpSendFlag_Registered);	// send message
 	if (status)
 		DoFatalAlert("HostWaitForPlayersToPrepareLevel: NSpMessage_Send failed!");
-#endif
 }
 
 
@@ -1126,8 +1119,6 @@ int						startTick = TickCount();
 
 void ClientTellHostLevelIsPrepared(void)
 {
-	IMPLEMENT_ME_SOFT();
-#if 0
 OSStatus				status;
 NetSyncMessageType		outMess;
 Boolean 				sync = false;
@@ -1166,17 +1157,16 @@ NSpMessageHeader 		*inMess;
 						DoFatalAlert("HostWaitForPlayersToPrepareLevel: message == kNSpError");
 						break;
 
+				case	kNetPlayerCharTypeMessage:
+						printf("!!!!!!! Got ANOTHER chartypemessage when I was waiting for sync!!\n");
+						break;
+
 				default:
 						HandleOtherNetMessage(inMess);
 			}
 			NSpMessage_Release(gNetGame, inMess);									// dispose of message
 		}
-
-		if (gSongPlayingFlag)												// keep music playing
-			MoviesTask(gSongMovie, 0);
-
 	}
-#endif
 }
 
 
@@ -1191,9 +1181,6 @@ NSpMessageHeader 		*inMess;
 
 void HostSend_ControlInfoToClients(void)
 {
-	IMPLEMENT_ME_SOFT();
-#if 0
-
 OSStatus						status;
 short							i;
 
@@ -1223,7 +1210,6 @@ short							i;
 	status = NSpMessage_Send(gNetGame, &gHostOutMess.h, kNSpSendFlag_Registered);
 	if (status)
 		DoFatalAlert("HostSend_ControlInfoToClients: NSpMessage_Send failed!");
-#endif
 }
 
 
@@ -1235,9 +1221,6 @@ short							i;
 
 void ClientReceive_ControlInfoFromHost(void)
 {
-	IMPLEMENT_ME_SOFT();
-#if 0
-
 NetHostControlInfoMessageType		*mess;
 NSpMessageHeader 					*inMess;
 uint32_t								tick,i;
@@ -1311,7 +1294,6 @@ Boolean								gotIt = false;
 	}while(!gotIt);
 
 	gTimeoutCounter = 0;
-#endif
 }
 
 
@@ -1324,8 +1306,6 @@ Boolean								gotIt = false;
 
 void ClientSend_ControlInfoToHost(void)
 {
-	IMPLEMENT_ME_SOFT();
-#if 0
 OSStatus						status;
 
 
@@ -1341,7 +1321,7 @@ OSStatus						status;
 	gClientOutMess.playerNum		= gMyNetworkPlayerNum;
 	gClientOutMess.controlBits 		= gPlayerInfo[gMyNetworkPlayerNum].controlBits;
 	gClientOutMess.controlBitsNew  	= gPlayerInfo[gMyNetworkPlayerNum].controlBits_New;
-	gClientOutMess.analogSteering 	= gPlayerInfo[gMyNetworkPlayerNum].analogSteering;
+	gClientOutMess.analogSteering	= gPlayerInfo[gMyNetworkPlayerNum].analogSteering;
 
 
 			/* SEND IT */
@@ -1349,7 +1329,6 @@ OSStatus						status;
 	status = NSpMessage_Send(gNetGame, &gClientOutMess.h, kNSpSendFlag_Registered);
 //	if (status)
 //		DoFatalAlert("ClientSend_ControlInfoToHost: NSpMessage_Send failed!");
-#endif
 }
 
 
@@ -1357,8 +1336,6 @@ OSStatus						status;
 
 void HostReceive_ControlInfoFromClients(void)
 {
-	IMPLEMENT_ME_SOFT();
-#if 0
 NetClientControlInfoMessageType		*mess;
 NSpMessageHeader 					*inMess;
 uint32_t								tick;
@@ -1419,7 +1396,6 @@ short								n,i;
 		}
 
 	}
-#endif
 }
 
 
@@ -1541,9 +1517,7 @@ Boolean							gotType = false;
 
 static Boolean HandleOtherNetMessage(NSpMessageHeader	*message)
 {
-	printf("%s: %08x\n", __func__, message->what);
-	IMPLEMENT_ME_SOFT(); return true;
-#if 0
+	printf("%s: %s\n", __func__, NSp4CCString(message->what));
 
 	switch(message->what)
 	{
@@ -1608,7 +1582,6 @@ static Boolean HandleOtherNetMessage(NSpMessageHeader	*message)
 	}
 
 	return(gGameOver);
-#endif
 }
 
 
@@ -1621,8 +1594,6 @@ static Boolean HandleOtherNetMessage(NSpMessageHeader	*message)
 
 static void PlayerUnexpectedlyLeavesGame(NSpPlayerLeftMessage *mess)
 {
-	IMPLEMENT_ME_SOFT();
-#if 0
 int			i;
 NSpPlayerID	playerID = mess->playerID;
 
@@ -1658,7 +1629,6 @@ matched_id:
 					ChooseTaggedPlayer();
 				break;
 	}
-#endif
 }
 
 
@@ -1672,8 +1642,6 @@ matched_id:
 
 void PlayerBroadcastNullPacket(void)
 {
-	IMPLEMENT_ME_SOFT();
-#if 0
 OSStatus					status;
 NSpMessageHeader			outMess;
 
@@ -1692,6 +1660,5 @@ NSpMessageHeader			outMess;
 	status = NSpMessage_Send(gNetGame, &outMess, kNSpSendFlag_Registered);
 	if (status)
 		DoFatalAlert("PlayerBroadcastNullPacket: NSpMessage_Send failed!");
-#endif
 }
 

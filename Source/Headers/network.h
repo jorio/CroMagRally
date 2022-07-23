@@ -61,7 +61,7 @@ typedef struct
 	uint32_t			randomSeed;					// simply used for error checking (all machines should have same seed!)
 	uint32_t			controlBits[MAX_PLAYERS];
 	uint32_t			controlBitsNew[MAX_PLAYERS];
-	float				analogSteering[MAX_PLAYERS];
+	OGLVector2D			analogSteering[MAX_PLAYERS];
 	uint32_t			frameCounter;
 }NetHostControlInfoMessageType;
 
@@ -75,7 +75,7 @@ typedef struct
 	uint32_t			controlBits;
 	uint32_t			controlBitsNew;
 	uint32_t			frameCounter;
-	float				analogSteering;
+	OGLVector2D			analogSteering;
 }NetClientControlInfoMessageType;
 
 

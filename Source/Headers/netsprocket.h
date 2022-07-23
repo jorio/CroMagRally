@@ -17,7 +17,7 @@ typedef int sockfd_t;
 #endif
 
 #define MAX_CLIENTS 6
-#define kNSpCMRProtocol4CC 'CMR1'
+#define kNSpCMRProtocol4CC 'CMR6'
 #define kNSpPlayerNameLength 32
 #define kNSpMaxPayloadLength 256
 #define kNSpMaxMessageLength (kNSpMaxPayloadLength + sizeof(NSpMessageHeader))
@@ -133,6 +133,7 @@ int NSpMessage_Send(NSpGameReference inGame, NSpMessageHeader* inMessage, int in
 int NSpGame_Dispose(NSpGameReference inGame, int disposeFlags);
 
 // The following functions aren't true NetSprocket calls.
+const char* NSp4CCString(uint32_t fourcc);
 bool NSpGame_IsValidClientID(NSpGameReference gameRef, NSpPlayerID id);
 NSpPlayerID NSpGame_ClientSlotToID(NSpGameReference gameRef, int slot);
 int NSpGame_ClientIDToSlot(NSpGameReference gameRef, NSpPlayerID id);

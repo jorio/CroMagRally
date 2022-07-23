@@ -1335,6 +1335,7 @@ static char* UpdateDebugText(void)
 		"\nSTEER:\t%+.02f%s"
 		"\nX:\t\t%d"
 		"\nZ:\t\t%d"
+		"\nNET:\t%c-%d"
 		,
 		(int)(gFramesPerSecond + .5f),
 		gPolysThisFrame,
@@ -1354,7 +1355,9 @@ static char* UpdateDebugText(void)
 		gPlayerInfo[0].steering,
 		gPlayerInfo[0].steering == gPlayerInfo[0].analogSteering.x? "": "*",
 		(int) gPlayerInfo[0].coord.x,
-		(int) gPlayerInfo[0].coord.z
+		(int) gPlayerInfo[0].coord.z,
+		(!gNetGameInProgress) ? 'O' : gIsNetworkHost ? 'H' : gIsNetworkClient ? 'C' : '?',
+		gNetSequenceState
 	);
 
 	return debugTextBuffer;
