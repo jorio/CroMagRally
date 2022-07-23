@@ -51,9 +51,16 @@ void ReadKeyboard(void)
 
 			/* EMULATE THE ANALOG INPUT FOR STEERING */
 
-	for (int i = 0; i < gNumLocalPlayers; i++)
+	if (!gNetGameInProgress)
 	{
-		gPlayerInfo[i].analogSteering = GetAnalogSteering(i);
+		for (int i = 0; i < gNumLocalPlayers; i++)
+		{
+			gPlayerInfo[i].analogSteering = GetAnalogSteering(i);
+		}
+	}
+	else
+	{
+		gPlayerInfo[gMyNetworkPlayerNum].analogSteering = GetAnalogSteering(gMyNetworkPlayerNum);
 	}
 
 #if _DEBUG

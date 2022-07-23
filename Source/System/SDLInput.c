@@ -53,6 +53,7 @@ typedef struct Controller
 	SDL_GameController*		controllerInstance;
 	SDL_JoystickID			joystickInstance;
 	KeyState				needStates[NUM_CONTROL_NEEDS];
+	OGLVector2D				analogSteering;
 } Controller;
 
 Boolean				gUserPrefersGamepad = false;
@@ -68,6 +69,7 @@ Boolean				gMouseMotionNow = false;
 char				gTextInput[SDL_TEXTINPUTEVENT_TEXT_SIZE];
 
 static void OnJoystickRemoved(SDL_JoystickID which);
+static void UpdateAnalogSteering(int controllerNum);
 static SDL_GameController* TryOpenControllerFromJoystick(int joystickIndex);
 static SDL_GameController* TryOpenAnyController(bool showMessage);
 static int GetControllerSlotFromSDLJoystickInstanceID(SDL_JoystickID joystickInstanceID);
@@ -331,11 +333,11 @@ void DoSDLMaintenance(void)
 	for (int controllerNum = 0; controllerNum < MAX_LOCAL_PLAYERS; controllerNum++)
 	{
 		UpdateControllerSpecificInputNeeds(controllerNum);
+		UpdateAnalogSteering(controllerNum);
 	}
-
 }
 
-#pragma mark -
+#pragma mark - Keyboard states
 
 Boolean GetKeyState(uint16_t sdlScancode)
 {
@@ -351,7 +353,7 @@ Boolean GetNewKeyState(uint16_t sdlScancode)
 	return gKeyboardStates[sdlScancode] == KEYSTATE_PRESSED;
 }
 
-#pragma mark -
+#pragma mark - Click states
 
 Boolean GetClickState(int mouseButton)
 {
@@ -367,7 +369,7 @@ Boolean GetNewClickState(int mouseButton)
 	return gMouseButtonStates[mouseButton] == KEYSTATE_PRESSED;
 }
 
-#pragma mark -
+#pragma mark - Need states
 
 Boolean GetNeedState(int needID, int playerID)
 {
@@ -462,9 +464,9 @@ Boolean IsCheatKeyComboDown(void)
 		|| (GetKeyState(SDL_SCANCODE_C) && GetKeyState(SDL_SCANCODE_M) && GetKeyState(SDL_SCANCODE_R));
 }
 
-#pragma mark -
+#pragma mark - Analog steering
 
-float GetControllerAnalogSteeringAxis(SDL_GameController* sdlController, SDL_GameControllerAxis axis)
+static float GetControllerAnalogSteeringAxis(SDL_GameController* sdlController, SDL_GameControllerAxis axis)
 {
 			/****************************/
 			/* SET PLAYER AXIS CONTROLS */
@@ -505,12 +507,12 @@ float GetControllerAnalogSteeringAxis(SDL_GameController* sdlController, SDL_Gam
 	return steer;
 }
 
-
-OGLVector2D GetAnalogSteering(int playerID)
+static void UpdateAnalogSteering(int playerID)
 {
 	OGLVector2D steer = {0, 0};								// assume no control input
 
-	SDL_GameController* sdlController = SDL_GameControllerFromPlayerIndex(playerID);
+//	SDL_GameController* sdlController = SDL_GameControllerFromPlayerIndex(playerID);
+	SDL_GameController* sdlController = gControllers[playerID].controllerInstance;
 
 			/****************************/
 			/* SET PLAYER AXIS CONTROLS */
@@ -544,10 +546,15 @@ OGLVector2D GetAnalogSteering(int playerID)
 		steer.y = 1.0f;
 	}
 
-	return steer;
+	gControllers[playerID].analogSteering = steer;
 }
 
-#pragma mark -
+OGLVector2D GetAnalogSteering(int playerID)
+{
+	return gControllers[playerID].analogSteering;
+}
+
+#pragma mark - Controller mapping
 
 /****************************** SDL JOYSTICK FUNCTIONS ********************************/
 
@@ -880,7 +887,7 @@ const char* GetPlayerNameWithInputDeviceHint(int whichPlayer)
 	return playerName;
 }
 
-#pragma mark -
+#pragma mark - Reset bindings
 
 void ResetDefaultKeyboardBindings(void)
 {

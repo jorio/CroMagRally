@@ -1335,7 +1335,7 @@ static char* UpdateDebugText(void)
 		"\nSTEER:\t%+.02f%s"
 		"\nX:\t\t%d"
 		"\nZ:\t\t%d"
-		"\nNET:\t%c-%d"
+		"\nNET:\t%c%d-%d"
 		,
 		(int)(gFramesPerSecond + .5f),
 		gPolysThisFrame,
@@ -1351,12 +1351,13 @@ static char* UpdateDebugText(void)
 		gGameWindowWidth,
 		gGameWindowHeight,
 		gNumSplitScreenPanes,
-		gPlayerInfo[0].analogSteering.x,
-		gPlayerInfo[0].steering,
-		gPlayerInfo[0].steering == gPlayerInfo[0].analogSteering.x? "": "*",
-		(int) gPlayerInfo[0].coord.x,
-		(int) gPlayerInfo[0].coord.z,
+		gPlayerInfo[gMyNetworkPlayerNum].analogSteering.x,
+		gPlayerInfo[gMyNetworkPlayerNum].steering,
+		gPlayerInfo[gMyNetworkPlayerNum].steering == gPlayerInfo[gMyNetworkPlayerNum].analogSteering.x? "": "*",
+		(int) gPlayerInfo[gMyNetworkPlayerNum].coord.x,
+		(int) gPlayerInfo[gMyNetworkPlayerNum].coord.z,
 		(!gNetGameInProgress) ? 'O' : gIsNetworkHost ? 'H' : gIsNetworkClient ? 'C' : '?',
+		gMyNetworkPlayerNum,
 		gNetSequenceState
 	);
 
