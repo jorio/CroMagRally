@@ -47,6 +47,7 @@ Boolean		gIsNetworkClient = false;
 Boolean		gNetGameInProgress = false;
 
 NSpGameReference	gNetGame = nil;
+NSpSearchReference	gNetSearch = nil;
 
 Str32			gPlayerNameStrings[MAX_PLAYERS];
 
@@ -101,27 +102,24 @@ void EndNetworkGame(void)
 {
 OSErr	iErr;
 
+#if 0
 	if ((!gNetGameInProgress) || (!gNetGame))								// only if we're running a net game
 		return;
+#endif
 
 		/* THE HOST MUST TERMINATE IT ENTIRELY */
 
 	if (gIsNetworkHost)
 	{
 //		Wait(40);						// do this pause to let clients sync up so they don't get the terminate message prematurely
-		Net_CloseLobby();
-		iErr = NSpGame_Dispose(gNetGame, kNSpGameFlag_ForceTerminateGame);	// do not renegotiate a new host
-		if (iErr)
-			DoFatalAlert("EndNetworkGame: NSpGame_Dispose failed!");
+		NSpGame_Dispose(gNetGame, kNSpGameFlag_ForceTerminateGame);	// do not renegotiate a new host
 	}
 
 			/* CLIENTS CAN JUST BAIL NORMALLY */
-	else
+	else if (gIsNetworkClient)
 	{
-		Net_CloseLobbySearch();
-		iErr = NSpGame_Dispose(gNetGame, 0);
-		if (iErr)
-			DoFatalAlert("EndNetworkGame: NSpGame_Dispose failed!");
+		NSpSearch_Dispose(gNetSearch);
+		NSpGame_Dispose(gNetGame, 0);
 	}
 
 
@@ -129,6 +127,7 @@ OSErr	iErr;
 	gIsNetworkHost	= false;
 	gIsNetworkClient	= false;
 	gNetGame			= nil;
+	gNetSearch			= nil;
 	gNumGatheredPlayers	= 0;
 	gPlayerSyncCounter	= 0;
 }
@@ -147,6 +146,7 @@ bool UpdateNetSequence(void)
 		case kNetSequence_HostWaitingForAnyPlayersToJoinLobby:
 		case kNetSequence_HostWaitingForMorePlayersToJoinLobby:
 		{
+			NSpGame_AdvertiseTick(gNetGame, gFramesPerSecondFrac);
 			NSpGame_AcceptNewClient(gNetGame);
 
 			message = NSpMessage_Get(gNetGame);
@@ -174,7 +174,7 @@ bool UpdateNetSequence(void)
 		}
 
 		case kNetSequence_HostReadyToStartGame:
-			Net_CloseLobby();
+			NSpGame_StopAdvertising(gNetGame);
 			if (noErr == HostSendGameConfigInfo())
 			{
 				gNetSequenceState = kNetSequence_HostStartingGame;
@@ -186,22 +186,30 @@ bool UpdateNetSequence(void)
 			break;
 
 		case kNetSequence_ClientSearchingForGames:
-			if (Net_GetNumLobbiesFound() > 0)
+			if (kNSpRC_OK != NSpSearch_Tick(gNetSearch))
+			{
+				gNetSequenceState = kNetSequence_Error;
+			}
+			else if (NSpSearch_GetNumGamesFound(gNetSearch) > 0)
 			{
 				gNetSequenceState = kNetSequence_ClientFoundGames;
 			}
 			break;
 
 		case kNetSequence_ClientFoundGames:
-			if (Net_GetNumLobbiesFound() == 0)
+			if (kNSpRC_OK != NSpSearch_Tick(gNetSearch))
+			{
+				gNetSequenceState = kNetSequence_Error;
+			}
+			else if (NSpSearch_GetNumGamesFound(gNetSearch) == 0)
 			{
 				gNetSequenceState = kNetSequence_ClientSearchingForGames;
 			}
 			else
 			{
-				Net_CloseLobbySearch();
+				// Automatically join the first game we found
 
-				gNetGame = Net_JoinLobby(0);
+				gNetGame = NSpSearch_JoinGame(gNetSearch, 0);
 
 				if (gNetGame)
 				{
@@ -211,6 +219,9 @@ bool UpdateNetSequence(void)
 				{
 					gNetSequenceState = kNetSequence_Error;
 				}
+
+				NSpSearch_Dispose(gNetSearch);
+				gNetSearch = NULL;
 			}
 			break;
 
@@ -368,12 +379,21 @@ Boolean SetupNetworkHosting(void)
 			/* NEW HOST GAME */
 
 	//status = NSpGame_Host(&gNetGame, theList, MAX_PLAYERS, gameName, password, gNetPlayerName, 0, kNSpClientServer, 0);
-	gNetGame = Net_CreateHostedGame();
+	gNetGame = NSpGame_Host();
+
+
 
 	if (!gNetGame)
 	{
 		gNetSequenceState = kNetSequence_Error;
 		// Don't goto failure; show the error to the player
+		DoNetGatherScreen();
+		return true;
+	}
+
+	if (kNSpRC_OK != NSpGame_StartAdvertising(gNetGame))
+	{
+		gNetSequenceState = kNetSequence_Error;
 		DoNetGatherScreen();
 		return true;
 	}
@@ -394,7 +414,6 @@ Boolean SetupNetworkHosting(void)
 			/* SOMETHING WENT WRONG, SO BE GRACEFUL */
 
 failure:
-	Net_CloseLobby();
 	NSpGame_Dispose(gNetGame, 0);
 
 	return true;
@@ -413,7 +432,9 @@ OSStatus			status = noErr;
 
 	gNetSequenceState = kNetSequence_ClientOffline;
 
-	if (Net_CreateLobbySearch())
+	gNetSearch = NSpSearch_StartSearchingForGameHosts();
+
+	if (gNetSearch)
 	{
 		gNetSequenceState = kNetSequence_ClientSearchingForGames;
 	}

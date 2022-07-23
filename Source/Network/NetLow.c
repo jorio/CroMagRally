@@ -9,15 +9,12 @@
 typedef int ssize_t;
 typedef int socklen_t;
 #define MSG_NOSIGNAL 0
-#define SOCKFMT "%llu"
 #else
 #include <arpa/inet.h>
 #include <netdb.h>
 #include <netinet/in.h>
 #include <sys/socket.h>
 #include <unistd.h>
-#define closesocket(x) close(x)
-#define SOCKFMT "%d"
 #endif
 
 #include <errno.h>
@@ -50,13 +47,6 @@ typedef int socklen_t;
 
 typedef struct
 {
-	sockfd_t sockfd;
-	bool boundForListening;
-	float timeUntilNextBroadcast;
-} LobbyBroadcast;
-
-typedef struct
-{
 	sockfd_t					sockfd;
 	char						name[32];
 	bool						didJoinRequestHandshake;
@@ -64,6 +54,7 @@ typedef struct
 
 typedef struct NSpCMRGame
 {
+	sockfd_t					hostAdvertiseSocket;
 	sockfd_t					hostListenSocket;
 	sockfd_t					clientToHostSocket;
 
@@ -73,31 +64,30 @@ typedef struct NSpCMRGame
 	int							numClients;
 	NSpCMRClient				clients[MAX_CLIENTS];
 
+	float						timeToReadvertise;
+
 	uint32_t					cookie;
 } NSpCMRGame;
 
 typedef struct
 {
-	struct sockaddr_in hostAddr;
+	struct sockaddr_in			hostAddr;
 } LobbyInfo;
 
-static LobbyBroadcast gLobbyBroadcast =
+typedef struct NSpSearch
 {
-	.sockfd = INVALID_SOCKET,
-	.timeUntilNextBroadcast = 0,
-};
-
-static LobbyInfo gLobbiesFound[MAX_LOBBIES];
-static int gNumLobbiesFound = 0;
+	sockfd_t					listenSocket;
+	int							numGamesFound;
+	LobbyInfo					gamesFound[MAX_LOBBIES];
+} NSpSearch;
 
 static uint32_t gOutboundMessageCounter = 1;
 
 static int gLastQueriedSocketError = 0;
 
-static bool IsKnownLobbyAddress(const struct sockaddr_in* remoteAddr);
 static NSpGameReference JoinLobby(const LobbyInfo* lobby);
-static sockfd_t CreateGameSocket(bool bindIt);
-static NSpCMRGame* UnboxGameReference(NSpGameReference gameRef);
+static sockfd_t CreateTCPSocket(bool bindIt);
+static NSpCMRGame* NSpGame_Unbox(NSpGameReference gameRef);
 static NSpGameReference NSpGame_Alloc(void);
 static void NSpCMRClient_Clear(NSpCMRClient* client);
 static int SendOnSocket(sockfd_t sockfd, NSpMessageHeader* header);
@@ -136,6 +126,29 @@ bool MakeSocketNonBlocking(sockfd_t sockfd)
 #endif
 }
 
+bool CloseSocket(sockfd_t* sockfdPtr)
+{
+	if (!sockfdPtr)
+	{
+		return false;
+	}
+
+	if (!IsSocketValid(*sockfdPtr))
+	{
+		return false;
+	}
+
+#if _WIN32
+	closesocket(*sockfdPtr);
+#else
+	close(*sockfdPtr);
+#endif
+
+	*sockfdPtr = INVALID_SOCKET;
+
+	return true;
+}
+
 static const char* FormatAddress(struct sockaddr_in hostAddr)
 {
 	static char hostname[128];
@@ -160,12 +173,7 @@ const char* NSp4CCString(uint32_t fourcc)
 
 #pragma mark - Lobby broadcast
 
-bool Net_IsLobbyBroadcastOpen(void)
-{
-	return IsSocketValid(gLobbyBroadcast.sockfd);
-}
-
-static bool CreateLobbyBroadcastSocket(void)
+static sockfd_t CreateUDPBroadcastSocket(void)
 {
 	sockfd_t sockfd = INVALID_SOCKET;
 
@@ -188,140 +196,17 @@ static bool CreateLobbyBroadcastSocket(void)
 		goto fail;
 	}
 
-	gLobbyBroadcast.sockfd = sockfd;
-	gLobbyBroadcast.boundForListening = false;
-	gLobbyBroadcast.timeUntilNextBroadcast = 0;
-
-	printf("%s: socket " SOCKFMT "\n", __func__, gLobbyBroadcast.sockfd);
-	return true;
+	printf("%s: socket %d\n", __func__, (int) sockfd);
+	return sockfd;
 
 fail:
-	if (IsSocketValid(sockfd))
-	{
-		closesocket(sockfd);
-		sockfd = INVALID_SOCKET;
-	}
-	return false;
+	CloseSocket(&sockfd);
+	return sockfd;
 }
 
-static void DisposeLobbyBroadcastSocket(void)
-{
-	if (IsSocketValid(gLobbyBroadcast.sockfd))
-	{
-		closesocket(gLobbyBroadcast.sockfd);
-	}
 
-	gLobbyBroadcast.sockfd = INVALID_SOCKET;
-	gLobbyBroadcast.timeUntilNextBroadcast = 0;
-}
-
-static void SendLobbyBroadcastMessage(void)
-{
-	gLobbyBroadcast.timeUntilNextBroadcast -= gFramesPerSecondFrac;
-
-	if (gLobbyBroadcast.timeUntilNextBroadcast > 0.0f)
-	{
-		return;
-	}
-
-	gLobbyBroadcast.timeUntilNextBroadcast = LOBBY_BROADCAST_INTERVAL;
-
-	printf("%s...\n", __func__);
-
-	const char* message = "JOIN MY CMR GAME";
-	size_t messageLength = strlen(message);
-
-	struct sockaddr_in broadcastAddr =
-	{
-		.sin_family = AF_INET,
-		.sin_port = htons(LOBBY_PORT),
-		.sin_addr.s_addr = INADDR_BROADCAST,
-	};
-
-	ssize_t rc = sendto(
-		gLobbyBroadcast.sockfd,
-		message,
-		messageLength,
-		MSG_NOSIGNAL,
-		(struct sockaddr*) &broadcastAddr,
-		sizeof(broadcastAddr)
-	);
-
-	if (rc == -1)
-	{
-		printf("%s: sendto(" SOCKFMT ") : error % d\n", __func__, gLobbyBroadcast.sockfd, GetSocketError());
-	}
-}
-
-static void ReceiveLobbyBroadcastMessage(void)
-{
-	char message[kNSpMaxMessageLength];
-	struct sockaddr_in remoteAddr;
-	socklen_t remoteAddrLen = sizeof(remoteAddr);
-
-	ssize_t receivedBytes = recvfrom(
-		gLobbyBroadcast.sockfd,
-		message,
-		sizeof(message),
-		0,
-		(struct sockaddr*) &remoteAddr,
-		&remoteAddrLen
-	);
-
-	if (receivedBytes == -1)
-	{
-		if (GetSocketError() == kSocketError_WouldBlock)
-		{
-			return;
-		}
-		else
-		{
-			printf("%s: error %d\n", __func__, GetSocketError());
-		}
-	}
-	else
-	{
-		// TODO: Check payload!!
-
-		if (gNumLobbiesFound < MAX_LOBBIES &&
-			!IsKnownLobbyAddress(&remoteAddr))
-		{
-			char hostname[128];
-			snprintf(hostname, sizeof(hostname), "[EMPTY]");
-			inet_ntop(remoteAddr.sin_family, &remoteAddr.sin_addr, hostname, sizeof(hostname));
-			printf("%s: Found a game! %s:%d\n", __func__, hostname, remoteAddr.sin_port);
-
-			gLobbiesFound[gNumLobbiesFound].hostAddr = remoteAddr;
-
-			gNumLobbiesFound++;
-			GAME_ASSERT(gNumLobbiesFound <= MAX_LOBBIES);
-
-#if 0
-			if (gNumLobbiesFound == 1)
-			{
-				// Try joining that one
-				JoinLobby(&gLobbiesFound[0]);
-			}
-#endif
-		}
-	}
-}
 
 #pragma mark - Join lobby
-
-static bool IsKnownLobbyAddress(const struct sockaddr_in* remoteAddr)
-{
-	for (int i = 0; i < gNumLobbiesFound; i++)
-	{
-		if (gLobbiesFound[i].hostAddr.sin_addr.s_addr == remoteAddr->sin_addr.s_addr
-			&& gLobbiesFound[i].hostAddr.sin_port == remoteAddr->sin_port)
-		{
-			return true;
-		}
-	}
-
-	return false;
-}
 
 static NSpGameReference JoinLobby(const LobbyInfo* lobby)
 {
@@ -329,7 +214,7 @@ static NSpGameReference JoinLobby(const LobbyInfo* lobby)
 
 	int sockfd = INVALID_SOCKET;
 	
-	sockfd = CreateGameSocket(false);
+	sockfd = CreateTCPSocket(false);
 	if (!IsSocketValid(sockfd))
 	{
 		printf("%s: socket failed: %d\n", __func__, GetSocketError());
@@ -373,17 +258,13 @@ static NSpGameReference JoinLobby(const LobbyInfo* lobby)
 	}
 
 	NSpGameReference gameRef = NSpGame_Alloc();
-	NSpCMRGame* game = UnboxGameReference(gameRef);
+	NSpCMRGame* game = NSpGame_Unbox(gameRef);
 	game->isHosting = false;
 	game->clientToHostSocket = sockfd;
 	return gameRef;
 
 fail:
-	if (IsSocketValid(sockfd))
-	{
-		closesocket(sockfd);
-		sockfd = INVALID_SOCKET;
-	}
+	CloseSocket(&sockfd);
 	return NULL;
 }
 
@@ -392,7 +273,7 @@ fail:
 int NSpGame_AcceptNewClient(NSpGameReference gameRef)
 {
 	int newClient = -1;
-	NSpCMRGame* game = UnboxGameReference(gameRef);
+	NSpCMRGame* game = NSpGame_Unbox(gameRef);
 
 	GAME_ASSERT(game->isHosting);
 
@@ -444,11 +325,7 @@ int NSpGame_AcceptNewClient(NSpGameReference gameRef)
 	return game->numClients - 1;
 
 fail:
-	if (IsSocketValid(newSocket))
-	{
-		closesocket(newSocket);
-		newSocket = INVALID_SOCKET;
-	}
+	CloseSocket(&newSocket);
 	return -1;
 }
 
@@ -456,7 +333,7 @@ fail:
 
 #pragma mark - Message socket
 
-static sockfd_t CreateGameSocket(bool bindIt)
+static sockfd_t CreateTCPSocket(bool bindIt)
 {
 	sockfd_t sockfd = INVALID_SOCKET;
 	struct addrinfo* res = NULL;
@@ -465,9 +342,9 @@ static sockfd_t CreateGameSocket(bool bindIt)
 	{
 		.ai_family = AF_INET,
 		.ai_socktype = SOCK_STREAM,
-		.ai_flags = AI_PASSIVE
+		.ai_flags = AI_PASSIVE,
+		.ai_protocol = IPPROTO_TCP,
 	};
-
 
 	if (0 != getaddrinfo(NULL, LOBBY_PORT_STR, &hints, &res))
 	{
@@ -514,11 +391,7 @@ fail:
 		freeaddrinfo(res);
 		res = NULL;
 	}
-	if (IsSocketValid(sockfd))
-	{
-		closesocket(sockfd);
-		sockfd = INVALID_SOCKET;
-	}
+	CloseSocket(&sockfd);
 	return INVALID_SOCKET;
 }
 
@@ -607,7 +480,7 @@ static NSpMessageHeader* PollSocket(sockfd_t sockfd)
 
 NSpMessageHeader* NSpMessage_Get(NSpGameReference gameRef)
 {
-	NSpCMRGame* game = UnboxGameReference(gameRef);
+	NSpCMRGame* game = NSpGame_Unbox(gameRef);
 
 	if (game->isHosting)
 	{
@@ -643,7 +516,7 @@ NSpMessageHeader* NSpMessage_Get(NSpGameReference gameRef)
 
 int NSpGame_AckJoinRequest(NSpGameReference gameRef, NSpMessageHeader* message)
 {
-	NSpCMRGame* game = UnboxGameReference(gameRef);
+	NSpCMRGame* game = NSpGame_Unbox(gameRef);
 
 	GAME_ASSERT(game->isHosting);
 	GAME_ASSERT(message->what == kNSpJoinRequest);
@@ -682,22 +555,17 @@ void NSpMessage_Release(NSpGameReference gameRef, NSpMessageHeader* message)
 
 #pragma mark - Create and kill lobby
 
-NSpGameReference Net_CreateHostedGame(void)
+NSpGameReference NSpGame_Host(void)
 {
 //	GAME_ASSERT_MESSAGE(gHostingGame == NULL, "Already hosting a game");
 
 	NSpGameReference gameRef = NULL;
 	NSpCMRGame *game = NULL;
 
-	if (!CreateLobbyBroadcastSocket())
-	{
-		goto fail;
-	}
-
 	gameRef = NSpGame_Alloc();
-	game = UnboxGameReference(gameRef);
+	game = NSpGame_Unbox(gameRef);
 	game->isHosting = true;
-	game->hostListenSocket = CreateGameSocket(true);
+	game->hostListenSocket = CreateTCPSocket(true);
 
 	if (!IsSocketValid(game->hostListenSocket))
 	{
@@ -714,7 +582,7 @@ NSpGameReference Net_CreateHostedGame(void)
 	return gameRef;
 
 fail:
-	DisposeLobbyBroadcastSocket();
+	CloseSocket(&game->hostAdvertiseSocket);
 
 	NSpGame_Dispose(gameRef, 0);
 	gameRef = NULL;
@@ -723,25 +591,49 @@ fail:
 	return NULL;
 }
 
-void Net_CloseLobby(void)
-{
-	DisposeLobbyBroadcastSocket();
-}
-
 #pragma mark - Search for lobbies
 
-bool Net_CreateLobbySearch(void)
+static NSpSearch* NSpSearch_Unbox(NSpSearchReference searchRef)
 {
-	gNumLobbiesFound = 0;
-	memset(gLobbiesFound, 0, sizeof(gLobbiesFound));
-
-	if (!CreateLobbyBroadcastSocket())
+	if (searchRef == NULL)
 	{
-		printf("%s: couldn't create socket\n", __func__);
-		return false;
+		return NULL;
 	}
 
-	gLobbyBroadcast.boundForListening = true;
+	NSpSearch* searchPtr = (NSpSearch*) searchRef;
+
+//	GAME_ASSERT(NSPGAME_COOKIE32 == gamePtr->cookie);
+
+	return searchPtr;
+}
+
+int NSpSearch_Dispose(NSpSearchReference searchRef)
+{
+	NSpSearch* search = NSpSearch_Unbox(searchRef);
+
+	if (!search)
+	{
+		return kNSpRC_OK;
+	}
+
+	CloseSocket(&search->listenSocket);
+
+	SafeDisposePtr((Ptr) search);
+
+	return kNSpRC_OK;
+}
+
+NSpSearchReference NSpSearch_StartSearchingForGameHosts(void)
+{
+	NSpSearch* search = (NSpSearch*) AllocPtrClear(sizeof(NSpSearch));
+
+	search->listenSocket = CreateUDPBroadcastSocket();
+
+	if (!IsSocketValid(search->listenSocket))
+	{
+		printf("%s: couldn't create socket\n", __func__);
+		goto fail;
+	}
 
 	struct sockaddr_in bindAddr =
 	{
@@ -749,7 +641,12 @@ bool Net_CreateLobbySearch(void)
 		.sin_port = htons(LOBBY_PORT),
 		.sin_addr.s_addr = INADDR_ANY,
 	};
-	int bindRC = bind(gLobbyBroadcast.sockfd, (struct sockaddr*) &bindAddr, sizeof(bindAddr));
+
+	int bindRC = bind(
+		search->listenSocket,
+		(struct sockaddr*) &bindAddr,
+		sizeof(bindAddr));
+
 	if (0 != bindRC)
 	{
 		printf("%s: bind failed: %d\n", __func__, GetSocketError());
@@ -759,36 +656,140 @@ bool Net_CreateLobbySearch(void)
 			printf("(addr in use)\n");
 		}
 
-		DisposeLobbyBroadcastSocket();
-		return false;
+		goto fail;
 	}
 
 	printf("Created lobby search\n");
-	return true;
+	return search;
+
+fail:
+
+
+	SafeDisposePtr((Ptr) search);
+	return NULL;
 }
 
-void Net_CloseLobbySearch(void)
+static bool NSpSearch_IsHostKnown(NSpSearchReference searchRef, const struct sockaddr_in* remoteAddr)
 {
-	DisposeLobbyBroadcastSocket();
+	NSpSearch* search = NSpSearch_Unbox(searchRef);
+
+	if (!search)
+	{
+		return false;
+	}
+
+	for (int i = 0; i < search->numGamesFound; i++)
+	{
+		if (search->gamesFound[i].hostAddr.sin_addr.s_addr == remoteAddr->sin_addr.s_addr
+			&& search->gamesFound[i].hostAddr.sin_port == remoteAddr->sin_port)
+		{
+			return true;
+		}
+	}
+
+	return false;
 }
 
-int Net_GetNumLobbiesFound(void)
+int NSpSearch_Tick(NSpSearchReference searchRef)
 {
-	return gNumLobbiesFound;
+	NSpSearch* search = NSpSearch_Unbox(searchRef);
+
+	if (!search)
+	{
+		return kNSpRC_NoSearch;
+	}
+
+	if (!IsSocketValid(search->listenSocket))
+	{
+		return kNSpRC_InvalidSocket;
+	}
+
+	char message[kNSpMaxMessageLength];
+	struct sockaddr_in remoteAddr;
+	socklen_t remoteAddrLen = sizeof(remoteAddr);
+
+	ssize_t receivedBytes = recvfrom(
+		search->listenSocket,
+		message,
+		sizeof(message),
+		0,
+		(struct sockaddr*) &remoteAddr,
+		&remoteAddrLen
+	);
+
+	if (receivedBytes == -1)
+	{
+		if (GetSocketError() == kSocketError_WouldBlock)
+		{
+			return kNSpRC_OK;
+		}
+		else
+		{
+			printf("%s: error %d\n", __func__, GetSocketError());
+			return kNSpRC_RecvFailed;
+		}
+	}
+	else
+	{
+		// TODO: Check payload!!
+
+		if (search->numGamesFound < MAX_LOBBIES &&
+			!NSpSearch_IsHostKnown(search, &remoteAddr))
+		{
+			char hostname[128];
+			snprintf(hostname, sizeof(hostname), "[EMPTY]");
+			inet_ntop(remoteAddr.sin_family, &remoteAddr.sin_addr, hostname, sizeof(hostname));
+			printf("%s: Found a game! %s:%d\n", __func__, hostname, remoteAddr.sin_port);
+
+			search->gamesFound[search->numGamesFound].hostAddr = remoteAddr;
+
+			search->numGamesFound++;
+
+			GAME_ASSERT(search->numGamesFound <= MAX_LOBBIES);
+		}
+
+		return kNSpRC_OK;
+	}
 }
 
-NSpGameReference Net_JoinLobby(int lobbyNum)
+int NSpSearch_GetNumGamesFound(NSpSearchReference searchRef)
 {
+	NSpSearch* search = NSpSearch_Unbox(searchRef);
+
+	if (!search)
+	{
+		return 0;
+	}
+
+	return search->numGamesFound;
+}
+
+NSpGameReference NSpSearch_JoinGame(NSpSearchReference searchRef, int lobbyNum)
+{
+	NSpSearch* search = NSpSearch_Unbox(searchRef);
+
+	if (!search)
+	{
+		return NULL;
+	}
+
 	GAME_ASSERT(lobbyNum >= 0);
-	GAME_ASSERT(lobbyNum < gNumLobbiesFound);
-	return JoinLobby(&gLobbiesFound[lobbyNum]);
+	GAME_ASSERT(lobbyNum < search->numGamesFound);
+	return JoinLobby(&search->gamesFound[lobbyNum]);
 }
 
-const char* Net_GetLobbyAddress(int lobbyNum)
+const char* NSpSearch_GetHostAddress(NSpSearchReference searchRef, int lobbyNum)
 {
+	NSpSearch* search = NSpSearch_Unbox(searchRef);
+
+	if (!search)
+	{
+		return NULL;
+	}
+
 	GAME_ASSERT(lobbyNum >= 0);
-	GAME_ASSERT(lobbyNum < gNumLobbiesFound);
-	return FormatAddress(gLobbiesFound[lobbyNum].hostAddr);
+	GAME_ASSERT(lobbyNum < search->numGamesFound);
+	return FormatAddress(search->gamesFound[lobbyNum].hostAddr);
 }
 
 #pragma mark - NSpGame
@@ -810,7 +811,7 @@ static NSpGameReference NSpGame_Alloc(void)
 	return (NSpGameReference) game;
 }
 
-static NSpCMRGame* UnboxGameReference(NSpGameReference gameRef)
+static NSpCMRGame* NSpGame_Unbox(NSpGameReference gameRef)
 {
 	if (gameRef == NULL)
 	{
@@ -826,7 +827,7 @@ static NSpCMRGame* UnboxGameReference(NSpGameReference gameRef)
 
 int NSpGame_Dispose(NSpGameReference inGame, int disposeFlags)
 {
-	NSpCMRGame* game = UnboxGameReference(inGame);
+	NSpCMRGame* game = NSpGame_Unbox(inGame);
 
 	if (!game)
 	{
@@ -844,27 +845,15 @@ int NSpGame_Dispose(NSpGameReference inGame, int disposeFlags)
 		NSpMessage_Send(inGame, &byeMessage.header, kNSpSendFlag_Registered);
 	}
 
-	if (IsSocketValid(game->clientToHostSocket))
-	{
-		closesocket(game->clientToHostSocket);
-		game->clientToHostSocket = INVALID_SOCKET;
-	}
-
-	if (IsSocketValid(game->hostListenSocket))
-	{
-		closesocket(game->hostListenSocket);
-		game->hostListenSocket = INVALID_SOCKET;
-	}
+	CloseSocket(&game->clientToHostSocket);
+	CloseSocket(&game->hostListenSocket);
+	CloseSocket(&game->hostAdvertiseSocket);
 
 	for (int i = 0; i < MAX_CLIENTS; i++)
 	{
 		NSpCMRClient* client = &game->clients[i];
-
-		if (IsSocketValid(client->sockfd))
-		{
-			closesocket(client->sockfd);
-			NSpCMRClient_Clear(client);
-		}
+		CloseSocket(&client->sockfd);
+		NSpCMRClient_Clear(client);
 	}
 	game->numClients = 0;
 
@@ -876,7 +865,7 @@ int NSpGame_Dispose(NSpGameReference inGame, int disposeFlags)
 
 int NSpGame_GetNumClients(NSpGameReference inGame)
 {
-	NSpCMRGame* game = UnboxGameReference(inGame);
+	NSpCMRGame* game = NSpGame_Unbox(inGame);
 
 	if (!game)
 	{
@@ -922,6 +911,132 @@ int NSpGame_ClientIDToSlot(NSpGameReference gameRef, NSpPlayerID id)
 	}
 }
 
+bool NSpGame_IsAdvertising(NSpGameReference gameRef)
+{
+	NSpCMRGame* game = NSpGame_Unbox(gameRef);
+
+	return game && game->isHosting && game->isAdvertising;
+}
+
+int NSpGame_StartAdvertising(NSpGameReference gameRef)
+{
+	NSpCMRGame* game = NSpGame_Unbox(gameRef);
+
+	if (!game)
+	{
+		return kNSpRC_NoGame;
+	}
+
+	if (!game->isHosting)
+	{
+		return kNSpRC_BadState;
+	}
+
+	if (game->isAdvertising)
+	{
+		return kNSpRC_OK;
+	}
+
+	game->hostAdvertiseSocket = CreateUDPBroadcastSocket();
+
+	if (!IsSocketValid(game->hostAdvertiseSocket))
+	{
+		return kNSpRC_InvalidSocket;
+	}
+
+	game->isAdvertising = true;
+	game->timeToReadvertise = 0;
+	return kNSpRC_OK;
+}
+
+int NSpGame_StopAdvertising(NSpGameReference gameRef)
+{
+	NSpCMRGame* game = NSpGame_Unbox(gameRef);
+
+	if (!game)
+	{
+		return kNSpRC_NoGame;
+	}
+
+	if (!game->isHosting)
+	{
+		return kNSpRC_BadState;
+	}
+
+	if (!game->isAdvertising)
+	{
+		return kNSpRC_OK;
+	}
+
+	CloseSocket(&game->hostAdvertiseSocket);
+	game->isAdvertising = false;
+	game->timeToReadvertise = 0;
+
+	return kNSpRC_OK;
+}
+
+int NSpGame_AdvertiseTick(NSpGameReference gameRef, float dt)
+{
+	NSpCMRGame* game = NSpGame_Unbox(gameRef);
+
+	if (!game)
+	{
+		return kNSpRC_NoGame;
+	}
+
+	if (!game->isHosting ||
+		!game->isAdvertising)
+	{
+		return kNSpRC_BadState;
+	}
+
+	if (!IsSocketValid(game->hostAdvertiseSocket))
+	{
+		return kNSpRC_InvalidSocket;
+	}
+
+	game->timeToReadvertise -= dt;
+
+	if (game->timeToReadvertise > 0)
+	{
+		return kNSpRC_OK;
+	}
+
+	// Fire the message
+
+	game->timeToReadvertise = LOBBY_BROADCAST_INTERVAL;
+
+	printf("%s: broadcasting message\n", __func__);
+
+	const char* message = "JOIN MY CMR GAME";
+	size_t messageLength = strlen(message);
+
+	struct sockaddr_in broadcastAddr =
+	{
+		.sin_family = AF_INET,
+		.sin_port = htons(LOBBY_PORT),
+		.sin_addr.s_addr = INADDR_BROADCAST,
+	};
+
+	ssize_t rc = sendto(
+		game->hostAdvertiseSocket,
+		message,
+		messageLength,
+		MSG_NOSIGNAL,
+		(struct sockaddr*) &broadcastAddr,
+		sizeof(broadcastAddr)
+	);
+
+	if (rc == -1)
+	{
+		printf("%s: sendto(%d) : error % d\n",
+			__func__, (int) game->hostAdvertiseSocket, GetSocketError());
+		return kNSpRC_SendFailed;
+	}
+
+	return kNSpRC_OK;
+}
+
 #pragma mark - NSpMessage
 
 static int SendOnSocket(sockfd_t sockfd, NSpMessageHeader* header)
@@ -958,7 +1073,7 @@ static int SendOnSocket(sockfd_t sockfd, NSpMessageHeader* header)
 
 int NSpMessage_Send(NSpGameReference gameRef, NSpMessageHeader* header, int flags)
 {
-	NSpCMRGame* game = UnboxGameReference(gameRef);
+	NSpCMRGame* game = NSpGame_Unbox(gameRef);
 
 	if (!game)
 	{
@@ -1020,21 +1135,4 @@ static void NSpCMRClient_Clear(NSpCMRClient* client)
 {
 	memset(client, 0, sizeof(NSpCMRClient));
 	client->sockfd = INVALID_SOCKET;
-}
-
-#pragma mark - Network system tick
-
-void Net_Tick(void)
-{
-	if (Net_IsLobbyBroadcastOpen())
-	{
-		if (!gLobbyBroadcast.boundForListening)
-		{
-			SendLobbyBroadcastMessage();
-		}
-		else
-		{
-			ReceiveLobbyBroadcastMessage();
-		}
-	}
 }

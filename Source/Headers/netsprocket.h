@@ -71,12 +71,15 @@ enum
 
 enum
 {
+	kNSpRC_Failed				= -127,
+	kNSpRC_SendFailed,
+	kNSpRC_RecvFailed,
+	kNSpRC_InvalidClient,
+	kNSpRC_InvalidSocket,
+	kNSpRC_NoGame,
+	kNSpRC_NoSearch,
+	kNSpRC_BadState,
 	kNSpRC_OK					= 0,
-	kNSpRC_Failed				= -1,
-	kNSpRC_SendFailed			= -2,
-	kNSpRC_InvalidClient		= -3,
-	kNSpRC_InvalidSocket		= -4,
-	kNSpRC_NoGame				= -5,
 };
 
 typedef int32_t						NSpPlayerID;
@@ -84,6 +87,7 @@ typedef int32_t						NSpPlayerID;
 typedef struct sockaddr_in*			NSpAddressReference;
 
 typedef struct NSpCMRGame*			NSpGameReference;
+typedef struct NSpSearch*			NSpSearchReference;
 
 typedef struct
 {
@@ -127,16 +131,30 @@ typedef struct
 } NSpPlayerLeftMessage;
 
 void NSpClearMessageHeader(NSpMessageHeader* h);
-
+NSpMessageHeader* NSpMessage_Get(NSpGameReference gameRef);
 int NSpMessage_Send(NSpGameReference inGame, NSpMessageHeader* inMessage, int inFlags);
+void NSpMessage_Release(NSpGameReference gameRef, NSpMessageHeader* message);
 
-int NSpGame_Dispose(NSpGameReference inGame, int disposeFlags);
-
-// The following functions aren't true NetSprocket calls.
+int GetSocketError(void);
+int GetLastSocketError(void);
 const char* NSp4CCString(uint32_t fourcc);
+
 bool NSpGame_IsValidClientID(NSpGameReference gameRef, NSpPlayerID id);
 NSpPlayerID NSpGame_ClientSlotToID(NSpGameReference gameRef, int slot);
 int NSpGame_ClientIDToSlot(NSpGameReference gameRef, NSpPlayerID id);
+NSpGameReference NSpGame_Host(void);
 int NSpGame_AcceptNewClient(NSpGameReference gameRef);
 int NSpGame_AckJoinRequest(NSpGameReference gameRef, NSpMessageHeader* inMessage);
-int NSpGame_GetNumClients(NSpGameReference inGame);
+int NSpGame_GetNumClients(NSpGameReference gameRef);
+int NSpGame_StartAdvertising(NSpGameReference gameRef);
+int NSpGame_StopAdvertising(NSpGameReference gameRef);
+int NSpGame_AdvertiseTick(NSpGameReference gameRef, float dt);
+bool NSpGame_IsAdvertising(NSpGameReference gameRef);
+int NSpGame_Dispose(NSpGameReference inGame, int disposeFlags);
+
+NSpSearchReference NSpSearch_StartSearchingForGameHosts(void);
+int NSpSearch_Dispose(NSpSearchReference searchRef);
+int NSpSearch_GetNumGamesFound(NSpSearchReference searchRef);
+int NSpSearch_Tick(NSpSearchReference searchRef);
+NSpGameReference NSpSearch_JoinGame(NSpSearchReference searchRef, int gameNum);
+const char* NSpSearch_GetHostAddress(NSpSearchReference searchRef, int gameNum);

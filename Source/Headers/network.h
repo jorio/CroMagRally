@@ -137,21 +137,3 @@ enum
 
 
 bool UpdateNetSequence(void);
-
-
-//===============================================================================
-// Low-level networking routines
-
-int GetSocketError(void);
-int GetLastSocketError(void);
-void Net_Tick(void);
-bool Net_IsLobbyBroadcastOpen(void);
-NSpGameReference Net_CreateHostedGame(void);
-void Net_CloseLobby(void);
-bool Net_CreateLobbySearch(void);
-void Net_CloseLobbySearch(void);
-int Net_GetNumLobbiesFound(void);
-NSpGameReference Net_JoinLobby(int lobbyNum);
-const char* Net_GetLobbyAddress(int lobbyNum);
-NSpMessageHeader* NSpMessage_Get(NSpGameReference gameRef);
-void NSpMessage_Release(NSpGameReference gameRef, NSpMessageHeader* message);

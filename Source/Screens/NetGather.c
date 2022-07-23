@@ -13,6 +13,7 @@
 #include "miscscreens.h"
 
 extern NSpGameReference gNetGame;
+extern NSpSearchReference gNetSearch;
 
 
 /****************************/
@@ -38,8 +39,8 @@ static ObjNode* gGatherPrompt = NULL;
 static bool HostReadyToStartGame(void)
 {
 	return gIsNetworkHost
-		&& Net_IsLobbyBroadcastOpen()
-		&& NSpGame_GetNumClients(gNetGame)
+		&& NSpGame_IsAdvertising(gNetGame)
+		&& NSpGame_GetNumClients(gNetGame) > 0
 		;
 }
 
@@ -66,6 +67,7 @@ static void UpdateNetGatherPrompt(void)
 			break;
 
 		case kNetSequence_HostWaitingForMorePlayersToJoinLobby:
+		{
 			int numClientsConnectedToHost = NSpGame_GetNumClients(gNetGame);
 			if (numClientsConnectedToHost == 1)
 			{
@@ -76,6 +78,7 @@ static void UpdateNetGatherPrompt(void)
 				snprintf(buf, sizeof(buf), "%d PLAYERS CONNECTED\n\nPRESS ENTER TO BEGIN", numClientsConnectedToHost);
 			}
 			break;
+		}
 
 		case kNetSequence_ClientSearchingForGames:
 			snprintf(buf, sizeof(buf), "SEARCHING FOR GAMES\nON LOCAL NETWORK...");
@@ -83,10 +86,10 @@ static void UpdateNetGatherPrompt(void)
 
 		case kNetSequence_ClientFoundGames:
 		{
-			int numLobbiesFound = Net_GetNumLobbiesFound();
+			int numLobbiesFound = NSpSearch_GetNumGamesFound(gNetSearch);
 			if (numLobbiesFound == 1)
 			{
-				snprintf(buf, sizeof(buf), "FOUND A GAME AT\n%s", Net_GetLobbyAddress(0));
+				snprintf(buf, sizeof(buf), "FOUND A GAME AT\n%s", NSpSearch_GetHostAddress(gNetSearch, 0));
 			}
 			else
 			{
@@ -103,6 +106,12 @@ static void UpdateNetGatherPrompt(void)
 
 		case kNetSequence_WaitingForPlayerVehicles:
 			snprintf(buf, sizeof(buf), "THE OTHER PLAYERS\nARE READYING UP...\n");
+			break;
+
+		case kNetSequence_GotAllPlayerVehicles:
+		case kNetSequence_ClientJoinedGame:
+		case kNetSequence_HostStartingGame:
+			snprintf(buf, sizeof(buf), "LET'S GO!");
 			break;
 
 		default:
@@ -152,7 +161,6 @@ Boolean DoNetGatherScreen(void)
 		CalcFramesPerSecond();
 		ReadKeyboard();
 
-		Net_Tick();
 		UpdateNetSequence();
 
 		MoveObjects();
@@ -214,20 +222,9 @@ static int DoNetGatherControls(void)
 {
 	if (GetNewNeedStateAnyP(kNeed_UIBack))
 	{
-		if (gIsNetworkHost)
-		{
-			Net_CloseLobby();
-		}
-		else if (gIsNetworkClient)
-		{
-			Net_CloseLobbySearch();
-		}
-
 		EndNetworkGame();
-
 		return -1;
 	}
-
 
 	switch (gNetSequenceState)
 	{
@@ -244,7 +241,6 @@ static int DoNetGatherControls(void)
 		case kNetSequence_GameLoop:
 			return 1;
 	}
-
 
 	return 0;
 }
