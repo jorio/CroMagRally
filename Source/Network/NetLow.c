@@ -157,6 +157,8 @@ bool CloseSocket(sockfd_t* sockfdPtr)
 	close(*sockfdPtr);
 #endif
 
+	printf("Closed socket %d.\n", *sockfdPtr);
+
 	*sockfdPtr = INVALID_SOCKET;
 
 	return true;
@@ -216,7 +218,7 @@ static sockfd_t CreateUDPBroadcastSocket(void)
 		goto fail;
 	}
 
-	printf("%s: socket %d\n", __func__, (int) sockfd);
+	printf("Created UDP socket %d.\n", (int) sockfd);
 	return sockfd;
 
 fail:
@@ -351,7 +353,7 @@ NSpPlayerID NSpGame_AcceptNewClient(NSpGameReference gameRef)
 		goto fail;
 	}
 
-	printf("%s: Accepted client #%d\n", __func__, newPlayerID);
+	printf("%s: Accepted client #%d on new socket %d.\n", __func__, newPlayerID, (int) newSocket);
 
 	return newPlayerID;
 
@@ -412,6 +414,8 @@ static sockfd_t CreateTCPSocket(bool bindIt)
 	freeaddrinfo(res);
 	res = NULL;
 
+	printf("Created TCP socket %d.\n", (int) sockfd);
+
 	return sockfd;
 
 fail:
@@ -440,8 +444,11 @@ void NSpClearMessageHeader(NSpMessageHeader* h)
 	gOutboundMessageCounter++;
 }
 
-static NSpMessageHeader* PollSocket(sockfd_t sockfd)
+static NSpMessageHeader* PollSocket(sockfd_t sockfd, bool* outBrokenPipe)
 {
+	NSpMessageHeader* outMessage = NULL;
+	bool brokenPipe = false;
+
 	char messageBuf[kNSpMaxMessageLength];
 
 	// Read header
@@ -452,18 +459,23 @@ static NSpMessageHeader* PollSocket(sockfd_t sockfd)
 		MSG_NOSIGNAL
 	);
 
-	// TODO: if received 0 bytes, our peer is probably gone
-	// if -1, probably EAGAIN since our sockets are non-blocking
-	if (recvRC == -1 || recvRC == 0)
+	// If received 0 bytes, our peer is probably gone (in theory we never send 0-byte messages)
+	if (recvRC == 0)
 	{
-		return NULL;
+		brokenPipe = true;
+		goto bye;
 	}
 
-	size_t gotBytes = recvRC;
-	if (gotBytes < sizeof(NSpMessageHeader))
+	// if -1, probably EAGAIN since our sockets are non-blocking
+	if (recvRC == -1)
 	{
-		printf("%s: not enough bytes: %ld\n", __func__, gotBytes);
-		return NULL;
+		goto bye;
+	}
+
+	if ((size_t) recvRC < sizeof(NSpMessageHeader))
+	{
+		printf("%s: not enough bytes: %ld\n", __func__, recvRC);
+		goto bye;
 	}
 
 	NSpMessageHeader* header = (NSpMessageHeader*) messageBuf;
@@ -471,54 +483,94 @@ static NSpMessageHeader* PollSocket(sockfd_t sockfd)
 	if (header->version != kNSpCMRProtocol4CC)
 	{
 		printf("%s: bad protocol %08x\n", __func__, header->version);
-		return NULL;
+		goto bye;
 	}
 
 	if (header->messageLen > kNSpMaxPayloadLength
 		|| header->messageLen < sizeof(NSpMessageHeader))
 	{
 		printf("%s: invalid message length %u\n", __func__, header->messageLen);
-		return NULL;
+		goto bye;
 	}
 
-	if (header->messageLen > sizeof(NSpMessageHeader))
+	ssize_t payloadLen = header->messageLen - sizeof(NSpMessageHeader);
+
+	// Read payload if there's more to the message than just the header
+	if (payloadLen > 0)
 	{
 		// Read rest of payload
 		recvRC = recv(
 			sockfd,
 			messageBuf + sizeof(NSpMessageHeader),
-			header->messageLen - sizeof(NSpMessageHeader),
+			payloadLen,
 			MSG_NOSIGNAL
 		);
 
-		// TODO: if received 0 bytes, the client is probably gone
+		// If received 0 bytes, our peer is probably gone (in theory we never send 0-byte messages)
+		if (recvRC == 0)
+		{
+			brokenPipe = true;
+			goto bye;
+		}
+
 		// if -1, probably EAGAIN since our sockets are non-blocking
 		if (recvRC == -1)
 		{
 			printf("%s: couldn't read payload for message '%s'\n", __func__, NSp4CCString(header->what));
-			return NULL;
+			goto bye;
 		}
 	}
 
 	char* returnBuf = AllocPtr(header->messageLen);
 	memcpy(returnBuf, messageBuf, header->messageLen);
-	NSpMessageHeader* returnMessage = (NSpMessageHeader*) returnBuf;
+	outMessage = (NSpMessageHeader*) returnBuf;
 	printf("Got message '%s' (%d bytes), from player %d, on socket %d\n",
-		NSp4CCString(returnMessage->what), returnMessage->messageLen, returnMessage->from, (int) sockfd);
-	return returnMessage;
+		NSp4CCString(outMessage->what), outMessage->messageLen, outMessage->from, (int) sockfd);
+
+bye:
+	if (brokenPipe)
+	{
+		printf("%s: broken pipe on socket %d\n", __func__, (int) sockfd);
+		//NSpMessageHeader* brokenPipeHeader = (NSpMessageHeader*) AllocPtr(sizeof)
+	}
+	if (outBrokenPipe)
+	{
+		*outBrokenPipe = brokenPipe;
+	}
+	return outMessage;
 }
 
 NSpMessageHeader* NSpMessage_Get(NSpGameReference gameRef)
 {
 	NSpGame* game = NSpGame_Unbox(gameRef);
 	NSpMessageHeader* message = NULL;
+	bool brokenPipe = false;
 
 	if (!game)
 	{
 		return NULL;
 	}
 
-	if (game->isHosting)
+	if (!game->isHosting)
+	{
+		message = PollSocket(game->clientToHostSocket, &brokenPipe);
+
+		if (brokenPipe)
+		{
+			GAME_ASSERT(!message);
+
+			// This socket is dead now
+			CloseSocket(&game->clientToHostSocket);
+
+			// Pass a fake NSpGameTerminatedMessage to application code so it knows to shut down the net game
+			NSpGameTerminatedMessage* gameTerminated = (NSpGameTerminatedMessage*) AllocPtrClear(sizeof(NSpGameTerminatedMessage));
+			gameTerminated->header.messageLen	= sizeof(NSpGameTerminatedMessage);
+			gameTerminated->header.what			= kNSpGameTerminated;
+			gameTerminated->reason				= kNSpGameTerminated_NetworkError;
+			message = &gameTerminated->header;
+		}
+	}
+	else
 	{
 		for (int i = 0; message == NULL && i < MAX_CLIENTS; i++)
 		{
@@ -529,9 +581,19 @@ NSpMessageHeader* NSpMessage_Get(NSpGameReference gameRef)
 				continue;
 			}
 
-			message = PollSocket(player->sockfd);
+			message = PollSocket(player->sockfd, &brokenPipe);
 
-			if (message)
+			if (brokenPipe)
+			{
+				GAME_ASSERT(!message);
+
+				// This socket is dead now
+				CloseSocket(&player->sockfd);
+
+				// Kick the client and tell others that this guy left
+				NSpGame_KickClient(gameRef, player->id);
+			}
+			else if (message)
 			{
 				// Force client ID. The client may not know their ID yet,
 				// and we don't want them to forge a bogus ID anyway.
@@ -546,10 +608,6 @@ NSpMessageHeader* NSpMessage_Get(NSpGameReference gameRef)
 				}
 			}
 		}
-	}
-	else
-	{
-		message = PollSocket(game->clientToHostSocket);
 	}
 
 	// If we did get a message, handle internal message types
@@ -624,6 +682,19 @@ int NSpGame_KickClient(NSpGameReference gameRef, NSpPlayerID kickedPlayerID)
 	// If we did the initial handshake, we've already let the others know about this peer.
 	// So we'll need to tell them that this one left.
 	bool tellOthers = kickedPlayer->state == kNSpPlayerState_ConnectedPeer;
+
+	// Send this peer an NSpGameTerminatedMessage if their socket is still live
+	if (IsSocketValid(kickedPlayer->sockfd))
+	{
+		NSpGameTerminatedMessage byeMessage = {0};
+		NSpClearMessageHeader(&byeMessage.header);
+		byeMessage.header.messageLen	= sizeof(NSpGameTerminatedMessage);
+		byeMessage.header.from			= kNSpHostID;
+		byeMessage.header.to			= kickedPlayer->id;
+		byeMessage.header.what			= kNSpGameTerminated;
+		byeMessage.reason				= kNSpGameTerminated_YouGotKicked;
+		NSpMessage_Send(gameRef, &byeMessage.header, kNSpSendFlag_Registered);
+	}
 
 	CopyPlayerName(playerNameBackup, kickedPlayer->name);
 
@@ -1060,12 +1131,13 @@ int NSpGame_Dispose(NSpGameReference inGame, int disposeFlags)
 	// If we're terminating the game, tell people about it.
 	if (disposeFlags & kNSpGameFlag_ForceTerminateGame)
 	{
-		NSpGameTerminatedMessage byeMessage;
+		NSpGameTerminatedMessage byeMessage = {0};
 		NSpClearMessageHeader(&byeMessage.header);
 		byeMessage.header.messageLen	= sizeof(NSpGameTerminatedMessage);
 		byeMessage.header.what			= kNSpGameTerminated;
 		byeMessage.header.to			= kNSpAllPlayers;
 		byeMessage.header.from			= kNSpHostID;
+		byeMessage.reason				= kNSpGameTerminated_HostBailed;
 		NSpMessage_Send(inGame, &byeMessage.header, kNSpSendFlag_Registered);
 	}
 

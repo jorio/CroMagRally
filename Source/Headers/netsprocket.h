@@ -80,6 +80,13 @@ enum
 	kNSpRC_OK					= 0,
 };
 
+enum
+{
+	kNSpGameTerminated_HostBailed		= 0,
+	kNSpGameTerminated_NetworkError		= 1,
+	kNSpGameTerminated_YouGotKicked		= 2,
+};
+
 typedef int32_t						NSpPlayerID;
 
 typedef struct sockaddr_in*			NSpAddressReference;
@@ -118,6 +125,7 @@ typedef struct
 typedef struct
 {
 	NSpMessageHeader 				header;
+	uint32_t						reason;
 } NSpGameTerminatedMessage;
 
 typedef struct
@@ -158,6 +166,7 @@ int NSpGame_StartAdvertising(NSpGameReference gameRef);
 int NSpGame_StopAdvertising(NSpGameReference gameRef);
 int NSpGame_AdvertiseTick(NSpGameReference gameRef, float dt);
 bool NSpGame_IsAdvertising(NSpGameReference gameRef);
+int NSpGame_KickClient(NSpGameReference gameRef, NSpPlayerID kickedPlayerID);
 int NSpGame_Dispose(NSpGameReference inGame, int disposeFlags);
 
 NSpSearchReference NSpSearch_StartSearchingForGameHosts(void);

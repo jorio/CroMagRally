@@ -130,6 +130,7 @@ OSErr	iErr;
 	gNetSearch			= nil;
 	gNumGatheredPlayers	= 0;
 	gPlayerSyncCounter	= 0;
+	gNetSequenceState	= kNetSequence_Offline;
 }
 
 
@@ -145,7 +146,12 @@ bool UpdateNetSequence(void)
 	{
 		case kNetSequence_HostLobbyOpen:
 		{
-			NSpGame_AdvertiseTick(gNetGame, gFramesPerSecondFrac);
+			if (kNSpRC_OK != NSpGame_AdvertiseTick(gNetGame, gFramesPerSecondFrac))
+			{
+				gNetSequenceState = kNetSequence_Error;
+				break;
+			}
+
 			NSpGame_AcceptNewClient(gNetGame);
 
 			message = NSpMessage_Get(gNetGame);
@@ -230,8 +236,8 @@ bool UpdateNetSequence(void)
 					gNetSequenceState = kNetSequence_ClientJoinedGame;
 					break;
 
-				case 	kNSpGameTerminated:											// Host terminated the game :(
-					break;
+//				case 	kNSpGameTerminated:											// Host terminated the game :(
+//					break;
 
 				case	kNSpJoinApproved:
 				{
@@ -439,9 +445,7 @@ OSStatus			status = noErr;
 		gNetSequenceState = kNetSequence_Error;
 	}
 
-	DoNetGatherScreen();
-
-	return status;
+	return DoNetGatherScreen();
 }
 
 
@@ -641,7 +645,10 @@ int						startTick = TickCount();
 	outMess.playerNum 		= gMyNetworkPlayerNum;										// set player num
 	status = NSpMessage_Send(gNetGame, &outMess.h, kNSpSendFlag_Registered);	// send message
 	if (status)
-		DoFatalAlert("ClientTellHostLevelIsPrepared: NSpMessage_Send failed!");
+	{
+		gNetSequenceState = kNetSequence_Error;
+		return;
+	}
 
 
 		/**************************/
@@ -974,8 +981,23 @@ Boolean HandleOtherNetMessage(NSpMessageHeader	*message)
 					/* THE HOST HAS UNEXPECTEDLY LEFT THE GAME */
 
 		case	kNSpGameTerminated:
-				DoAlert("Game Terminated: The Host has unexpectedly quit the game.");
+				printf("Game Terminated: The Host has unexpectedly quit the game.\n");
 				EndNetworkGame();
+				switch (((NSpGameTerminatedMessage*) message)->reason)
+				{
+					case kNSpGameTerminated_YouGotKicked:
+						gNetSequenceState = kNetSequence_ClientOfflineBecauseKicked;
+						break;
+
+					case kNSpGameTerminated_NetworkError:
+						gNetSequenceState = kNetSequence_ClientOfflineBecauseHostUnreachable;
+						break;
+
+					case kNSpGameTerminated_HostBailed:
+					default:
+						gNetSequenceState = kNetSequence_ClientOfflineBecauseHostBailed;
+						break;
+				}
 				gGameOver = true;
 				break;
 

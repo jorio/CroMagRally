@@ -112,12 +112,15 @@ enum
 {
 	kNetSequence_Offline,
 	kNetSequence_Error,
-	
+	kNetSequence_ClientOfflineBecauseHostBailed,
+	kNetSequence_ClientOfflineBecauseHostUnreachable,
+	kNetSequence_ClientOfflineBecauseKicked,
+
 	kNetSequence_HostOffline = 100,
 	kNetSequence_HostLobbyOpen,
 	kNetSequence_HostReadyToStartGame,
 	kNetSequence_HostStartingGame,
-	
+
 	kNetSequence_ClientOffline = 200,
 	kNetSequence_ClientSearchingForGames,
 	kNetSequence_ClientFoundGames,

@@ -53,7 +53,23 @@ static void UpdateNetGatherPrompt(void)
 			break;
 		}
 
+		case kNetSequence_ClientOfflineBecauseHostBailed:
+		{
+			snprintf(buf, sizeof(buf), "THE HOST HAS QUIT THE GAME.");
 			break;
+		}
+
+		case kNetSequence_ClientOfflineBecauseHostUnreachable:
+		{
+			snprintf(buf, sizeof(buf), "THE HOST HAS BECOME UNREACHABLE.");
+			break;
+		}
+
+		case kNetSequence_ClientOfflineBecauseKicked:
+		{
+			snprintf(buf, sizeof(buf), "YOU WERE KICKED FROM THE GAME.");
+			break;
+		}
 
 		case kNetSequence_HostLobbyOpen:
 		{
