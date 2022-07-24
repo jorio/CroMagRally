@@ -634,7 +634,7 @@ int						startTick = TickCount();
 		/***********************************/
 
 	NSpClearMessageHeader(&outMess.h);
-	outMess.h.to 			= kNSpHostOnly;										// send to this host
+	outMess.h.to 			= kNSpHostID;										// send to this host
 	outMess.h.what 			= kNetSyncMessage;									// set message type
 	outMess.h.messageLen 	= sizeof(outMess);									// set size of message
 	outMess.playerNum 		= gMyNetworkPlayerNum;										// set player num
@@ -812,7 +812,7 @@ OSStatus						status;
 
 	NSpClearMessageHeader(&gClientOutMess.h);
 
-	gClientOutMess.h.to 			= kNSpHostOnly;							// send to Host
+	gClientOutMess.h.to 			= kNSpHostID;							// send to Host
 	gClientOutMess.h.what 			= kNetClientControlInfoMessage;			// set message type
 	gClientOutMess.h.messageLen 	= sizeof(gClientOutMess);				// set size of message
 

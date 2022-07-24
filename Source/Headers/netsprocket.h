@@ -33,7 +33,7 @@ typedef enum
 	kNSpClientID0				= 2,
 
 	// For use in a headless server setup
-	kNSpHostOnly				= -1,
+	kNSpMasterEndpointID		= -1,
 
 	kNSpUnspecifiedEndpoint		= -2,
 }NSpPlayerSpecials;

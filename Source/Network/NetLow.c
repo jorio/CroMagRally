@@ -252,9 +252,9 @@ static NSpGameReference JoinLobby(const LobbyInfo* lobby)
 
 	NSpJoinRequestMessage message;
 	NSpClearMessageHeader(&message.header);
-	message.header.to = kNSpHostOnly;
-	message.header.what = kNSpJoinRequest;
-	message.header.messageLen = sizeof(NSpJoinRequestMessage);
+	message.header.to			= kNSpHostID;
+	message.header.what			= kNSpJoinRequest;
+	message.header.messageLen	= sizeof(NSpJoinRequestMessage);
 	snprintf(message.name, sizeof(message.name), "CLIENT");
 
 	int rc = SendOnSocket(sockfd, &message.header);
@@ -999,9 +999,9 @@ int NSpGame_Dispose(NSpGameReference inGame, int disposeFlags)
 	{
 		NSpGameTerminatedMessage byeMessage;
 		NSpClearMessageHeader(&byeMessage.header);
-		byeMessage.header.what = kNSpGameTerminated;
-		byeMessage.header.to = kNSpAllPlayers;
-		byeMessage.header.from = kNSpHostOnly;
+		byeMessage.header.what		= kNSpGameTerminated;
+		byeMessage.header.to		= kNSpAllPlayers;
+		byeMessage.header.from		= kNSpHostID;
 		NSpMessage_Send(inGame, &byeMessage.header, kNSpSendFlag_Registered);
 	}
 
@@ -1267,7 +1267,7 @@ int NSpMessage_Send(NSpGameReference gameRef, NSpMessageHeader* header, int flag
 			}
 
 			case kNSpHostID:
-			case kNSpHostOnly:
+			case kNSpMasterEndpointID:
 				GAME_ASSERT_MESSAGE(false, "Host cannot send itself a message");
 				break;
 
