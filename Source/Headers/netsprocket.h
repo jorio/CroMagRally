@@ -125,6 +125,17 @@ typedef struct
 typedef struct
 {
 	NSpMessageHeader 				header;
+	uint32_t 						playerCount;
+	struct
+	{
+		NSpPlayerID					id;
+		char						name[kNSpPlayerNameLength];
+	} playerInfo;
+} NSpPlayerJoinedMessage;
+
+typedef struct
+{
+	NSpMessageHeader 				header;
 	uint32_t						playerCount;
 	NSpPlayerID 					playerID;
 	char							playerName[kNSpPlayerNameLength];
