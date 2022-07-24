@@ -58,7 +58,8 @@ enum
 {
 	kNSpSendFlag_Junk			= 0x00100000,		// will be sent (try once) when there is nothing else pending
 	kNSpSendFlag_Normal			= 0x00200000,		// will be sent immediately (try once)
-	kNSpSendFlag_Registered		= 0x00400000		// will be sent immediately (guaranteed, in order)
+	kNSpSendFlag_Registered		= 0x00400000,		// will be sent immediately (guaranteed, in order)
+	kNSpSendFlag_DontKickOnFail	= 0x00800000,
 };
 
 enum
@@ -166,7 +167,6 @@ int NSpGame_StartAdvertising(NSpGameReference gameRef);
 int NSpGame_StopAdvertising(NSpGameReference gameRef);
 int NSpGame_AdvertiseTick(NSpGameReference gameRef, float dt);
 bool NSpGame_IsAdvertising(NSpGameReference gameRef);
-int NSpGame_KickClient(NSpGameReference gameRef, NSpPlayerID kickedPlayerID);
 int NSpGame_Dispose(NSpGameReference inGame, int disposeFlags);
 
 NSpSearchReference NSpSearch_StartSearchingForGameHosts(void);
@@ -175,3 +175,5 @@ int NSpSearch_GetNumGamesFound(NSpSearchReference searchRef);
 int NSpSearch_Tick(NSpSearchReference searchRef);
 NSpGameReference NSpSearch_JoinGame(NSpSearchReference searchRef, int gameNum);
 const char* NSpSearch_GetHostAddress(NSpSearchReference searchRef, int gameNum);
+
+int NSpPlayer_Kick(NSpGameReference gameRef, NSpPlayerID kickedPlayerID);

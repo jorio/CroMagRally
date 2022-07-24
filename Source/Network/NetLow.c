@@ -591,7 +591,7 @@ NSpMessageHeader* NSpMessage_Get(NSpGameReference gameRef)
 				CloseSocket(&player->sockfd);
 
 				// Kick the client and tell others that this guy left
-				NSpGame_KickClient(gameRef, player->id);
+				NSpPlayer_Kick(gameRef, player->id);
 			}
 			else if (message)
 			{
@@ -657,76 +657,6 @@ NSpMessageHeader* NSpMessage_Get(NSpGameReference gameRef)
 	}
 
 	return message;
-}
-
-int NSpGame_KickClient(NSpGameReference gameRef, NSpPlayerID kickedPlayerID)
-{
-	char playerNameBackup[kNSpPlayerNameLength];
-
-	NSpGame* game = NSpGame_Unbox(gameRef);
-
-	if (!game)
-	{
-		return kNSpRC_NoGame;
-	}
-
-	GAME_ASSERT(game->isHosting);
-	GAME_ASSERT(kickedPlayerID != kNSpHostID);		// can't kick myself!
-
-	NSpPlayer* kickedPlayer = NSpGame_GetPlayerFromID(gameRef, kickedPlayerID);
-	if (kickedPlayer == NULL)
-	{
-		return kNSpRC_InvalidPlayer;
-	}
-
-	// If we did the initial handshake, we've already let the others know about this peer.
-	// So we'll need to tell them that this one left.
-	bool tellOthers = kickedPlayer->state == kNSpPlayerState_ConnectedPeer;
-
-	// Send this peer an NSpGameTerminatedMessage if their socket is still live
-	if (IsSocketValid(kickedPlayer->sockfd))
-	{
-		NSpGameTerminatedMessage byeMessage = {0};
-		NSpClearMessageHeader(&byeMessage.header);
-		byeMessage.header.messageLen	= sizeof(NSpGameTerminatedMessage);
-		byeMessage.header.from			= kNSpHostID;
-		byeMessage.header.to			= kickedPlayer->id;
-		byeMessage.header.what			= kNSpGameTerminated;
-		byeMessage.reason				= kNSpGameTerminated_YouGotKicked;
-		NSpMessage_Send(gameRef, &byeMessage.header, kNSpSendFlag_Registered);
-	}
-
-	CopyPlayerName(playerNameBackup, kickedPlayer->name);
-
-	CloseSocket(&kickedPlayer->sockfd);
-	NSpPlayer_Clear(kickedPlayer);
-	kickedPlayer = NULL;
-
-	// Tell other players that this guy left
-	if (tellOthers)
-	{
-		for (int i = 0; i < MAX_CLIENTS; i++)
-		{
-			if (!IsSocketValid(game->players[i].sockfd))
-			{
-				continue;
-			}
-
-			NSpPlayerLeftMessage leftMessage;
-			NSpClearMessageHeader(&leftMessage.header);
-			leftMessage.header.messageLen = sizeof(NSpPlayerLeftMessage);
-			leftMessage.header.what = kNSpPlayerLeft;
-			leftMessage.header.from = kNSpHostID;
-			leftMessage.header.to = NSpGame_ClientSlotToID(gameRef, i);
-			leftMessage.playerCount = NSpGame_GetNumActivePlayers(gameRef);
-			leftMessage.playerID = kickedPlayerID;
-			CopyPlayerName(leftMessage.playerName, playerNameBackup);
-
-			NSpMessage_Send(gameRef, &leftMessage.header, kNSpSendFlag_Registered);
-		}
-	}
-
-	return kNSpRC_OK;
 }
 
 int NSpGame_AckJoinRequest(NSpGameReference gameRef, NSpMessageHeader* message)
@@ -1454,7 +1384,9 @@ int NSpMessage_Send(NSpGameReference gameRef, NSpMessageHeader* header, int flag
 		header->from = game->myID;
 	}
 
-	GAME_ASSERT_MESSAGE(flags == kNSpSendFlag_Registered, "only reliable messages are supported");
+	bool kickOnFail = !(flags & kNSpSendFlag_DontKickOnFail);
+
+	GAME_ASSERT_MESSAGE(flags & kNSpSendFlag_Registered, "only reliable messages are supported");
 
 	if (game->isHosting)
 	{
@@ -1471,11 +1403,11 @@ int NSpMessage_Send(NSpGameReference gameRef, NSpMessageHeader* header, int flag
 						&& peer->id != header->from)					// don't return to sender!
 					{
 						int rc = SendOnSocket(game->players[i].sockfd, header);
-						if (rc != kNSpRC_OK)
+						if (rc != kNSpRC_OK && kickOnFail)
 						{
 							anyError = rc;
 							NSpPlayerID kickedPlayerID = NSpGame_ClientSlotToID(gameRef, i);
-							NSpGame_KickClient(gameRef, kickedPlayerID);
+							NSpPlayer_Kick(gameRef, kickedPlayerID);
 						}
 					}
 				}
@@ -1492,12 +1424,13 @@ int NSpMessage_Send(NSpGameReference gameRef, NSpMessageHeader* header, int flag
 				NSpPlayer* peer = NSpGame_GetPlayerFromID(gameRef, playerID);
 
 				if (peer
-					&& (peer->state == kNSpPlayerState_ConnectedPeer || peer->state == kNSpPlayerState_AwaitingHandshake))
+					&& (peer->state == kNSpPlayerState_ConnectedPeer
+						|| peer->state == kNSpPlayerState_AwaitingHandshake))
 				{
 					int rc = SendOnSocket(peer->sockfd, header);
-					if (rc != kNSpRC_OK)
+					if (rc != kNSpRC_OK && kickOnFail)
 					{
-						NSpGame_KickClient(gameRef, playerID);
+						NSpPlayer_Kick(gameRef, playerID);
 					}
 					return rc;
 				}
@@ -1525,6 +1458,76 @@ int NSpMessage_Send(NSpGameReference gameRef, NSpMessageHeader* header, int flag
 }
 
 #pragma mark - NSpCMRClient
+
+int NSpPlayer_Kick(NSpGameReference gameRef, NSpPlayerID kickedPlayerID)
+{
+	char playerNameBackup[kNSpPlayerNameLength];
+
+	NSpGame* game = NSpGame_Unbox(gameRef);
+
+	if (!game)
+	{
+		return kNSpRC_NoGame;
+	}
+
+	GAME_ASSERT(game->isHosting);
+	GAME_ASSERT(kickedPlayerID != kNSpHostID);		// can't kick myself!
+
+	NSpPlayer* kickedPlayer = NSpGame_GetPlayerFromID(gameRef, kickedPlayerID);
+	if (kickedPlayer == NULL)
+	{
+		return kNSpRC_InvalidPlayer;
+	}
+
+	// If we did the initial handshake, we've already let the others know about this peer.
+	// So we'll need to tell them that this one left.
+	bool tellOthers = kickedPlayer->state == kNSpPlayerState_ConnectedPeer;
+
+	// Send this peer an NSpGameTerminatedMessage if their socket is still live
+	if (IsSocketValid(kickedPlayer->sockfd))
+	{
+		NSpGameTerminatedMessage byeMessage = {0};
+		NSpClearMessageHeader(&byeMessage.header);
+		byeMessage.header.messageLen	= sizeof(NSpGameTerminatedMessage);
+		byeMessage.header.from			= kNSpHostID;
+		byeMessage.header.to			= kickedPlayer->id;
+		byeMessage.header.what			= kNSpGameTerminated;
+		byeMessage.reason				= kNSpGameTerminated_YouGotKicked;
+		NSpMessage_Send(gameRef, &byeMessage.header, kNSpSendFlag_Registered | kNSpSendFlag_DontKickOnFail);
+	}
+
+	CopyPlayerName(playerNameBackup, kickedPlayer->name);
+
+	CloseSocket(&kickedPlayer->sockfd);
+	NSpPlayer_Clear(kickedPlayer);
+	kickedPlayer = NULL;
+
+	// Tell other players that this guy left
+	if (tellOthers)
+	{
+		for (int i = 0; i < MAX_CLIENTS; i++)
+		{
+			if (!IsSocketValid(game->players[i].sockfd))
+			{
+				continue;
+			}
+
+			NSpPlayerLeftMessage leftMessage;
+			NSpClearMessageHeader(&leftMessage.header);
+			leftMessage.header.messageLen = sizeof(NSpPlayerLeftMessage);
+			leftMessage.header.what = kNSpPlayerLeft;
+			leftMessage.header.from = kNSpHostID;
+			leftMessage.header.to = NSpGame_ClientSlotToID(gameRef, i);
+			leftMessage.playerCount = NSpGame_GetNumActivePlayers(gameRef);
+			leftMessage.playerID = kickedPlayerID;
+			CopyPlayerName(leftMessage.playerName, playerNameBackup);
+
+			NSpMessage_Send(gameRef, &leftMessage.header, kNSpSendFlag_Registered);
+		}
+	}
+
+	return kNSpRC_OK;
+}
 
 static void NSpPlayer_Clear(NSpPlayer* player)
 {
