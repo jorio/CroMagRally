@@ -45,14 +45,23 @@ typedef int socklen_t;
 #define kSocketError_AddressInUse		EADDRINUSE
 #endif
 
-typedef struct
+typedef enum
 {
-	sockfd_t					sockfd;
-	char						name[32];
-	bool						didJoinRequestHandshake;
-} NSpCMRClient;
+	kNSpPlayerState_Offline,
+	kNSpPlayerState_Me,
+	kNSpPlayerState_ConnectedPeer,
+	kNSpPlayerState_AwaitingHandshake,
+} NSpPlayerState;
 
-typedef struct NSpCMRGame
+typedef struct NSpPlayer
+{
+	NSpPlayerID					id;
+	NSpPlayerState				state;
+	sockfd_t					sockfd;
+	char						name[kNSpPlayerNameLength];
+} NSpPlayer;
+
+typedef struct NSpGame
 {
 	sockfd_t					hostAdvertiseSocket;
 	sockfd_t					hostListenSocket;
@@ -60,14 +69,14 @@ typedef struct NSpCMRGame
 
 	bool						isHosting;
 	bool						isAdvertising;
+	NSpPlayerID					myID;
 
-	int							numClients;
-	NSpCMRClient				clients[MAX_CLIENTS];
+	NSpPlayer					players[MAX_CLIENTS];
 
 	float						timeToReadvertise;
 
 	uint32_t					cookie;
-} NSpCMRGame;
+} NSpGame;
 
 typedef struct
 {
@@ -87,10 +96,14 @@ static int gLastQueriedSocketError = 0;
 
 static NSpGameReference JoinLobby(const LobbyInfo* lobby);
 static sockfd_t CreateTCPSocket(bool bindIt);
-static NSpCMRGame* NSpGame_Unbox(NSpGameReference gameRef);
+static NSpGame* NSpGame_Unbox(NSpGameReference gameRef);
 static NSpGameReference NSpGame_Alloc(void);
-static void NSpCMRClient_Clear(NSpCMRClient* client);
+static void NSpPlayer_Clear(NSpPlayer* player);
 static int SendOnSocket(sockfd_t sockfd, NSpMessageHeader* header);
+
+static NSpPlayerID NSpGame_ClientSlotToID(NSpGameReference gameRef, int slot);
+static int NSpGame_ClientIDToSlot(NSpGameReference gameRef, NSpPlayerID id);
+static NSpPlayer* NSpGame_GetPlayerFromID(NSpGameReference gameRef, NSpPlayerID id);
 
 #pragma mark - Cross-platform compat
 
@@ -252,9 +265,9 @@ static NSpGameReference JoinLobby(const LobbyInfo* lobby)
 
 	NSpJoinRequestMessage message;
 	NSpClearMessageHeader(&message.header);
+	message.header.messageLen	= sizeof(NSpJoinRequestMessage);
 	message.header.to			= kNSpHostID;
 	message.header.what			= kNSpJoinRequest;
-	message.header.messageLen	= sizeof(NSpJoinRequestMessage);
 	snprintf(message.name, sizeof(message.name), "CLIENT");
 
 	int rc = SendOnSocket(sockfd, &message.header);
@@ -265,7 +278,7 @@ static NSpGameReference JoinLobby(const LobbyInfo* lobby)
 	}
 
 	NSpGameReference gameRef = NSpGame_Alloc();
-	NSpCMRGame* game = NSpGame_Unbox(gameRef);
+	NSpGame* game = NSpGame_Unbox(gameRef);
 	game->isHosting = false;
 	game->clientToHostSocket = sockfd;
 	return gameRef;
@@ -279,8 +292,9 @@ fail:
 
 NSpPlayerID NSpGame_AcceptNewClient(NSpGameReference gameRef)
 {
-	int newClient = -1;
-	NSpCMRGame* game = NSpGame_Unbox(gameRef);
+	int newClientSlot = -1;
+	NSpPlayerID newPlayerID = kNSpUnspecifiedEndpoint;
+	NSpGame* game = NSpGame_Unbox(gameRef);
 
 	GAME_ASSERT(game->isHosting);
 
@@ -299,15 +313,26 @@ NSpPlayerID NSpGame_AcceptNewClient(NSpGameReference gameRef)
 		goto fail;
 	}
 
-	if (game->numClients < MAX_PLAYERS)
+	// Find vacant player slot
+	for (int i = 0; i < MAX_PLAYERS; i++)
 	{
-		newClient = game->numClients;
+		if (game->players[i].state == kNSpPlayerState_Offline)
+		{
+			newClientSlot = i;
+			newPlayerID = NSpGame_ClientSlotToID(gameRef, newClientSlot);
+			break;
+		}
+	}
 
-		game->clients[newClient].sockfd = newSocket;
-		game->clients[newClient].didJoinRequestHandshake = false;
-		snprintf(game->clients[newClient].name, sizeof(game->clients[newClient].name), "PLAYER %d", newClient);
+	if (newClientSlot >= 0)
+	{
+		// Create new player
+		NSpPlayer* newPlayer = &game->players[newClientSlot];
 
-		game->numClients++;
+		newPlayer->id			= newPlayerID;
+		newPlayer->state		= kNSpPlayerState_AwaitingHandshake;
+		newPlayer->sockfd		= newSocket;
+		snprintf(newPlayer->name, sizeof(newPlayer->name), "PLAYER %d", newPlayer->id);
 	}
 	else
 	{
@@ -316,10 +341,9 @@ NSpPlayerID NSpGame_AcceptNewClient(NSpGameReference gameRef)
 
 		NSpJoinDeniedMessage deniedMessage = {0};
 		NSpClearMessageHeader(&deniedMessage.header);
-
+		deniedMessage.header.messageLen = sizeof(NSpJoinDeniedMessage);
 		deniedMessage.header.from = kNSpHostID;
 		deniedMessage.header.what = kNSpJoinDenied;
-		deniedMessage.header.messageLen = sizeof(NSpMessageHeader);
 		snprintf(deniedMessage.reason, sizeof(deniedMessage.reason), "THE GAME IS FULL.");
 
 		SendOnSocket(newSocket, &deniedMessage.header);
@@ -327,9 +351,9 @@ NSpPlayerID NSpGame_AcceptNewClient(NSpGameReference gameRef)
 		goto fail;
 	}
 
-	printf("%s: Accepted client #%d\n", __func__, newClient);
+	printf("%s: Accepted client #%d\n", __func__, newPlayerID);
 
-	return NSpGame_ClientSlotToID(gameRef, game->numClients - 1);
+	return newPlayerID;
 
 fail:
 	CloseSocket(&newSocket);
@@ -405,12 +429,13 @@ fail:
 void NSpClearMessageHeader(NSpMessageHeader* h)
 {
 	memset(h, 0, sizeof(NSpMessageHeader));
-	h->version = kNSpCMRProtocol4CC;
-	h->when = 0;
-	h->id = gOutboundMessageCounter;
-	h->from = kNSpUnspecifiedEndpoint;
-	h->to = kNSpUnspecifiedEndpoint;
-	h->messageLen = sizeof(NSpMessageHeader);
+	h->version		= kNSpCMRProtocol4CC;
+	h->when			= 0;
+	h->id			= gOutboundMessageCounter;
+	h->from			= kNSpUnspecifiedEndpoint;
+	h->to			= kNSpUnspecifiedEndpoint;
+	h->messageLen	= 0xBADBABEE;
+	h->what			= kNSpUndefinedMessage;
 
 	gOutboundMessageCounter++;
 }
@@ -478,14 +503,14 @@ static NSpMessageHeader* PollSocket(sockfd_t sockfd)
 	char* returnBuf = AllocPtr(header->messageLen);
 	memcpy(returnBuf, messageBuf, header->messageLen);
 	NSpMessageHeader* returnMessage = (NSpMessageHeader*) returnBuf;
-	printf("Got message '%s' (%d bytes) from socket %d\n",
-		NSp4CCString(returnMessage->what), returnMessage->messageLen, (int) sockfd);
+	printf("Got message '%s' (%d bytes), from player %d, on socket %d\n",
+		NSp4CCString(returnMessage->what), returnMessage->messageLen, returnMessage->from, (int) sockfd);
 	return returnMessage;
 }
 
 NSpMessageHeader* NSpMessage_Get(NSpGameReference gameRef)
 {
-	NSpCMRGame* game = NSpGame_Unbox(gameRef);
+	NSpGame* game = NSpGame_Unbox(gameRef);
 	NSpMessageHeader* message = NULL;
 
 	if (!game)
@@ -495,21 +520,23 @@ NSpMessageHeader* NSpMessage_Get(NSpGameReference gameRef)
 
 	if (game->isHosting)
 	{
-		for (int i = 0; i < MAX_CLIENTS; i++)
+		for (int i = 0; message == NULL && i < MAX_CLIENTS; i++)
 		{
-			if (!IsSocketValid(game->clients[i].sockfd))
+			NSpPlayer* player = &game->players[i];
+
+			if (!IsSocketValid(player->sockfd))
 			{
 				continue;
 			}
 
-			message = PollSocket(game->clients[i].sockfd);
+			message = PollSocket(player->sockfd);
 
 			if (message)
 			{
 				// Force client ID. The client may not know their ID yet,
 				// and we don't want them to forge a bogus ID anyway.
-				message->from = NSpGame_ClientSlotToID(gameRef, i);
-				GAME_ASSERT(NSpGame_IsValidClientID(gameRef, message->from));
+				message->from = player->id;
+				GAME_ASSERT(NSpGame_IsValidPlayerID(gameRef, message->from));
 
 				// Forward broadcast messages
 				if (message->to == kNSpAllPlayers)
@@ -517,12 +544,8 @@ NSpMessageHeader* NSpMessage_Get(NSpGameReference gameRef)
 					// TODO: if we ever do UDP, we'll need to decide what to do with the flags below
 					NSpMessage_Send(gameRef, message, kNSpSendFlag_Registered);
 				}
-
-				break;  // only get one message per iteration
 			}
 		}
-
-		return NULL;
 	}
 	else
 	{
@@ -534,15 +557,44 @@ NSpMessageHeader* NSpMessage_Get(NSpGameReference gameRef)
 	{
 		switch (message->what)
 		{
-			case kNSpPlayerJoined:
+			case kNSpJoinApproved:
+			{
 				GAME_ASSERT(!game->isHosting);
-				// TODO: Update player list
+				game->myID = message->to;		// that's our ID
 				break;
+			}
+
+			case kNSpPlayerJoined:
+			{
+				GAME_ASSERT(!game->isHosting);
+
+				NSpPlayerJoinedMessage* joinedMessage = (NSpPlayerJoinedMessage*) message;
+
+				NSpPlayer* newPlayer = NSpGame_GetPlayerFromID(gameRef, joinedMessage->playerInfo.id);
+				GAME_ASSERT(newPlayer);
+
+				newPlayer->id			= joinedMessage->playerInfo.id;
+				newPlayer->state		= kNSpPlayerState_ConnectedPeer;
+				newPlayer->sockfd		= INVALID_SOCKET;		// client has no p2p connection to other players
+				CopyPlayerName(newPlayer->name, joinedMessage->playerInfo.name);
+
+				break;
+			}
 
 			case kNSpPlayerLeft:
+			{
 				GAME_ASSERT(!game->isHosting);
-				// TODO: Update player list
+
+				NSpPlayerLeftMessage* leftMessage = (NSpPlayerLeftMessage*) message;
+
+				NSpPlayer* deadPlayer = NSpGame_GetPlayerFromID(gameRef, leftMessage->playerID);
+				if (deadPlayer)
+				{
+					NSpPlayer_Clear(deadPlayer);
+				}
+
 				break;
+			}
 		}
 	}
 
@@ -553,7 +605,7 @@ int NSpGame_KickClient(NSpGameReference gameRef, NSpPlayerID kickedPlayerID)
 {
 	char playerNameBackup[kNSpPlayerNameLength];
 
-	NSpCMRGame* game = NSpGame_Unbox(gameRef);
+	NSpGame* game = NSpGame_Unbox(gameRef);
 
 	if (!game)
 	{
@@ -561,42 +613,41 @@ int NSpGame_KickClient(NSpGameReference gameRef, NSpPlayerID kickedPlayerID)
 	}
 
 	GAME_ASSERT(game->isHosting);
+	GAME_ASSERT(kickedPlayerID != kNSpHostID);		// can't kick myself!
 
-	int clientSlot = NSpGame_ClientIDToSlot(gameRef, kickedPlayerID);
-	if (clientSlot < 0)
+	NSpPlayer* kickedPlayer = NSpGame_GetPlayerFromID(gameRef, kickedPlayerID);
+	if (kickedPlayer == NULL)
 	{
-		return kNSpRC_InvalidClient;
+		return kNSpRC_InvalidPlayer;
 	}
 
 	// If we did the initial handshake, we've already let the others know about this peer.
 	// So we'll need to tell them that this one left.
-	bool tellOthers = game->clients[clientSlot].didJoinRequestHandshake;
+	bool tellOthers = kickedPlayer->state == kNSpPlayerState_ConnectedPeer;
 
-	CopyPlayerName(playerNameBackup, game->clients[clientSlot].name);
+	CopyPlayerName(playerNameBackup, kickedPlayer->name);
 
-	CloseSocket(&game->clients[clientSlot].sockfd);
-	NSpCMRClient_Clear(&game->clients[clientSlot]);
-
-	game->numClients--;
-	GAME_ASSERT(game->numClients >= 0);
+	CloseSocket(&kickedPlayer->sockfd);
+	NSpPlayer_Clear(kickedPlayer);
+	kickedPlayer = NULL;
 
 	// Tell other players that this guy left
 	if (tellOthers)
 	{
 		for (int i = 0; i < MAX_CLIENTS; i++)
 		{
-			if (!IsSocketValid(game->clients[i].sockfd))
+			if (!IsSocketValid(game->players[i].sockfd))
 			{
 				continue;
 			}
 
 			NSpPlayerLeftMessage leftMessage;
 			NSpClearMessageHeader(&leftMessage.header);
-			leftMessage.header.messageLen = sizeof(leftMessage);
+			leftMessage.header.messageLen = sizeof(NSpPlayerLeftMessage);
 			leftMessage.header.what = kNSpPlayerLeft;
 			leftMessage.header.from = kNSpHostID;
 			leftMessage.header.to = NSpGame_ClientSlotToID(gameRef, i);
-			leftMessage.playerCount = game->numClients;
+			leftMessage.playerCount = NSpGame_GetNumActivePlayers(gameRef);
 			leftMessage.playerID = kickedPlayerID;
 			CopyPlayerName(leftMessage.playerName, playerNameBackup);
 
@@ -609,7 +660,7 @@ int NSpGame_KickClient(NSpGameReference gameRef, NSpPlayerID kickedPlayerID)
 
 int NSpGame_AckJoinRequest(NSpGameReference gameRef, NSpMessageHeader* message)
 {
-	NSpCMRGame* game = NSpGame_Unbox(gameRef);
+	NSpGame* game = NSpGame_Unbox(gameRef);
 
 	if (!game)
 	{
@@ -620,86 +671,88 @@ int NSpGame_AckJoinRequest(NSpGameReference gameRef, NSpMessageHeader* message)
 	GAME_ASSERT(message->what == kNSpJoinRequest);
 
 	NSpPlayerID newPlayerID = message->from;
+	NSpPlayer* newPlayer = NSpGame_GetPlayerFromID(gameRef, newPlayerID);
 
-	int newClientSlot = NSpGame_ClientIDToSlot(gameRef, newPlayerID);
-	if (newClientSlot < 0)
+	if (newPlayer == NULL)
 	{
-		return kNSpRC_InvalidClient;
+		return kNSpRC_InvalidPlayer;
+	}
+
+	if (newPlayer->state != kNSpPlayerState_AwaitingHandshake)
+	{
+		return kNSpRC_BadState;
 	}
 
 	NSpJoinRequestMessage* joinRequestMessage = (NSpJoinRequestMessage*) message;
 
 	// Save their name
-	CopyPlayerName(game->clients[newClientSlot].name, joinRequestMessage->name);
+	CopyPlayerName(newPlayer->name, joinRequestMessage->name);
 
 	// Tell them they're in
 	NSpJoinApprovedMessage approvedMessage;
 	NSpClearMessageHeader(&approvedMessage.header);
-	approvedMessage.header.messageLen = sizeof(NSpJoinApprovedMessage);
-	approvedMessage.header.what = kNSpJoinApproved;
-	approvedMessage.header.from = kNSpHostID;
-	approvedMessage.header.to = newPlayerID;
+	approvedMessage.header.messageLen	= sizeof(NSpJoinApprovedMessage);
+	approvedMessage.header.what			= kNSpJoinApproved;
+	approvedMessage.header.from			= kNSpHostID;
+	approvedMessage.header.to			= newPlayerID;
 
 	int rc = NSpMessage_Send(game, &approvedMessage.header, kNSpSendFlag_Registered);
-
 	if (rc != kNSpRC_OK)
 	{
-		// Send failed, nuke the client.
-		// Since didJoinRequestHandshake is still false, KickClient won't tell the other peers about it,
-		// because we haven't told them someone is joining yet.
-		NSpGame_KickClient(gameRef, newPlayerID);
 		return rc;
 	}
 
 	// Send a flurry of PlayerJoined messages to the new client so it knows who joined
 	for (int i = 0; i < MAX_CLIENTS; i++)
 	{
-		if (i == newClientSlot								// don't send joinedMessage to the new client
-			|| !IsSocketValid(game->clients[i].sockfd))
+		NSpPlayer* player = &game->players[i];
+
+		if (player->state == kNSpPlayerState_Offline		// skip over dead clients
+			|| player->id == newPlayerID)					// skip over itself
 		{
 			continue;
 		}
 
 		NSpPlayerJoinedMessage joinedMessage;
 		NSpClearMessageHeader(&joinedMessage.header);
+		joinedMessage.header.messageLen	= sizeof(NSpPlayerJoinedMessage);
 		joinedMessage.header.what		= kNSpPlayerJoined;
 		joinedMessage.header.from		= kNSpHostID;
 		joinedMessage.header.to			= newPlayerID;
-		joinedMessage.playerCount		= 1 + game->numClients;
+		joinedMessage.playerCount		= 1 + NSpGame_GetNumActivePlayers(gameRef);
 		joinedMessage.playerInfo.id		= NSpGame_ClientSlotToID(gameRef, i);
-		CopyPlayerName(joinedMessage.playerInfo.name, game->clients[i].name);
+		CopyPlayerName(joinedMessage.playerInfo.name, game->players[i].name);
 
 		rc = NSpMessage_Send(gameRef, &joinedMessage.header, kNSpSendFlag_Registered);
 		if (rc != kNSpRC_OK)
 		{
-			// Send failed, nuke the client.
-			// Since didJoinRequestHandshake is still false, KickClient won't tell the other peers about it,
-			// because we haven't told them someone is joining yet.
-			NSpGame_KickClient(gameRef, newPlayerID);
 			return rc;
 		}
 	}
 
 	// We've done the initial handshake
-	game->clients[newClientSlot].didJoinRequestHandshake = true;
+	newPlayer->state = kNSpPlayerState_ConnectedPeer;
 
 	// Tell peers that someone joined
 	for (int i = 0; i < MAX_CLIENTS; i++)
 	{
-		if (i == newClientSlot								// don't send joinedMessage to the new client
-			|| !IsSocketValid(game->clients[i].sockfd))
+		NSpPlayer* peerPlayer = &game->players[i];
+
+		if (peerPlayer->state != kNSpPlayerState_ConnectedPeer
+			|| peerPlayer->id == newPlayer->id)						// don't send joinedMessage to the new client
 		{
 			continue;
 		}
 
 		NSpPlayerJoinedMessage joinedMessage;
 		NSpClearMessageHeader(&joinedMessage.header);
-		joinedMessage.header.what = kNSpPlayerJoined;
-		joinedMessage.header.from = kNSpHostID;
-		joinedMessage.header.to = NSpGame_ClientSlotToID(gameRef, i);
-		joinedMessage.playerCount = 1 + game->numClients;
-		joinedMessage.playerInfo.id = newPlayerID;
-		CopyPlayerName(joinedMessage.playerInfo.name, game->clients[newClientSlot].name);
+		joinedMessage.header.messageLen	= sizeof(NSpPlayerJoinedMessage);
+		joinedMessage.header.what		= kNSpPlayerJoined;
+		joinedMessage.header.from		= kNSpHostID;
+		joinedMessage.header.to			= peerPlayer->id;
+		joinedMessage.playerCount		= NSpGame_GetNumActivePlayers(gameRef);
+		joinedMessage.playerInfo.id		= newPlayerID;
+		CopyPlayerName(joinedMessage.playerInfo.name, newPlayer->name);
 
 		NSpMessage_Send(gameRef, &joinedMessage.header, kNSpSendFlag_Registered);
 	}
@@ -717,15 +770,15 @@ void NSpMessage_Release(NSpGameReference gameRef, NSpMessageHeader* message)
 
 NSpGameReference NSpGame_Host(void)
 {
-//	GAME_ASSERT_MESSAGE(gHostingGame == NULL, "Already hosting a game");
-
 	NSpGameReference gameRef = NULL;
-	NSpCMRGame *game = NULL;
+	NSpGame *game = NULL;
 
 	gameRef = NSpGame_Alloc();
 	game = NSpGame_Unbox(gameRef);
-	game->isHosting = true;
-	game->hostListenSocket = CreateTCPSocket(true);
+	game->isHosting				= true;
+	game->myID					= kNSpHostID;
+
+	game->hostListenSocket		= CreateTCPSocket(true);
 
 	if (!IsSocketValid(game->hostListenSocket))
 	{
@@ -739,15 +792,21 @@ NSpGameReference NSpGame_Host(void)
 		goto fail;
 	}
 
+	// Create a player for myself
+	NSpPlayer* me = NSpGame_GetPlayerFromID(game, kNSpHostID);
+	if (me == NULL)
+	{
+		goto fail;
+	}
+	me->id			= kNSpHostID;
+	me->state		= kNSpPlayerState_Me;
+	me->sockfd		= INVALID_SOCKET;
+	snprintf(me->name, sizeof(me->name), "HOST");
+
 	return gameRef;
 
 fail:
-	CloseSocket(&game->hostAdvertiseSocket);
-
 	NSpGame_Dispose(gameRef, 0);
-	gameRef = NULL;
-	game = NULL;
-
 	return NULL;
 }
 
@@ -956,29 +1015,33 @@ const char* NSpSearch_GetHostAddress(NSpSearchReference searchRef, int lobbyNum)
 
 static NSpGameReference NSpGame_Alloc(void)
 {
-	NSpCMRGame* game = AllocPtrClear(sizeof(NSpCMRGame));
+	NSpGame* game = AllocPtrClear(sizeof(NSpGame));
 	game = (NSpGameReference) game;
 
-	game->cookie = NSPGAME_COOKIE32;
-	game->hostListenSocket = INVALID_SOCKET;
-	game->clientToHostSocket = INVALID_SOCKET;
-	game->numClients = 0;
+	game->hostListenSocket		= INVALID_SOCKET;
+	game->hostAdvertiseSocket	= INVALID_SOCKET;
+	game->clientToHostSocket	= INVALID_SOCKET;
+	game->isHosting				= false;
+	game->timeToReadvertise		= 0;
+	game->myID					= kNSpUnspecifiedEndpoint;
+	game->cookie				= NSPGAME_COOKIE32;
+
 	for (int i = 0; i < MAX_CLIENTS; i++)
 	{
-		NSpCMRClient_Clear(&game->clients[i]);
+		NSpPlayer_Clear(&game->players[i]);
 	}
 
 	return (NSpGameReference) game;
 }
 
-static NSpCMRGame* NSpGame_Unbox(NSpGameReference gameRef)
+static NSpGame* NSpGame_Unbox(NSpGameReference gameRef)
 {
 	if (gameRef == NULL)
 	{
 		return NULL;
 	}
 
-	NSpCMRGame* gamePtr = (NSpCMRGame*) gameRef;
+	NSpGame* gamePtr = (NSpGame*) gameRef;
 
 	GAME_ASSERT(NSPGAME_COOKIE32 == gamePtr->cookie);
 
@@ -987,7 +1050,7 @@ static NSpCMRGame* NSpGame_Unbox(NSpGameReference gameRef)
 
 int NSpGame_Dispose(NSpGameReference inGame, int disposeFlags)
 {
-	NSpCMRGame* game = NSpGame_Unbox(inGame);
+	NSpGame* game = NSpGame_Unbox(inGame);
 
 	if (!game)
 	{
@@ -999,9 +1062,10 @@ int NSpGame_Dispose(NSpGameReference inGame, int disposeFlags)
 	{
 		NSpGameTerminatedMessage byeMessage;
 		NSpClearMessageHeader(&byeMessage.header);
-		byeMessage.header.what		= kNSpGameTerminated;
-		byeMessage.header.to		= kNSpAllPlayers;
-		byeMessage.header.from		= kNSpHostID;
+		byeMessage.header.messageLen	= sizeof(NSpGameTerminatedMessage);
+		byeMessage.header.what			= kNSpGameTerminated;
+		byeMessage.header.to			= kNSpAllPlayers;
+		byeMessage.header.from			= kNSpHostID;
 		NSpMessage_Send(inGame, &byeMessage.header, kNSpSendFlag_Registered);
 	}
 
@@ -1011,11 +1075,10 @@ int NSpGame_Dispose(NSpGameReference inGame, int disposeFlags)
 
 	for (int i = 0; i < MAX_CLIENTS; i++)
 	{
-		NSpCMRClient* client = &game->clients[i];
+		NSpPlayer* client = &game->players[i];
 		CloseSocket(&client->sockfd);
-		NSpCMRClient_Clear(client);
+		NSpPlayer_Clear(client);
 	}
-	game->numClients = 0;
 
 	game->cookie = 'DEAD';
 	SafeDisposePtr((Ptr) game);
@@ -1023,20 +1086,35 @@ int NSpGame_Dispose(NSpGameReference inGame, int disposeFlags)
 	return kNSpRC_OK;
 }
 
-int NSpGame_GetNumClients(NSpGameReference inGame)
+int NSpGame_GetNumActivePlayers(NSpGameReference gameRef)
 {
-	NSpCMRGame* game = NSpGame_Unbox(inGame);
+	NSpGame* game = NSpGame_Unbox(gameRef);
 
 	if (!game)
 	{
-		return kNSpRC_NoGame;
+		return 0;
 	}
 
-	// TODO: only return # of clients with a complete handshake?
-	return game->numClients;
+	int count = 0;
+
+	for (int i = 0; i < MAX_CLIENTS; i++)
+	{
+		switch (game->players[i].state)
+		{
+			case kNSpPlayerState_Me:
+			case kNSpPlayerState_ConnectedPeer:
+				count++;
+				break;
+
+			default:
+				break;
+		}
+	}
+
+	return count;
 }
 
-bool NSpGame_IsValidClientID(NSpGameReference gameRef, NSpPlayerID id)
+bool NSpGame_IsValidPlayerID(NSpGameReference gameRef, NSpPlayerID id)
 {
 	if (id < kNSpClientID0 || id >= kNSpClientID0 + MAX_CLIENTS)
 	{
@@ -1047,40 +1125,93 @@ bool NSpGame_IsValidClientID(NSpGameReference gameRef, NSpPlayerID id)
 	return true;
 }
 
-NSpPlayerID NSpGame_ClientSlotToID(NSpGameReference gameRef, int slot)
+static NSpPlayerID NSpGame_ClientSlotToID(NSpGameReference gameRef, int slot)
 {
 	if (slot < 0 || slot >= MAX_CLIENTS)
-	{
-		return kNSpRC_InvalidClient;
-	}
-	else
-	{
-		return slot + kNSpClientID0;
-	}
-}
-
-int NSpGame_ClientIDToSlot(NSpGameReference gameRef, NSpPlayerID id)
-{
-	if (!NSpGame_IsValidClientID(gameRef, id))
 	{
 		return kNSpUnspecifiedEndpoint;
 	}
 	else
 	{
-		return id - kNSpClientID0;
+		return slot + kNSpHostID;
 	}
+}
+
+static int NSpGame_ClientIDToSlot(NSpGameReference gameRef, NSpPlayerID id)
+{
+	if (!NSpGame_IsValidPlayerID(gameRef, id))
+	{
+		return -1;
+	}
+	else
+	{
+		return id - kNSpHostID;
+	}
+}
+
+static NSpPlayer* NSpGame_GetPlayerFromID(NSpGameReference gameRef, NSpPlayerID id)
+{
+	NSpGame* game = NSpGame_Unbox(gameRef);
+
+	if (!game)
+	{
+		return NULL;
+	}
+
+	int slot = NSpGame_ClientIDToSlot(gameRef, id);
+
+	if (slot >= 0)
+	{
+		return &game->players[id];
+	}
+	else
+	{
+		return NULL;
+	}
+}
+
+NSpPlayerID NSpGame_GetNthActivePlayerID(NSpGameReference gameRef, int n)
+{
+	NSpGame* game = NSpGame_Unbox(gameRef);
+
+	if (!game)
+	{
+		return kNSpUnspecifiedEndpoint;
+	}
+
+	for (int i = 0; i < MAX_CLIENTS; i++)
+	{
+		NSpPlayer* player = &game->players[i];
+
+		if (player->state == kNSpPlayerState_Offline
+			|| player->state == kNSpPlayerState_AwaitingHandshake)
+		{
+			continue;
+		}
+
+		if (n == 0)
+		{
+			return player->id;
+		}
+		else
+		{
+			n--;
+		}
+	}
+
+	return kNSpUnspecifiedEndpoint;
 }
 
 bool NSpGame_IsAdvertising(NSpGameReference gameRef)
 {
-	NSpCMRGame* game = NSpGame_Unbox(gameRef);
+	NSpGame* game = NSpGame_Unbox(gameRef);
 
 	return game && game->isHosting && game->isAdvertising;
 }
 
 int NSpGame_StartAdvertising(NSpGameReference gameRef)
 {
-	NSpCMRGame* game = NSpGame_Unbox(gameRef);
+	NSpGame* game = NSpGame_Unbox(gameRef);
 
 	if (!game)
 	{
@@ -1111,7 +1242,7 @@ int NSpGame_StartAdvertising(NSpGameReference gameRef)
 
 int NSpGame_StopAdvertising(NSpGameReference gameRef)
 {
-	NSpCMRGame* game = NSpGame_Unbox(gameRef);
+	NSpGame* game = NSpGame_Unbox(gameRef);
 
 	if (!game)
 	{
@@ -1137,7 +1268,7 @@ int NSpGame_StopAdvertising(NSpGameReference gameRef)
 
 int NSpGame_AdvertiseTick(NSpGameReference gameRef, float dt)
 {
-	NSpCMRGame* game = NSpGame_Unbox(gameRef);
+	NSpGame* game = NSpGame_Unbox(gameRef);
 
 	if (!game)
 	{
@@ -1201,6 +1332,8 @@ int NSpGame_AdvertiseTick(NSpGameReference gameRef, float dt)
 
 static int SendOnSocket(sockfd_t sockfd, NSpMessageHeader* header)
 {
+	GAME_ASSERT_MESSAGE(header->what != kNSpUndefinedMessage, "Did you forget to set header->what?");
+	GAME_ASSERT_MESSAGE(header->messageLen != 0xBADBABEE, "Did you forget to set header->messageLen?");
 	GAME_ASSERT(header->messageLen >= sizeof(NSpMessageHeader));
 	GAME_ASSERT(header->messageLen <= kNSpMaxMessageLength);
 	GAME_ASSERT(header->version == kNSpCMRProtocol4CC);
@@ -1231,13 +1364,22 @@ static int SendOnSocket(sockfd_t sockfd, NSpMessageHeader* header)
 	}
 }
 
+// Attempts to send a message.
+// If we're the host and sending fails, automatically kicks the client.
+// Kicking the client will in turn broadcast a PlayerLeftMessage to remaining clients,
+// if the other clients already know the kicked client.
 int NSpMessage_Send(NSpGameReference gameRef, NSpMessageHeader* header, int flags)
 {
-	NSpCMRGame* game = NSpGame_Unbox(gameRef);
+	NSpGame* game = NSpGame_Unbox(gameRef);
 
 	if (!game)
 	{
 		return kNSpRC_NoGame;
+	}
+
+	if (header->from == kNSpUnspecifiedEndpoint)
+	{
+		header->from = game->myID;
 	}
 
 	GAME_ASSERT_MESSAGE(flags == kNSpSendFlag_Registered, "only reliable messages are supported");
@@ -1251,10 +1393,12 @@ int NSpMessage_Send(NSpGameReference gameRef, NSpMessageHeader* header, int flag
 				int anyError = 0;
 				for (int i = 0; i < MAX_CLIENTS; i++)
 				{
-					if (IsSocketValid(game->clients[i].sockfd)
-						&& game->clients[i].didJoinRequestHandshake)
+					NSpPlayer* peer = &game->players[i];
+
+					if (peer->state == kNSpPlayerState_ConnectedPeer	// send to peers with complete handshake
+						&& peer->id != header->from)					// don't return to sender!
 					{
-						int rc = SendOnSocket(game->clients[i].sockfd, header);
+						int rc = SendOnSocket(game->players[i].sockfd, header);
 						if (rc != kNSpRC_OK)
 						{
 							anyError = rc;
@@ -1267,32 +1411,35 @@ int NSpMessage_Send(NSpGameReference gameRef, NSpMessageHeader* header, int flag
 			}
 
 			case kNSpHostID:
-			case kNSpMasterEndpointID:
 				GAME_ASSERT_MESSAGE(false, "Host cannot send itself a message");
 				break;
 
 			default:
 			{
 				NSpPlayerID playerID = header->to;
-				int clientSlot = NSpGame_ClientIDToSlot(gameRef, playerID);
+				NSpPlayer* peer = NSpGame_GetPlayerFromID(gameRef, playerID);
 
-				GAME_ASSERT(clientSlot >= 0);
-				GAME_ASSERT(clientSlot < MAX_CLIENTS);
-
-				int rc = SendOnSocket(game->clients[clientSlot].sockfd, header);
-				if (rc != kNSpRC_OK)
+				if (peer
+					&& (peer->state == kNSpPlayerState_ConnectedPeer || peer->state == kNSpPlayerState_AwaitingHandshake))
 				{
-					NSpGame_KickClient(gameRef, playerID);
+					int rc = SendOnSocket(peer->sockfd, header);
+					if (rc != kNSpRC_OK)
+					{
+						NSpGame_KickClient(gameRef, playerID);
+					}
+					return rc;
 				}
-
-				return rc;
+				else
+				{
+					return kNSpRC_InvalidPlayer;
+				}
 			}
 		}
 	}
 	else
 	{
-//		GAME_ASSERT_MESSAGE(header->to == kNSpHostOnly || header->to == kNSpHostID,
-//			"Clients may only communicate with the host");
+		// If we're a client, forward ALL messages to the host.
+		// The host will dispatch the message for us.
 
 		int rc = SendOnSocket(game->clientToHostSocket, header);
 		if (rc != kNSpRC_OK)
@@ -1307,8 +1454,10 @@ int NSpMessage_Send(NSpGameReference gameRef, NSpMessageHeader* header, int flag
 
 #pragma mark - NSpCMRClient
 
-static void NSpCMRClient_Clear(NSpCMRClient* client)
+static void NSpPlayer_Clear(NSpPlayer* player)
 {
-	memset(client, 0, sizeof(NSpCMRClient));
-	client->sockfd = INVALID_SOCKET;
+	memset(player, 0, sizeof(NSpPlayer));
+	player->id			= kNSpUnspecifiedEndpoint;
+	player->sockfd		= INVALID_SOCKET;
+	player->state		= kNSpPlayerState_Offline;
 }

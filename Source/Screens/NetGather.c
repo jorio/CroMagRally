@@ -36,15 +36,6 @@ static int DoNetGatherControls(void);
 static ObjNode* gGatherPrompt = NULL;
 
 
-static bool HostReadyToStartGame(void)
-{
-	return gIsNetworkHost
-		&& NSpGame_IsAdvertising(gNetGame)
-		&& NSpGame_GetNumClients(gNetGame) > 0
-		;
-}
-
-
 static void UpdateNetGatherPrompt(void)
 {
 	static char buf[256];
@@ -62,20 +53,23 @@ static void UpdateNetGatherPrompt(void)
 			break;
 		}
 
-		case kNetSequence_HostWaitingForAnyPlayersToJoinLobby:
-			snprintf(buf, sizeof(buf), "WAITING FOR PLAYERS\nON LOCAL NETWORK...");
 			break;
 
-		case kNetSequence_HostWaitingForMorePlayersToJoinLobby:
+		case kNetSequence_HostLobbyOpen:
 		{
-			int numClientsConnectedToHost = NSpGame_GetNumClients(gNetGame);
-			if (numClientsConnectedToHost == 1)
+			int numPlayers = NSpGame_GetNumActivePlayers(gNetGame);
+			int numClients = numPlayers - 1;
+			if (numClients <= 0)
+			{
+				snprintf(buf, sizeof(buf), "WAITING FOR PLAYERS\nON LOCAL NETWORK...");
+			}
+			else if (numClients == 1)
 			{
 				snprintf(buf, sizeof(buf), "1 PLAYER CONNECTED\n\nPRESS ENTER TO BEGIN");
 			}
 			else
 			{
-				snprintf(buf, sizeof(buf), "%d PLAYERS CONNECTED\n\nPRESS ENTER TO BEGIN", numClientsConnectedToHost);
+				snprintf(buf, sizeof(buf), "%d PLAYERS CONNECTED\n\nPRESS ENTER TO BEGIN", numClients);
 			}
 			break;
 		}
@@ -228,8 +222,9 @@ static int DoNetGatherControls(void)
 
 	switch (gNetSequenceState)
 	{
-		case kNetSequence_HostWaitingForMorePlayersToJoinLobby:
-			if (GetNewNeedStateAnyP(kNeed_UIConfirm))
+		case kNetSequence_HostLobbyOpen:
+			if (GetNewNeedStateAnyP(kNeed_UIConfirm)
+				&& NSpGame_GetNumActivePlayers(gNetGame) >= 2)
 			{
 				gNetSequenceState = kNetSequence_HostReadyToStartGame;
 			}

@@ -24,24 +24,22 @@ typedef int sockfd_t;
 
 typedef enum
 {
+	kNSpUnspecifiedEndpoint		= -2,
+
 	// Send message to all connected players
-	kNSpAllPlayers				= 0,
+	kNSpAllPlayers				= -1,
 
 	// Used to send a message to the NSp game's host
-	kNSpHostID					= 1,
+	kNSpHostID					= 0,
 
-	kNSpClientID0				= 2,
-
-	// For use in a headless server setup
-	kNSpMasterEndpointID		= -1,
-
-	kNSpUnspecifiedEndpoint		= -2,
+	kNSpClientID0				= kNSpHostID,
 }NSpPlayerSpecials;
 
 // All-caps 4CCs are reserved for internal use.
 enum
 {
 	kNSpError					= 'ERR!',
+	kNSpUndefinedMessage		= 'UNDF',
 	kNSpJoinRequest				= 'JREQ',
 	kNSpJoinApproved			= 'JACK',
 	kNSpJoinDenied				= 'JDNY',
@@ -74,7 +72,7 @@ enum
 	kNSpRC_Failed				= -127,
 	kNSpRC_SendFailed,
 	kNSpRC_RecvFailed,
-	kNSpRC_InvalidClient,
+	kNSpRC_InvalidPlayer,
 	kNSpRC_InvalidSocket,
 	kNSpRC_NoGame,
 	kNSpRC_NoSearch,
@@ -86,7 +84,7 @@ typedef int32_t						NSpPlayerID;
 
 typedef struct sockaddr_in*			NSpAddressReference;
 
-typedef struct NSpCMRGame*			NSpGameReference;
+typedef struct NSpGame*				NSpGameReference;
 typedef struct NSpSearch*			NSpSearchReference;
 
 typedef struct
@@ -150,13 +148,12 @@ int GetSocketError(void);
 int GetLastSocketError(void);
 const char* NSp4CCString(uint32_t fourcc);
 
-bool NSpGame_IsValidClientID(NSpGameReference gameRef, NSpPlayerID id);
-NSpPlayerID NSpGame_ClientSlotToID(NSpGameReference gameRef, int slot);
-int NSpGame_ClientIDToSlot(NSpGameReference gameRef, NSpPlayerID id);
+bool NSpGame_IsValidPlayerID(NSpGameReference gameRef, NSpPlayerID id);
 NSpGameReference NSpGame_Host(void);
 int NSpGame_AcceptNewClient(NSpGameReference gameRef);
 int NSpGame_AckJoinRequest(NSpGameReference gameRef, NSpMessageHeader* inMessage);
-int NSpGame_GetNumClients(NSpGameReference gameRef);
+int NSpGame_GetNumActivePlayers(NSpGameReference gameRef);
+NSpPlayerID NSpGame_GetNthActivePlayerID(NSpGameReference gameRef, int n);
 int NSpGame_StartAdvertising(NSpGameReference gameRef);
 int NSpGame_StopAdvertising(NSpGameReference gameRef);
 int NSpGame_AdvertiseTick(NSpGameReference gameRef, float dt);

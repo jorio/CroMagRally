@@ -114,9 +114,7 @@ enum
 	kNetSequence_Error,
 	
 	kNetSequence_HostOffline = 100,
-	kNetSequence_HostCreatedLobby,
-	kNetSequence_HostWaitingForAnyPlayersToJoinLobby,
-	kNetSequence_HostWaitingForMorePlayersToJoinLobby,
+	kNetSequence_HostLobbyOpen,
 	kNetSequence_HostReadyToStartGame,
 	kNetSequence_HostStartingGame,
 	

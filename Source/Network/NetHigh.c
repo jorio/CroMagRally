@@ -143,8 +143,7 @@ bool UpdateNetSequence(void)
 
 	switch (gNetSequenceState)
 	{
-		case kNetSequence_HostWaitingForAnyPlayersToJoinLobby:
-		case kNetSequence_HostWaitingForMorePlayersToJoinLobby:
+		case kNetSequence_HostLobbyOpen:
 		{
 			NSpGame_AdvertiseTick(gNetGame, gFramesPerSecondFrac);
 			NSpGame_AcceptNewClient(gNetGame);
@@ -159,15 +158,10 @@ bool UpdateNetSequence(void)
 					NSpGame_AckJoinRequest(gNetGame, message);
 					break;
 				}
-			}
 
-			if (NSpGame_GetNumClients(gNetGame) > 0)
-			{
-				gNetSequenceState = kNetSequence_HostWaitingForMorePlayersToJoinLobby;
-			}
-			else if (NSpGame_GetNumClients(gNetGame) == 0)
-			{
-				gNetSequenceState = kNetSequence_HostWaitingForAnyPlayersToJoinLobby;
+				default:
+					HandleOtherNetMessage(message);
+					break;
 			}
 
 			break;
@@ -240,9 +234,11 @@ bool UpdateNetSequence(void)
 					break;
 
 				case	kNSpJoinApproved:
-					puts("Join approved!");
-					// TODO: Store our client ID.
+				{
+					NSpJoinApprovedMessage* approvedMessage = (NSpJoinApprovedMessage*) message;
+					printf("Join approved! My player ID is %d\n", approvedMessage->header.to);
 					break;
+				}
 
 				case	kNSpPlayerLeft:												// see if someone decided to un-join
 //					ShowNamesOfJoinedPlayers();
@@ -398,7 +394,7 @@ Boolean SetupNetworkHosting(void)
 		return true;
 	}
 
-	gNetSequenceState = kNetSequence_HostWaitingForAnyPlayersToJoinLobby;
+	gNetSequenceState = kNetSequence_HostLobbyOpen;
 
 
 			/* LET USERS JOIN IN */
@@ -465,8 +461,7 @@ NetConfigMessageType	message;
 
 			/* GET PLAYER INFO */
 
-	int numClients = NSpGame_GetNumClients(gNetGame);
-	gNumRealPlayers = 1 + numClients;								// get # players (host + clients)
+	gNumRealPlayers = NSpGame_GetNumActivePlayers(gNetGame);
 
 	gMyNetworkPlayerNum = 0;										// the host is always player #0
 
@@ -481,13 +476,13 @@ NetConfigMessageType	message;
 
 	int p = 1;														// start assigning player nums at 1 since Host is always #0
 
-	for (int i = 0; i < numClients; i++)
+	for (int i = 0; i < gNumRealPlayers; i++)
 	{
-		int clientID = kNSpClientID0 + i;
+		NSpPlayerID clientID = NSpGame_GetNthActivePlayerID(gNetGame, i);
 
 		gPlayerInfo[i].nspPlayerID = clientID;						// get NSp's playerID (for use when player leaves game)
 
-//		if (clientID != hostID)										// don't send start info to myself/host
+		if (clientID != kNSpHostID)									// don't send start info to myself/host
 		{
 					/* MAKE NEW MESSAGE */
 
@@ -553,6 +548,12 @@ void HandleGameConfigMessage(NetConfigMessageType *inMessage)
 	gGamePrefs.difficulty = inMessage->difficulty;
 	gGamePrefs.tagDuration = inMessage->tagDuration;
 	gGamePrefs.tournamentProgression.numTracksCompleted = inMessage->numTracksCompleted;
+
+
+	for (int i = 0; i < gNumRealPlayers; i++)
+	{
+		gPlayerInfo[i].nspPlayerID = NSpGame_GetNthActivePlayerID(gNetGame, i);		// get NSp's playerID (for use when player leaves game)
+	}
 }
 
 
