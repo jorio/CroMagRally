@@ -284,9 +284,13 @@ static void CycleSkin(short whichPlayer, int delta)
 			/* FIND OUT WHICH SKINS ARE ALREADY TAKEN */
 
 	uint32_t skinsTaken = 0;
-	for (int prevPlayer = 0; prevPlayer < whichPlayer; prevPlayer++)
+
+	if (!gNetGameInProgress)		// in net games, let user pick any skin
 	{
-		skinsTaken |= (1 << gPlayerInfo[prevPlayer].skin);
+		for (int prevPlayer = 0; prevPlayer < whichPlayer; prevPlayer++)
+		{
+			skinsTaken |= (1 << gPlayerInfo[prevPlayer].skin);
+		}
 	}
 
 			/* CYCLE TO NEXT AVAILABLE SKIN */

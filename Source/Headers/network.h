@@ -79,6 +79,7 @@ typedef struct
 	int16_t				playerNum;
 	int16_t				vehicleType;
 	int16_t				sex;				// 0 = male, 1 = female
+	int16_t				skin;
 }NetPlayerCharTypeMessage;
 
 

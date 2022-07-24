@@ -286,6 +286,7 @@ bool UpdateNetSequence(void)
 
 						gPlayerInfo[mess->playerNum].vehicleType = mess->vehicleType;	// save this player's type
 						gPlayerInfo[mess->playerNum].sex = mess->sex;					// save this player's sex
+						gPlayerInfo[mess->playerNum].skin = mess->skin;					// save this player's skin
 						gPlayerSyncCounter++;											// inc count of received info
 
 						break;
@@ -930,6 +931,7 @@ NetPlayerCharTypeMessage	outMess;
 	outMess.playerNum		= gMyNetworkPlayerNum;					// player #
 	outMess.vehicleType		= gPlayerInfo[gMyNetworkPlayerNum].vehicleType;
 	outMess.sex				= gPlayerInfo[gMyNetworkPlayerNum].sex;
+	outMess.skin			= gPlayerInfo[gMyNetworkPlayerNum].skin;
 
 			/* SEND IT */
 
