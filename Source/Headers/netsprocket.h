@@ -159,7 +159,7 @@ const char* NSp4CCString(uint32_t fourcc);
 
 bool NSpGame_IsValidPlayerID(NSpGameReference gameRef, NSpPlayerID id);
 NSpGameReference NSpGame_Host(void);
-int NSpGame_AcceptNewClient(NSpGameReference gameRef);
+NSpPlayerID NSpGame_AcceptNewClient(NSpGameReference gameRef);
 int NSpGame_AckJoinRequest(NSpGameReference gameRef, NSpMessageHeader* inMessage);
 int NSpGame_GetNumActivePlayers(NSpGameReference gameRef);
 NSpPlayerID NSpGame_GetNthActivePlayerID(NSpGameReference gameRef, int n);
