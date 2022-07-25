@@ -35,3 +35,5 @@ void DoPhysicsEditor(void);
 
 void RegisterSettingsMenu(const MenuItem* junk);
 
+void DoNetPauseScreenTick(void);
+void EndNetPauseScreen(void);

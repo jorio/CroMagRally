@@ -97,7 +97,7 @@ void HostWaitForPlayersToPrepareLevel(void);
 
 void HostSend_ControlInfoToClients(void);
 void ClientSend_ControlInfoToHost(void);
-void ClientReceive_ControlInfoFromHost(void);
+Boolean ClientReceive_ControlInfoFromHost(void);
 void HostReceive_ControlInfoFromClients(void);
 
 void PlayerBroadcastVehicleType(void);

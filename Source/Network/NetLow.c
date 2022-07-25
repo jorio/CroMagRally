@@ -1529,6 +1529,13 @@ int NSpPlayer_Kick(NSpGameReference gameRef, NSpPlayerID kickedPlayerID)
 	return kNSpRC_OK;
 }
 
+const char* NSpPlayer_GetName(NSpGameReference gameRef, NSpPlayerID playerID)
+{
+	NSpPlayer* player = NSpGame_GetPlayerFromID(gameRef, playerID);
+
+	return player == NULL ? NULL : player->name;
+}
+
 static void NSpPlayer_Clear(NSpPlayer* player)
 {
 	memset(player, 0, sizeof(NSpPlayer));

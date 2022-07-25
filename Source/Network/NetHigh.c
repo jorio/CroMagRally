@@ -46,6 +46,9 @@ Boolean		gIsNetworkHost = false;
 Boolean		gIsNetworkClient = false;
 Boolean		gNetGameInProgress = false;
 
+Boolean		gNetPaused = false;
+const char*	gNetPausedBy = NULL;
+
 NSpGameReference	gNetGame = nil;
 NSpSearchReference	gNetSearch = nil;
 
@@ -727,81 +730,109 @@ short							i;
 // This data will contain the fps and control bitfield info for each player.
 //
 
-void ClientReceive_ControlInfoFromHost(void)
+Boolean ClientReceive_ControlInfoFromHost(void)
 {
-NetHostControlInfoMessageType		*mess;
 NSpMessageHeader 					*inMess;
-uint32_t								tick,i;
+uint32_t							tick;
 Boolean								gotIt = false;
 
 
 	tick = TickCount();														// init tick for timeout
 
-	do
+tryAgain:
+	inMess = NSpMessage_Get(gNetGame);									// get message
+
+	if (inMess)
 	{
-		inMess = NSpMessage_Get(gNetGame);									// get message
-		if (inMess)
+		tick = TickCount();												// reset tick for timeout
+		switch(inMess->what)
 		{
-			tick = TickCount();												// reset tick for timeout
-			switch(inMess->what)
+			case	kNetHostControlInfoMessage:
 			{
-				case	kNetHostControlInfoMessage:
-						mess = (NetHostControlInfoMessageType *)inMess;
+				gotIt = true;
 
-						if (mess->frameCounter < gHostSendCounter)			// see if this is an old packet, possibly a duplicate.  If so, skip it
-							break;
-						if (mess->frameCounter > gHostSendCounter)			// see if we skipped a packet; one must have gotten lost
-							DoFatalAlert("ClientReceive_ControlInfoFromHost: It seems Net Sprocket has lost a packet");
-						gHostSendCounter++;									// inc host counter since the next packet we get will be +1
+				gTimeoutCounter = 0;
+				gNetPaused = false;
+				gNetPausedBy = NULL;
 
-						gFramesPerSecond 		= mess->fps;
-						gFramesPerSecondFrac 	= mess->fpsFrac;
+				NetHostControlInfoMessageType		*mess;
 
-						if (MyRandomLong() != mess->randomSeed)				// verify that host's random # is in sync with ours!
-						{
-							DoFatalAlert("ClientReceive_ControlInfoFromHost: Not in sync!  Net Sprocket must have lost some data.");
-						}
+				mess = (NetHostControlInfoMessageType *)inMess;
 
-						for (i = 0; i < MAX_PLAYERS; i++)					// control bits
-						{
-							gPlayerInfo[i].controlBits 		= mess->controlBits[i];
-							gPlayerInfo[i].controlBits_New 	= mess->controlBitsNew[i];
-							gPlayerInfo[i].analogSteering	= mess->analogSteering[i];
-						}
+				if (mess->frameCounter < gHostSendCounter)			// see if this is an old packet, possibly a duplicate.  If so, skip it
+					break;
+				if (mess->frameCounter > gHostSendCounter)			// see if we skipped a packet; one must have gotten lost
+					DoFatalAlert("ClientReceive_ControlInfoFromHost: It seems Net Sprocket has lost a packet");
+				gHostSendCounter++;									// inc host counter since the next packet we get will be +1
 
-						gotIt = true;
-						break;
+				gFramesPerSecond 		= mess->fps;
+				gFramesPerSecondFrac 	= mess->fpsFrac;
 
-				case	kNSpError:
-						DoFatalAlert("ClientReceive_ControlInfoFromHost: message == kNSpError");
-						break;
+				if (MyRandomLong() != mess->randomSeed)				// verify that host's random # is in sync with ours!
+				{
+					DoFatalAlert("ClientReceive_ControlInfoFromHost: Not in sync!  Net Sprocket must have lost some data.");
+				}
 
-				default:
-						if (HandleOtherNetMessage(inMess))
-							return;
+				for (int i = 0; i < MAX_PLAYERS; i++)					// control bits
+				{
+					gPlayerInfo[i].controlBits 		= mess->controlBits[i];
+					gPlayerInfo[i].controlBits_New 	= mess->controlBitsNew[i];
+					gPlayerInfo[i].analogSteering	= mess->analogSteering[i];
+				}
+
+				goto done;
 			}
-			NSpMessage_Release(gNetGame, inMess);			// dispose of message
+
+			case	kNetNullPacket:
+			{
+				gNetPaused = true;
+				gNetPausedBy = NSpPlayer_GetName(gNetGame, inMess->from);
+
+				goto done;
+			}
+
+			case	kNSpError:
+				DoFatalAlert("ClientReceive_ControlInfoFromHost: message == kNSpError");
+				goto done;
+
+			default:
+				if (HandleOtherNetMessage(inMess))
+					goto done;
 		}
 
-				/* SEE IF WE ARE NOT GETTING THE PACKET */
-				//
-				// If this happens, then it is possible that Net Sprocket lost a packet.  There is no way to know who's packet got lost
-				// so go ahead and send our most recent packet again in case it was us.  The Host will throw out any dupes that it gets.
-				//
+		NSpMessage_Release(gNetGame, inMess);
+		inMess = NULL;
+	}
 
-		if ((TickCount() - tick) > (DATA_TIMEOUT*60))		// see if we've been waiting longer than n seconds
-		{
-			gTimeoutCounter++;								// keep track of how often this happens
-			if (gTimeoutCounter > 3)
-				DoFatalAlert("ClientReceive_ControlInfoFromHost: the network is losing too much data, must abort.");
+			/* SEE IF WE ARE NOT GETTING THE PACKET */
+			//
+			// If this happens, then it is possible that Net Sprocket lost a packet.  There is no way to know who's packet got lost
+			// so go ahead and send our most recent packet again in case it was us.  The Host will throw out any dupes that it gets.
+			//
+			// [SOURCE PORT NOTE: I don't think we should resend packets since we're using TCP for everything]
 
-			NSpMessage_Send(gNetGame, &gClientOutMess.h, kNSpSendFlag_Registered);	// resend the last message
-			tick = TickCount();														// reset tick
-		}
+	if ((TickCount() - tick) > (DATA_TIMEOUT*60))		// see if we've been waiting longer than n seconds
+	{
+		gTimeoutCounter++;								// keep track of how often this happens
+		if (gTimeoutCounter > 3)
+			DoFatalAlert("ClientReceive_ControlInfoFromHost: the network is losing too much data, must abort.");
 
-	}while(!gotIt);
+#if 0	// SOURCE PORT: DON'T RESEND - We're using TCP!
+		NSpMessage_Send(gNetGame, &gClientOutMess.h, kNSpSendFlag_Registered);	// resend the last message
+#endif
 
-	gTimeoutCounter = 0;
+		tick = TickCount();														// reset tick
+	}
+
+	SDL_Delay(5);
+	goto tryAgain;
+
+done:
+	if (inMess)
+	{
+		NSpMessage_Release(gNetGame, inMess);
+	}
+	return gotIt;
 }
 
 

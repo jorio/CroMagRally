@@ -939,7 +939,17 @@ static void PlayArea(void)
 
 		if (gIsNetworkClient)
 		{
-			ClientReceive_ControlInfoFromHost();			// read all player's control info back from the Host once he's gathered it all
+			Boolean gotControlInfo = ClientReceive_ControlInfoFromHost();			// read all player's control info back from the Host once he's gathered it all
+
+			if (!gotControlInfo)
+			{
+				DoNetPauseScreenTick();
+				continue;
+			}
+			else
+			{
+				EndNetPauseScreen();
+			}
 		}
 
 				/* HOST OR NON-NET */
