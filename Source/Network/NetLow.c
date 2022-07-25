@@ -27,8 +27,7 @@ typedef int socklen_t;
 #include "game.h"
 #include "network.h"
 
-#define LOBBY_PORT 49959
-#define LOBBY_PORT_STR "49959"
+int gNetPort = 49959;
 #define LOBBY_BROADCAST_INTERVAL 1.0f
 
 #define PENDING_CONNECTIONS_QUEUE 10
@@ -262,7 +261,7 @@ static NSpGameReference JoinLobby(const LobbyInfo* lobby)
 	struct sockaddr_in bindAddr =
 	{
 		.sin_family = AF_INET,
-		.sin_port = htons(LOBBY_PORT),//lobby->hostAddr.sin_port,
+		.sin_port = htons(gNetPort),//lobby->hostAddr.sin_port,
 		.sin_addr.s_addr = lobby->hostAddr.sin_addr.s_addr,
 	};
 
@@ -387,7 +386,9 @@ static sockfd_t CreateTCPSocket(bool bindIt)
 		.ai_protocol = IPPROTO_TCP,
 	};
 
-	if (0 != getaddrinfo(NULL, LOBBY_PORT_STR, &hints, &res))
+	char portStr[16];
+	snprintf(portStr, sizeof(portStr), "%d", gNetPort);
+	if (0 != getaddrinfo(NULL, portStr, &hints, &res))
 	{
 		goto fail;
 	}
@@ -882,7 +883,7 @@ NSpSearchReference NSpSearch_StartSearchingForGameHosts(void)
 	struct sockaddr_in bindAddr =
 	{
 		.sin_family = AF_INET,
-		.sin_port = htons(LOBBY_PORT),
+		.sin_port = htons(gNetPort),
 		.sin_addr.s_addr = INADDR_ANY,
 	};
 
@@ -1327,7 +1328,7 @@ int NSpGame_AdvertiseTick(NSpGameReference gameRef, float dt)
 	struct sockaddr_in broadcastAddr =
 	{
 		.sin_family = AF_INET,
-		.sin_port = htons(LOBBY_PORT),
+		.sin_port = htons(gNetPort),
 		.sin_addr.s_addr = INADDR_BROADCAST,
 	};
 

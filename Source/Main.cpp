@@ -106,6 +106,12 @@ static void ParseCommandLine(int argc, char** argv)
 			gCommandLine.netHost = true;
 		else if (argument == "--join")
 			gCommandLine.netJoin = true;
+		else if (argument == "--port")
+		{
+			GAME_ASSERT_MESSAGE(i + 1 < argc, "port # unspecified");
+			gNetPort = atoi(argv[i + 1]);
+			i += 1;
+		}
 		else if (argument == "--display")
 		{
 			GAME_ASSERT_MESSAGE(i + 1 < argc, "display # unspecified");

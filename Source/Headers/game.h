@@ -93,6 +93,7 @@ extern int						gLoadTextureFlags;
 extern int						gGameMode;
 extern int						gGameWindowHeight;
 extern int						gGameWindowWidth;
+extern int						gNetPort;
 extern int						gNetSequenceError;
 extern int						gNetSequenceState;
 extern int						gNumObjectNodes;
