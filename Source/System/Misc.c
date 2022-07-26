@@ -132,6 +132,11 @@ static Boolean	beenHere = false;
 #pragma mark -
 
 
+uint32_t GetRandomSeed(void)
+{
+	return seed0;
+}
+
 /******************** MY RANDOM LONG **********************/
 //
 // My own random number generator that returns a LONG

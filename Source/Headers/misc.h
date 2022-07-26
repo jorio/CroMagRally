@@ -10,6 +10,7 @@ void	DoAlert(const char* format, ...);
 POMME_NORETURN void DoFatalAlert(const char* format, ...);
 POMME_NORETURN void CleanQuit(void);
 extern	void SetMyRandomSeed(unsigned long seed);
+uint32_t GetRandomSeed(void);
 extern	unsigned long MyRandomLong(void);
 extern	Handle	AllocHandle(long size);
 extern	void *AllocPtr(long size);

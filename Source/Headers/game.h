@@ -176,5 +176,8 @@ extern TileAttribType			**gTileAttribList;
 extern UserPhysics				gUserPhysics;
 extern uint16_t					**gTileGrid;
 extern uint32_t					gAutoFadeStatusBits;
+extern uint32_t					gClientSendCounter[MAX_PLAYERS];
+extern uint32_t					gGameFrameNum;
 extern uint32_t					gGlobalMaterialFlags;
+extern uint32_t					gHostSendCounter;
 extern uint32_t					gInfobarUpdateBits;
