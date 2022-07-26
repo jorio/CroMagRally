@@ -88,6 +88,53 @@ const char* Localize(LocStrID stringID)
 	return gStringsTable[stringID];
 }
 
+int LocalizeWithPlaceholder(LocStrID stringID, char* buf0, size_t bufSize, const char* format, ...)
+{
+	char* buf = buf0;
+	const char* localizedString = Localize(stringID);
+
+	const char* placeholder = strchr(localizedString, '#');
+
+	if (!placeholder)
+	{
+		goto fail;
+	}
+
+	size_t bytesBeforePlaceholder = placeholder - localizedString;
+
+	if (bytesBeforePlaceholder + 1 >= bufSize)		// +1 for nul terminator
+	{
+		goto fail;
+	}
+
+	memcpy(buf, localizedString, bytesBeforePlaceholder);
+	buf += bytesBeforePlaceholder;
+	bufSize -= bytesBeforePlaceholder;
+
+	va_list args;
+	va_start(args, format);
+	int rc = vsnprintf(buf, bufSize, format, args);
+	va_end(args);
+
+	if (rc >= 0)
+	{
+		buf += rc;
+		bufSize -= rc;
+
+		rc = snprintf(buf, bufSize, "%s", placeholder + 1);
+		if (rc >= 0)
+		{
+			buf += rc;
+			bufSize -= rc;
+		}
+	}
+
+	return (int) (buf - buf0);
+
+fail:
+	return snprintf(buf, bufSize, "%s", localizedString);
+}
+
 GameLanguageID GetBestLanguageIDFromSystemLocale(void)
 {
 	GameLanguageID languageID = LANGUAGE_ENGLISH;

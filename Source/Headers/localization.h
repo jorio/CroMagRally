@@ -322,6 +322,23 @@ typedef enum LocStrID
 	STR_MONTH_11,
 	STR_MONTH_12,
 
+	STR_NETWORK_ERROR,
+	STR_WAITING_FOR_PLAYERS_ON_LAN,
+	STR_SEARCHING_FOR_GAMES_ON_LAN,
+	STR_1_PLAYER_CONNECTED,
+	STR_N_PLAYERS_CONNECTED,
+	STR_PRESS_XXX_TO_BEGIN,
+	STR_FOUND_N_GAMES_ON_LAN,
+	STR_FOUND_1_GAME_AT,
+	STR_JOINING_GAME,
+	STR_JOINED_GAME,
+	STR_WAITING_FOR_HOST,
+	STR_OTHER_PLAYERS_READYING_UP,
+	STR_HOST_ENDED_GAME,
+	STR_HOST_UNREACHABLE,
+	STR_YOU_WERE_KICKED,
+	STR_LETS_GO,
+
 	NUM_LOCALIZED_STRINGS,
 } LocStrID;
 
@@ -329,5 +346,6 @@ void LoadLocalizedStrings(GameLanguageID languageID);
 void DisposeLocalizedStrings(void);
 
 const char* Localize(LocStrID stringID);
+int LocalizeWithPlaceholder(LocStrID stringID, char* buf, size_t bufSize, const char* format, ...);
 
 GameLanguageID GetBestLanguageIDFromSystemLocale(void);

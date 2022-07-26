@@ -40,6 +40,12 @@ static void UpdateNetGatherPrompt(void)
 {
 	static char buf[256];
 
+	char* cursor = buf;
+	size_t bufSize = sizeof(buf);
+	int rc = 0;
+
+	const char* output = buf;
+
 	switch (gNetSequenceState)
 	{
 		case kNetSequence_Error:
@@ -49,25 +55,25 @@ static void UpdateNetGatherPrompt(void)
 #else
 			char errorChar = 'U';
 #endif
-			snprintf(buf, sizeof(buf), "NETWORK ERROR %c-%d", errorChar, GetLastSocketError());
+			snprintf(buf, sizeof(buf), "%s %c-%d", Localize(STR_NETWORK_ERROR), errorChar, GetLastSocketError());
 			break;
 		}
 
 		case kNetSequence_ClientOfflineBecauseHostBailed:
 		{
-			snprintf(buf, sizeof(buf), "THE HOST HAS QUIT THE GAME.");
+			output = Localize(STR_HOST_ENDED_GAME);
 			break;
 		}
 
 		case kNetSequence_ClientOfflineBecauseHostUnreachable:
 		{
-			snprintf(buf, sizeof(buf), "THE HOST HAS BECOME UNREACHABLE.");
+			output = Localize(STR_HOST_UNREACHABLE);
 			break;
 		}
 
 		case kNetSequence_ClientOfflineBecauseKicked:
 		{
-			snprintf(buf, sizeof(buf), "YOU WERE KICKED FROM THE GAME.");
+			output = Localize(STR_YOU_WERE_KICKED);
 			break;
 		}
 
@@ -77,21 +83,24 @@ static void UpdateNetGatherPrompt(void)
 			int numClients = numPlayers - 1;
 			if (numClients <= 0)
 			{
-				snprintf(buf, sizeof(buf), "WAITING FOR PLAYERS\nON LOCAL NETWORK...");
-			}
-			else if (numClients == 1)
-			{
-				snprintf(buf, sizeof(buf), "1 PLAYER CONNECTED\n\nPRESS ENTER TO BEGIN");
+				output = Localize(STR_WAITING_FOR_PLAYERS_ON_LAN);
 			}
 			else
 			{
-				snprintf(buf, sizeof(buf), "%d PLAYERS CONNECTED\n\nPRESS ENTER TO BEGIN", numClients);
+				if (numClients == 1)
+					rc = snprintf(cursor, bufSize, "%s", Localize(STR_1_PLAYER_CONNECTED));
+				else
+					rc = LocalizeWithPlaceholder(STR_N_PLAYERS_CONNECTED, cursor, bufSize, "%d", numClients);
+				AdvanceTextCursor(rc, &cursor, &bufSize);
+				rc = snprintf(cursor, bufSize, "\n \n");
+				AdvanceTextCursor(rc, &cursor, &bufSize);
+				LocalizeWithPlaceholder(STR_PRESS_XXX_TO_BEGIN, cursor, bufSize, "%s", "ENTER");
 			}
 			break;
 		}
 
 		case kNetSequence_ClientSearchingForGames:
-			snprintf(buf, sizeof(buf), "SEARCHING FOR GAMES\nON LOCAL NETWORK...");
+			output = Localize(STR_SEARCHING_FOR_GAMES_ON_LAN);
 			break;
 
 		case kNetSequence_ClientFoundGames:
@@ -99,29 +108,31 @@ static void UpdateNetGatherPrompt(void)
 			int numLobbiesFound = NSpSearch_GetNumGamesFound(gNetSearch);
 			if (numLobbiesFound == 1)
 			{
-				snprintf(buf, sizeof(buf), "FOUND A GAME AT\n%s", NSpSearch_GetHostAddress(gNetSearch, 0));
+				snprintf(buf, sizeof(buf), "%s\n%s",
+					Localize(STR_FOUND_1_GAME_AT),
+					NSpSearch_GetHostAddress(gNetSearch, 0));
 			}
 			else
 			{
-				snprintf(buf, sizeof(buf), "FOUND %d GAMES\nON LOCAL NETWORK.", numLobbiesFound);
+				LocalizeWithPlaceholder(STR_FOUND_N_GAMES_ON_LAN, buf, bufSize, "%d", numLobbiesFound);
 			}
 			break;
 		}
 
 		case kNetSequence_ClientJoiningGame:
 		{
-			snprintf(buf, sizeof(buf), "JOINED THE GAME.\nWAITING FOR HOST...");
+			snprintf(buf, sizeof(buf), "%s\n%s", Localize(STR_JOINED_GAME), Localize(STR_WAITING_FOR_HOST));
 			break;
 		}
 
 		case kNetSequence_WaitingForPlayerVehicles:
-			snprintf(buf, sizeof(buf), "THE OTHER PLAYERS\nARE READYING UP...\n");
+			output = Localize(STR_OTHER_PLAYERS_READYING_UP);
 			break;
 
 		case kNetSequence_GotAllPlayerVehicles:
 		case kNetSequence_ClientJoinedGame:
 		case kNetSequence_HostStartingGame:
-			snprintf(buf, sizeof(buf), "LET'S GO!");
+			output = Localize(STR_LETS_GO);
 			break;
 
 		default:
@@ -130,7 +141,7 @@ static void UpdateNetGatherPrompt(void)
 	}
 
 
-	TextMesh_Update(buf, 0, gGatherPrompt);
+	TextMesh_Update(output, 0, gGatherPrompt);
 }
 
 

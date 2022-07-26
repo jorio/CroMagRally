@@ -457,3 +457,14 @@ size_t snprintfcat(char* buf, size_t bufSize, char const* fmt, ...)
 
 	return result;
 }
+
+
+
+void AdvanceTextCursor(int snprintfReturnCode, char** cursor, size_t* remainingSize)
+{
+	if (snprintfReturnCode > 0)
+	{
+		*cursor += snprintfReturnCode;
+		*remainingSize -= snprintfReturnCode;
+	}
+}
