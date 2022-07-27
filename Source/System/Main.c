@@ -885,6 +885,50 @@ ObjNode* bigArrowhead = NULL;
 
 #pragma mark -
 
+
+/**************** CHECK FOR IN-GAME CHEAT INPUTS ************************/
+// Call this after ReadKeyboard
+
+static void CheckCheats(void)
+{
+	if (GetNewKeyState(SDL_SCANCODE_SCROLLLOCK))		// hide/show infobar
+	{
+		gHideInfobar = !gHideInfobar;
+	}
+
+			/* CHEATS BELOW AFFECT GAMEPLAY */
+
+	if (gNetGameInProgress)							// no cheating in net games
+	{
+		return;
+	}
+
+	if (IsCheatKeyComboDown())						// win race cheat
+	{
+		if (!gPlayerInfo[0].raceComplete)
+		{
+			gPlayerInfo[0].cheated = true;
+			PlayerCompletedRace(0);
+			gPlayerInfo[0].place = 0;
+			gPlayerInfo[0].raceComplete = true;
+			gPlayerInfo[0].numTokens = gTotalTokens = MAX_TOKENS;
+		}
+	}
+
+	if (GetKeyState(SDL_SCANCODE_L) &&
+		GetKeyState(SDL_SCANCODE_A) &&
+		GetNewKeyState(SDL_SCANCODE_P))
+	{
+		gPlayerInfo[0].cheated = true;
+		NextLap(0);
+	}
+}
+
+
+#pragma mark -
+
+
+
 /**************** PLAY AREA ************************/
 
 static void PlayArea(void)
@@ -1036,30 +1080,7 @@ static void PlayArea(void)
 
 			/* CHECK CHEATS */
 
-		if (IsCheatKeyComboDown())						// win race cheat
-		{
-			if (!gPlayerInfo[0].raceComplete)
-			{
-				gPlayerInfo[0].cheated = true;
-				PlayerCompletedRace(0);
-				gPlayerInfo[0].place = 0;
-				gPlayerInfo[0].raceComplete = true;
-				gPlayerInfo[0].numTokens = gTotalTokens = MAX_TOKENS;
-			}
-		}
-
-		if (GetKeyState(SDL_SCANCODE_L) &&
-			GetKeyState(SDL_SCANCODE_A) &&
-			GetNewKeyState(SDL_SCANCODE_P))
-		{
-			gPlayerInfo[0].cheated = true;
-			NextLap(0);
-		}
-
-		if (GetNewKeyState(SDL_SCANCODE_SCROLLLOCK))		// hide/show infobar
-		{
-			gHideInfobar = !gHideInfobar;
-		}
+		CheckCheats();
 
 
 			/* SEE IF PAUSED */
