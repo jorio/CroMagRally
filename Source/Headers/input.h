@@ -99,6 +99,8 @@ enum
 	NUM_CONTROL_NEEDS
 };
 
+
+// The entries in this enum MUST match need IDs!
 enum
 {
 	kControlBit_ThrowForward  = kNeed_ThrowForward,
@@ -117,6 +119,7 @@ enum
 void InitInput(void);
 void ReadKeyboard(void);
 void InvalidateAllInputs(void);
+void InvalidateNeedState(int need);
 
 Boolean GetKeyState(uint16_t sdlScancode);
 Boolean GetNewKeyState(uint16_t sdlScancode);

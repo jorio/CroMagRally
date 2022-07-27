@@ -48,6 +48,11 @@ void InitPlayerInfo_Game(void)
 {
 short	i;
 
+	// Back up gPlayerInfo before zeroing out the structs.
+	// HostSendGameConfigInfo is called prior to this function and it sets some network info we'll need.
+	PlayerInfoType* backup = (PlayerInfoType*) AllocPtr(sizeof(gPlayerInfo));
+	memcpy(backup, gPlayerInfo, sizeof(gPlayerInfo));
+
 	memset(gPlayerInfo, 0, sizeof(gPlayerInfo));		// init everything to 0
 
 	for (i = 0; i < MAX_PLAYERS; i++)
@@ -99,6 +104,9 @@ short	i;
 		gPlayerInfo[i].isComputer 	    = true;
 
 
+			/* NET */
+
+		gPlayerInfo[i].net = backup[i].net;
 	}
 
 			/* NETWORK GAME */
@@ -141,9 +149,11 @@ short	i;
 		default:
 				gNumTotalPlayers = gNumRealPlayers;				// no CPU players in battle modes
 				break;
-
-
 	}
+
+
+	SafeDisposePtr((Ptr) backup);
+	backup = NULL;
 }
 
 

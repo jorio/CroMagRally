@@ -933,6 +933,9 @@ static void CheckCheats(void)
 
 static void PlayArea(void)
 {
+	Boolean wantPause = false;
+
+
 	/* IF DOING NET GAME THEN WAIT FOR SYNC */
 	//
 	// Need to wait for other players to finish loading art and when
@@ -972,6 +975,7 @@ static void PlayArea(void)
 
 	while(true)
 	{
+
 				/******************************************/
 				/* GET CONTROL INFORMATION FOR THIS FRAME */
 				/******************************************/
@@ -979,59 +983,61 @@ static void PlayArea(void)
 				// Also gathers frame rate info for the net clients.
 				//
 
-				/* NETWORK CLIENT */
+				/* NON-NET */
 
-		if (gIsNetworkClient)
-		{
-			Boolean gotControlInfo = ClientReceive_ControlInfoFromHost();			// read all player's control info back from the Host once he's gathered it all
-
-			if (!gotControlInfo)
-			{
-				DoNetPauseScreenTick();
-				continue;
-			}
-			else
-			{
-				EndNetPauseScreen();
-			}
-		}
-
-				/* HOST OR NON-NET */
-		else
+		if (!gNetGameInProgress)
 		{
 			ReadKeyboard();									// read local keys
 			GetLocalKeyState();								// build a control state bitfield
 
-				/* NETWORK HOST*/
+			wantPause = GetNewNeedStateAnyP(kNeed_UIPause);
+		}
 
-			if (gIsNetworkHost)
-			{
-				HostSend_ControlInfoToClients();			// now send everyone's key states to all clients
-			}
+				/* NETWORK CLIENT */
+
+		else if (gIsNetworkClient)
+		{
+			ClientReceive_ControlInfoFromHost();			// read all player's control info back from the Host once he's gathered it all
+		}
+
+				/* NETWORK HOST */
+		else
+		{
+			HostSend_ControlInfoToClients();			// now send everyone's key states to all clients
 		}
 
 
-				/****************/
-				/* MOVE OBJECTS */
-				/****************/
+				/**********************/
+				/* SIMULATE THE WORLD */
+				/**********************/
 
-		MoveEverything();
+		if (IsNetGamePaused())
+		{
+			DoNetPauseScreenTick();
+		}
+		else
+		{
+			EndNetPauseScreen();
+
+				/* MOVE OBJECTS */
+
+			MoveEverything();
 
 				/* DO GAME MODE SPECIFICS */
 
-		UpdateGameModeSpecifics();
+			UpdateGameModeSpecifics();
+
+				/* UPDATE THE TERRAIN */
+
+			DoPlayerTerrainUpdate();
+		}
 
 
-			/* UPDATE THE TERRAIN */
 
-		DoPlayerTerrainUpdate();
-
-
-
-
-			/****************************/
-			/* SEND NET CLIENT KEY INFO */
-			/****************************/
+			/******************************************/
+			/* UPDATE LOCAL INPUTS FOR NEXT NET FRAME */
+			/* AND SEND CLIENT INPUTS                 */
+			/******************************************/
 			//
 			// We can do this anytime AFTER this frame's key control info is no longer needed.
 			// Since this will change the control bits, we MUST BE SURE that the bits are not
@@ -1042,11 +1048,17 @@ static void PlayArea(void)
 			// complete - we essentially get this send for free!
 			//
 
-		if (gIsNetworkClient)
+		if (gNetGameInProgress)
 		{
 			ReadKeyboard();									// read local client keys
+
+			wantPause = GetNewNeedStateAnyP(kNeed_UIPause);
+			gPlayerInfo[gMyNetworkPlayerNum].net.pauseState = wantPause;
+
 			GetLocalKeyState();								// build a control state bitfield
-			ClientSend_ControlInfoToHost();					// send this info to the host to be used the next frame
+
+			if (gIsNetworkClient)
+				ClientSend_ControlInfoToHost();				// send this info to the host to be used the next frame
 		}
 
 
@@ -1080,16 +1092,21 @@ static void PlayArea(void)
 
 			/* CHECK CHEATS */
 
-		CheckCheats();
-
+		if (!gNetGameInProgress)
+		{
+			CheckCheats();
+		}
 
 			/* SEE IF PAUSED */
 
-		if (!gIsSelfRunningDemo)
+		if (!gIsSelfRunningDemo && wantPause)
 		{
-			if (GetNewNeedStateAnyP(kNeed_UIPause))
-				DoPaused();
+			DoPaused();
+			gPlayerInfo[gMyNetworkPlayerNum].net.pauseState = 0;
+			wantPause = false;
 		}
+
+			/* UPDATE FRAMERATE AND SIM FRAME */
 
 		if (!gIsNetworkClient)						// clients dont need to calc frame rate since its passed to them from host.
 			CalcFramesPerSecond();

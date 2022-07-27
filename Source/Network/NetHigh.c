@@ -21,7 +21,7 @@
 /**********************/
 
 static OSErr HostSendGameConfigInfo(void);
-static void HandleGameConfigMessage(NetConfigMessageType *inMessage);
+static void HandleGameConfigMessage(NetConfigMessage *inMessage);
 static Boolean HandleOtherNetMessage(NSpMessageHeader	*message);
 static void PlayerUnexpectedlyLeavesGame(NSpPlayerLeftMessage *mess);
 
@@ -36,7 +36,6 @@ static void PlayerUnexpectedlyLeavesGame(NSpPlayerLeftMessage *mess);
 /**********************/
 
 static int	gNumGatheredPlayers = 0;			// this is only used during gathering, gNumRealPlayers should be used during game!
-static int	gPlayerSyncCounter = 0;
 
 int			gNetSequenceState = kNetSequence_Offline;
 
@@ -45,9 +44,6 @@ Boolean		gNetSprocketInitialized = false;
 Boolean		gIsNetworkHost = false;
 Boolean		gIsNetworkClient = false;
 Boolean		gNetGameInProgress = false;
-
-Boolean		gNetPaused = false;
-const char*	gNetPausedBy = NULL;
 
 NSpGameReference	gNetGame = nil;
 NSpSearchReference	gNetSearch = nil;
@@ -60,6 +56,54 @@ int				gTimeoutCounter;
 
 NetHostControlInfoMessageType	gHostOutMess;
 NetClientControlInfoMessageType	gClientOutMess;
+
+
+#pragma mark - Player sync mask
+
+uint32_t gPlayerSyncMask;
+
+static void ClearPlayerSyncMask(void)
+{
+	gPlayerSyncMask = 0;
+
+}
+
+static void MarkPlayerSynced(NSpPlayerID playerID)
+{
+	gPlayerSyncMask |= 1 << playerID;
+}
+
+static Boolean AreAllPlayersSynced(void)
+{
+	uint32_t targetMask = NSpGame_GetActivePlayersIDMask(gNetGame);
+	return 0 == (gPlayerSyncMask ^ targetMask);
+}
+
+
+#pragma mark -
+
+/********* CONVERT NSPPLAYERID TO INTERNAL PLAYER NUM **********/
+
+static int FindHumanByNSpPlayerID(NSpPlayerID playerID)
+{
+			/* FIND PLAYER NUM THAT MATCHES THE ID */
+
+	for (int i = 0; i < gNumTotalPlayers; i++)
+	{
+		if (!gPlayerInfo[i].isComputer)							// skip computer players
+		{
+			if (gPlayerInfo[i].net.nspPlayerID == playerID)		// see if ID matches
+				return i;
+		}
+	}
+
+			/* NOT FOUND */
+
+	return -1;
+}
+
+
+#pragma mark -
 
 
 /******************* INIT NETWORK MANAGER *********************/
@@ -132,8 +176,9 @@ OSErr	iErr;
 	gNetGame			= nil;
 	gNetSearch			= nil;
 	gNumGatheredPlayers	= 0;
-	gPlayerSyncCounter	= 0;
 	gNetSequenceState	= kNetSequence_Offline;
+	ClearPlayerSyncMask();
+	gGamePaused			= false;
 }
 
 
@@ -235,7 +280,7 @@ bool UpdateNetSequence(void)
 			if (message) switch (message->what)
 			{
 				case	kNetConfigureMessage:										// GOT GAME START INFO
-					HandleGameConfigMessage((NetConfigMessageType *)message);
+					HandleGameConfigMessage((NetConfigMessage*) message);
 					gNetSequenceState = kNetSequence_ClientJoinedGame;
 					break;
 
@@ -271,7 +316,7 @@ bool UpdateNetSequence(void)
 
 		case kNetSequence_WaitingForPlayerVehicles:
 		{
-			if (gPlayerSyncCounter >= gNumRealPlayers)
+			if (AreAllPlayersSynced())
 			{
 				gNetSequenceState = kNetSequence_GotAllPlayerVehicles;
 			}
@@ -282,7 +327,7 @@ bool UpdateNetSequence(void)
 				if (message) switch (message->what)
 				{
 					case	kNetPlayerCharTypeMessage:
-						puts("Got kNetPlayerCharTypeMessage");
+					{
 						NetPlayerCharTypeMessage *mess = (NetPlayerCharTypeMessage *) message;
 
 						// TODO: Check player num
@@ -290,9 +335,10 @@ bool UpdateNetSequence(void)
 						gPlayerInfo[mess->playerNum].vehicleType = mess->vehicleType;	// save this player's type
 						gPlayerInfo[mess->playerNum].sex = mess->sex;					// save this player's sex
 						gPlayerInfo[mess->playerNum].skin = mess->skin;					// save this player's skin
-						gPlayerSyncCounter++;											// inc count of received info
+						MarkPlayerSynced(message->from);								// inc count of received info
 
 						break;
+					}
 
 					default:
 						HandleOtherNetMessage(message);
@@ -309,8 +355,8 @@ bool UpdateNetSequence(void)
 			if (message) switch (message->what)
 			{
 				case	kNetSyncMessage:
-					gPlayerSyncCounter++;								// we got another player
-					if (gPlayerSyncCounter == gNumRealPlayers)			// see if that's all of them
+					MarkPlayerSynced(message->from);					// we got another player
+					if (AreAllPlayersSynced())							// see if that's all of them
 						gNetSequenceState = kNetSequence_GameLoop;
 					break;
 
@@ -465,7 +511,7 @@ OSStatus			status = noErr;
 static OSErr HostSendGameConfigInfo(void)
 {
 OSStatus				status;
-NetConfigMessageType	message;
+NetConfigMessage		message;
 
 			/* GET PLAYER INFO */
 
@@ -488,7 +534,7 @@ NetConfigMessageType	message;
 	{
 		NSpPlayerID clientID = NSpGame_GetNthActivePlayerID(gNetGame, i);
 
-		gPlayerInfo[i].nspPlayerID = clientID;						// get NSp's playerID (for use when player leaves game)
+		gPlayerInfo[i].net.nspPlayerID = clientID;					// get NSp's playerID (for use when player leaves game)
 
 		if (clientID != kNSpHostID)									// don't send start info to myself/host
 		{
@@ -531,7 +577,7 @@ NetConfigMessageType	message;
 // Called while polling in Client_WaitForGameConfigInfoDialogCallback.
 //
 
-void HandleGameConfigMessage(NetConfigMessageType *inMessage)
+void HandleGameConfigMessage(NetConfigMessage* inMessage)
 {
 	//TODO: fill in player info
 #if 0
@@ -560,7 +606,7 @@ void HandleGameConfigMessage(NetConfigMessageType *inMessage)
 
 	for (int i = 0; i < gNumRealPlayers; i++)
 	{
-		gPlayerInfo[i].nspPlayerID = NSpGame_GetNthActivePlayerID(gNetGame, i);		// get NSp's playerID (for use when player leaves game)
+		gPlayerInfo[i].net.nspPlayerID = NSpGame_GetNthActivePlayerID(gNetGame, i);		// get NSp's playerID (for use when player leaves game)
 	}
 }
 
@@ -577,14 +623,16 @@ void HandleGameConfigMessage(NetConfigMessageType *inMessage)
 void HostWaitForPlayersToPrepareLevel(void)
 {
 OSStatus				status;
-NetSyncMessageType		outMess;
+NetSyncMessage			outMess;
 int						startTick = TickCount();
 
 		/********************************/
 		/* WAIT FOR ALL CLIENTS TO SYNC */
 		/********************************/
 
-	gPlayerSyncCounter = 1;
+	ClearPlayerSyncMask();
+	MarkPlayerSynced(NSpPlayer_GetMyID(gNetGame));			// we have our own info
+
 	gNetSequenceState = kNetSequence_HostWaitForPlayersToPrepareLevel;
 
 	while (gNetSequenceState == kNetSequence_HostWaitForPlayersToPrepareLevel)
@@ -618,7 +666,6 @@ int						startTick = TickCount();
 	outMess.h.to 			= kNSpAllPlayers;						// send to all clients
 	outMess.h.what 			= kNetSyncMessage;						// set message type
 	outMess.h.messageLen 	= sizeof(outMess);						// set size of message
-	outMess.playerNum 		= 0;									// (not used this time)
 	status = NSpMessage_Send(gNetGame, &outMess.h, kNSpSendFlag_Registered);	// send message
 	if (status)
 		DoFatalAlert("HostWaitForPlayersToPrepareLevel: NSpMessage_Send failed!");
@@ -635,7 +682,7 @@ int						startTick = TickCount();
 void ClientTellHostLevelIsPrepared(void)
 {
 OSStatus				status;
-NetSyncMessageType		outMess;
+NetSyncMessage			outMess;
 int						startTick = TickCount();
 
 		/***********************************/
@@ -646,7 +693,6 @@ int						startTick = TickCount();
 	outMess.h.to 			= kNSpHostID;										// send to this host
 	outMess.h.what 			= kNetSyncMessage;									// set message type
 	outMess.h.messageLen 	= sizeof(outMess);									// set size of message
-	outMess.playerNum 		= gMyNetworkPlayerNum;										// set player num
 	status = NSpMessage_Send(gNetGame, &outMess.h, kNSpSendFlag_Registered);	// send message
 	if (status)
 	{
@@ -695,6 +741,7 @@ void HostSend_ControlInfoToClients(void)
 OSStatus						status;
 short							i;
 
+	GAME_ASSERT(gIsNetworkHost);
 
 				/* BUILD MESSAGE */
 
@@ -714,6 +761,14 @@ short							i;
 		gHostOutMess.controlBits[i] = gPlayerInfo[i].controlBits;
 		gHostOutMess.controlBitsNew[i] = gPlayerInfo[i].controlBits_New;
 		gHostOutMess.analogSteering[i] = gPlayerInfo[i].analogSteering;
+		gHostOutMess.pauseState[i] = gPlayerInfo[i].net.pauseState;
+
+#if _DEBUG
+		if (!gPlayerInfo[i].headObj)
+			gHostOutMess.playerPositionCheck[i] = (OGLPoint3D) {0,0,0};
+		else
+			gHostOutMess.playerPositionCheck[i] = gPlayerInfo[i].coord;
+#endif
 	}
 
 			/* SEND IT */
@@ -730,12 +785,53 @@ short							i;
 // This data will contain the fps and control bitfield info for each player.
 //
 
+static Boolean Client_InGame_HandleHostControlInfoMessage(NetHostControlInfoMessageType* mess)
+{
+	GAME_ASSERT(gIsNetworkClient);
+
+	gTimeoutCounter = 0;
+
+	if (mess->frameCounter < gHostSendCounter)			// see if this is an old packet, possibly a duplicate.  If so, skip it
+		return false;
+	if (mess->frameCounter > gHostSendCounter)			// see if we skipped a packet; one must have gotten lost
+		DoFatalAlert("ClientReceive_ControlInfoFromHost: It seems Net Sprocket has lost a packet");
+	gHostSendCounter++;									// inc host counter since the next packet we get will be +1
+
+	gFramesPerSecond 		= mess->fps;
+	gFramesPerSecondFrac 	= mess->fpsFrac;
+
+	if (MyRandomLong() != mess->randomSeed)				// verify that host's random # is in sync with ours!
+	{
+		DoFatalAlert("ClientReceive_ControlInfoFromHost: Not in sync!  Net Sprocket must have lost some data.");
+	}
+
+	for (int i = 0; i < MAX_PLAYERS; i++)					// control bits
+	{
+		gPlayerInfo[i].controlBits 		= mess->controlBits[i];
+		gPlayerInfo[i].controlBits_New 	= mess->controlBitsNew[i];
+		gPlayerInfo[i].analogSteering	= mess->analogSteering[i];
+		gPlayerInfo[i].net.pauseState	= mess->pauseState[i];
+
+#if _DEBUG
+		if (gPlayerInfo[i].headObj)
+		{
+			GAME_ASSERT_MESSAGE(
+					0 == memcmp(&mess->playerPositionCheck[i], &gPlayerInfo[i].coord, sizeof(OGLPoint3D)),
+					"Player positions got out of sync!");
+		}
+#endif
+	}
+
+	return true;
+}
+
 Boolean ClientReceive_ControlInfoFromHost(void)
 {
 NSpMessageHeader 					*inMess;
 uint32_t							tick;
 Boolean								gotIt = false;
 
+	GAME_ASSERT(gIsNetworkClient);
 
 	tick = TickCount();														// init tick for timeout
 
@@ -744,66 +840,25 @@ tryAgain:
 
 	if (inMess)
 	{
-		tick = TickCount();												// reset tick for timeout
+			/* WE GOT A PACKET */
+
 		switch(inMess->what)
 		{
-			case	kNetHostControlInfoMessage:
-			{
+			case kNetHostControlInfoMessage:
 				gotIt = true;
-
-				gTimeoutCounter = 0;
-				gNetPaused = false;
-				gNetPausedBy = NULL;
-
-				NetHostControlInfoMessageType		*mess;
-
-				mess = (NetHostControlInfoMessageType *)inMess;
-
-				if (mess->frameCounter < gHostSendCounter)			// see if this is an old packet, possibly a duplicate.  If so, skip it
-					break;
-				if (mess->frameCounter > gHostSendCounter)			// see if we skipped a packet; one must have gotten lost
-					DoFatalAlert("ClientReceive_ControlInfoFromHost: It seems Net Sprocket has lost a packet");
-				gHostSendCounter++;									// inc host counter since the next packet we get will be +1
-
-				gFramesPerSecond 		= mess->fps;
-				gFramesPerSecondFrac 	= mess->fpsFrac;
-
-				if (MyRandomLong() != mess->randomSeed)				// verify that host's random # is in sync with ours!
-				{
-					DoFatalAlert("ClientReceive_ControlInfoFromHost: Not in sync!  Net Sprocket must have lost some data.");
-				}
-
-				for (int i = 0; i < MAX_PLAYERS; i++)					// control bits
-				{
-					gPlayerInfo[i].controlBits 		= mess->controlBits[i];
-					gPlayerInfo[i].controlBits_New 	= mess->controlBitsNew[i];
-					gPlayerInfo[i].analogSteering	= mess->analogSteering[i];
-				}
-
-				goto done;
-			}
-
-			case	kNetNullPacket:
-			{
-				gNetPaused = true;
-				gNetPausedBy = NSpPlayer_GetName(gNetGame, inMess->from);
-
-				goto done;
-			}
-
-			case	kNSpError:
-				DoFatalAlert("ClientReceive_ControlInfoFromHost: message == kNSpError");
-				goto done;
+				Client_InGame_HandleHostControlInfoMessage((NetHostControlInfoMessageType*) inMess);
+				break;
 
 			default:
 				if (HandleOtherNetMessage(inMess))
-					goto done;
+					break;
 		}
 
 		NSpMessage_Release(gNetGame, inMess);
 		inMess = NULL;
 	}
-
+	else
+	{
 			/* SEE IF WE ARE NOT GETTING THE PACKET */
 			//
 			// If this happens, then it is possible that Net Sprocket lost a packet.  There is no way to know who's packet got lost
@@ -811,27 +866,22 @@ tryAgain:
 			//
 			// [SOURCE PORT NOTE: I don't think we should resend packets since we're using TCP for everything]
 
-	if ((TickCount() - tick) > (DATA_TIMEOUT*60))		// see if we've been waiting longer than n seconds
-	{
-		gTimeoutCounter++;								// keep track of how often this happens
-		if (gTimeoutCounter > 3)
-			DoFatalAlert("ClientReceive_ControlInfoFromHost: the network is losing too much data, must abort.");
+		if ((TickCount() - tick) > (DATA_TIMEOUT*60))	// see if we've been waiting longer than n seconds
+		{
+			gTimeoutCounter++;								// keep track of how often this happens
+			if (gTimeoutCounter > 3)
+				DoFatalAlert("ClientReceive_ControlInfoFromHost: the network is losing too much data, must abort.");
 
 #if 0	// SOURCE PORT: DON'T RESEND - We're using TCP!
-		NSpMessage_Send(gNetGame, &gClientOutMess.h, kNSpSendFlag_Registered);	// resend the last message
+			NSpMessage_Send(gNetGame, &gClientOutMess.h, kNSpSendFlag_Registered);	// resend the last message
 #endif
 
-		tick = TickCount();														// reset tick
+			tick = TickCount();														// reset tick
+		}
+
+		goto tryAgain;
 	}
 
-	SDL_Delay(5);
-	goto tryAgain;
-
-done:
-	if (inMess)
-	{
-		NSpMessage_Release(gNetGame, inMess);
-	}
 	return gotIt;
 }
 
@@ -847,6 +897,7 @@ void ClientSend_ControlInfoToHost(void)
 {
 OSStatus						status;
 
+	GAME_ASSERT(gIsNetworkClient);
 
 				/* BUILD MESSAGE */
 
@@ -861,7 +912,7 @@ OSStatus						status;
 	gClientOutMess.controlBits 		= gPlayerInfo[gMyNetworkPlayerNum].controlBits;
 	gClientOutMess.controlBitsNew  	= gPlayerInfo[gMyNetworkPlayerNum].controlBits_New;
 	gClientOutMess.analogSteering	= gPlayerInfo[gMyNetworkPlayerNum].analogSteering;
-
+	gClientOutMess.pauseState		= gPlayerInfo[gMyNetworkPlayerNum].net.pauseState;
 
 			/* SEND IT */
 
@@ -873,18 +924,40 @@ OSStatus						status;
 
 /*************** HOST GET CONTROL INFO FROM CLIENTS ***********************/
 
+static Boolean Host_InGame_HandleClientControlInfoMessage(NetClientControlInfoMessageType* mess)
+{
+	GAME_ASSERT(gIsNetworkHost);
+
+	int i = mess->playerNum;								// get player #
+
+	if (mess->frameCounter < gClientSendCounter[i])			// see if this is an old packet, possibly a duplicate.  If so, skip it
+		return false;
+	if (mess->frameCounter > gClientSendCounter[i])			// see if we skipped a packet; one must have gotten lost
+		DoFatalAlert("HostReceive_ControlInfoFromClients: It seems Net Sprocket has lost a packet");
+	gClientSendCounter[i]++;								// inc counter since the next packet we get will be +1
+
+
+	gPlayerInfo[i].controlBits	= mess->controlBits;
+	gPlayerInfo[i].controlBits_New = mess->controlBitsNew;
+	gPlayerInfo[i].analogSteering = mess->analogSteering;
+	gPlayerInfo[i].net.pauseState = mess->pauseState;
+
+	return true;
+}
+
 void HostReceive_ControlInfoFromClients(void)
 {
-NetClientControlInfoMessageType		*mess;
 NSpMessageHeader 					*inMess;
 uint32_t								tick;
-short								n,i;
 
+	GAME_ASSERT(gIsNetworkHost);
 
-	n = 1;                                                  // start @ 1 because the host already has his own info
+	ClearPlayerSyncMask();
+	MarkPlayerSynced(NSpPlayer_GetMyID(gNetGame));			// the host already has its own info
+
 	tick = TickCount();										// start tick for timeout
 
-	while(n < gNumRealPlayers)								// loop until I've got the message from all players
+	while (!AreAllPlayersSynced())							// loop until I've got the message from all players
 	{
 		inMess = NSpMessage_Get(gNetGame);					// get message
 		if (inMess)
@@ -892,33 +965,16 @@ short								n,i;
 			tick = TickCount();								// reset tick for timeout
 			switch(inMess->what)
 			{
-				case	kNetClientControlInfoMessage:
-						mess = (NetClientControlInfoMessageType *)inMess;
-
-						i = mess->playerNum;									// get player #
-
-						if (mess->frameCounter < gClientSendCounter[i])			// see if this is an old packet, possibly a duplicate.  If so, skip it
-							break;
-						if (mess->frameCounter > gClientSendCounter[i])			// see if we skipped a packet; one must have gotten lost
-							DoFatalAlert("HostReceive_ControlInfoFromClients: It seems Net Sprocket has lost a packet");
-						gClientSendCounter[i]++;								// inc counter since the next packet we get will be +1
-
-
-						gPlayerInfo[i].controlBits	= mess->controlBits;
-						gPlayerInfo[i].controlBits_New = mess->controlBitsNew;
-						gPlayerInfo[i].analogSteering = mess->analogSteering;
-
-						n++;
-						break;
-
-				case	kNSpError:
-						DoFatalAlert("HostReceive_ControlInfoFromClients: message == kNSpError");
-						break;
+				case kNetClientControlInfoMessage:
+					if (Host_InGame_HandleClientControlInfoMessage((NetClientControlInfoMessageType*) inMess))
+					{
+						MarkPlayerSynced(inMess->from);
+					}
+					break;
 
 				default:
-						if (HandleOtherNetMessage(inMess))
-							return;
-
+					if (HandleOtherNetMessage(inMess))
+						return;
 			}
 			NSpMessage_Release(gNetGame, inMess);			// dispose of message
 		}
@@ -929,10 +985,11 @@ short								n,i;
 			if (gTimeoutCounter > 3)
 				DoFatalAlert("HostReceive_ControlInfoFromClients: the network is losing too much data, must abort.");
 
+#if 0		// Resending this while the client is paused will throw them out of sync!!
 			NSpMessage_Send(gNetGame, &gHostOutMess.h, kNSpSendFlag_Registered);
+#endif
 			tick = TickCount();														// reset tick
 		}
-
 	}
 }
 
@@ -977,7 +1034,9 @@ NetPlayerCharTypeMessage	outMess;
 
 void GetVehicleSelectionFromNetPlayers(void)
 {
-	gPlayerSyncCounter = 1;																	// start count @ 1 since we have our own local info already
+	ClearPlayerSyncMask();
+	MarkPlayerSynced(NSpPlayer_GetMyID(gNetGame));		// we have our own local info already
+
 	gNetSequenceState = kNetSequence_WaitingForPlayerVehicles;
 	DoNetGatherScreen();
 }
@@ -1036,7 +1095,7 @@ Boolean HandleOtherNetMessage(NSpMessageHeader	*message)
 
 					/* NULL PACKET */
 
-		case	kNetNullPacket:
+		case	kNetSyncMessage:
 				break;
 
 		case	kNSpJoinRequest:
@@ -1089,20 +1148,14 @@ static void PlayerUnexpectedlyLeavesGame(NSpPlayerLeftMessage *mess)
 int			i;
 NSpPlayerID	playerID = mess->playerID;
 
-		/* FIND PLAYER NUM THAT MATCHES THE ID */
+	i = FindHumanByNSpPlayerID(playerID);
 
-	for (i = 0; i < gNumTotalPlayers; i++)
+	if (i < 0)
 	{
-		if (!gPlayerInfo[i].isComputer)							// skip computer players
-		{
-			if (gPlayerInfo[i].nspPlayerID == playerID)			// see if ID matches
-				 goto matched_id;
-		}
+		DoFatalAlert("PlayerUnexpectedlyLeavesGame: cannot find matching player id#");
 	}
-	DoFatalAlert("PlayerUnexpectedlyLeavesGame: cannot find matching player id#");
 
 
-matched_id:
 	gPlayerInfo[i].isComputer = true;							// turn it into a computer player.
 	gPlayerInfo[i].isEliminated = true;							// also eliminate from battles
 	gNumGatheredPlayers--;										// one less net player in the game
@@ -1124,33 +1177,23 @@ matched_id:
 }
 
 
-#pragma mark -
 
-/********************* PLAYER BROADCAST NULL PACKET *******************************/
-//
-// Send a dummy packet to all other players to let them know we're still active, but we're
-// probably paused for some reason.  The recipients will then just wait and not time out.
-//
 
-void PlayerBroadcastNullPacket(void)
+
+Boolean IsNetGamePaused(void)
 {
-OSStatus					status;
-NSpMessageHeader			outMess;
+	if (!gNetGameInProgress)
+	{
+		return false;
+	}
 
+	for (int i = 0; i < MAX_PLAYERS; i++)
+	{
+		if (!gPlayerInfo[i].isComputer && gPlayerInfo[i].net.pauseState)
+		{
+			return true;
+		}
+	}
 
-				/* BUILD MESSAGE */
-
-	NSpClearMessageHeader(&outMess);
-
-	outMess.to 			= kNSpAllPlayers;						// send to all clients
-	outMess.what 		= kNetNullPacket;						// set message type
-	outMess.messageLen 	= sizeof(outMess);						// set size of message
-
-
-			/* SEND IT */
-
-	status = NSpMessage_Send(gNetGame, &outMess, kNSpSendFlag_Registered);
-	if (status)
-		DoFatalAlert("PlayerBroadcastNullPacket: NSpMessage_Send failed!");
+	return false;
 }
-

@@ -220,7 +220,11 @@ typedef struct
 			// 			that would wipe out stuff already set.
 			//
 
-	int /*NSpPlayerID*/			nspPlayerID;			// this player's net sprocket id#
+	struct
+	{
+		int32_t			nspPlayerID;			// this player's net sprocket id#
+		uint8_t			pauseState;
+	} net;
 
 
 

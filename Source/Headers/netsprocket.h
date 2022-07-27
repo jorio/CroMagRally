@@ -162,6 +162,7 @@ NSpGameReference NSpGame_Host(void);
 NSpPlayerID NSpGame_AcceptNewClient(NSpGameReference gameRef);
 int NSpGame_AckJoinRequest(NSpGameReference gameRef, NSpMessageHeader* inMessage);
 int NSpGame_GetNumActivePlayers(NSpGameReference gameRef);
+uint32_t NSpGame_GetActivePlayersIDMask(NSpGameReference gameRef);
 NSpPlayerID NSpGame_GetNthActivePlayerID(NSpGameReference gameRef, int n);
 int NSpGame_StartAdvertising(NSpGameReference gameRef);
 int NSpGame_StopAdvertising(NSpGameReference gameRef);
@@ -178,3 +179,4 @@ const char* NSpSearch_GetHostAddress(NSpSearchReference searchRef, int gameNum);
 
 int NSpPlayer_Kick(NSpGameReference gameRef, NSpPlayerID kickedPlayerID);
 const char* NSpPlayer_GetName(NSpGameReference gameRef, NSpPlayerID playerID);
+NSpPlayerID NSpPlayer_GetMyID(NSpGameReference gameRef);

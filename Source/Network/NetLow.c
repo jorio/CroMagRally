@@ -535,8 +535,8 @@ static NSpMessageHeader* PollSocket(sockfd_t sockfd, bool* outBrokenPipe)
 	char* returnBuf = AllocPtr(header->messageLen);
 	memcpy(returnBuf, messageBuf, header->messageLen);
 	outMessage = (NSpMessageHeader*) returnBuf;
-	printf("Got message '%s' (%d bytes), from player %d, on socket %d\n",
-		NSp4CCString(outMessage->what), outMessage->messageLen, outMessage->from, (int) sockfd);
+	printf("recv '%s' (%dB) from P%d\n",
+		NSp4CCString(outMessage->what), outMessage->messageLen, outMessage->from);
 
 bye:
 	if (brokenPipe)
@@ -639,6 +639,15 @@ static NSpMessageHeader* NSpMessage_GetAsClient(NSpGame* game)
 		case kNSpJoinApproved:
 		{
 			game->myID = message->to;		// that's our ID
+
+			NSpPlayer* newPlayer = NSpGame_GetPlayerFromID(game, game->myID);
+			GAME_ASSERT(newPlayer);
+
+			newPlayer->id			= game->myID;
+			newPlayer->state		= kNSpPlayerState_Me;
+			newPlayer->sockfd		= INVALID_SOCKET;		// client has no connection to itself
+			snprintf(newPlayer->name, sizeof(newPlayer->name), "YOU");		// TODO: get actual name
+
 			break;
 		}
 
@@ -1137,6 +1146,34 @@ int NSpGame_GetNumActivePlayers(NSpGameReference gameRef)
 	return count;
 }
 
+uint32_t NSpGame_GetActivePlayersIDMask(NSpGameReference gameRef)
+{
+	NSpGame* game = NSpGame_Unbox(gameRef);
+
+	if (!game)
+	{
+		return 0;
+	}
+
+	uint32_t mask = 0;
+
+	for (int i = 0; i < MAX_CLIENTS; i++)
+	{
+		switch (game->players[i].state)
+		{
+			case kNSpPlayerState_Me:
+			case kNSpPlayerState_ConnectedPeer:
+				mask |= 1 << game->players[i].id;
+				break;
+
+			default:
+				break;
+		}
+	}
+
+	return mask;
+}
+
 bool NSpGame_IsValidPlayerID(NSpGameReference gameRef, NSpPlayerID id)
 {
 	if (id < kNSpClientID0 || id >= kNSpClientID0 + MAX_CLIENTS)
@@ -1381,8 +1418,8 @@ static int SendOnSocket(sockfd_t sockfd, NSpMessageHeader* header)
 	}
 	else
 	{
-		printf("%s: sent message '%s' (%d bytes) on socket %d\n",
-			__func__, NSp4CCString(header->what), header->messageLen, (int) sockfd);
+		printf("send '%s' (%dB) -> %d\n",
+			NSp4CCString(header->what), header->messageLen, (int) sockfd);
 		return kNSpRC_OK;
 	}
 }
@@ -1556,4 +1593,16 @@ static void NSpPlayer_Clear(NSpPlayer* player)
 	player->id			= kNSpUnspecifiedEndpoint;
 	player->sockfd		= INVALID_SOCKET;
 	player->state		= kNSpPlayerState_Offline;
+}
+
+NSpPlayerID NSpPlayer_GetMyID(NSpGameReference gameRef)
+{
+	NSpGame* game = NSpGame_Unbox(gameRef);
+
+	if (!game)
+	{
+		return kNSpUnspecifiedEndpoint;
+	}
+
+	return game->myID;
 }

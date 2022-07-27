@@ -148,7 +148,19 @@ static void UpdatePausedMenuCallback(void)
 			/* IF DOING NET GAME, LET OTHER PLAYERS KNOW WE'RE STILL GOING SO THEY DONT TIME OUT */
 
 	if (gNetGameInProgress)
-		PlayerBroadcastNullPacket();
+	{
+		// Burn one net frame
+		if (gIsNetworkClient)
+		{
+			ClientReceive_ControlInfoFromHost();
+			ClientSend_ControlInfoToHost();
+		}
+		else
+		{
+			HostSend_ControlInfoToClients();
+			HostReceive_ControlInfoFromClients();
+		}
+	}
 }
 
 void DoPaused(void)
@@ -160,6 +172,7 @@ void DoPaused(void)
 	style.labelColor = (OGLColorRGBA){.7,.7,.7,1};
 	style.startButtonExits = true;
 
+	//TODO: PushKeys/PopKeys isn't implemented! Save analog?
 	PushKeys();										// save key state so things dont get de-synced during net games
 
 	PauseAllChannels(true);
@@ -180,6 +193,7 @@ void DoPaused(void)
 	PauseAllChannels(false);
 	
 	PopKeys();										// restore key state
+
 
 	switch (outcome)
 	{

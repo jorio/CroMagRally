@@ -9,11 +9,10 @@
 enum
 {
 	kNetConfigureMessage			= 'ncfg',
+	kNetPlayerCharTypeMessage		= 'type',
 	kNetSyncMessage					= 'sync',
 	kNetHostControlInfoMessage		= 'hctl',
 	kNetClientControlInfoMessage	= 'cctl',
-	kNetPlayerCharTypeMessage		= 'char',
-	kNetNullPacket					= 'null',
 };
 
 		/***************************/
@@ -33,15 +32,14 @@ typedef struct
 	int16_t				numTracksCompleted;					// pass saved game value to clients so we're all the same here
 	int16_t				difficulty;							// pass host's difficulty setting so we're in sync
 	int16_t				tagDuration;						// # minutes in tag game
-}NetConfigMessageType;
+}NetConfigMessage;
 
 		/* SYNC MESSAGE */
 
 typedef struct
 {
 	NSpMessageHeader	h;
-	int32_t				playerNum;							// this player's index
-}NetSyncMessageType;
+}NetSyncMessage;
 
 
 		/* HOST CONTROL INFO MESSAGE */
@@ -55,6 +53,11 @@ typedef struct
 	uint32_t			controlBitsNew[MAX_PLAYERS];
 	OGLVector2D			analogSteering[MAX_PLAYERS];
 	uint32_t			frameCounter;
+	uint8_t				pauseState[MAX_PLAYERS];
+
+#if _DEBUG
+	OGLPoint3D			playerPositionCheck[MAX_PLAYERS];		// additional error checking in debug mode
+#endif
 }NetHostControlInfoMessageType;
 
 
@@ -68,6 +71,7 @@ typedef struct
 	uint32_t			controlBitsNew;
 	uint32_t			frameCounter;
 	OGLVector2D			analogSteering;
+	uint8_t				pauseState;
 }NetClientControlInfoMessageType;
 
 
@@ -81,8 +85,6 @@ typedef struct
 	int16_t				sex;				// 0 = male, 1 = female
 	int16_t				skin;
 }NetPlayerCharTypeMessage;
-
-
 
 
 //===============================================================================
@@ -105,7 +107,6 @@ void GetVehicleSelectionFromNetPlayers(void);
 
 
 void EndNetworkGame(void);
-void PlayerBroadcastNullPacket(void);
 
 //===============================================================================
 
@@ -139,3 +140,5 @@ enum
 
 
 bool UpdateNetSequence(void);
+
+Boolean IsNetGamePaused(void);

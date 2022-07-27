@@ -27,7 +27,7 @@ static void SetupNetPauseScreen(void)
 	};
 
 	char text[128];
-	snprintf(text, sizeof(text), "GAME PAUSED BY\n%s", gNetPausedBy);
+	snprintf(text, sizeof(text), "NET PAUSE");
 
 	gNetPauseText = TextMesh_New(text, 0, &netPauseDef);
 }
@@ -43,7 +43,7 @@ void DoNetPauseScreenTick(void)
 	MoveObjects();
 	DoPlayerTerrainUpdate();
 	CalcFramesPerSecond();
-	OGL_DrawScene(DrawTerrain);
+//	OGL_DrawScene(DrawTerrain);
 }
 
 void EndNetPauseScreen(void)

@@ -50,6 +50,7 @@ void ReadKeyboard(void)
 
 
 			/* EMULATE THE ANALOG INPUT FOR STEERING */
+			// TODO: Should this really be here? It's sent over the wire!
 
 	if (!gNetGameInProgress)
 	{
@@ -135,6 +136,8 @@ static void GetLocalKeyStateForPlayer(short playerNum)
 {
 uint32_t	mask,old;
 short	i;
+
+	// TODO save analog steering here! it's sent over the wire!
 
 	old = gPlayerInfo[playerNum].controlBits;						// remember old bits
 	gPlayerInfo[playerNum].controlBits = 0;							// initialize new bits
