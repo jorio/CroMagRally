@@ -825,9 +825,9 @@ static Boolean Client_InGame_HandleHostControlInfoMessage(NetHostControlInfoMess
 	return true;
 }
 
-Boolean ClientReceive_ControlInfoFromHost(void)
+void ClientReceive_ControlInfoFromHost(void)
 {
-NSpMessageHeader 					*inMess;
+NSpMessageHeader 					*inMess = NULL;
 uint32_t							tick;
 Boolean								gotIt = false;
 
@@ -835,54 +835,55 @@ Boolean								gotIt = false;
 
 	tick = TickCount();														// init tick for timeout
 
-tryAgain:
-	inMess = NSpMessage_Get(gNetGame);									// get message
-
-	if (inMess)
+	while (!gotIt)
 	{
-			/* WE GOT A PACKET */
+		inMess = NSpMessage_Get(gNetGame);									// get message
 
-		switch(inMess->what)
+		if (inMess)
 		{
-			case kNetHostControlInfoMessage:
-				gotIt = true;
-				Client_InGame_HandleHostControlInfoMessage((NetHostControlInfoMessageType*) inMess);
-				break;
+				/* WE GOT A PACKET */
 
-			default:
-				if (HandleOtherNetMessage(inMess))
+			switch (inMess->what)
+			{
+				case kNetHostControlInfoMessage:
+					gotIt = true;
+					Client_InGame_HandleHostControlInfoMessage((NetHostControlInfoMessageType*) inMess);
 					break;
+
+				default:
+					if (HandleOtherNetMessage(inMess))
+					{
+						gotIt = true;
+					}
+					break;
+			}
+
+			NSpMessage_Release(gNetGame, inMess);
+			inMess = NULL;
 		}
-
-		NSpMessage_Release(gNetGame, inMess);
-		inMess = NULL;
-	}
-	else
-	{
-			/* SEE IF WE ARE NOT GETTING THE PACKET */
-			//
-			// If this happens, then it is possible that Net Sprocket lost a packet.  There is no way to know who's packet got lost
-			// so go ahead and send our most recent packet again in case it was us.  The Host will throw out any dupes that it gets.
-			//
-			// [SOURCE PORT NOTE: I don't think we should resend packets since we're using TCP for everything]
-
-		if ((TickCount() - tick) > (DATA_TIMEOUT*60))	// see if we've been waiting longer than n seconds
+		else
 		{
-			gTimeoutCounter++;								// keep track of how often this happens
-			if (gTimeoutCounter > 3)
-				DoFatalAlert("ClientReceive_ControlInfoFromHost: the network is losing too much data, must abort.");
+				/* SEE IF WE ARE NOT GETTING THE PACKET */
+				//
+				// If this happens, then it is possible that Net Sprocket lost a packet.  There is no way to know who's packet got lost
+				// so go ahead and send our most recent packet again in case it was us.  The Host will throw out any dupes that it gets.
+				//
+				// [SOURCE PORT NOTE: I don't think we should resend packets since we're using TCP for everything]
+
+			if ((TickCount() - tick) > (DATA_TIMEOUT*60))	// see if we've been waiting longer than n seconds
+			{
+				gTimeoutCounter++;								// keep track of how often this happens
+				if (gTimeoutCounter > 3)
+					DoFatalAlert("ClientReceive_ControlInfoFromHost: the network is losing too much data, must abort.");
 
 #if 0	// SOURCE PORT: DON'T RESEND - We're using TCP!
-			NSpMessage_Send(gNetGame, &gClientOutMess.h, kNSpSendFlag_Registered);	// resend the last message
+				NSpMessage_Send(gNetGame, &gClientOutMess.h, kNSpSendFlag_Registered);	// resend the last message
 #endif
 
-			tick = TickCount();														// reset tick
+				tick = TickCount();														// reset tick
+			}
 		}
-
-		goto tryAgain;
 	}
-
-	return gotIt;
 }
 
 
@@ -949,6 +950,7 @@ void HostReceive_ControlInfoFromClients(void)
 {
 NSpMessageHeader 					*inMess;
 uint32_t								tick;
+Boolean								abort = false;
 
 	GAME_ASSERT(gIsNetworkHost);
 
@@ -957,7 +959,7 @@ uint32_t								tick;
 
 	tick = TickCount();										// start tick for timeout
 
-	while (!AreAllPlayersSynced())							// loop until I've got the message from all players
+	while (!AreAllPlayersSynced() && !abort)				// loop until I've got the message from all players
 	{
 		inMess = NSpMessage_Get(gNetGame);					// get message
 		if (inMess)
@@ -974,7 +976,10 @@ uint32_t								tick;
 
 				default:
 					if (HandleOtherNetMessage(inMess))
-						return;
+					{
+						abort = true;
+					}
+					break;
 			}
 			NSpMessage_Release(gNetGame, inMess);			// dispose of message
 		}
