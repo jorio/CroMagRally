@@ -74,8 +74,19 @@ Boolean DoMultiPlayerVehicleSelections(void)
 	if (gNetGameInProgress)
 	{
 		// TODO: We should allow bailing out of Character/Vehicle Select screens, even if we started a net game.
-		DoCharacterSelectScreen(gMyNetworkPlayerNum, false);		// get player's sex
-		DoVehicleSelectScreen(gMyNetworkPlayerNum, false);			// get this player's vehicle
+
+#if _DEBUG
+		if (gCommandLine.netJoin || gCommandLine.netHost)
+		{
+			// skip character/vehicle select screens to speed up testing
+		}
+		else
+#endif
+		{
+			DoCharacterSelectScreen(gMyNetworkPlayerNum, false);	// get player's sex
+			DoVehicleSelectScreen(gMyNetworkPlayerNum, false);		// get this player's vehicle
+		}
+
 		PlayerBroadcastVehicleType();								// tell other net players about my type
 		GetVehicleSelectionFromNetPlayers();						// get types from other net players
 		return false;
