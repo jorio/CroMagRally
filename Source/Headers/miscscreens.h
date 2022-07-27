@@ -30,6 +30,7 @@ Boolean DoVehicleSelectScreen(short whichPlayer, Boolean allowAborting);
 Boolean DoLocalGatherScreen(void);
 
 Boolean DoNetGatherScreen(void);
+void ShowPostGameNetErrorScreen(void);
 
 void DoPhysicsEditor(void);
 

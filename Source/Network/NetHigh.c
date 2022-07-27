@@ -176,7 +176,8 @@ OSErr	iErr;
 	gNetGame			= nil;
 	gNetSearch			= nil;
 	gNumGatheredPlayers	= 0;
-	gNetSequenceState	= kNetSequence_Offline;
+	if (gNetSequenceState < kNetSequence_Error)
+		gNetSequenceState	= kNetSequence_Offline;
 	ClearPlayerSyncMask();
 	gGamePaused			= false;
 }
@@ -1073,6 +1074,10 @@ Boolean HandleOtherNetMessage(NSpMessageHeader	*message)
 
 		case	kNSpPlayerLeft:
 				PlayerUnexpectedlyLeavesGame((NSpPlayerLeftMessage *)message);
+				if (gGameOver)
+				{
+					gNetSequenceState = kNetSequence_OfflineEverybodyLeft;
+				}
 				break;
 
 					/* THE HOST HAS UNEXPECTEDLY LEFT THE GAME */

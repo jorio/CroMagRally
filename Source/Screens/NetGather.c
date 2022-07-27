@@ -77,6 +77,12 @@ static void UpdateNetGatherPrompt(void)
 			break;
 		}
 
+		case kNetSequence_OfflineEverybodyLeft:
+		{
+			output = Localize(STR_EVERYBODY_LEFT);
+			break;
+		}
+
 		case kNetSequence_HostLobbyOpen:
 		{
 			int numPlayers = NSpGame_GetNumActivePlayers(gNetGame);
@@ -211,6 +217,18 @@ Boolean DoNetGatherScreen(void)
 		/* SET CHARACTER TYPE SELECTED */
 
 	return (outcome < 0);
+}
+
+
+/********** SHOW NET GATHER SCREEN IF AN ERROR OCCURRED ***********/
+
+void ShowPostGameNetErrorScreen(void)
+{
+	if (gNetSequenceState >= kNetSequence_Error)
+	{
+		DoNetGatherScreen();
+		gNetSequenceState = kNetSequence_Offline;
+	}
 }
 
 

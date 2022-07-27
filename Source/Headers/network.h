@@ -113,10 +113,6 @@ void EndNetworkGame(void);
 enum
 {
 	kNetSequence_Offline,
-	kNetSequence_Error,
-	kNetSequence_ClientOfflineBecauseHostBailed,
-	kNetSequence_ClientOfflineBecauseHostUnreachable,
-	kNetSequence_ClientOfflineBecauseKicked,
 
 	kNetSequence_HostOffline = 100,
 	kNetSequence_HostLobbyOpen,
@@ -136,6 +132,13 @@ enum
 	kNetSequence_ClientWaitForSyncFromHost,
 
 	kNetSequence_GameLoop = 500,
+
+	// all messages below are used to report errors post-match
+	kNetSequence_Error = 600,
+	kNetSequence_ClientOfflineBecauseHostBailed,
+	kNetSequence_ClientOfflineBecauseHostUnreachable,
+	kNetSequence_ClientOfflineBecauseKicked,
+	kNetSequence_OfflineEverybodyLeft,
 };
 
 

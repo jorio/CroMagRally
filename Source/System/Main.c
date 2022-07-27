@@ -237,6 +237,9 @@ static Boolean PlayGame(void)
 		return true;
 
 
+	ShowPostGameNetErrorScreen();
+
+
 		/* UPDATE ANY SAVED PLAYER FILE THAT'S ACTIVE */
 
 	if (!gIsSelfRunningDemo)
@@ -1739,6 +1742,7 @@ void GameMain(void)
 		InitArea();
 		PlayArea();
 		CleanupLevel();
+		ShowPostGameNetErrorScreen();
 		gCommandLine.bootToTrack = 0;
 	}
 
