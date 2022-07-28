@@ -23,6 +23,7 @@ typedef int socklen_t;
 #include <string.h>
 #include <sys/types.h>
 #include <time.h>
+#include <SDL.h>
 
 #include "game.h"
 #include "network.h"
@@ -1102,6 +1103,51 @@ static NSpGame* NSpGame_Unbox(NSpGameReference gameRef)
 	return gamePtr;
 }
 
+static void NSpGame_WaitForClientsToCloseSockets(NSpGame* game)
+{
+	const int retryDelay = 25;
+	const int maxDelay = 1000;
+
+	// 10 tries, 50 ms delay => wait at most half a second for everyone to close
+	for (int tries = 0; tries < maxDelay/retryDelay; tries++)
+	{
+		int numSocketsToClose = MAX_CLIENTS;
+
+		for (int i = 0; i < MAX_CLIENTS; i++)
+		{
+			NSpPlayer* client = &game->players[i];
+
+			if (IsSocketValid(client->sockfd))
+			{
+				bool brokenPipe = false;
+				NSpMessageHeader* junk = PollSocket(client->sockfd, &brokenPipe);
+				if (brokenPipe)
+				{
+					CloseSocket(&client->sockfd);
+					numSocketsToClose--;
+				}
+				if (junk)
+				{
+					NSpMessage_Release(game, junk);
+				}
+			}
+			else
+			{
+				numSocketsToClose--;
+			}
+		}
+
+		if (numSocketsToClose == 0)
+		{
+			break;
+		}
+		else
+		{
+			SDL_Delay(retryDelay);
+		}
+	}
+}
+
 int NSpGame_Dispose(NSpGameReference inGame, int disposeFlags)
 {
 	NSpGame* game = NSpGame_Unbox(inGame);
@@ -1124,11 +1170,14 @@ int NSpGame_Dispose(NSpGameReference inGame, int disposeFlags)
 	CloseSocket(&game->hostListenSocket);
 	CloseSocket(&game->hostAdvertiseSocket);
 
+	// Prevent dangling TIME-WAIT sockets (which may cause EADDRINUSE if we try to host again):
+	// wait for the clients to receive the bye message and close the socket on their end.
+	NSpGame_WaitForClientsToCloseSockets(game);
+
+	// Erase clients
 	for (int i = 0; i < MAX_CLIENTS; i++)
 	{
-		NSpPlayer* client = &game->players[i];
-		CloseSocket(&client->sockfd);
-		NSpPlayer_Clear(client);
+		NSpPlayer_Clear(&game->players[i]);
 	}
 
 	game->cookie = 'DEAD';
@@ -1606,6 +1655,7 @@ const char* NSpPlayer_GetName(NSpGameReference gameRef, NSpPlayerID playerID)
 	return player == NULL ? NULL : player->name;
 }
 
+// Does NOT close the socket!
 static void NSpPlayer_Clear(NSpPlayer* player)
 {
 	memset(player, 0, sizeof(NSpPlayer));

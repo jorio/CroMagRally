@@ -158,7 +158,6 @@ OSErr	iErr;
 
 	if (gIsNetworkHost)
 	{
-//		Wait(40);						// do this pause to let clients sync up so they don't get the terminate message prematurely
 		NSpGame_Dispose(gNetGame, kNSpGameFlag_ForceTerminateGame);	// do not renegotiate a new host
 	}
 
