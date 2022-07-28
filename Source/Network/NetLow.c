@@ -194,7 +194,7 @@ static void CopyPlayerName(char* dest, const char* src)
 
 #pragma mark - Message creation helper
 
-static Ptr _AllocMessage(int size, int what, NSpPlayerID from, NSpPlayerID to)
+static Ptr _AllocMessageHelper(int size, int what, NSpPlayerID from, NSpPlayerID to)
 {
 	Ptr x = AllocPtrClear(size);
 	NSpMessageHeader* header = (NSpMessageHeader*) x;
@@ -206,7 +206,7 @@ static Ptr _AllocMessage(int size, int what, NSpPlayerID from, NSpPlayerID to)
 	return x;
 }
 
-#define AllocMessage(T, from, to) ((T##Message*) _AllocMessage(sizeof(T##Message), k##T, (from), (to)))
+#define AllocMessage(T, from, to) ((T##Message*) _AllocMessageHelper(sizeof(T##Message), k##T, (from), (to)))
 
 #pragma mark - Lobby broadcast
 
@@ -562,7 +562,6 @@ bye:
 	if (brokenPipe)
 	{
 		printf("%s: broken pipe on socket %d\n", __func__, (int) sockfd);
-		//NSpMessageHeader* brokenPipeHeader = (NSpMessageHeader*) AllocPtr(sizeof)
 	}
 	if (outBrokenPipe)
 	{
