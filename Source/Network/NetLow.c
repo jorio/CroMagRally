@@ -371,6 +371,26 @@ fail:
 	return -1;
 }
 
+int NSpGame_StopAcceptingNewClients(NSpGameReference gameRef)
+{
+	NSpGame* game = NSpGame_Unbox(gameRef);
+
+	if (!game)
+	{
+		return kNSpRC_NoGame;
+	}
+
+	GAME_ASSERT(game->isHosting);
+
+	if (!IsSocketValid(game->hostListenSocket))
+	{
+		return kNSpRC_BadState;
+	}
+
+	CloseSocket(&game->hostListenSocket);
+	return kNSpRC_OK;
+}
+
 #pragma mark - Message socket
 
 static sockfd_t CreateTCPSocket(bool bindIt)

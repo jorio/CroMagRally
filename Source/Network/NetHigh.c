@@ -224,6 +224,7 @@ bool UpdateNetSequence(void)
 
 		case kNetSequence_HostReadyToStartGame:
 			NSpGame_StopAdvertising(gNetGame);
+			NSpGame_StopAcceptingNewClients(gNetGame);
 			if (noErr == HostSendGameConfigInfo())
 			{
 				gNetSequenceState = kNetSequence_HostStartingGame;
