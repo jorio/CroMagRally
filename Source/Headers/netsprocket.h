@@ -16,7 +16,7 @@ typedef int sockfd_t;
 #define INVALID_SOCKET (-1)
 #endif
 
-#define MAX_CLIENTS 6
+#define MAX_CLIENTS MAX_LOCAL_PLAYERS
 #define kNSpPlayerNameLength 32
 #define kNSpMaxPayloadLength 256
 #define kNSpMaxMessageLength (kNSpMaxPayloadLength + sizeof(NSpMessageHeader))
