@@ -50,6 +50,8 @@ static void UpdateNetGatherPrompt(void)
 	{
 		case kNetSequence_Error:
 		{
+			// Since winsock error numbers are different from posix,
+			// add a W or U tag so we know the user's OS if they report an issue.
 #if _WIN32
 			char errorChar = 'W';
 #else
@@ -59,29 +61,45 @@ static void UpdateNetGatherPrompt(void)
 			break;
 		}
 
+		case kNetSequence_SeedDesync:
+			output = "ERROR: SEED DESYNC.";
+			break;
+
+		case kNetSequence_PositionDesync:
+			output = "ERROR: POSITION DESYNC.";
+			break;
+
+		case kNetSequence_ErrorNoResponseFromClients:
+			output = "ERROR: NO RESPONSE FROM CLIENTS.";
+			break;
+
+		case kNetSequence_ErrorNoResponseFromHost:
+			output = "ERROR: NO RESPONSE FROM HOST.";
+			break;
+
+		case kNetSequence_ErrorLostPacket:
+			output = "ERROR: LOST PACKET.";
+			break;
+
+		case kNetSequence_ErrorSendFailed:
+			output = "ERROR: SEND FAILED.";
+			break;
+
 		case kNetSequence_ClientOfflineBecauseHostBailed:
-		{
 			output = Localize(STR_HOST_ENDED_GAME);
 			break;
-		}
 
 		case kNetSequence_ClientOfflineBecauseHostUnreachable:
-		{
 			output = Localize(STR_HOST_UNREACHABLE);
 			break;
-		}
 
 		case kNetSequence_ClientOfflineBecauseKicked:
-		{
 			output = Localize(STR_YOU_WERE_KICKED);
 			break;
-		}
 
 		case kNetSequence_OfflineEverybodyLeft:
-		{
 			output = Localize(STR_EVERYBODY_LEFT);
 			break;
-		}
 
 		case kNetSequence_HostLobbyOpen:
 		{
@@ -100,7 +118,7 @@ static void UpdateNetGatherPrompt(void)
 				AdvanceTextCursor(rc, &cursor, &bufSize);
 				rc = snprintf(cursor, bufSize, "\n \n");
 				AdvanceTextCursor(rc, &cursor, &bufSize);
-				LocalizeWithPlaceholder(STR_PRESS_XXX_TO_BEGIN, cursor, bufSize, "%s", "ENTER");
+				LocalizeWithPlaceholder(STR_PRESS_XXX_TO_BEGIN, cursor, bufSize, "[%s]", "ENTER");
 			}
 			break;
 		}
@@ -126,10 +144,8 @@ static void UpdateNetGatherPrompt(void)
 		}
 
 		case kNetSequence_ClientJoiningGame:
-		{
 			snprintf(buf, sizeof(buf), "%s\n%s", Localize(STR_JOINED_GAME), Localize(STR_WAITING_FOR_HOST));
 			break;
-		}
 
 		case kNetSequence_WaitingForPlayerVehicles:
 			output = Localize(STR_OTHER_PLAYERS_READYING_UP);

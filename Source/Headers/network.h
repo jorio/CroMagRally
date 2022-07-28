@@ -140,6 +140,12 @@ enum
 	kNetSequence_ClientOfflineBecauseHostUnreachable,
 	kNetSequence_ClientOfflineBecauseKicked,
 	kNetSequence_OfflineEverybodyLeft,
+	kNetSequence_SeedDesync,
+	kNetSequence_PositionDesync,
+	kNetSequence_ErrorSendFailed,
+	kNetSequence_ErrorLostPacket,
+	kNetSequence_ErrorNoResponseFromClients,
+	kNetSequence_ErrorNoResponseFromHost,
 };
 
 

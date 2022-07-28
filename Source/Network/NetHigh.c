@@ -29,6 +29,7 @@ static void PlayerUnexpectedlyLeavesGame(NSpPlayerLeftMessage *mess);
 /*    CONSTANTS             */
 /****************************/
 
+#define LOADING_TIMEOUT	15						// # seconds to wait for clients to load a level
 #define	DATA_TIMEOUT	2						// # seconds for data to timeout
 
 /**********************/
@@ -56,6 +57,27 @@ int				gTimeoutCounter;
 
 NetHostControlInfoMessageType	gHostOutMess;
 NetClientControlInfoMessageType	gClientOutMess;
+
+
+#pragma mark - Net fatal error
+
+
+/********* NET FATAL ERROR **********/
+//
+// In release builds, this will throw us out of the game
+// and cause an error message to appear in NetGather.
+//
+
+static void NetGameFatalError(int error)
+{
+#if _DEBUG
+	DoFatalAlert("NetGameFatalError %d", error);
+#else
+	EndNetworkGame();
+	gGameOver = true;
+	gNetSequenceState = error;
+#endif
+}
 
 
 #pragma mark - Player sync mask
@@ -363,10 +385,6 @@ bool UpdateNetSequence(void)
 						gNetSequenceState = kNetSequence_GameLoop;
 					break;
 
-				case	kNSpError:
-					DoFatalAlert("HostWaitForPlayersToPrepareLevel: message == kNSpError");
-					break;
-
 				default:
 					HandleOtherNetMessage(message);
 			}
@@ -642,9 +660,10 @@ int						startTick = TickCount();
 	{
 		bool gotMess = UpdateNetSequence();
 
-		if ((TickCount() - startTick) > (60 * 15))			// if no response for 15 seconds, then time out
+		if ((TickCount() - startTick) > (60 * LOADING_TIMEOUT))		// if no response for a while, then time out
 		{
-			DoFatalAlert("No Response from host, something has gone wrong.");
+			NetGameFatalError(kNetSequence_ErrorNoResponseFromClients);
+			return;
 		}
 
 		if (!gotMess && gNetSequenceState != kNetSequence_GameLoop)
@@ -671,7 +690,9 @@ int						startTick = TickCount();
 	outMess.h.messageLen 	= sizeof(outMess);						// set size of message
 	status = NSpMessage_Send(gNetGame, &outMess.h, kNSpSendFlag_Registered);	// send message
 	if (status)
-		DoFatalAlert("HostWaitForPlayersToPrepareLevel: NSpMessage_Send failed!");
+	{
+		NetGameFatalError(kNetSequence_ErrorSendFailed);
+	}
 }
 
 
@@ -717,14 +738,15 @@ int						startTick = TickCount();
 	{
 		bool gotMess = UpdateNetSequence();
 
-		if ((TickCount() - startTick) > (60 * 15))			// if no response for 15 seconds, then time out
+		if ((TickCount() - startTick) > (60 * LOADING_TIMEOUT))			// if no response for a while, then time out
 		{
-			DoFatalAlert("No Response from host, something has gone wrong.");
+			NetGameFatalError(kNetSequence_ErrorNoResponseFromHost);
+			return;
 		}
 
 		if (!gotMess && gNetSequenceState != kNetSequence_GameLoop)
 		{
-			SDL_Delay(100);
+			SDL_Delay(25);
 		}
 	}
 }
@@ -782,7 +804,7 @@ short							i;
 
 	status = NSpMessage_Send(gNetGame, &gHostOutMess.h, kNSpSendFlag_Registered);
 	if (status)
-		DoFatalAlert("HostSend_ControlInfoToClients: NSpMessage_Send failed!");
+		NetGameFatalError(kNetSequence_ErrorSendFailed);
 }
 
 
@@ -800,8 +822,13 @@ static Boolean Client_InGame_HandleHostControlInfoMessage(NetHostControlInfoMess
 
 	if (mess->frameCounter < gHostSendCounter)			// see if this is an old packet, possibly a duplicate.  If so, skip it
 		return false;
+
 	if (mess->frameCounter > gHostSendCounter)			// see if we skipped a packet; one must have gotten lost
-		DoFatalAlert("ClientReceive_ControlInfoFromHost: It seems Net Sprocket has lost a packet");
+	{
+		NetGameFatalError(kNetSequence_ErrorLostPacket);
+		return false;
+	}
+
 	gHostSendCounter++;									// inc host counter since the next packet we get will be +1
 
 	gFramesPerSecond 		= mess->fps;
@@ -816,7 +843,8 @@ static Boolean Client_InGame_HandleHostControlInfoMessage(NetHostControlInfoMess
 
 	if (MyRandomLong() != mess->randomSeed)				// verify that host's random # is in sync with ours!
 	{
-		DoFatalAlert("ClientReceive_ControlInfoFromHost: Not in sync!  Net Sprocket must have lost some data.");
+		NetGameFatalError(kNetSequence_SeedDesync);
+		return false;
 	}
 
 	for (int i = 0; i < MAX_PLAYERS; i++)					// control bits
@@ -888,7 +916,10 @@ Boolean								gotIt = false;
 			{
 				gTimeoutCounter++;								// keep track of how often this happens
 				if (gTimeoutCounter > 3)
-					DoFatalAlert("ClientReceive_ControlInfoFromHost: the network is losing too much data, must abort.");
+				{
+					NetGameFatalError(kNetSequence_ErrorNoResponseFromHost);
+					return;
+				}
 
 #if 0	// SOURCE PORT: DON'T RESEND - We're using TCP!
 				NSpMessage_Send(gNetGame, &gClientOutMess.h, kNSpSendFlag_Registered);	// resend the last message
@@ -1002,7 +1033,10 @@ Boolean								abort = false;
 		{
 			gTimeoutCounter++;								// keep track of how often this happens
 			if (gTimeoutCounter > 3)
-				DoFatalAlert("HostReceive_ControlInfoFromClients: the network is losing too much data, must abort.");
+			{
+				NetGameFatalError(kNetSequence_ErrorNoResponseFromClients);
+				return;
+			}
 
 #if 0		// Resending this while the client is paused will throw them out of sync!!
 			NSpMessage_Send(gNetGame, &gHostOutMess.h, kNSpSendFlag_Registered);
@@ -1045,7 +1079,8 @@ NetPlayerCharTypeMessage	outMess;
 	status = NSpMessage_Send(gNetGame, &outMess.h, kNSpSendFlag_Registered);
 	if (status)
 	{
-		DoFatalAlert("PlayerBroadcastVehicleType: NSpMessage_Send failed!");
+		NetGameFatalError(kNetSequence_ErrorSendFailed);
+		return;
 	}
 }
 
