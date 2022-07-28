@@ -180,6 +180,8 @@ OSErr	iErr;
 		gNetSequenceState	= kNetSequence_Offline;
 	ClearPlayerSyncMask();
 	gGamePaused			= false;
+	gHostSendCounter	= 0;
+	memset(gClientSendCounter, 0, sizeof(gClientSendCounter));
 }
 
 

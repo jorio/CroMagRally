@@ -1480,6 +1480,7 @@ short				numPanes;
 
 static void CleanupLevel(void)
 {
+	EndNetPauseScreen();		// free netpause objects if game ended during netpause
 	EndNetworkGame();
 	StopAllEffectChannels();
  	EmptySplineObjectList();
