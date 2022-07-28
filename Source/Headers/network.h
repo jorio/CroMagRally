@@ -56,6 +56,7 @@ typedef struct
 	uint8_t				pauseState[MAX_PLAYERS];
 
 #if _DEBUG
+	uint32_t			simTick;
 	OGLPoint3D			playerPositionCheck[MAX_PLAYERS];		// additional error checking in debug mode
 #endif
 }NetHostControlInfoMessageType;

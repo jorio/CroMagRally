@@ -178,7 +178,7 @@ OSErr	iErr;
 	if (gNetSequenceState < kNetSequence_Error)
 		gNetSequenceState	= kNetSequence_Offline;
 	ClearPlayerSyncMask();
-	gGamePaused			= false;
+	gSimulationPaused	= false;
 	gHostSendCounter	= 0;
 	memset(gClientSendCounter, 0, sizeof(gClientSendCounter));
 }
@@ -759,6 +759,10 @@ short							i;
 	gHostOutMess.fpsFrac		= gFramesPerSecondFrac;					// fps frac
 	gHostOutMess.randomSeed		= MyRandomLong();						// send the host's current random value for sync verification
 
+#if _DEBUG
+	gHostOutMess.simTick		= gSimulationFrame;
+#endif
+
 	for (i = 0; i < MAX_PLAYERS; i++)								// control bits
 	{
 		gHostOutMess.controlBits[i] = gPlayerInfo[i].controlBits;
@@ -802,6 +806,13 @@ static Boolean Client_InGame_HandleHostControlInfoMessage(NetHostControlInfoMess
 
 	gFramesPerSecond 		= mess->fps;
 	gFramesPerSecondFrac 	= mess->fpsFrac;
+
+#if _DEBUG
+	if (mess->simTick != gSimulationFrame)
+	{
+		DoFatalAlert("Sim tick mismatch! mine=%u host=%u", mess->simTick, gSimulationFrame);
+	}
+#endif
 
 	if (MyRandomLong() != mess->randomSeed)				// verify that host's random # is in sync with ours!
 	{

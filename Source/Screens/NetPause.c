@@ -5,25 +5,22 @@
 
 #include "game.h"
 
-static bool gNetPauseActive = false;
 static ObjNode* gNetPauseText = NULL;
 
-
-static void SetupNetPauseScreen(void)
+void SetupNetPauseScreen(void)
 {
-	if (gNetPauseActive)
+	if (gNetPauseText)
 	{
 		return;
 	}
 
-	gNetPauseActive = true;
-	gGamePaused = true;
 	gHideInfobar = true;
 
 	NewObjectDefinitionType netPauseDef =
 	{
 		.scale = 0.7f,
 		.slot = MENU_SLOT,
+		.flags = STATUS_BIT_MOVEINPAUSE,
 	};
 
 	char text[128];
@@ -32,30 +29,15 @@ static void SetupNetPauseScreen(void)
 	gNetPauseText = TextMesh_New(text, 0, &netPauseDef);
 }
 
-void DoNetPauseScreenTick(void)
+void RemoveNetPauseScreen(void)
 {
-	if (!gNetPauseActive)
-	{
-		SetupNetPauseScreen();
-	}
-
-	DoSDLMaintenance();
-	MoveObjects();
-	DoPlayerTerrainUpdate();
-	CalcFramesPerSecond();
-//	OGL_DrawScene(DrawTerrain);
-}
-
-void EndNetPauseScreen(void)
-{
-	if (!gNetPauseActive)
+	if (!gNetPauseText)
 	{
 		return;
 	}
 
-	gNetPauseActive = false;
-	gGamePaused = false;
 	gHideInfobar = false;
 
 	DeleteObject(gNetPauseText);
+	gNetPauseText = NULL;
 }

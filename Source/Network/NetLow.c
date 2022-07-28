@@ -556,8 +556,8 @@ static NSpMessageHeader* PollSocket(sockfd_t sockfd, bool* outBrokenPipe)
 	char* returnBuf = AllocPtr(header->messageLen);
 	memcpy(returnBuf, messageBuf, header->messageLen);
 	outMessage = (NSpMessageHeader*) returnBuf;
-	printf("recv '%s' (%dB) from P%d\n",
-		NSp4CCString(outMessage->what), outMessage->messageLen, outMessage->from);
+	printf("recv '%s' (%dB) #%d from P%d\n",
+		NSp4CCString(outMessage->what), outMessage->messageLen, outMessage->id, outMessage->from);
 
 bye:
 	if (brokenPipe)
@@ -1486,8 +1486,8 @@ static int SendOnSocket(sockfd_t sockfd, NSpMessageHeader* header)
 	}
 	else
 	{
-		printf("send '%s' (%dB) -> %d\n",
-			NSp4CCString(header->what), header->messageLen, (int) sockfd);
+		printf("send '%s' (%dB) #%d -> %d\n",
+			NSp4CCString(header->what), header->messageLen, header->id, (int) sockfd);
 		return kNSpRC_OK;
 	}
 }

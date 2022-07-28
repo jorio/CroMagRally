@@ -1335,7 +1335,7 @@ static char* UpdateDebugText(void)
 		"\nSTEER:\t%+.02f%s"
 		"\nX:\t\t%d"
 		"\nZ:\t\t%d"
-		"\nNET:\t%c%d-%d F%d"
+		"\nNET:\t%c%d-%d"
 		"\nSYNC:\t%d %04X"
 		,
 		(int)(gFramesPerSecond + .5f),
@@ -1360,8 +1360,7 @@ static char* UpdateDebugText(void)
 		(!gNetGameInProgress) ? 'O' : gIsNetworkHost ? 'H' : gIsNetworkClient ? 'C' : '?',
 		gMyNetworkPlayerNum,
 		gNetSequenceState,
-		gIsNetworkHost ? gHostSendCounter : gClientSendCounter[gMyNetworkPlayerNum],
-		gGameFrameNum,
+		gSimulationFrame,
 		GetRandomSeed() & 0xFFFF
 	);
 

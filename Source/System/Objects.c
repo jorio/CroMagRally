@@ -402,7 +402,7 @@ ObjNode		*thisNodePtr;
 		gNextNode	 = thisNodePtr->NextNode;				// get next node now (cuz current node might get deleted)
 
 
-		if (gGamePaused && !(thisNodePtr->StatusBits & STATUS_BIT_MOVEINPAUSE))
+		if (gSimulationPaused && !(thisNodePtr->StatusBits & STATUS_BIT_MOVEINPAUSE))
 			goto next;
 
 
@@ -515,7 +515,7 @@ short			skelType, playerNum;
 				goto next;
 		}
 
-		if (gGamePaused || gHideInfobar)
+		if (gSimulationPaused || gHideInfobar)
 		{
 			if (statusBits & STATUS_BIT_HIDEINPAUSE)
 				goto next;

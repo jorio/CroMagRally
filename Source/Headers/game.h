@@ -49,7 +49,7 @@ extern Boolean					gDisableHiccupTimer;
 extern Boolean					gDrawLensFlare;
 extern Boolean					gDrawingOverlayPane;
 extern Boolean					gGameOver;
-extern Boolean					gGamePaused;		// prevents gameplay objects from being simulated
+extern Boolean					gSimulationPaused;		// prevents gameplay objects from being simulated
 extern Boolean					gHideInfobar;
 extern Boolean					gIsNetworkClient;
 extern Boolean					gIsNetworkHost;
@@ -175,7 +175,6 @@ extern UserPhysics				gUserPhysics;
 extern uint16_t					**gTileGrid;
 extern uint32_t					gAutoFadeStatusBits;
 extern uint32_t					gClientSendCounter[MAX_PLAYERS];
-extern uint32_t					gGameFrameNum;
 extern uint32_t					gGlobalMaterialFlags;
 extern uint32_t					gHostSendCounter;
-extern uint32_t					gInfobarUpdateBits;
+extern uint32_t					gSimulationFrame;

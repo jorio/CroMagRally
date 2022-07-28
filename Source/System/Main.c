@@ -62,7 +62,7 @@ OGLVector3D			gWorldSunDirection = { 1, -.2, 1};		// also serves as lense flare 
 OGLColorRGBA		gFillColor1 = { 1.0, 1.0, 1.0, 1.0 };
 OGLColorRGBA		gFillColor2 = { .5, .5, .5, 1.0 };
 
-uint32_t				gGameFrameNum = 0;
+uint32_t				gSimulationFrame = 0;
 
 Boolean				gNoCarControls = false;						// set if player has no control (for starting light et al)
 Boolean				gGameOver = false;
@@ -936,7 +936,7 @@ static void CheckCheats(void)
 
 static void PlayArea(void)
 {
-	Boolean wantPause = false;
+	Boolean schedulePause = false;
 
 
 	/* IF DOING NET GAME THEN WAIT FOR SYNC */
@@ -978,7 +978,6 @@ static void PlayArea(void)
 
 	while(true)
 	{
-
 				/******************************************/
 				/* GET CONTROL INFORMATION FOR THIS FRAME */
 				/******************************************/
@@ -993,7 +992,7 @@ static void PlayArea(void)
 			ReadKeyboard();									// read local keys
 			GetLocalKeyState();								// build a control state bitfield
 
-			wantPause = GetNewNeedStateAnyP(kNeed_UIPause);
+			schedulePause = GetNewNeedStateAnyP(kNeed_UIPause);
 		}
 
 				/* NETWORK CLIENT */
@@ -1016,23 +1015,24 @@ static void PlayArea(void)
 
 		if (IsNetGamePaused())
 		{
-			DoNetPauseScreenTick();
+			gSimulationPaused = true;
+			SetupNetPauseScreen();
+
+			MoveObjects();								// DON'T MoveEverything!!
+			DoPlayerTerrainUpdate();					// required to keep terrain meshes alive
 		}
 		else
 		{
-			EndNetPauseScreen();
+//			printf("Running simulation frame %u\n", gSimulationFrame);
 
-				/* MOVE OBJECTS */
+			gSimulationPaused = false;
+			RemoveNetPauseScreen();
 
 			MoveEverything();
-
-				/* DO GAME MODE SPECIFICS */
-
 			UpdateGameModeSpecifics();
-
-				/* UPDATE THE TERRAIN */
-
 			DoPlayerTerrainUpdate();
+
+			gSimulationFrame++;
 		}
 
 
@@ -1055,10 +1055,10 @@ static void PlayArea(void)
 		{
 			ReadKeyboard();									// read local client keys
 
-			wantPause = GetNewNeedStateAnyP(kNeed_UIPause);
-			gPlayerInfo[gMyNetworkPlayerNum].net.pauseState = wantPause;
-
 			GetLocalKeyState();								// build a control state bitfield
+
+			schedulePause = GetNewNeedStateAnyP(kNeed_UIPause);
+			gPlayerInfo[gMyNetworkPlayerNum].net.pauseState = schedulePause;
 
 			if (gIsNetworkClient)
 				ClientSend_ControlInfoToHost();				// send this info to the host to be used the next frame
@@ -1102,11 +1102,14 @@ static void PlayArea(void)
 
 			/* SEE IF PAUSED */
 
-		if (!gIsSelfRunningDemo && wantPause)
+		if (!gIsSelfRunningDemo && schedulePause)
 		{
+			RemoveNetPauseScreen();					// don't show pause menu on top of net pause message
+
 			DoPaused();
+			schedulePause = false;
+
 			gPlayerInfo[gMyNetworkPlayerNum].net.pauseState = 0;
-			wantPause = false;
 		}
 
 			/* UPDATE FRAMERATE AND SIM FRAME */
@@ -1114,7 +1117,6 @@ static void PlayArea(void)
 		if (!gIsNetworkClient)						// clients dont need to calc frame rate since its passed to them from host.
 			CalcFramesPerSecond();
 
-		gGameFrameNum++;
 
 
 				/* SEE IF TRACK IS COMPLETED */
@@ -1248,7 +1250,7 @@ short				numPanes;
 		InitMyRandomSeed();
 	InitControlBits();
 
-	gGameFrameNum 		= 0;
+	gSimulationFrame 		= 0;
 	gGameOver 			= false;
 	gTrackCompleted 	= false;
 	gTotalTokens 		= 0;
@@ -1480,7 +1482,7 @@ short				numPanes;
 
 static void CleanupLevel(void)
 {
-	EndNetPauseScreen();		// free netpause objects if game ended during netpause
+	RemoveNetPauseScreen();		// free netpause objects if game ended during netpause
 	EndNetworkGame();
 	StopAllEffectChannels();
  	EmptySplineObjectList();

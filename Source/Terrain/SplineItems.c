@@ -321,10 +321,12 @@ ObjNode	*theNode;
 	for (i = 0; i < gNumSplineObjects; i++)
 	{
 		theNode = gSplineObjectList[i];
-		if (theNode)
+
+		if (theNode
+			&& theNode->SplineMoveCall
+			&& (!gSimulationPaused || !(theNode->StatusBits & STATUS_BIT_MOVEINPAUSE)))
 		{
-			if (theNode->SplineMoveCall)
-				theNode->SplineMoveCall(theNode);				// call object's spline move routine
+			theNode->SplineMoveCall(theNode);				// call object's spline move routine
 		}
 	}
 }

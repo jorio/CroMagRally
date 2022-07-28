@@ -1032,7 +1032,7 @@ static void Infobar_DrawStartingLight(Byte whichPane)
 {
 int		oldTimer;
 
-	if (gGamePaused)
+	if (gSimulationPaused)
 		return;
 
 			/* CHECK TIMER */
