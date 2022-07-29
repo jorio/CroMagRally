@@ -1110,7 +1110,7 @@ float	dist;
 		return;
 	}
 
-	if (gGamePrefs.difficulty > DIFFICULTY_EASY)		// dont shoot if easy
+	if (gDifficulty > DIFFICULTY_EASY)		// dont shoot if easy
 	{
 		theNode->ShootTimer -= gFramesPerSecondFrac;									// see if able to shoot now
 		if (theNode->ShootTimer <= 0.0f)
@@ -1729,7 +1729,7 @@ float	dist;
 
 				/* SEE IF DROP BOMB */
 
-		if (gGamePrefs.difficulty > DIFFICULTY_EASY)		// dont shoot if easy
+		if (gDifficulty > DIFFICULTY_EASY)						// don't shoot if easy
 		{
 			theNode->ShootTimer -= fps;
 			if (theNode->ShootTimer <= 0.0f)
@@ -2107,7 +2107,7 @@ float	dist;
 	{
 			/* SEE IF SHOOT ANYONE */
 
-		if (gGamePrefs.difficulty > DIFFICULTY_EASY)		// dont shoot if easy
+		if (gDifficulty > DIFFICULTY_EASY)											// don't shoot if easy
 		{
 			p = FindClosestPlayer(nil, theNode->Coord.x, theNode->Coord.z, 3000, true, &dist);
 			if (p != -1)

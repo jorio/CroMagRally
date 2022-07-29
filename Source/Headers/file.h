@@ -64,7 +64,7 @@ typedef struct
 	Byte	splitScreenMode2P;
 	Byte	splitScreenMode3P;
 	Byte	language;
-	Byte	tagDuration;		// legal values: 2,3,4
+	Byte	_unused1;				// was tagDuration in v3.0.0
 	Byte	antialiasingLevel;
 	Boolean	fullscreen;
 	Byte	monitorNum;

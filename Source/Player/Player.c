@@ -196,7 +196,7 @@ Boolean	taken[NUM_LAND_CAR_TYPES];
 	{
 		if (gPlayerInfo[i].isComputer)									// set CPU vehicle type
 		{
-			if (gGamePrefs.difficulty == DIFFICULTY_HARD)				// in hard mode, the CPU can have duplicate cars
+			if (gDifficulty == DIFFICULTY_HARD)					// in hard mode, the CPU can have duplicate cars
 				gPlayerInfo[i].vehicleType = RandomRange(0, type);
 			else														// in other difficulty modes, only choose unique cars
 			{

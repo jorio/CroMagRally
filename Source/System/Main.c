@@ -69,7 +69,11 @@ Boolean				gGameOver = false;
 Boolean				gTrackCompleted = false;
 float				gTrackCompletedCoolDownTimer = 0;
 
-int					gGameMode,gTheAge,gTrackNum;
+int					gGameMode;
+int					gTheAge;
+int					gTrackNum;
+int					gDifficulty = DIFFICULTY_MEDIUM;
+int					gTagDuration = 3;
 
 
 			/* BATTLE MODE VARS */
@@ -161,7 +165,6 @@ void InitDefaultPrefs(void)
 	gGamePrefs.splitScreenMode3P	= SPLITSCREEN_MODE_3P_TALL;
 	gGamePrefs.monitorNum			= 0;			// main monitor by default
 	gGamePrefs.fullscreen			= true;
-	gGamePrefs.tagDuration 			= 3;
 	gGamePrefs.musicVolumePercent	= 60;			// careful to set these two volumes to one of the
 	gGamePrefs.sfxVolumePercent		= 60;			// the predefined values allowed in the settings menu
 
@@ -188,6 +191,9 @@ static Boolean PlayGame(void)
 
 	if (gNetGameInProgress)
 		SetDefaultPhysics();								// set all physics to defaults for net game
+
+	if (!gNetGameInProgress || gIsNetworkHost)
+		gDifficulty = gGamePrefs.difficulty;				// set transient difficulty for this game
 
 	if (!gIsSelfRunningDemo && gNumLocalPlayers > 1)
 	{
@@ -373,7 +379,7 @@ static Boolean PlayGame_Tournament(void)
 Boolean	canAbort = true;									// player can abort only at beginning
 short	placeToWin,startStage;
 
-	if (gGamePrefs.difficulty <= DIFFICULTY_EASY)			// in easy mode, 3rd place will do
+	if (gDifficulty <= DIFFICULTY_EASY)						// in easy mode, 3rd place will do
 		placeToWin = 2;
 	else
 		placeToWin = 0;
@@ -401,7 +407,7 @@ short	placeToWin,startStage;
 		ShowAgePicture(gTheAge);
 
 		if (GetNumAgesCompleted() >= NUM_AGES					// if won game, then start stage @ 0
-			|| gGamePrefs.difficulty >= DIFFICULTY_HARD			// always start @ stage 0 in hard modes
+			|| gDifficulty >= DIFFICULTY_HARD					// always start @ stage 0 in hard modes
 			|| gTheAge < GetNumAgesCompleted())					// picked an age we've already completed, start @ stage 0
 		{
 			startStage = 0;
@@ -470,6 +476,10 @@ short	placeToWin,startStage;
 				&& !gGameOver														// dont do anything if we failed or bailed
 				&& gTrackNum+1 > GetNumTracksCompletedTotal())						// only if it's better than current progress
 			{
+				// We shouldn't save the player's progression during a net game.
+				// This shouldn't happen because tournament mode isn't available as a net game.
+				GAME_ASSERT(!gNetGameInProgress);
+
 				memcpy(gGamePrefs.tournamentProgression.tournamentLapTimes[gTrackNum],
 					   gPlayerInfo->lapTimes,
 					   sizeof(gPlayerInfo->lapTimes));

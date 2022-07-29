@@ -571,9 +571,9 @@ NetConfigMessage		message;
 			message.trackNum		= gTrackNum;					// set track #
 			message.numPlayers 		= gNumRealPlayers;				// set # players
 			message.playerNum 		= p++;							// set player #
-			message.numTracksCompleted = gGamePrefs.tournamentProgression.numTracksCompleted;
-			message.difficulty		= gGamePrefs.difficulty;		// set difficulty
-			message.tagDuration		= gGamePrefs.tagDuration;		// set tag duration
+//			message.numTracksCompleted= gTransientNumTracksCompleted;	// set # tracks completed (for car selection)
+			message.difficulty		= gDifficulty;			// set difficulty
+			message.tagDuration		= gTagDuration;					// set tag duration
 
 			status = NSpMessage_Send(gNetGame, &message.h, kNSpSendFlag_Registered);	// send message
 			if (status)
@@ -600,34 +600,21 @@ NetConfigMessage		message;
 
 void HandleGameConfigMessage(NetConfigMessage* inMessage)
 {
-	//TODO: fill in player info
-#if 0
-	NSpPlayer_GetEnumeration(gNetGame, &playerList);
-	gNumRealPlayers = playerList->count;									// get # players (host + clients)
-	for (i = 0; i < gNumRealPlayers; i++)
-	{
-		playerInfoPtr =  playerList->playerInfo[i];					// point to NSp's player info list
-		gPlayerInfo[i].nspPlayerID = playerInfoPtr->id;					// get NSp's playerID (for use when player leaves game)
-	}
-	NSpPlayer_ReleaseEnumeration(gNetGame,playerList);					// dispose of player list
-#endif
-
 	gGameMode 			= inMessage->gameMode;
 	gTheAge 			= inMessage->age;
 	gTrackNum 			= inMessage->trackNum;
 	gNumRealPlayers 	= inMessage->numPlayers;
 	gMyNetworkPlayerNum = inMessage->playerNum;
 
-	// TODO: Make this stuff transient!
-	puts("TODO: make net game settings transient!");
-	gGamePrefs.difficulty = inMessage->difficulty;
-	gGamePrefs.tagDuration = inMessage->tagDuration;
-	gGamePrefs.tournamentProgression.numTracksCompleted = inMessage->numTracksCompleted;
+	// Copy transient settings
+	gTagDuration = inMessage->tagDuration;
+	gDifficulty = inMessage->difficulty;
+//	gTransientNumTracksCompleted = inMessage->numTracksCompleted;
 
-
+	// Get NSp's playerIDs (for use when player leaves game)
 	for (int i = 0; i < gNumRealPlayers; i++)
 	{
-		gPlayerInfo[i].net.nspPlayerID = NSpGame_GetNthActivePlayerID(gNetGame, i);		// get NSp's playerID (for use when player leaves game)
+		gPlayerInfo[i].net.nspPlayerID = NSpGame_GetNthActivePlayerID(gNetGame, i);
 	}
 }
 

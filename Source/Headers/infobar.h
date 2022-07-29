@@ -4,7 +4,7 @@
 
 #define	MAX_TOKENS		8
 
-#define	TAG_TIME_LIMIT	((float)(gGamePrefs.tagDuration) * 60.0)			// n minutes
+#define	TAG_TIME_LIMIT	((float)(gTagDuration) * 60.0)			// n minutes
 
 
 void InitInfobar(void);

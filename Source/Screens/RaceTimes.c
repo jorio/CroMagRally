@@ -181,7 +181,7 @@ int SaveRaceTime(int playerNum)
 	memset(myRecord, 0, sizeof(*myRecord));
 	memcpy(myRecord->lapTimes, pi->lapTimes, sizeof(myRecord->lapTimes));
 	myRecord->timestamp		= time(NULL);
-	myRecord->difficulty	= gGamePrefs.difficulty;
+	myRecord->difficulty	= gDifficulty;
 	myRecord->gameMode		= gGameMode;
 	myRecord->trackNum		= gTrackNum;
 	myRecord->vehicleType	= pi->vehicleType;

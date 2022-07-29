@@ -461,7 +461,7 @@ static void OnPickClearSavedGame(const MenuItem* mi)
 
 static void OnPickTagDuration(const MenuItem* mi)
 {
-	gGamePrefs.tagDuration = mi->id;
+	gTagDuration = mi->id;
 }
 
 #pragma mark -
@@ -486,7 +486,7 @@ static int IsTournamentAgeAvailable(const MenuItem* mi)
 
 static int GetLayoutFlagsForTournamentObjective(const MenuItem* mi)
 {
-	bool isEasy = gGamePrefs.difficulty <= DIFFICULTY_EASY;
+	bool isEasy = gDifficulty <= DIFFICULTY_EASY;
 
 	if (mi->text == STR_TOURNAMENT_OBJECTIVE_EASY)
 		return isEasy? 0: kMILayoutFlagHidden;

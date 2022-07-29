@@ -24,14 +24,14 @@ enum
 typedef struct
 {
 	NSpMessageHeader	h;
-	int32_t				gameMode;							// game mode (tag, race, etc.)
-	int32_t				age;								// which age to play for race mode
-	int32_t				trackNum;							// which track to play for battle modes
-	int32_t				playerNum;							// this player's index
-	int32_t				numPlayers;							// # players in net game
-	int16_t				numTracksCompleted;					// pass saved game value to clients so we're all the same here
-	int16_t				difficulty;							// pass host's difficulty setting so we're in sync
-	int16_t				tagDuration;						// # minutes in tag game
+	int8_t				gameMode;							// game mode (tag, race, etc.)
+	int8_t				age;								// which age to play for race mode
+	int8_t				trackNum;							// which track to play for battle modes
+	int8_t				playerNum;							// this player's index
+	int8_t				numPlayers;							// # players in net game
+//	uint8_t				numTracksCompleted;					// pass saved game value to clients so we're all the same here
+	uint8_t				difficulty;							// pass host's difficulty setting so we're in sync
+	uint8_t				tagDuration;						// # minutes in tag game
 }NetConfigMessage;
 
 		/* SYNC MESSAGE */

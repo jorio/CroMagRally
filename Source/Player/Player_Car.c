@@ -304,7 +304,7 @@ void SetPhysicsForVehicleType(short playerNum)
 	else
 		info->maxSpeed = 3000.0f + speed * 3000.0f;
 
-	if ((gPlayerInfo[playerNum].isComputer) && (gGamePrefs.difficulty == DIFFICULTY_SIMPLISTIC))	// make CPU cars slower
+	if ((gPlayerInfo[playerNum].isComputer) && (gDifficulty == DIFFICULTY_SIMPLISTIC))	// make CPU cars slower
 	{
 		info->maxSpeed *= .7f;
 	}
@@ -313,10 +313,10 @@ void SetPhysicsForVehicleType(short playerNum)
 
 	if (gPlayerInfo[playerNum].isComputer && (gTheAge > STONE_AGE))				// tweak for CPU Cars
 	{
-		if (gGamePrefs.difficulty == DIFFICULTY_HARD)
+		if (gDifficulty == DIFFICULTY_HARD)
 			acceleration += .2f;
 		else
-		if (gGamePrefs.difficulty == DIFFICULTY_MEDIUM)
+		if (gDifficulty == DIFFICULTY_MEDIUM)
 			acceleration += .05f;
 	}
 
@@ -327,10 +327,10 @@ void SetPhysicsForVehicleType(short playerNum)
 
 	if (gPlayerInfo[playerNum].isComputer && (gTheAge > STONE_AGE))				// tweak for CPU Cars
 	{
-		if (gGamePrefs.difficulty == DIFFICULTY_HARD)
+		if (gDifficulty == DIFFICULTY_HARD)
 			traction += .2f;
 		else
-		if (gGamePrefs.difficulty == DIFFICULTY_MEDIUM)
+		if (gDifficulty == DIFFICULTY_MEDIUM)
 			traction += .05f;
 	}
 
@@ -356,7 +356,7 @@ void SetPhysicsForVehicleType(short playerNum)
 
 void SetSuspensionPhysics(CarStatsType *carStats, float n)
 {
-	if (gGamePrefs.difficulty <= DIFFICULTY_EASY)		// easy mode has easy suspension
+	if (gDifficulty <= DIFFICULTY_EASY)		// easy mode has easy suspension
 		n += .4f;
 
 	carStats->suspension 	=	.4f + n * .6f;
@@ -368,17 +368,23 @@ void SetSuspensionPhysics(CarStatsType *carStats, float n)
 
 void SetTractionPhysics(CarStatsType *carStats, float p)
 {
-	if (gGamePrefs.difficulty == DIFFICULTY_SIMPLISTIC)
+	switch (gDifficulty)		// easier modes have easier traction
 	{
-		p += .8f;
-	}
-	else
-	if (gGamePrefs.difficulty == DIFFICULTY_EASY)		// easy mode has easy traction
-		p += .5f;
-	else
-	if (gGamePrefs.difficulty == DIFFICULTY_MEDIUM)
-		p += .3f;
+		case DIFFICULTY_SIMPLISTIC:
+			p += .8f;
+			break;
 
+		case DIFFICULTY_EASY:
+			p += .5f;
+			break;
+
+		case DIFFICULTY_MEDIUM:
+			p += .3f;
+			break;
+
+		default:
+			break;
+	}
 
 	carStats->tireTraction		= .4f + p * .5f;
 	carStats->minPlaningAngle 	= .6f - (p * .3f);
@@ -558,7 +564,7 @@ Boolean		onWater;
 
 	cpuTweakFactor = 1.0f;													// assume no tweak
 
-	if (gGamePrefs.difficulty == DIFFICULTY_HARD)
+	if (gDifficulty == DIFFICULTY_HARD)
 	{
 		if (pinfo->isComputer)												// give cars in back a slight edge
 		{
@@ -2228,7 +2234,7 @@ Boolean			onWater;
 			if (gPlayerInfo[player].isPlaning || gPlayerInfo[player].greasedTiresTimer || (fabs(theNode->DeltaRot.y) > PI))	// if sliding or spinning then brake!
 				brake = true;
 			else
-			if ((theNode->Speed2D > 2500.0f) && (gGamePrefs.difficulty > DIFFICULTY_EASY))			// if we're going fast then see if we need to slow
+			if ((theNode->Speed2D > 2500.0f) && (gDifficulty > DIFFICULTY_EASY))			// if we're going fast then see if we need to slow
 			{
 				OGLVector2D	futurePathVec;
 
@@ -2366,10 +2372,10 @@ void DoCPUPowerupLogic(ObjNode *carObj, short playerNum)
 {
 short	powType;
 
-	if (gGamePrefs.difficulty <= DIFFICULTY_EASY)			// CPU doesnt shoot in easy mode
+	if (gDifficulty <= DIFFICULTY_EASY)						// CPU doesn't shoot in easy mode
 		return;
 
-	if (gPlayerInfo[playerNum].attackTimer > 0.0f)				// see if allowed to do this yet
+	if (gPlayerInfo[playerNum].attackTimer > 0.0f)			// see if allowed to do this yet
 		return;
 
 	if (gPlayerInfo[playerNum].powQuantity == 0)			// if I'm empty then dont do anything
@@ -2457,7 +2463,7 @@ short	bestFront,bestBack,bestShot;
 	}
 	else
 	{
-		if (gGamePrefs.difficulty == DIFFICULTY_HARD)
+		if (gDifficulty == DIFFICULTY_HARD)
 		{
 			if (gPlayerInfo[playerNum].place < gWorstHumanPlace)
 				attackCPUCars = true;
