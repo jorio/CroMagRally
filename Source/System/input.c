@@ -49,21 +49,6 @@ void ReadKeyboard(void)
 	DoSDLMaintenance();
 
 
-			/* EMULATE THE ANALOG INPUT FOR STEERING */
-			// TODO: Should this really be here? It's sent over the wire!
-
-	if (!gNetGameInProgress)
-	{
-		for (int i = 0; i < gNumLocalPlayers; i++)
-		{
-			gPlayerInfo[i].analogSteering = GetAnalogSteering(i);
-		}
-	}
-	else
-	{
-		gPlayerInfo[gMyNetworkPlayerNum].analogSteering = GetAnalogSteering(gMyNetworkPlayerNum);
-	}
-
 #if _DEBUG
 	if (GetNewKeyState(SDL_SCANCODE_KP_1))		gPlayerInfo[0].superSuspensionTimer	+= 3;
 	if (GetNewKeyState(SDL_SCANCODE_KP_2))		gPlayerInfo[0].stickyTiresTimer		+= 3;
@@ -137,8 +122,6 @@ static void GetLocalKeyStateForPlayer(short playerNum)
 uint32_t	mask,old;
 short	i;
 
-	// TODO save analog steering here! it's sent over the wire!
-
 	old = gPlayerInfo[playerNum].controlBits;						// remember old bits
 	gPlayerInfo[playerNum].controlBits = 0;							// initialize new bits
 	mask = 0x1;
@@ -158,6 +141,11 @@ short	i;
 			/* BUILD "NEW" BITFIELD */
 
 	gPlayerInfo[playerNum].controlBits_New = (gPlayerInfo[playerNum].controlBits ^ old) & gPlayerInfo[playerNum].controlBits;
+
+
+			/* COPY ANALOG STEERING */
+
+	gPlayerInfo[playerNum].analogSteering = GetAnalogSteering(playerNum);
 }
 
 
