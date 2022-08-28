@@ -27,7 +27,7 @@
 #define	MAX_MORPH_TRIMESHES		10
 #define	MAX_MORPH_POINTS		1000
 
-#define	MAX_SPECIAL_DATA_BYTES	(sizeof(void*) * 8)
+#define	MAX_SPECIAL_DATA_BYTES	(sizeof(uint64_t) * 8)
 
 
 
