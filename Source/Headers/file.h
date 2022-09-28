@@ -150,12 +150,18 @@ char* CSVIterator(char** csvCursor, bool* eolOut);
 OSErr SaveScoreboardFile(void);
 OSErr LoadScoreboardFile(void);
 
-#define BYTESWAP_HANDLE(format, type, n, handle)                                  \
-{                                                                                 \
-	if ((n) * sizeof(type) > (unsigned long) GetHandleSize((Handle) (handle)))   \
-		DoFatalAlert("BYTESWAP_HANDLE: size mismatch!\nHdl=%ld Exp=%ld\nWhen swapping %dx %s in %s:%d", \
-			GetHandleSize((Handle) (handle)), \
-			(n) * sizeof(type), \
-			n, #type, __func__, __LINE__); \
-	ByteswapStructs((format), sizeof(type), (n), *(handle));                      \
-}
+#define UNPACK_STRUCTS_HANDLE(format, type, n, handle)                         \
+do                                                                             \
+{                                                                              \
+	if ((n) * sizeof(type) > (size_t) GetHandleSize((Handle) (handle)))        \
+	{                                                                          \
+		DoFatalAlert(                                                          \
+			"UnpackStructs: Unexpected destination handle size\n"              \
+			"When unpacking %dx %s in %s:%d\n"                                 \
+			"Handle size: %d, Expected size: %d",                              \
+			n, #type, __func__, __LINE__,                                      \
+			(int)GetHandleSize((Handle) (handle)),                             \
+			(int)(n) * sizeof(type));                                          \
+	}                                                                          \
+	UnpackStructs((format), sizeof(type), (n), *(handle));                     \
+} while(0)

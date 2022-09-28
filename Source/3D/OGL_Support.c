@@ -852,6 +852,11 @@ static void OGL_FixTextureGamma(uint8_t* imageMemory, int width, int height, GLi
 {
 	GAME_ASSERT_MESSAGE(gGammaRamp8[255] != 0, "Gamma ramp wasn't initialized");
 
+#if __BIG_ENDIAN__
+	// TODO: Review this function for big-endian targets. For now, just don't gamma-correct the textures.
+	return;
+#endif
+
 	switch (srcFormat)
 	{
 		case GL_RGB:
