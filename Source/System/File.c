@@ -1472,9 +1472,11 @@ static void LoadTerrainSuperTileTextures(short fRefNum)
 
 //		FlipImageVertically(pixels, SUPERTILE_TEXMAP_SIZE * sizeof(UInt16), SUPERTILE_TEXMAP_SIZE);
 
+#if !(__BIG_ENDIAN__)
 				/* BYTESWAP 16-BIT TEXTURE */
 
 		ByteswapInts(2, decompressedSize/2, pixels);
+#endif
 
 				/* LOAD IT IN */
 
@@ -1559,9 +1561,11 @@ static void LoadTerrainSuperTileTexturesSeamless(short fRefNum)
 
 //		FlipImageVertically(image, tileRowBytes, tileSize);
 
+#if !(__BIG_ENDIAN__)
 				/* BYTESWAP 16-BIT TEXTURE */
 
 		ByteswapInts(2, decompressedSize/2, image);
+#endif
 	}
 
 			/* ASSEMBLE SEAMLESS TEXTURES */
