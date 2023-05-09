@@ -62,6 +62,7 @@ static void NavigateFloatRange(const MenuItem* entry);
 
 #define MAX_MENU_ROWS	25
 #define MAX_STACK_LENGTH 16
+#define CLEAR_BINDING_SCANCODE SDL_SCANCODE_X
 
 #define kSfxNavigate	EFFECT_SELECTCLICK
 #define kSfxMenuChange	EFFECT_SELECTCLICK
@@ -657,7 +658,15 @@ static void RepositionArrows(void)
 		case kMIKeyBinding:
 		case kMIPadBinding:
 		case kMIMouseBinding:
-			snapTo = GetNthChainedNode(chainRoot, 1 + gNav->menuCol, NULL);
+			switch (gNav->menuState)
+			{
+				case kMenuStateAwaitingKeyPress:
+				case kMenuStateAwaitingPadPress:
+				case kMenuStateAwaitingMouseClick:
+					break;
+				default:
+					snapTo = GetNthChainedNode(chainRoot, 1 + gNav->menuCol, NULL);
+			}
 			break;
 
 		default:
@@ -980,13 +989,14 @@ static void NavigateKeyBinding(const MenuItem* entry)
 	}
 
 	if (GetNewNeedStateAnyP(kNeed_UIDelete)
-		|| GetNewKeyState(SDL_SCANCODE_SPACE)
+		|| GetNewKeyState(CLEAR_BINDING_SCANCODE)
 		|| (gNav->mouseHoverValid && GetNewClickState(SDL_BUTTON_MIDDLE)))
 	{
 		gNav->idleTime = 0;
 		gGamePrefs.keys[entry->inputNeed].key[keyNo] = 0;
 		PlayEffect(kSfxDelete);
 		MakeKbText(row, keyNo);
+		RepositionArrows();
 		return;
 	}
 
@@ -1000,6 +1010,7 @@ static void NavigateKeyBinding(const MenuItem* entry)
 		gNav->menuState = kMenuStateAwaitingKeyPress;
 
 		MakeKbText(row, keyNo);		// It'll show "PRESS!" because we're in kMenuStateAwaitingKeyPress
+		RepositionArrows();
 
 		// Change subtitle to help message
 		ReplaceMenuText(STR_CONFIGURE_KEYBOARD_HELP, STR_CONFIGURE_KEYBOARD_HELP_CANCEL);
@@ -1041,7 +1052,7 @@ static void NavigatePadBinding(const MenuItem* entry)
 	}
 
 	if (GetNewNeedStateAnyP(kNeed_UIDelete)
-		|| GetNewKeyState(SDL_SCANCODE_SPACE)
+		|| GetNewKeyState(CLEAR_BINDING_SCANCODE)
 		|| (gNav->mouseHoverValid && GetNewClickState(SDL_BUTTON_MIDDLE)))
 	{
 		gNav->idleTime = 0;
@@ -1051,7 +1062,7 @@ static void NavigatePadBinding(const MenuItem* entry)
 		return;
 	}
 
-	if ( (GetNewNeedStateAnyP(kNeed_UIConfirm) && !GetNewKeyState(SDL_SCANCODE_SPACE))
+	if ( (GetNewNeedStateAnyP(kNeed_UIConfirm) && !GetNewKeyState(CLEAR_BINDING_SCANCODE))
 		|| GetNewKeyState(SDL_SCANCODE_KP_ENTER)
 		|| (gNav->mouseHoverValid && GetNewClickState(SDL_BUTTON_LEFT)))
 	{
@@ -1223,6 +1234,7 @@ updateText:
 	gNav->menuState = kMenuStateReady;
 	gNav->idleTime = 0;
 	MakeKbText(row, keyNo);		// update text after state changed back to Ready
+	RepositionArrows();
 	ReplaceMenuText(STR_CONFIGURE_KEYBOARD_HELP, STR_CONFIGURE_KEYBOARD_HELP);
 	return;
 }
@@ -1297,6 +1309,7 @@ updateText:
 	gNav->menuState = kMenuStateReady;
 	gNav->idleTime = 0;
 	MakePbText(row, btnNo);		// update text after state changed back to Ready
+	RepositionArrows();
 	ReplaceMenuText(STR_CONFIGURE_GAMEPAD_HELP_CANCEL, STR_CONFIGURE_GAMEPAD_HELP);
 	return true;
 }
