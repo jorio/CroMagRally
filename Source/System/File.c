@@ -560,7 +560,7 @@ long				count;
 
 OSErr LoadPrefs(void)
 {
-	OSErr err = LoadUserDataFile("Prefs", PREFS_MAGIC, sizeof(PrefsType), (Ptr) &gGamePrefs);
+	OSErr err = LoadUserDataFile(PREFS_FILENAME, PREFS_MAGIC, sizeof(PrefsType), (Ptr) &gGamePrefs);
 
 	if (err != noErr)
 	{
@@ -583,7 +583,7 @@ void SavePrefs(void)
 		return;
 	}
 
-	SaveUserDataFile("Prefs", PREFS_MAGIC, sizeof(PrefsType), (Ptr)&gGamePrefs);
+	SaveUserDataFile(PREFS_FILENAME, PREFS_MAGIC, sizeof(PrefsType), (Ptr)&gGamePrefs);
 
 	memcpy(&gDiskShadowPrefs, &gGamePrefs, sizeof(gGamePrefs));
 }
