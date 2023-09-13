@@ -10,11 +10,6 @@
 #include <iostream>
 #include <cstring>
 
-#if __APPLE__
-#include <libproc.h>
-#include <unistd.h>
-#endif
-
 extern "C"
 {
 	#include "game.h"
@@ -25,50 +20,64 @@ extern "C"
 	CommandLineOptions gCommandLine;
 	int gCurrentAntialiasingLevel;
 
-#if 0 //_WIN32
+/*
+#if _WIN32
 	// Tell Windows graphics driver that we prefer running on a dedicated GPU if available
 	__declspec(dllexport) int AmdPowerXpressRequestHighPerformance = 1;
 	__declspec(dllexport) unsigned long NvOptimusEnablement = 1;
 #endif
+*/
 
-	int GameMain(void);
+	void GameMain(void);
 }
 
-static fs::path FindGameData()
+static fs::path FindGameData(const char* executablePath)
 {
 	fs::path dataPath;
 
-#if __APPLE__
-	char pathbuf[PROC_PIDPATHINFO_MAXSIZE];
+	int attemptNum = 0;
 
-	pid_t pid = getpid();
-	int ret = proc_pidpath(pid, pathbuf, sizeof(pathbuf));
-	if (ret <= 0)
+#if !(__APPLE__)
+	attemptNum++;		// skip macOS special case #0
+#endif
+
+	if (!executablePath)
+		attemptNum = 2;
+
+tryAgain:
+	switch (attemptNum)
 	{
-		throw std::runtime_error(std::string(__func__) + ": proc_pidpath failed: " + std::string(strerror(errno)));
+		case 0:			// special case for macOS app bundles
+			dataPath = executablePath;
+			dataPath = dataPath.parent_path().parent_path() / "Resources";
+			break;
+
+		case 1:
+			dataPath = executablePath;
+			dataPath = dataPath.parent_path() / "Data";
+			break;
+
+		case 2:
+			dataPath = "Data";
+			break;
+
+		default:
+			throw std::runtime_error("Couldn't find the Data folder.");
 	}
 
-	dataPath = pathbuf;
-	dataPath = dataPath.parent_path().parent_path() / "Resources";
-#else
-	dataPath = "Data";
-#endif
+	attemptNum++;
 
 	dataPath = dataPath.lexically_normal();
 
 	// Set data spec -- Lets the game know where to find its asset files
 	gDataSpec = Pomme::Files::HostPathToFSSpec(dataPath / "Skeletons");
 
-	// Use application resource file
-	auto applicationSpec = Pomme::Files::HostPathToFSSpec(dataPath / "System" / "Application");
-	short resFileRefNum = FSpOpenResFile(&applicationSpec, fsRdPerm);
-
-	if (resFileRefNum == -1)
+	FSSpec someDataFileSpec;
+	OSErr iErr = FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":Skeletons:Brog.bg3d", &someDataFileSpec);
+	if (iErr)
 	{
-		throw std::runtime_error("Couldn't find the Data folder.");
+		goto tryAgain;
 	}
-
-	UseResFile(resFileRefNum);
 
 	return dataPath;
 }
@@ -140,8 +149,12 @@ static void GetInitialWindowSize(int display, int& width, int& height)
 	}
 }
 
-static void Boot()
+static void Boot(int argc, char** argv)
 {
+	const char* executablePath = argc > 0 ? argv[0] : NULL;
+
+	ParseCommandLine(argc, argv);
+
 	// Start our "machine"
 	Pomme::Init();
 
@@ -204,7 +217,7 @@ retryVideo:
 	}
 
 	// Find path to game data folder
-	fs::path dataPath = FindGameData();
+	fs::path dataPath = FindGameData(executablePath);
 
 	// Init joystick subsystem
 	{
@@ -220,6 +233,13 @@ retryVideo:
 static void Shutdown()
 {
 	Pomme::Shutdown();
+
+	if (gSDLWindow)
+	{
+		SDL_DestroyWindow(gSDLWindow);
+		gSDLWindow = NULL;
+	}
+
 	SDL_Quit();
 }
 
@@ -231,9 +251,8 @@ int main(int argc, char** argv)
 
 	try
 	{
-		ParseCommandLine(argc, argv);
-		Boot();
-		returnCode = GameMain();
+		Boot(argc, argv);
+		GameMain();
 	}
 	catch (Pomme::QuitRequest&)
 	{
@@ -260,8 +279,8 @@ int main(int argc, char** argv)
 
 	if (showFinalErrorMessage)
 	{
-		std::cerr << "Uncaught exception: " << finalErrorMessage << "\n";
-		SDL_ShowSimpleMessageBox(0, "Cro-Mag Rally", finalErrorMessage.c_str(), nullptr);
+		SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Uncaught exception: %s\n", finalErrorMessage.c_str());
+		SDL_ShowSimpleMessageBox(0, "Cro-Mag Rally: Uncaught exception", finalErrorMessage.c_str(), nullptr);
 	}
 
 	return returnCode;

@@ -119,8 +119,6 @@ static Boolean	beenHere = false;
 	}
 
 
-	UseResFile(gMainAppRezFile);
-
 	SavePrefs();							// save prefs before bailing
 
 	ExitToShell();

@@ -187,7 +187,6 @@ char		path[64];
 			/* CLOSE REZ FILE */
 
 	CloseResFile(fRefNum);
-	UseResFile(gMainAppRezFile);
 
 	return(skeleton);
 }
@@ -1400,7 +1399,6 @@ Ptr						tempBuffer16 = nil;
 			/* CLOSE REZ FILE */
 
 	CloseResFile(fRefNum);
-	UseResFile(gMainAppRezFile);
 
 
 

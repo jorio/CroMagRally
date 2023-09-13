@@ -48,7 +48,6 @@ static void TallyTokens(void);
 Byte				gDebugMode = 0;				// 0 == none, 1 = fps, 2 = all
 
 uint32_t				gAutoFadeStatusBits;
-short				gMainAppRezFile;
 
 OGLSetupOutputType	*gGameView = nil;
 
@@ -103,8 +102,6 @@ OSErr		iErr;
 	gDebugMode = 1;
 #endif
 
-
-	gMainAppRezFile = CurResFile();
 
 		/* FIRST VERIFY SYSTEM BEFORE GOING TOO FAR */
 
