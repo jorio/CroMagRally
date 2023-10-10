@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Version=1.0
+Name=Cro-Mag Rally
+Comment=The wildest racing game since man invented the wheel!
+Comment[fr]=Le jeu de course le plus déjanté depuis l’invention de la roue !
+Icon=io.jor.cromagrally
+Exec=CroMagRally
+Terminal=false
+Categories=Game;

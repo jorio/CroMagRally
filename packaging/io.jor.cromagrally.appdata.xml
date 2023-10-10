@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>io.jor.cromagrally</id>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>CC-BY-NC-SA-4.0</project_license>
+  <name>Cro-Mag Rally</name>
+  <summary>The wildest racing game since man invented the wheel!</summary>
+  <summary xml:lang="fr">Le jeu de course le plus déjanté depuis l’invention de la roue !</summary>
+  <developer_name>Pangea Software, Inc., Iliyas Jorio</developer_name>
+
+  <description>
+    <p>In Cro-Mag Rally you are a speed-hungry caveman named Brog who races through the Stone, Bronze, and Iron Ages in primitive vehicles such as the Geode Cruiser, Bone Buggy, Logmobile, Trojan Horse, and many others. Brog has at his disposal an arsenal of primitive weaponry ranging from Bone Bombs to Chinese Bottle Rockets and Heat Seeking Homing Pigeons.</p>
+    <p xml:lang="fr">Dans Cro-Mag Rally, vous incarnez Brog, un homme des cavernes avide de vitesse, dans sa course effrénée à travers les âges de Pierre, de Bronze et de Fer au volant de véhicules primitifs tels que la Géodeudeuche, la Squelettitine, le Turbo-Billot, le SUV de Troie, et bien d’autres encore. Brog dispose d’une panoplie d’armes rustiques allant des Bombes-Fémur aux Fusées en Bouteilles en passant par les Pigeons Voyageurs.</p>
+
+    <p>In addition to single-player racing where one player races against the computer, there are also several different multi-player modes including Tag, Quest for Fire, and Survival. Up to four players can play on a single computer in split-screen mode.</p>
+    <p xml:lang="fr">En plus des courses à un joueur où vous tenterez de battre l’ordinateur, le jeu comprend différents modes multi-joueurs : la chasse au Chat, la Quête du Feu, et la Survie. Jusqu’à quatre joueurs peuvent jouer sur le même ordinateur en mode écran partagé.</p>
+
+    <p>About this port: CMR was released in 2000 by Pangea Software. It was a pack-in game on Macs that came out around that time. This is a port of the original OS 9 version of the game, made under permission from Pangea Software, Inc.</p>
+    <p xml:lang="fr">À propos de ce portage : CMR fut initialement lancé en 2000 par Pangea Software. Ce jeu était fourni sur les Macs qui sortaient à cette époque. Ceci est un portage de la version OS 9 d’origine, réalisé et rediffusé avec la permission de Pangea Software, Inc.</p>
+  </description>
+
+  <categories>
+    <category>Game</category>
+    <category>ActionGame</category>
+    <category>SportsGame</category>
+  </categories>
+
+  <content_rating type="oars-1.1">
+    <content_attribute id="violence-cartoon">mild</content_attribute>
+    <content_attribute id="violence-fantasy">mild</content_attribute>
+  </content_rating>
+
+  <supports>
+    <control>keyboard</control>
+    <control>gamepad</control>
+  </supports>
+
+  <launchable type="desktop-id">io.jor.cromagrally.desktop</launchable>
+  <provides>
+    <id>io.jor.cromagrally.desktop</id>
+  </provides>
+
+  <screenshots>
+    <screenshot type="default">
+      <image>https://img.itch.zone/aW1hZ2UvMTU2NDAwNS85MTU3MTc2LnBuZw==/original/aaCbpm.png</image>
+    </screenshot>
+    <screenshot>
+      <image>https://img.itch.zone/aW1hZ2UvMTU2NDAwNS85MTU3MTIwLnBuZw==/original/yrQlCE.png</image>
+    </screenshot>
+    <screenshot>
+      <image>https://img.itch.zone/aW1hZ2UvMTU2NDAwNS85MTU3MTIyLnBuZw==/original/gJrC75.png</image>
+    </screenshot>
+    <screenshot>
+      <image>https://img.itch.zone/aW1hZ2UvMTU2NDAwNS85MTU3MTIzLnBuZw==/original/4RF0jm.png</image>
+    </screenshot>
+  </screenshots>
+
+  <url type="homepage">https://jorio.itch.io/cromagrally</url>
+  <url type="donation">https://ko-fi.com/jorio</url>
+  <url type="vcs-browser">https://github.com/jorio/CroMagRally</url>
+  <url type="bugtracker">https://github.com/jorio/CroMagRally/issues</url>
+
+  <releases>
+    <release version="3.0.0" date="2022-06-27">
+      <url>https://github.com/jorio/CroMagRally/releases/tag/3.0.0</url>
+      <description>
+        <p>Initial playable release of the modern source port.</p>
+        <p>A ton of new stuff in this version!!</p>
+        <ul>
+          <li>Up to 4 players in split-screen multiplayer (up from 2 in the original)</li>
+          <li>The UI has been tweaked to be pleasant to look at on modern widescreens</li>
+          <li>UI elements are subtly animated</li>
+          <li>The physics editor got a graphical overhaul</li>
+          <li>You can enable a timer in race modes to hone your racing skills</li>
+          <li>Keep track of your race records in the all-new scoreboard</li>
+          <li>Tired of wearing brown leopard skin all the time? Change your outfit in the character select screen (press up/down)</li>
+        </ul>
+      </description>
+    </release>
+  </releases>
+</component>
