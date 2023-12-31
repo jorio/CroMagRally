@@ -19,7 +19,7 @@
 /*    PROTOTYPES            */
 /****************************/
 
-static void ReadDataFromSkeletonFile(SkeletonDefType *skeleton, FSSpec *fsSpec, int skeletonType);
+static void ReadDataFromSkeletonFile(SkeletonDefType *skeleton, FSSpec *bg3dSpec, int skeletonType);
 static void ReadDataFromPlayfieldFile(FSSpec *specPtr);
 static void LoadTerrainSuperTileTextures(short fRefNum);
 static void LoadTerrainSuperTileTexturesSeamless(short fRefNum);
@@ -147,32 +147,29 @@ static const char* kSkeletonNames[MAX_SKELETON_TYPES] =
 	[SKELETON_TYPE_VIKING]			= "viking",
 };
 
-OSErr		iErr;
 short		fRefNum;
-FSSpec		fsSpec;
+FSSpec		skeletonSpec;
+FSSpec		bg3dSpec;
 SkeletonDefType	*skeleton;
+char		path[64];
 
 				/* SET CORRECT FILENAME */
 
 	GAME_ASSERT(skeletonType >= 0 && skeletonType < MAX_SKELETON_TYPES);
 
-	char path[256];
-	snprintf(path, sizeof(path), ":skeletons:%s.skeleton", kSkeletonNames[skeletonType]);
-	FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, path, &fsSpec);
+	snprintf(path, sizeof(path), ":Skeletons:%s.skeleton", kSkeletonNames[skeletonType]);
+	FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, path, &skeletonSpec);
+
+	snprintf(path, sizeof(path), ":Skeletons:%s.bg3d", kSkeletonNames[skeletonType]);
+	FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, path, &bg3dSpec);
 
 			/* OPEN THE FILE'S REZ FORK */
 
-	fRefNum = FSpOpenResFile(&fsSpec,fsRdPerm);
-	if (fRefNum == -1)
-	{
-		iErr = ResError();
-		DoAlert("Error opening Skel Rez file");
-		ShowSystemErr(iErr);
-	}
+	fRefNum = FSpOpenResFile(&skeletonSpec, fsRdPerm);
+	GAME_ASSERT(fRefNum >= 0);
 
 	UseResFile(fRefNum);
-	if (ResError())
-		DoFatalAlert("Error using Rez file!");
+	GAME_ASSERT(!ResError());
 
 
 			/* ALLOC MEMORY FOR SKELETON INFO STRUCTURE */
@@ -184,7 +181,7 @@ SkeletonDefType	*skeleton;
 
 			/* READ SKELETON RESOURCES */
 
-	ReadDataFromSkeletonFile(skeleton,&fsSpec,skeletonType);
+	ReadDataFromSkeletonFile(skeleton, &bg3dSpec, skeletonType);
 	PrimeBoneData(skeleton);
 
 			/* CLOSE REZ FILE */
@@ -201,7 +198,7 @@ SkeletonDefType	*skeleton;
 // Current rez file is set to the file.
 //
 
-static void ReadDataFromSkeletonFile(SkeletonDefType *skeleton, FSSpec *fsSpec, int skeletonType)
+static void ReadDataFromSkeletonFile(SkeletonDefType *skeleton, FSSpec *bg3dSpec, int skeletonType)
 {
 Handle				hand;
 int					i,k,j;
@@ -210,10 +207,6 @@ AnimEventType		*animEventPtr;
 JointKeyframeType	*keyFramePtr;
 SkeletonFile_Header_Type	*headerPtr;
 short				version;
-AliasHandle				alias;
-OSErr					iErr;
-FSSpec					target;
-Boolean					wasChanged;
 OGLPoint3D				*pointPtr;
 SkeletonFile_AnimHeader_Type	*animHeaderPtr;
 
@@ -223,20 +216,17 @@ SkeletonFile_AnimHeader_Type	*animHeaderPtr;
 			/************************/
 
 	hand = GetResource('Hedr',1000);
-	if (hand == nil)
-		DoFatalAlert("ReadDataFromSkeletonFile: Error reading header resource!");
+	GAME_ASSERT(hand);
 	UNPACK_STRUCTS_HANDLE(">4h", SkeletonFile_Header_Type, 1, hand);
 	headerPtr = (SkeletonFile_Header_Type *)*hand;
 	version = headerPtr->version;
-	if (version != SKELETON_FILE_VERS_NUM)
-		DoFatalAlert("Skeleton file has wrong version #");
+	GAME_ASSERT(version == SKELETON_FILE_VERS_NUM);
 
 	numAnims = skeleton->NumAnims = headerPtr->numAnims;			// get # anims in skeleton
 	numJoints = skeleton->NumBones = headerPtr->numJoints;			// get # joints in skeleton
 	ReleaseResource(hand);
 
-	if (numJoints > MAX_JOINTS)										// check for overload
-		DoFatalAlert("ReadDataFromSkeletonFile: numJoints > MAX_JOINTS");
+	GAME_ASSERT(numJoints <= MAX_JOINTS);							// check for overload
 
 
 				/*************************************/
@@ -251,6 +241,7 @@ SkeletonFile_AnimHeader_Type	*animHeaderPtr;
 		/* 	LOAD THE REFERENCE GEOMETRY */
 		/********************************/
 
+#if 0
 	alias = (AliasHandle)GetResource(rAliasType,1001);				// alias to geometry BG3D file
 	if (alias != nil)
 	{
@@ -261,6 +252,9 @@ SkeletonFile_AnimHeader_Type	*animHeaderPtr;
 			DoFatalAlert("ReadDataFromSkeletonFile: Cannot find Skeleton's 3DMF file!");
 		ReleaseResource((Handle)alias);
 	}
+#else
+	LoadBonesReferenceModel(bg3dSpec, skeleton, skeletonType);
+#endif
 
 
 		/***********************************/
