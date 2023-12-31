@@ -125,26 +125,26 @@ SkeletonDefType *LoadSkeletonFile(short skeletonType)
 {
 static const char* kSkeletonNames[MAX_SKELETON_TYPES] =
 {
-	[SKELETON_TYPE_PLAYER_MALE]		= "brog",
-	[SKELETON_TYPE_PLAYER_FEMALE]	= "grag",
-	[SKELETON_TYPE_BIRDBOMB]		= "birdbomb",
-	[SKELETON_TYPE_YETI]			= "yeti",
-	[SKELETON_TYPE_BEETLE]			= "beetle",
-	[SKELETON_TYPE_CAMEL]			= "camel",
-	[SKELETON_TYPE_CATAPULT]		= "catapult",
-	[SKELETON_TYPE_BRONTONECK]		= "brontoneck",
-	[SKELETON_TYPE_SHARK]			= "shark",
-	[SKELETON_TYPE_FLAG]			= "flag",
-	[SKELETON_TYPE_PTERADACTYL]		= "pteradactyl",
-	[SKELETON_TYPE_MALESTANDING]	= "brogstanding",
-	[SKELETON_TYPE_FEMALESTANDING]	= "gragstanding",
-	[SKELETON_TYPE_DRAGON]			= "dragon",
-	[SKELETON_TYPE_MUMMY]			= "mummy",
-	[SKELETON_TYPE_TROLL]			= "troll",
-	[SKELETON_TYPE_DRUID]			= "druid",
-	[SKELETON_TYPE_POLARBEAR]		= "polarbear",
-	[SKELETON_TYPE_FLOWER]			= "flower",
-	[SKELETON_TYPE_VIKING]			= "viking",
+	[SKELETON_TYPE_PLAYER_MALE]		= "Brog",
+	[SKELETON_TYPE_PLAYER_FEMALE]	= "Grag",
+	[SKELETON_TYPE_BIRDBOMB]		= "BirdBomb",
+	[SKELETON_TYPE_YETI]			= "Yeti",
+	[SKELETON_TYPE_BEETLE]			= "Beetle",
+	[SKELETON_TYPE_CAMEL]			= "Camel",
+	[SKELETON_TYPE_CATAPULT]		= "Catapult",
+	[SKELETON_TYPE_BRONTONECK]		= "BrontoNeck",
+	[SKELETON_TYPE_SHARK]			= "Shark",
+	[SKELETON_TYPE_FLAG]			= "Flag",
+	[SKELETON_TYPE_PTERADACTYL]		= "Pteradactyl",
+	[SKELETON_TYPE_MALESTANDING]	= "BrogStanding",
+	[SKELETON_TYPE_FEMALESTANDING]	= "GragStanding",
+	[SKELETON_TYPE_DRAGON]			= "Dragon",
+	[SKELETON_TYPE_MUMMY]			= "Mummy",
+	[SKELETON_TYPE_TROLL]			= "Troll",
+	[SKELETON_TYPE_DRUID]			= "Druid",
+	[SKELETON_TYPE_POLARBEAR]		= "PolarBear",
+	[SKELETON_TYPE_FLOWER]			= "Flower",
+	[SKELETON_TYPE_VIKING]			= "Viking",
 };
 
 short		fRefNum;
@@ -700,7 +700,7 @@ void LoadCavemanSkins(void)
 		{
 			if (!gCavemanSkins[sex][j])
 			{
-				snprintf(skinPath, sizeof(skinPath), ":sprites:skins:%s%d.png", characterName, j);
+				snprintf(skinPath, sizeof(skinPath), ":Sprites:Skins:%s%d.png", characterName, j);
 				gCavemanSkins[sex][j] = MO_GetTextureFromFile(skinPath, GL_RGBA);
 			}
 		}
@@ -742,50 +742,50 @@ FSSpec	spec;
 
 static const char*	terrainFiles[NUM_TRACKS] =
 {
-	":terrain:StoneAge_Desert.ter",
-	":terrain:StoneAge_Jungle.ter",
-	":terrain:StoneAge_Ice.ter",
+	":Terrain:StoneAge_Desert.ter",
+	":Terrain:StoneAge_Jungle.ter",
+	":Terrain:StoneAge_Ice.ter",
 
-	":terrain:BronzeAge_Crete.ter",
-	":terrain:BronzeAge_China.ter",
-	":terrain:BronzeAge_Egypt.ter",
+	":Terrain:BronzeAge_Crete.ter",
+	":Terrain:BronzeAge_China.ter",
+	":Terrain:BronzeAge_Egypt.ter",
 
-	":terrain:IronAge_Europe.ter",
-	":terrain:IronAge_Scandinavia.ter",
-	":terrain:IronAge_Atlantis.ter",
+	":Terrain:IronAge_Europe.ter",
+	":Terrain:IronAge_Scandinavia.ter",
+	":Terrain:IronAge_Atlantis.ter",
 
-	":terrain:Battle_StoneHenge.ter",
-	":terrain:Battle_Aztec.ter",
-	":terrain:Battle_Coliseum.ter",
-	":terrain:Battle_Maze.ter",
-	":terrain:Battle_Celtic.ter",
-	":terrain:Battle_TarPits.ter",
-	":terrain:Battle_Spiral.ter",
-	":terrain:Battle_Ramps.ter",
+	":Terrain:Battle_StoneHenge.ter",
+	":Terrain:Battle_Aztec.ter",
+	":Terrain:Battle_Coliseum.ter",
+	":Terrain:Battle_Maze.ter",
+	":Terrain:Battle_Celtic.ter",
+	":Terrain:Battle_TarPits.ter",
+	":Terrain:Battle_Spiral.ter",
+	":Terrain:Battle_Ramps.ter",
 };
 
 static const char*	levelModelFiles[NUM_TRACKS] =
 {
-	":models:desert.bg3d",
-	":models:jungle.bg3d",
-	":models:ice.bg3d",
+	":Models:desert.bg3d",
+	":Models:jungle.bg3d",
+	":Models:ice.bg3d",
 
-	":models:crete.bg3d",
-	":models:china.bg3d",
-	":models:egypt.bg3d",
+	":Models:crete.bg3d",
+	":Models:china.bg3d",
+	":Models:egypt.bg3d",
 
-	":models:europe.bg3d",
-	":models:scandinavia.bg3d",
-	":models:atlantis.bg3d",
+	":Models:europe.bg3d",
+	":Models:scandinavia.bg3d",
+	":Models:atlantis.bg3d",
 
-	":models:stonehenge.bg3d",
-	":models:aztec.bg3d",
-	":models:coliseum.bg3d",
-	":models:crete.bg3d",
-	":models:crete.bg3d",
-	":models:tarpits.bg3d",
-	":models:crete.bg3d",
-	":models:ramps.bg3d"
+	":Models:stonehenge.bg3d",
+	":Models:aztec.bg3d",
+	":Models:coliseum.bg3d",
+	":Models:crete.bg3d",
+	":Models:crete.bg3d",
+	":Models:tarpits.bg3d",
+	":Models:crete.bg3d",
+	":Models:ramps.bg3d"
 };
 
 
@@ -835,13 +835,13 @@ static const char*	levelModelFiles[NUM_TRACKS] =
 
 			/* LOAD BG3D GEOMETRY */
 
-	FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":models:global.bg3d", &spec);
+	FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":Models:global.bg3d", &spec);
 	ImportBG3D(&spec, MODEL_GROUP_GLOBAL);
 
-	FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":models:carparts.bg3d", &spec);
+	FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":Models:carparts.bg3d", &spec);
 	ImportBG3D(&spec, MODEL_GROUP_CARPARTS);
 
-	FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":models:weapons.bg3d", &spec);
+	FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":Models:weapons.bg3d", &spec);
 	ImportBG3D(&spec, MODEL_GROUP_WEAPONS);
 
 	FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, levelModelFiles[gTrackNum], &spec);

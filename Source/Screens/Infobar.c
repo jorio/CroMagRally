@@ -357,23 +357,23 @@ void InitInfobar(void)
 {
 static const char*	maps[] =
 {
-	"maps:DesertMap",
-	"maps:JungleMap",
-	"maps:IceMap",
-	"maps:CreteMap",
-	"maps:ChinaMap",
-	"maps:EgyptMap",
-	"maps:EuropeMap",
-	"maps:ScandinaviaMap",
-	"maps:AtlantisMap",
-	"maps:StoneHengeMap",
-	"maps:AztecMap",
-	"maps:ColiseumMap",
-	"maps:MazeMap",
-	"maps:CelticMap",
-	"maps:TarPitsMap",
-	"maps:SpiralMap",
-	"maps:RampsMap",
+	"Maps:DesertMap",
+	"Maps:JungleMap",
+	"Maps:IceMap",
+	"Maps:CreteMap",
+	"Maps:ChinaMap",
+	"Maps:EgyptMap",
+	"Maps:EuropeMap",
+	"Maps:ScandinaviaMap",
+	"Maps:AtlantisMap",
+	"Maps:StoneHengeMap",
+	"Maps:AztecMap",
+	"Maps:ColiseumMap",
+	"Maps:MazeMap",
+	"Maps:CelticMap",
+	"Maps:TarPitsMap",
+	"Maps:SpiralMap",
+	"Maps:RampsMap",
 };
 
 
@@ -381,7 +381,7 @@ static const char*	maps[] =
 
 	gHideInfobar = false;
 
-			/* RESET ROW ALLOCATIONS FO RPOW TIMERS */
+			/* RESET ROW ALLOCATIONS FOR POW TIMERS */
 
 	for (int p = 0; p < MAX_LOCAL_PLAYERS; p++)
 	{

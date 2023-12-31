@@ -212,7 +212,7 @@ OGLVector3D			fillDirection2 = { -1, -.2, -.5 };
 			/* LOAD MODELS */
 
 	FSSpec spec;
-	FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":models:carselect.bg3d", &spec);
+	FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":Models:carselect.bg3d", &spec);
 	ImportBG3D(&spec, MODEL_GROUP_CARSELECT);
 
 

@@ -199,7 +199,7 @@ void InitPillarbox(void)
 	{
 		if (gPillarboxMaterial == nil)
 		{
-			gPillarboxMaterial = MO_GetTextureFromFile(":images:pillarbox.jpg", GL_RGB);
+			gPillarboxMaterial = MO_GetTextureFromFile(":Images:Pillarbox.jpg", GL_RGB);
 		}
 
 		MakePillarboxObject();

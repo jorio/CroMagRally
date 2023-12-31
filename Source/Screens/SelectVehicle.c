@@ -259,7 +259,7 @@ int					age;
 
 			/* MAKE BACKGROUND PICTURE OBJECT */
 
-	MakeBackgroundPictureObject(":images:VehicleSelectScreen.jpg");
+	MakeBackgroundPictureObject(":Images:VehicleSelectScreen.jpg");
 
 
 			/* LOAD SPRITES */
@@ -268,7 +268,7 @@ int					age;
 
 			/* LOAD MODELS */
 
-	FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":models:carselect.bg3d", &spec);
+	FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":Models:carselect.bg3d", &spec);
 	ImportBG3D(&spec, MODEL_GROUP_CARSELECT);
 
 			/*****************/

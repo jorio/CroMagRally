@@ -158,9 +158,9 @@ void ShowAgePicture(int age)
 {
 static const char*	names[NUM_AGES] =
 {
-	":images:Ages:StoneAgeIntro.jpg",
-	":images:Ages:BronzeAgeIntro.jpg",
-	":images:Ages:IronAgeIntro.jpg"
+	":Images:Ages:StoneAgeIntro.jpg",
+	":Images:Ages:BronzeAgeIntro.jpg",
+	":Images:Ages:IronAgeIntro.jpg"
 };
 
 	DisplayPicture(names[age], 20);
@@ -174,7 +174,7 @@ void ShowLoadingPicture(void)
 #if ENABLE_LOADING_SCREEN
 FSSpec	spec;
 
-	FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":images:Loading1.jpg", &spec);
+	FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":Images:Loading1.jpg", &spec);
 	DisplayPicture(&spec, -1);
 #endif
 }
@@ -188,8 +188,8 @@ FSSpec	spec;
 
 void DoTitleScreen(void)
 {
-	DisplayPicture(":images:PangeaLogo.jpg", 4.0f);
-	DisplayPicture(":images:TitleScreen.jpg", 5.0f);
+	DisplayPicture(":Images:PangeaLogo.jpg", 4.0f);
+	DisplayPicture(":Images:TitleScreen.jpg", 5.0f);
 }
 
 
@@ -280,9 +280,9 @@ FSSpec				spec;
 OGLSetupInputType	viewDef;
 static const char* names[] =
 {
-	":images:Conquered:StoneAgeConquered.png",
-	":images:Conquered:BronzeAgeConquered.png",
-	":images:Conquered:IronAgeConquered.png"
+	":Images:Conquered:StoneAgeConquered.png",
+	":Images:Conquered:BronzeAgeConquered.png",
+	":Images:Conquered:IronAgeConquered.png"
 };
 
 
@@ -317,7 +317,7 @@ static const char* names[] =
 
 			/* LOAD MODELS */
 
-	FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":models:winners.bg3d", &spec);
+	FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":Models:winners.bg3d", &spec);
 	ImportBG3D(&spec, MODEL_GROUP_WINNERS);
 
 
@@ -485,7 +485,7 @@ OGLSetupInputType	viewDef;
 
 			/* MAKE BACKGROUND PICTURE OBJECT */
 
-	MakeBackgroundPictureObject(":images:Conquered:GameCompleted.png");
+	MakeBackgroundPictureObject(":Images:Conquered:GameCompleted.png");
 
 
 	LoadASkeleton(SKELETON_TYPE_MALESTANDING);
@@ -494,7 +494,7 @@ OGLSetupInputType	viewDef;
 
 			/* LOAD MODELS */
 
-	FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":models:winners.bg3d", &spec);
+	FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":Models:winners.bg3d", &spec);
 	ImportBG3D(&spec, MODEL_GROUP_WINNERS);
 
 
@@ -850,7 +850,7 @@ static const float sizes[] =
 			/* MAKE BACKGROUND PICTURE OBJECT */
 
 
-	ObjNode* artwork = MakeBackgroundPictureObject(":images:Credits.jpg");
+	ObjNode* artwork = MakeBackgroundPictureObject(":Images:Credits.jpg");
 
 	artwork->Scale.x = (4.0/3.0) / viewDef.view.pillarboxRatio;  // hack - preserve aspect ratio of 4:3 picture in 16:9 viewport
 	artwork->Coord.x = -.25f;

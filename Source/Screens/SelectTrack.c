@@ -187,7 +187,7 @@ OGLSetupInputType	viewDef;
 
 			/* MAKE BACKGROUND PICTURE OBJECT */
 
-	MakeBackgroundPictureObject(":images:TrackSelectScreen.png");
+	MakeBackgroundPictureObject(":Images:TrackSelectScreen.png");
 
 			/* LOAD SPRITES */
 

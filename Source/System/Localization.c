@@ -6,7 +6,7 @@
 #include <string.h>
 #include <SDL.h>
 
-#define CSV_PATH ":system:strings.csv"
+#define CSV_PATH ":System:strings.csv"
 
 #define MAX_STRINGS (NUM_LOCALIZED_STRINGS + 1)
 

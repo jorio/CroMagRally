@@ -311,7 +311,7 @@ Atlas* Atlas_Load(const char* fontName, int flags)
 	snprintf(atlas->name, sizeof(atlas->name), "%s", fontName);
 
 	char pathBuf[256];
-	snprintf(pathBuf, sizeof(pathBuf), ":sprites:%s.png", fontName);
+	snprintf(pathBuf, sizeof(pathBuf), ":Sprites:%s.png", fontName);
 #if _DEBUG
 	printf("Atlas_Load: %s\n", pathBuf);
 #endif
@@ -340,7 +340,7 @@ Atlas* Atlas_Load(const char* fontName, int flags)
 
 	if (!(flags & kAtlasLoadAsSingleSprite))
 	{
-		snprintf(pathBuf, sizeof(pathBuf), ":sprites:%s.txt", fontName);
+		snprintf(pathBuf, sizeof(pathBuf), ":Sprites:%s.txt", fontName);
 		// Parse metrics from SFL file
 		const char* sflPath = pathBuf;
 		char* data = LoadTextFile(sflPath, NULL);
@@ -370,7 +370,7 @@ Atlas* Atlas_Load(const char* fontName, int flags)
 	if (flags & kAtlasLoadFont)
 	{
 		// Parse kerning table
-		char* data = LoadTextFile(":system:kerning.txt", NULL);
+		char* data = LoadTextFile(":System:kerning.txt", NULL);
 		GAME_ASSERT(data);
 		ParseKerningFile(atlas, data);
 		SafeDisposePtr(data);

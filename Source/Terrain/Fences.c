@@ -158,7 +158,7 @@ static float	gSeaweedFrameTimer;
 static void LoadFenceMaterial(int type)
 {
 	char fencePath[256];
-	snprintf(fencePath, sizeof(fencePath), ":sprites:fences:%s.png", kFenceNames[type]);
+	snprintf(fencePath, sizeof(fencePath), ":Sprites:Fences:%s.png", kFenceNames[type]);
 
 	gFenceMaterials[type] = MO_GetTextureFromFile(fencePath, /*GL_RGB5_A1*/ GL_RGBA);
 

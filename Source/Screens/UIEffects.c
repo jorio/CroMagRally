@@ -187,7 +187,7 @@ static void LoadTwitchPresets(void)
 
 	memset(gTwitchPresets, 0, sizeof(gTwitchPresets));
 
-	char* csv = LoadTextFile(":system:twitch.csv", NULL);
+	char* csv = LoadTextFile(":System:twitch.csv", NULL);
 
 	bool eol = false;
 
@@ -704,12 +704,12 @@ ObjNode* MakeScrollingBackgroundPattern(void)
 {
 			/* VIGNETTE EFFECT */
 
-	ObjNode* vignette = MakeBackgroundPictureObject(":images:Vignette.png");
+	ObjNode* vignette = MakeBackgroundPictureObject(":Images:Vignette.png");
 	vignette->ColorFilter = (OGLColorRGBA) {0,0,0,1};
 
 			/* PATTERN TEXTURE */
 
-	MOMaterialObject* patternMaterial = MO_GetTextureFromFile(":images:BoneCollage.png", GL_RGB);
+	MOMaterialObject* patternMaterial = MO_GetTextureFromFile(":Images:BoneCollage.png", GL_RGB);
 
 			/* PATTERN OBJECT */
 

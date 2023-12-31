@@ -355,7 +355,7 @@ OGLVector3D			fillDirection2 = { -1, -.2, -.5 };
 
 			/* MAKE BACKGROUND PICTURE OBJECT */
 
-	MakeBackgroundPictureObject(":images:MainMenuBackground.jpg");
+	MakeBackgroundPictureObject(":Images:MainMenuBackground.jpg");
 
 
 	NewObjectDefinitionType versionDef =

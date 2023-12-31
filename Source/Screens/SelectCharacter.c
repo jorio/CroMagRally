@@ -142,7 +142,7 @@ ObjNode	*multiplayerText = NULL;
 
 			/* MAKE BACKGROUND PICTURE OBJECT */
 
-	MakeBackgroundPictureObject(":images:CharSelectScreen.jpg");
+	MakeBackgroundPictureObject(":Images:CharSelectScreen.jpg");
 
 
 			/* LOAD SPRITES */
