@@ -333,6 +333,15 @@ void DoSDLMaintenance(void)
 		UpdateControllerSpecificInputNeeds(controllerNum);
 	}
 
+			/*******************/
+			/* CHECK FOR CMD+Q */
+			/*******************/
+			// When in-game, take a different path (see PlayArea)
+
+	if ((!gIsInGame || gGamePaused) && IsCmdQPressed())
+	{
+		CleanQuit();
+	}
 }
 
 #pragma mark -
@@ -452,6 +461,17 @@ Boolean UserWantsOut(void)
 		|| GetNewNeedStateAnyP(kNeed_UIPause)
 //		|| GetNewClickState(SDL_BUTTON_LEFT)
         ;
+}
+
+Boolean IsCmdQPressed(void)
+{
+#if __APPLE__
+	return (GetKeyState(SDL_SCANCODE_LGUI) || GetKeyState(SDL_SCANCODE_RGUI))
+		&& GetNewKeyState(SDL_GetScancodeFromKey(SDLK_q));
+#else
+	// on non-mac systems, alt-f4 is handled by the system
+	return false;
+#endif
 }
 
 Boolean IsCheatKeyComboDown(void)
@@ -627,7 +647,7 @@ static SDL_GameController* TryOpenControllerFromJoystick(int joystickIndex)
 	{
 		return gControllers[controllerSlot].controllerInstance;
 	}
-	
+
 	// If we can't get an SDL_GameController from that joystick, don't bother
 	if (!SDL_IsGameController(joystickIndex))
 	{
@@ -766,7 +786,7 @@ static void MoveController(int oldSlot, int newSlot)
 	printf("Remapped player controller %d ---> %d\n", oldSlot, newSlot);
 
 	gControllers[newSlot] = gControllers[oldSlot];
-	
+
 	// TODO: Does this actually work??
 	if (gControllers[newSlot].open)
 	{

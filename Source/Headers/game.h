@@ -51,6 +51,7 @@ extern Boolean					gDrawingOverlayPane;
 extern Boolean					gGameOver;
 extern Boolean					gGamePaused;
 extern Boolean					gHideInfobar;
+extern Boolean					gIsInGame;
 extern Boolean					gIsNetworkClient;
 extern Boolean					gIsNetworkHost;
 extern Boolean					gIsSelfRunningDemo;

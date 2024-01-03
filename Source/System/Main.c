@@ -46,6 +46,7 @@ static void TallyTokens(void);
 /****************************/
 
 Byte				gDebugMode = 0;				// 0 == none, 1 = fps, 2 = all
+Boolean				gIsInGame = false;
 
 uint32_t				gAutoFadeStatusBits;
 
@@ -907,6 +908,7 @@ static void PlayArea(void)
 	CalcFramesPerSecond();
 	gNoCarControls = true;									// no control when starting light is going
 	gDisableHiccupTimer = true;
+	gIsInGame = true;
 
 		/******************/
 		/* MAIN GAME LOOP */
@@ -1012,6 +1014,13 @@ static void PlayArea(void)
 			/* MISC STUFF */
 			/**************/
 
+			/* SEE IF PAUSED */
+
+		if (GetNewNeedStateAnyP(kNeed_UIPause) || IsCmdQPressed())
+		{
+			DoPaused();
+		}
+
 			/* CHECK CHEATS */
 
 		if (IsCheatKeyComboDown())						// win race cheat
@@ -1082,6 +1091,8 @@ static void PlayArea(void)
 			}
 		}
 	}
+
+	gIsInGame = false;
 }
 
 
