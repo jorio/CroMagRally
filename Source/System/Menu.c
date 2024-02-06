@@ -341,7 +341,7 @@ static const char* GetKeyBindingName(int row, int col)
 
 static const char* GetPadBindingName(int row, int col)
 {
-	const PadBinding* pb = &GetBindingAtRow(row)->userPad[col];
+	const PadBinding* pb = &GetBindingAtRow(row)->pad[col];
 
 	switch (pb->type)
 	{
@@ -1030,11 +1030,10 @@ static void NavigateCycler(const MenuItem* entry)
 
 		gTempForceSwipeRTL = (delta == -1);
 
-		ObjNode* node;
 		if (entry->type == kMICycler1)
-			node = LayOutCycler1(gNav->menuRow);
+			LayOutCycler1(gNav->menuRow);
 		else
-			node = LayOutCycler2ValueText(gNav->menuRow);
+			LayOutCycler2ValueText(gNav->menuRow);
 
 		RepositionArrows();
 
@@ -1281,7 +1280,7 @@ static void NavigatePadBinding(const MenuItem* entry)
 	{
 		TwitchOutSelection();
 		gNav->idleTime = 0;
-		gGamePrefs.bindings[entry->inputNeed].userPad[btnNo].type = kInputTypeUnbound;
+		gGamePrefs.bindings[entry->inputNeed].pad[btnNo].type = kInputTypeUnbound;
 		PlayEffect(kSfxDelete);
 		MakePbText(row, btnNo);
 		TwitchSelection();
@@ -1410,10 +1409,10 @@ static void UnbindPadButtonFromAllRemappableInputNeeds(int8_t type, int8_t id)
 
 		for (int j = 0; j < MAX_USER_BINDINGS_PER_NEED; j++)
 		{
-			if (binding->userPad[j].type == type && binding->userPad[j].id == id)
+			if (binding->pad[j].type == type && binding->pad[j].id == id)
 			{
-				binding->userPad[j].type = kInputTypeUnbound;
-				binding->userPad[j].id = 0;
+				binding->pad[j].type = kInputTypeUnbound;
+				binding->pad[j].id = 0;
 				MakeText(Localize(STR_UNBOUND_PLACEHOLDER), row, j+1, kTextMeshAllCaps | kTextMeshAlignLeft);
 			}
 		}
@@ -1489,46 +1488,26 @@ static bool AwaitGamepadPress(SDL_GameController* controller)
 
 	for (int8_t button = 0; button < SDL_CONTROLLER_BUTTON_MAX; button++)
 	{
-		switch (button)
-		{
-			case SDL_CONTROLLER_BUTTON_DPAD_UP:			// prevent binding those
-			case SDL_CONTROLLER_BUTTON_DPAD_DOWN:
-			case SDL_CONTROLLER_BUTTON_DPAD_LEFT:
-			case SDL_CONTROLLER_BUTTON_DPAD_RIGHT:
-				continue;
-		}
-
 		if (SDL_GameControllerGetButton(controller, button))
 		{
 			PlayEffect(kSfxCycle);
 			UnbindPadButtonFromAllRemappableInputNeeds(kInputTypeButton, button);
-			binding->userPad[btnNo].type = kInputTypeButton;
-			binding->userPad[btnNo].id = button;
+			binding->pad[btnNo].type = kInputTypeButton;
+			binding->pad[btnNo].id = button;
 			goto updateText;
 		}
 	}
 
 	for (int8_t axis = 0; axis < SDL_CONTROLLER_AXIS_MAX; axis++)
 	{
-		switch (axis)
-		{
-			case SDL_CONTROLLER_AXIS_LEFTX:				// prevent binding those
-			case SDL_CONTROLLER_AXIS_LEFTY:
-#if 0
-			case SDL_CONTROLLER_AXIS_RIGHTX:
-			case SDL_CONTROLLER_AXIS_RIGHTY:
-#endif
-				continue;
-		}
-
 		int16_t axisValue = SDL_GameControllerGetAxis(controller, axis);
 		if (abs(axisValue) > kJoystickDeadZone_BindingThreshold)
 		{
 			PlayEffect(kSfxCycle);
 			int axisType = axisValue < 0 ? kInputTypeAxisMinus : kInputTypeAxisPlus;
 			UnbindPadButtonFromAllRemappableInputNeeds(axisType, axis);
-			binding->userPad[btnNo].type = axisType;
-			binding->userPad[btnNo].id = axis;
+			binding->pad[btnNo].type = axisType;
+			binding->pad[btnNo].id = axis;
 			goto updateText;
 		}
 	}

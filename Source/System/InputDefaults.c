@@ -23,58 +23,56 @@ const InputBinding kDefaultInputBindings[NUM_CONTROL_NEEDS] =
 {
 	[kNeed_ThrowForward] =
 	{
-		.userKey = { SC_THROWF1, SC_THROWF2 },
-		.userPad = { CB(Y), CAMINUS(RIGHTY) },
+		.key = { SC_THROWF1, SC_THROWF2 },
+		.pad = { CB(Y), CAMINUS(RIGHTY) },
 	},
 
 	[kNeed_ThrowBackward] =
 	{
-		.userKey = { SC_THROWB1, SC_THROWB2 },
-		.userPad = { CB(X), CAPLUS(RIGHTY) },
+		.key = { SC_THROWB1, SC_THROWB2 },
+		.pad = { CB(X), CAPLUS(RIGHTY) },
 	},
 
 	[kNeed_Brakes] =
 	{
-		.userKey = { SDL_SCANCODE_SPACE },
-		.userPad = { CAPLUS(TRIGGERRIGHT) },
+		.key = { SDL_SCANCODE_SPACE },
+		.pad = { CAPLUS(TRIGGERRIGHT) },
 	},
 
 	[kNeed_CameraMode] =
 	{
-		.userKey = { SDL_SCANCODE_GRAVE },
-		.userPad = { CB(LEFTSHOULDER) },
+		.key = { SDL_SCANCODE_GRAVE, SDL_SCANCODE_RETURN },
+		.pad = { CB(LEFTSHOULDER) },
 	},
 
 	[kNeed_RearView] =
 	{
-		.userKey = { SDL_SCANCODE_LSHIFT, SDL_SCANCODE_RSHIFT },
-		.userPad = { CAPLUS(TRIGGERLEFT) },
+		.key = { SDL_SCANCODE_LSHIFT, SDL_SCANCODE_RSHIFT },
+		.pad = { CAPLUS(TRIGGERLEFT) },
 	},
 
 	[kNeed_Forward] =
 	{
-		.userKey = { SDL_SCANCODE_UP, SDL_SCANCODE_W },
-		.userPad = { CB(A) },
-		.hardPad = { CB(DPAD_UP) },	// hardcoded
+		.key = { SDL_SCANCODE_UP, SDL_SCANCODE_W },
+		.pad = { CB(A) },
 	},
 
 	[kNeed_Backward] =
 	{
-		.userKey = { SDL_SCANCODE_DOWN, SDL_SCANCODE_S },
-		.userPad = { CB(B) },
-		.hardPad = { CB(DPAD_DOWN) },	// hardcoded
+		.key = { SDL_SCANCODE_DOWN, SDL_SCANCODE_S },
+		.pad = { CB(B) },
 	},
 
 	[kNeed_Left] =
 	{
-		.userKey = { SDL_SCANCODE_LEFT, SDL_SCANCODE_A },
-		.hardPad = { CB(DPAD_LEFT) },	// hardcoded
+		.key = { SDL_SCANCODE_LEFT, SDL_SCANCODE_A },
+		.pad = { CAMINUS(LEFTX) },
 	},
 
 	[kNeed_Right] =
 	{
-		.userKey = { SDL_SCANCODE_RIGHT, SDL_SCANCODE_D },
-		.hardPad = { CB(DPAD_RIGHT) },	// hardcoded
+		.key = { SDL_SCANCODE_RIGHT, SDL_SCANCODE_D },
+		.pad = { CAPLUS(LEFTX) },
 	},
 
 	// -----------------------------------------------------------

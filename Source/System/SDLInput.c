@@ -35,10 +35,8 @@ enum
 	KEYSTATE_IGNOREHELD		= KEYSTATE_OFF | KEYSTATE_IGNORE_BIT,
 };
 
-#define kJoystickDeadZone				(33 * 32767 / 100)
-#define kJoystickDeadZone_UI			(66 * 32767 / 100)
-#define kJoystickDeadZoneFrac			(kJoystickDeadZone / 32767.0f)
-#define kJoystickDeadZoneFracSquared	(kJoystickDeadZoneFrac * kJoystickDeadZoneFrac)
+#define kJoystickDeadZoneFrac			(.33f)
+#define kJoystickDeadZoneFrac_UI		(.66f)
 
 /**********************/
 /*     PROTOTYPES     */
@@ -53,6 +51,8 @@ typedef struct Controller
 	SDL_GameController*		controllerInstance;
 	SDL_JoystickID			joystickInstance;
 	KeyState				needStates[NUM_CONTROL_NEEDS];
+	float					needAnalog[NUM_CONTROL_NEEDS];
+	float					needAnalogRaw[NUM_CONTROL_NEEDS];
 } Controller;
 
 Boolean				gUserPrefersGamepad = false;
@@ -184,47 +184,68 @@ static void UpdateInputNeeds(void)
 
 static void UpdateControllerSpecificInputNeeds(int controllerNum)
 {
-	if (!gControllers[controllerNum].open)
+	Controller* controller = &gControllers[controllerNum];
+
+	if (!controller->open)
 	{
 		return;
 	}
 
-	SDL_GameController* controllerInstance = gControllers[controllerNum].controllerInstance;
+	SDL_GameController* controllerInstance = controller->controllerInstance;
 
 	for (int needNum = 0; needNum < NUM_CONTROL_NEEDS; needNum++)
 	{
 		const InputBinding* kb = &gGamePrefs.bindings[needNum];
 
-		int16_t deadZone = needNum >= NUM_REMAPPABLE_NEEDS
-						   ? kJoystickDeadZone_UI
-						   : kJoystickDeadZone;
+		float deadZoneFrac = needNum >= NUM_REMAPPABLE_NEEDS
+						   ? kJoystickDeadZoneFrac_UI
+						   : kJoystickDeadZoneFrac;
 
-		bool downNow = false;
+		bool pressed = false;
+		float actuation = 0;
+		float analogRaw = 0;
 
 		for (int buttonNum = 0; buttonNum < MAX_BINDINGS_PER_NEED; buttonNum++)
 		{
 			const PadBinding* pb = &kb->pad[buttonNum];
+			int type = pb->type;
 
-			switch (pb->type)
+			if (type == kInputTypeButton)
 			{
-				case kInputTypeButton:
-					downNow |= 0 != SDL_GameControllerGetButton(controllerInstance, pb->id);
-					break;
+				if (0 != SDL_GameControllerGetButton(controllerInstance, pb->id))
+				{
+					pressed = true;
+					actuation = 1;
+				}
+			}
+			else if (type == kInputTypeAxisPlus || type == kInputTypeAxisMinus)
+			{
+				int16_t axis = SDL_GameControllerGetAxis(controllerInstance, pb->id);
+				if (type == kInputTypeAxisPlus)
+					analogRaw = axis * (1.0f / 32767.0f);
+				else
+					analogRaw = axis * (1.0f / -32768.0f);
 
-				case kInputTypeAxisPlus:
-					downNow |= SDL_GameControllerGetAxis(controllerInstance, pb->id) > deadZone;
-					break;
+				if (analogRaw < 0)
+					analogRaw = 0;
 
-				case kInputTypeAxisMinus:
-					downNow |= SDL_GameControllerGetAxis(controllerInstance, pb->id) < -deadZone;
-					break;
+#if _DEBUG
+				GAME_ASSERT(analogRaw >= 0);
+#endif
 
-				default:
-					break;
+				if (analogRaw >= deadZoneFrac)
+				{
+					pressed = true;
+					float pastDeadZone = analogRaw - deadZoneFrac / (1.0f - deadZoneFrac);
+					actuation = SDL_max(actuation, pastDeadZone);
+				}
 			}
 		}
 
-		UpdateKeyState(&gControllers[controllerNum].needStates[needNum], downNow);
+		controller->needAnalog[needNum] = actuation;
+		controller->needAnalogRaw[needNum] = analogRaw;
+
+		UpdateKeyState(&controller->needStates[needNum], pressed);
 	}
 }
 
@@ -454,6 +475,90 @@ Boolean GetNewNeedStateAnyP(int needID)
 	return gNeedStates[needID] == KEYSTATE_PRESSED;
 }
 
+static float GetAnalogValue(int needID, bool raw, int playerID)
+{
+	GAME_ASSERT(playerID >= 0);
+	GAME_ASSERT(playerID < MAX_LOCAL_PLAYERS);
+	GAME_ASSERT(needID >= 0);
+	GAME_ASSERT(needID < NUM_CONTROL_NEEDS);
+
+	const Controller* controller = &gControllers[playerID];
+
+	if (controller->open && controller->needAnalogRaw[needID] != 0.0f)
+	{
+		float value = controller->needAnalogRaw[needID];
+#if _DEBUG
+		GAME_ASSERT(value >= 0);
+		GAME_ASSERT(value <= 1);
+#endif
+
+		if (!raw)
+		{
+			// Adjust value for dead zone.
+			float deadZone = needID < NUM_REMAPPABLE_NEEDS ? kJoystickDeadZoneFrac : kJoystickDeadZoneFrac_UI;
+
+			// Avoid magnitude bump when thumbstick is pushed past dead zone:
+			// Bring magnitude from [kJoystickDeadZoneFrac, 1.0] to [0.0, 1.0].
+			value = (value - deadZone) / (1.0f - deadZone);
+			value = SDL_max(0, value);	// clamp to 0 if within dead zone
+		}
+
+		return value;
+	}
+
+	// Fallback to KB/M
+	if (gNumLocalPlayers <= 1 || controller->fallbackToKeyboard)
+	{
+		return gNeedStates[needID] ? 1.0f : 0.0f;
+	}
+
+	return 0;
+}
+
+float GetNeedAxis1D(int negativeNeedID, int positiveNeedID, int playerID)
+{
+	float neg = GetAnalogValue(negativeNeedID, false, playerID);
+	float pos = GetAnalogValue(positiveNeedID, false, playerID);
+
+	if (neg > pos)
+	{
+		return -neg;
+	}
+	else
+	{
+		return pos;
+	}
+}
+
+#if 0
+OGLPolar2D GetNeedAxis2D(int negXID, int posXID, int negYID, int posYID)
+{
+	float deadZone = negXID < NUM_REMAPPABLE_NEEDS ? kJoystickDeadZoneFrac : kJoystickDeadZoneFrac_UI;
+
+	float negX = GetAnalogValue(negXID, true);
+	float posX = GetAnalogValue(posXID, true);
+	float x = negX > posX? -negX: posX;
+
+	float negY = GetAnalogValue(negYID, true);
+	float posY = GetAnalogValue(posYID, true);
+	float y = negY > posY? -negY: posY;
+
+	float mag = SDL_sqrtf(SQUARED(x) + SQUARED(y));
+	if (mag < deadZone)
+	{
+		mag = 0;
+	}
+	else
+	{
+		mag = (mag - deadZone) / (1.0f - deadZone);
+		mag = SDL_min(mag, 1);		// clamp to 0..1
+	}
+
+	float angle = SDL_atan2f(y, x);
+	return (OGLPolar2D) { .a=angle, .r=mag };
+}
+#endif
+
 Boolean UserWantsOut(void)
 {
 	return GetNewNeedStateAnyP(kNeed_UIConfirm)
@@ -484,87 +589,13 @@ Boolean IsCheatKeyComboDown(void)
 
 #pragma mark -
 
-float GetControllerAnalogSteeringAxis(SDL_GameController* sdlController, SDL_GameControllerAxis axis)
-{
-			/****************************/
-			/* SET PLAYER AXIS CONTROLS */
-			/****************************/
-
-	float steer = 0; 											// assume no control input
-
-			/* FIRST CHECK ANALOG AXES */
-
-	if (sdlController)
-	{
-		Sint16 dxRaw = SDL_GameControllerGetAxis(sdlController, axis);
-
-		steer = dxRaw / 32767.0f;
-		float steerMag = fabsf(steer);
-
-		if (steerMag < kJoystickDeadZoneFrac)
-		{
-			steer = 0;
-		}
-		else if (steer < -1.0f)
-		{
-			steer = -1.0f;
-		}
-		else if (steer > 1.0f)
-		{
-			steer = 1.0f;
-		}
-		else
-		{
-			// Avoid magnitude bump when thumbstick is pushed past dead zone:
-			// Bring magnitude from [kJoystickDeadZoneFrac, 1.0] to [0.0, 1.0].
-			float steerSign = steer < 0 ? -1.0f : 1.0f;
-			steer = steerSign * (steerMag - kJoystickDeadZoneFrac) / (1.0f - kJoystickDeadZoneFrac);
-		}
-	}
-
-	return steer;
-}
-
-
 OGLVector2D GetAnalogSteering(int playerID)
 {
-	OGLVector2D steer = {0, 0};								// assume no control input
-
-	SDL_GameController* sdlController = SDL_GameControllerFromPlayerIndex(playerID);
-
-			/****************************/
-			/* SET PLAYER AXIS CONTROLS */
-			/****************************/
-
-			/* FIRST CHECK ANALOG AXES */
-
-	if (sdlController)
+	return (OGLVector2D)
 	{
-		steer.x = GetControllerAnalogSteeringAxis(sdlController, SDL_CONTROLLER_AXIS_LEFTX);
-		steer.y = GetControllerAnalogSteeringAxis(sdlController, SDL_CONTROLLER_AXIS_LEFTY);
-	}
-
-			/* NEXT CHECK THE DIGITAL KEYS */
-
-	if (GetNeedState(kNeed_Left, playerID))					// is Left Key pressed?
-	{
-		steer.x = -1.0f;
-	}
-	else if (GetNeedState(kNeed_Right, playerID))			// is Right Key pressed?
-	{
-		steer.x = 1.0f;
-	}
-
-	if (GetNeedState(kNeed_Forward, playerID))					// is Up Key pressed?  (up key makes submarine dive deeper)
-	{
-		steer.y = -1.0f;
-	}
-	else if (GetNeedState(kNeed_Backward, playerID))			// is Down Key pressed?  (down key makes submarine float up)
-	{
-		steer.y = 1.0f;
-	}
-
-	return steer;
+		.x = GetNeedAxis1D(kNeed_Left, kNeed_Right, playerID),
+		.y = GetNeedAxis1D(kNeed_Forward, kNeed_Backward, playerID)
+	};
 }
 
 #pragma mark -

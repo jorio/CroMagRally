@@ -30,32 +30,12 @@ typedef struct
 typedef struct
 {
 	// SDL scancodes
-	union
-	{
-		int16_t			key[MAX_BINDINGS_PER_NEED];
-
-		struct
-		{
-			int16_t		userKey[MAX_USER_BINDINGS_PER_NEED];
-			int16_t		hardKey[MAX_HARD_BINDINGS_PER_NEED];
-		};
-	};
+	int16_t			key[MAX_BINDINGS_PER_NEED];
 
 	// Controller buttons
-	union
-	{
-		PadBinding		pad[MAX_BINDINGS_PER_NEED];
+	PadBinding		pad[MAX_BINDINGS_PER_NEED];
 
-		struct
-		{
-			PadBinding	userPad[MAX_USER_BINDINGS_PER_NEED];
-			PadBinding	hardPad[MAX_HARD_BINDINGS_PER_NEED];
-		};
-	};
-
-
-	int8_t				mouseButton;
-
+	int8_t			mouseButton;
 } InputBinding;
 
 enum
