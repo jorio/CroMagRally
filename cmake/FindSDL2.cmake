@@ -9,7 +9,7 @@
 
 include(FindPackageHandleStandardArgs)
 
-set(SDL2_VERSION 2.28.4)
+set(SDL2_VERSION 2.30.0)
 
 # Check if "main" was specified as a component
 set(_SDL2_use_main FALSE)

@@ -28,13 +28,13 @@ game_ver            = "3.0.0"
 
 source_check        = "Source/Screens/SelectVehicle.c"  # some file that's likely to be from the game's source tree
 
-sdl_ver             = "2.28.4"
+sdl_ver             = "2.30.0"
 appimagetool_ver    = "13"
 
 lib_hashes = {  # sha-256
-    "SDL2-2.28.4.tar.gz":            "888b8c39f36ae2035d023d1b14ab0191eb1d26403c3cf4d4d5ede30e66a4942c",
-    "SDL2-2.28.4.dmg":               "a4d777ef1b33c4db8375b82f8c1ba4bc05dbcf0eca7f4b23dc8603ecd1f36635",
-    "SDL2-devel-2.28.4-VC.zip":      "fd77706dfd5c8ca1e0e3275b6e8f581c440025367747bcb151cad878d651e093",
+    "SDL2-2.30.0.tar.gz":            "36e2e41557e0fa4a1519315c0f5958a87ccb27e25c51776beb6f1239526447b0",
+    "SDL2-2.30.0.dmg":               "eb4263ebea6d91332de5ebc40dca2d623b66b5b34e287b0b2d7a3db7731bafca",
+    "SDL2-devel-2.30.0-VC.zip":      "6413358b67f19b5398e902c576518d5350394a863eb53eb27bb9a81e75a36958",
     "appimagetool-x86_64.AppImage":  "df3baf5ca5facbecfc2f3fa6713c29ab9cefa8fd8c1eac5d283b79cab33e4acb", # appimagetool v13
     "appimagetool-aarch64.AppImage": "334e77beb67fc1e71856c29d5f3f324ca77b0fde7a840fdd14bd3b88c25c341f",
 }
