@@ -383,6 +383,12 @@ MOMaterialData	*data;
 		data->height	 		= textureHeader.height;
 		data->pixelSrcFormat 	= textureHeader.srcPixelFormat;		// internal format
 		data->pixelDstFormat 	= textureHeader.dstPixelFormat;		// vram format
+
+		// Prevent GL_RGB -> GL_RGB5_A1 conversion on buggy GL drivers (GitHub issue 11)
+		if (data->pixelSrcFormat == GL_RGB)
+		{
+			data->pixelDstFormat = GL_RGB;
+		}
 	}
 	else
 	if (data->numMipmaps >= MO_MAX_MIPMAPS)		// see if overflow
