@@ -81,7 +81,7 @@ typedef struct
 
 #define PREFS_FOLDER_NAME "CroMagRally"
 
-#define PREFS_MAGIC "CMR Prefs v0   "
+#define PREFS_MAGIC "CMR Prefs v1   "
 #define PREFS_FILENAME "Prefs"
 
 
