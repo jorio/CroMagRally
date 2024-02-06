@@ -252,7 +252,7 @@ void OGL_SetupGameView(OGLSetupInputType *setupDefPtr)
 
 				/* UPDATE WINDOW SIZE */
 
-	SDL_GetWindowSize(gSDLWindow, &gGameWindowWidth, &gGameWindowHeight);
+	SDL_GL_GetDrawableSize(gSDLWindow, &gGameWindowWidth, &gGameWindowHeight);
 
 
 				/* SETUP */
@@ -558,7 +558,7 @@ void OGL_DrawScene(void (*drawRoutine)(void))
 
 			/* UPDATE WINDOW SIZE ONCE PER FRAME */
 
-	SDL_GetWindowSize(gSDLWindow, &gGameWindowWidth, &gGameWindowHeight);
+	SDL_GL_GetDrawableSize(gSDLWindow, &gGameWindowWidth, &gGameWindowHeight);
 
 
 			/* INIT SOME STUFF */
