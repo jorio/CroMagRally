@@ -58,37 +58,8 @@ static const char* GetDisplayName(Byte value)
 
 static int ShouldDisplayMonitorCycler(const MenuItem* mi)
 {
-#if __APPLE__
-	// Monitor hot-switching doesn't work too well on macOS,
-	// so don't expose the option unless the game was started on a non-default display.
-
-	if (gGamePrefs.monitorNum == 0)
-	{
-		return kMILayoutFlagHidden;
-	}
-#endif
-
 	// Expose the option if we have more than one display
 	return (GetNumDisplays() <= 1) ? kMILayoutFlagHidden : 0;
-}
-
-static int ShouldDisplayMSAA(const MenuItem* mi)
-{
-#if __APPLE__
-	// macOS's OpenGL driver doesn't seem to handle MSAA very well,
-	// so don't expose the option unless the game was started with MSAA.
-
-	if (gCurrentAntialiasingLevel)
-	{
-		return 0;
-	}
-	else
-	{
-		return kMILayoutFlagHidden;
-	}
-#else
-	return 0;
-#endif
 }
 
 static void OnChangeMSAA(const MenuItem* mi)
@@ -207,7 +178,6 @@ const MenuItem gSettingsMenuTree[] =
 	{
 		kMICycler1, STR_ANTIALIASING,
 		.callback = OnChangeMSAA,
-		.getLayoutFlags = ShouldDisplayMSAA,
 		.cycler =
 		{
 			.valuePtr = &gGamePrefs.antialiasingLevel,

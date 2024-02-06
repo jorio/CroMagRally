@@ -257,7 +257,6 @@ void Exit2D(void)
 
 static void MoveToPreferredDisplay(void)
 {
-#if !(__APPLE__)
 	int currentDisplay = SDL_GetWindowDisplayIndex(gSDLWindow);
 
 	if (currentDisplay != gGamePrefs.monitorNum)
@@ -267,7 +266,6 @@ static void MoveToPreferredDisplay(void)
 			SDL_WINDOWPOS_CENTERED_DISPLAY(gGamePrefs.monitorNum),
 			SDL_WINDOWPOS_CENTERED_DISPLAY(gGamePrefs.monitorNum));
 	}
-#endif
 }
 
 /*********************** SET FULLSCREEN MODE **********************/
@@ -285,7 +283,6 @@ void SetFullscreenMode(bool enforceDisplayPref)
 	}
 	else
 	{
-#if !(__APPLE__)
 		if (enforceDisplayPref)
 		{
 			int currentDisplay = SDL_GetWindowDisplayIndex(gSDLWindow);
@@ -297,7 +294,6 @@ void SetFullscreenMode(bool enforceDisplayPref)
 				MoveToPreferredDisplay();
 			}
 		}
-#endif
 
 		// Enter fullscreen mode
 		SDL_SetWindowFullscreen(gSDLWindow, SDL_WINDOW_FULLSCREEN_DESKTOP);
