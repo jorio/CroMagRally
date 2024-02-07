@@ -11,6 +11,8 @@
 
 #include "game.h"
 #include "miscscreens.h"
+#include "version.h"
+#include <SDL.h>
 
 
 /****************************/
@@ -1023,6 +1025,21 @@ OGLVector3D			fillDirection1 = { .9, -.3, -1 };
 	qrCodeDef.coord.y += 0.4*64*7;
 	qrCodeDef.type = 2;
 	MakeSpriteObject(&qrCodeDef);
+
+
+	char systemInfo[512];
+	snprintf(systemInfo, sizeof(systemInfo), "CRO-MAG RALLY V%s / %s [%s]\nOPENGL %s [%s]",
+				 PROJECT_VERSION,
+				 SDL_GetRevision(),
+				 SDL_GetCurrentVideoDriver(),
+				 (const char*)glGetString(GL_VERSION),
+				 (const char*)glGetString(GL_RENDERER));
+	textDef.coord.y = 200;
+	textDef.scale = .15f;
+	ObjNode* techInfo = TextMesh_New(systemInfo, kTextMeshAllCaps, &textDef);
+	techInfo->ColorFilter = (OGLColorRGBA) {.25f, .25f, .25f, 1};
+
+
 
 			/*************/
 			/* MAIN LOOP */
