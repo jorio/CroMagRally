@@ -1,5 +1,13 @@
 # Cro-Mag Rally Changelog
 
+- **3.0.1 (February 7, 2024)**
+    - Improved Italian localization contributed by @orazioedoardo - grazie!
+    - Improved Spanish localization contributed by Alfonso Ducceschi - gracias!
+    - You can now rebind the left analog stick and the D-Pad to your heart's content
+    - macOS: Retina support; Sonoma Game Mode support; Prevent accidental quitting when hitting ⌘W or ⌘Q in-game
+    - Windows: Fix rare bug if AppData\\Local contains a file with a bad name encoding
+    - Linux: Wayland support
+
 - **3.0.0 (June 27, 2022)**
     - Initial playable release of the modern source port
     - A ton of new stuff in this version!!

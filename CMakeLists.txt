@@ -1,10 +1,10 @@
 cmake_minimum_required(VERSION 3.16)
 
 set(GAME_TARGET				"CroMagRally")
-set(GAME_VERSION			"3.0.0")
+set(GAME_VERSION			"3.0.1")
 
 set(GAME_MAC_ICNS			"packaging/${GAME_TARGET}.icns")
-set(GAME_MAC_COPYRIGHT		"© 2000 Pangea Software, Inc.\n© 2022 Iliyas Jorio.")
+set(GAME_MAC_COPYRIGHT		"© 2000 Pangea Software, Inc.\n© 2024 Iliyas Jorio.")
 set(GAME_MAC_BUNDLE_ID		"io.jor.cromagrally")
 set(GAME_MAC_BUNDLE_NAME	"Cro-Mag Rally")
 

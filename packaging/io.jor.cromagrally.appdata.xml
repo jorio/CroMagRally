@@ -61,6 +61,16 @@
   <url type="bugtracker">https://github.com/jorio/CroMagRally/issues</url>
 
   <releases>
+    <release version="3.0.1" date="2024-02-07">
+      <url>https://github.com/jorio/CroMagRally/releases/tag/3.0.0</url>
+      <description>
+        <p>New in this release:</p>
+        <ul>
+          <li>Improved Italian and Spanish localizations</li>
+          <li>You can now rebind the left analog stick and the D-Pad to your heart's content</li>
+        </ul>
+      </description>
+    </release>
     <release version="3.0.0" date="2022-06-27">
       <url>https://github.com/jorio/CroMagRally/releases/tag/3.0.0</url>
       <description>
