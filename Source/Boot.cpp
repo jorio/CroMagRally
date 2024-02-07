@@ -228,6 +228,9 @@ retryVideo:
 			SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_WARNING, "Cro-Mag Rally", "Couldn't load gamecontrollerdb.txt!", gSDLWindow);
 		}
 	}
+
+	// Set fullscreen mode from prefs
+	SetFullscreenMode(true);
 }
 
 static void Shutdown()
