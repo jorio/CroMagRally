@@ -484,6 +484,12 @@ static float GetAnalogValue(int needID, bool raw, int playerID)
 
 	const Controller* controller = &gControllers[playerID];
 
+	// Keyboard takes precedence when the key is pressed
+	if ((gNumLocalPlayers <= 1 || controller->fallbackToKeyboard) && gNeedStates[needID])
+	{
+		return 1.0f;
+	}
+
 	if (controller->open && controller->needAnalogRaw[needID] != 0.0f)
 	{
 		float value = controller->needAnalogRaw[needID];
@@ -504,12 +510,6 @@ static float GetAnalogValue(int needID, bool raw, int playerID)
 		}
 
 		return value;
-	}
-
-	// Fallback to KB/M
-	if (gNumLocalPlayers <= 1 || controller->fallbackToKeyboard)
-	{
-		return gNeedStates[needID] ? 1.0f : 0.0f;
 	}
 
 	return 0;
