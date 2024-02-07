@@ -24,7 +24,7 @@ dist_dir = os.path.abspath("dist")
 game_name           = "CroMagRally"  # no spaces
 game_name_human     = "Cro-Mag Rally"  # spaces and other special characters allowed
 game_package        = "io.jor.cromagrally"  # unique package name
-game_ver            = "3.0.0"
+game_ver            = "3.0.1"
 
 source_check        = "Source/Screens/SelectVehicle.c"  # some file that's likely to be from the game's source tree
 
