@@ -366,7 +366,7 @@ static const char*	maps[] =
 	"Maps:EuropeMap",
 	"Maps:ScandinaviaMap",
 	"Maps:AtlantisMap",
-	"Maps:StoneHengeMap",
+	"Maps:StonehengeMap",
 	"Maps:AztecMap",
 	"Maps:ColiseumMap",
 	"Maps:MazeMap",
