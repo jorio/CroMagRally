@@ -17,7 +17,6 @@
 /*    PROTOTYPES            */
 /****************************/
 
-static void BuildFailedMenu(const char* s);
 static void MoveFailedObject(ObjNode *theNode);
 
 

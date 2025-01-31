@@ -16,7 +16,6 @@
 /****************************/
 
 static void MoveDustDevil(ObjNode *);
-static void MoveCampFire(ObjNode *);
 static void MoveYeti(ObjNode *theNode);
 static void MoveBeetle(ObjNode *theNode);
 static void MoveCamel(ObjNode *theNode);

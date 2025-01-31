@@ -21,9 +21,6 @@
 static void MoveWaterPatch(ObjNode *theNode);
 static void UpdateWaterTextureAnimation(void);
 
-static void MoveWaterfall(ObjNode *theNode);
-static void UpdateWaterfallTextureAnimation(void);
-
 
 
 /****************************/
@@ -273,6 +270,8 @@ float				scale,rot;
 }
 
 
+#if 0  // Waterfall was removed by Pangea
+
 /********************* MOVE WATERFALL **********************/
 
 static void MoveWaterfall(ObjNode *theNode)
@@ -309,6 +308,8 @@ MetaObjectPtr	waterObj;
 	MO_VertexArray_OffsetUVs(waterObj, 0, -gFramesPerSecondFrac * .9f);
 #endif
 }
+
+#endif
 
 #pragma mark -
 

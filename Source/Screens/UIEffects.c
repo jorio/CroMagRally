@@ -97,6 +97,7 @@ static void InitTwitchPool(void)
 	gTwitchPtrPoolInitialized = true;
 }
 
+#if _DEBUG
 static bool IsPooledTwitchFree(Twitch* e)
 {
 	for (int i = 0; i < MAX_TWITCHES; i++)
@@ -106,6 +107,7 @@ static bool IsPooledTwitchFree(Twitch* e)
 	}
 	return false;
 }
+#endif
 
 static Twitch* AllocTwitch(void)
 {

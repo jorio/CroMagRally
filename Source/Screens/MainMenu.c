@@ -30,10 +30,6 @@ static void OnConfirmPlayMenu(const MenuItem* mi);
 static void OnPickGameMode(const MenuItem* mi);
 static void OnPickTournamentAge(const MenuItem* mi);
 static void OnPickHostOrJoin(const MenuItem* mi);
-static void OnPickLanguage(const MenuItem* mi);
-static void OnToggleFullscreen(const MenuItem* mi);
-static void OnAdjustMusicVolume(const MenuItem* mi);
-static void OnAdjustSFXVolume(const MenuItem* mi);
 static void OnPickClearSavedGame(const MenuItem* mi);
 static void OnPickTagDuration(const MenuItem* mi);
 

@@ -14,10 +14,7 @@
 /*    PROTOTYPES            */
 /****************************/
 
-static void PreloadAllTiles(void);
-static void RestoreItemList(void);
 static Boolean NilAdd(TerrainItemEntryType *itemPtr,long x, long z);
-static void	ShrinkSuperTileTextureMap(const uint16_t *srcPtr,uint16_t *destPtr);
 
 
 /****************************/

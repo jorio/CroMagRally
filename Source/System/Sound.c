@@ -18,7 +18,6 @@
 /****************************/
 
 static short FindSilentChannel(void);
-static short EmergencyFreeChannel(void);
 static void Calc3DEffectVolume(short effectNum, const OGLPoint3D *where, float volAdjust, uint32_t *leftVolOut, uint32_t *rightVolOut);
 
 
@@ -1192,29 +1191,6 @@ SCStatus	theStatus;
 	GAME_ASSERT(!err);
 
 	return (theStatus.scChannelBusy);
-}
-
-/***************** EMERGENCY FREE CHANNEL **************************/
-//
-// This is used by the music streamer when all channels are used.
-// Since we must have a channel to play music, we arbitrarily kill some other channel.
-//
-
-static short EmergencyFreeChannel(void)
-{
-short	i,c;
-
-	for (i = 0; i < gMaxChannels; i++)
-	{
-		c = i;
-		StopAChannel(&c);
-		return(i);
-	}
-
-		/* TOO BAD, GOTTA NUKE ONE OF THE STREAMING CHANNELS IT SEEMS */
-
-	StopAChannel(0);
-	return(0);
 }
 
 

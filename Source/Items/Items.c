@@ -17,7 +17,6 @@
 
 static void MoveTorchPot(ObjNode *theNode);
 static void MoveAtlantisStartline(ObjNode *theNode);
-static void MoveBubbleGenerator(ObjNode *theNode);
 static void MoveVolcano(ObjNode *theNode);
 static void MovePolarBear(ObjNode *theNode);
 static void MoveViking(ObjNode *theNode);

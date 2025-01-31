@@ -21,6 +21,7 @@ typedef void* NSpPlayerLeftMessage;
 /*     PROTOTYPES     */
 /**********************/
 
+#if 0
 static void InitPlayerNamesListBox(Rect *r, WindowPtr myDialog);
 //static pascal Boolean GatherGameDialogCallback (DialogRef dp,EventRecord *event, short *item);
 static void ShowNamesOfJoinedPlayers(void);
@@ -32,6 +33,7 @@ static void HandleGameConfigMessage(NetConfigMessageType *inMessage);
 //static void PlayerUnexpectedlyLeavesGame(NSpPlayerLeftMessage *mess);
 static OSErr  Host_DoGatherPlayersDialog(void);
 static Boolean PlayerReceiveVehicleTypeFromOthers(short *playerNum, short *charType, short *sex);
+#endif
 
 /****************************/
 /*    CONSTANTS             */
@@ -351,11 +353,11 @@ int					i;
 // OUTPUT: OSErr = noErr if all's well.
 //
 
+#if 0
 static OSErr  Host_DoGatherPlayersDialog(void)
 {
  	IMPLEMENT_ME_SOFT();
 	return unimpErr;
-#if 0
 DialogRef 		myDialog;
 DialogItemType			itemType,itemHit;
 ControlHandle	itemHandle;
@@ -418,7 +420,6 @@ ModalFilterUPP	myProc;
 
 	GameScreenToBlack();
 	return(cancelled);
-#endif
 }
 
 
@@ -427,7 +428,6 @@ ModalFilterUPP	myProc;
 // Creates the List Manager list box which will contain a list of all the joiners in this game.
 //
 
-#if 0
 static void InitPlayerNamesListBox(Rect *r, WindowPtr myDialog)
 {
 Rect	dataBounds;
@@ -445,13 +445,11 @@ Point	cSize;
 
 	ShowNamesOfJoinedPlayers();
 }
-#endif
 
 
 
 /**************** GATHER GAME DIALOG CALLBACK *************************/
 
-#if 0
 static Boolean GatherGameDialogCallback (DialogRef dp,EventRecord *event, short *item)
 {
 	IMPLEMENT_ME_SOFT();
@@ -511,7 +509,6 @@ NSpMessageHeader	*message;
 	return(false);
 #endif
 }
-#endif
 
 
 /***************** SHOW NAMES OF JOINED PLAYERS ************************/
@@ -875,6 +872,7 @@ static void HandleGameConfigMessage(NetConfigMessageType *inMessage)
 #endif
 }
 
+#endif
 
 #pragma mark -
 
@@ -1322,7 +1320,7 @@ short	playerNum, charType, count, sex;
 }
 
 
-
+#if 0
 /*************** PLAYER RECEIVE CHARACTER TYPE FROM OTHERS ***********************/
 //
 // Receive above message from other players.
@@ -1333,7 +1331,7 @@ short	playerNum, charType, count, sex;
 static Boolean PlayerReceiveVehicleTypeFromOthers(short *playerNum, short *charType, short *sex)
 {
 	IMPLEMENT_ME_SOFT(); return false;
-#if 0
+
 NetPlayerCharTypeMessage		*mess;
 NSpMessageHeader 				*inMess;
 Boolean							gotType = false;
@@ -1364,7 +1362,6 @@ Boolean							gotType = false;
 	}
 
 	return(gotType);
-#endif
 }
 
 
@@ -1495,7 +1492,7 @@ matched_id:
 	}
 #endif
 }
-
+#endif
 
 #pragma mark -
 

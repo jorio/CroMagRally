@@ -151,7 +151,6 @@ if(NOT MSVC)
 		-Werror=return-type
 		-Wno-multichar
 		-Wno-unknown-pragmas
-		-Wno-unused-function
 		-Wno-unused-parameter
 		-Wstrict-aliasing=2
 	)

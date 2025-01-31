@@ -22,13 +22,6 @@
 static void ReadDataFromSkeletonFile(SkeletonDefType *skeleton, FSSpec *bg3dSpec, int skeletonType);
 static void ReadDataFromPlayfieldFile(FSSpec *specPtr);
 static void LoadTerrainSuperTileTextures(short fRefNum);
-static void LoadTerrainSuperTileTexturesSeamless(short fRefNum);
-
-static short InitSavedGamesListBox(Rect *r, WindowPtr myDialog);
-static short UpdateSavedGamesList(void);
-static short AddNewGameToFile(Str255 name);
-static void DeleteSelectedGame(void);
-static void LoadSelectedGame(void);
 
 
 /****************************/
@@ -1422,11 +1415,7 @@ Ptr						tempBuffer16 = nil;
 	if (iErr)
 		DoFatalAlert("ReadDataFromPlayfieldFile: FSpOpenDF failed!");
 
-#if HQ_TERRAIN
-	LoadTerrainSuperTileTexturesSeamless(fRefNum);
-#else
 	LoadTerrainSuperTileTextures(fRefNum);
-#endif
 
 			/* CLOSE THE FILE */
 
@@ -1435,6 +1424,7 @@ Ptr						tempBuffer16 = nil;
 		SafeDisposePtr(tempBuffer16);
 }
 
+#if !HQ_TERRAIN
 
 static void LoadTerrainSuperTileTextures(short fRefNum)
 {
@@ -1484,7 +1474,7 @@ static void LoadTerrainSuperTileTextures(short fRefNum)
 	SafeDisposePtr(pixels);
 }
 
-#if HQ_TERRAIN
+#else  // HQ_TERRAIN below
 
 static void Blit16(
 		const char*			src,
@@ -1514,7 +1504,7 @@ static void Blit16(
 	}
 }
 
-static void LoadTerrainSuperTileTexturesSeamless(short fRefNum)
+static void LoadTerrainSuperTileTextures(short fRefNum)
 {
 	memset(gSuperTileTextureNames, 0, sizeof(gSuperTileTextureNames[0]) * gNumUniqueSuperTiles);
 
@@ -1622,7 +1612,8 @@ static void LoadTerrainSuperTileTexturesSeamless(short fRefNum)
 	SafeDisposePtr(allImages);
 	SafeDisposePtr(canvas);
 }
-#endif
+
+#endif  // HQ_TERRAIN
 
 
 

@@ -15,7 +15,6 @@
 /*    PROTOTYPES            */
 /****************************/
 
-static void FlushObjectDeleteQueue(void);
 static void DrawShadow(ObjNode *theNode);
 
 

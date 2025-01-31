@@ -271,6 +271,7 @@ static void SetStandardMouseCursor(void)
 	}
 }
 
+#if 0
 static void SetHandMouseCursor(void)
 {
 	if (gNav->handCursor != NULL &&
@@ -279,6 +280,7 @@ static void SetHandMouseCursor(void)
 		SDL_SetCursor(gNav->handCursor);
 	}
 }
+#endif
 
 ObjNode* GetCurrentMenuItemObject(void)
 {
@@ -798,9 +800,9 @@ static void NavigateSettingEntriesVertically(int delta)
 	RepositionArrows();
 }
 
+#if 0
 static void NavigateSettingEntriesMouseHover(void)
 {
-#if 0
 	if (!gMouseMotionNow)
 	{
 		return;
@@ -869,8 +871,8 @@ static void NavigateSettingEntriesMouseHover(void)
 	GAME_ASSERT(!gNav->mouseHoverValid);		// if we got here, we're not hovering over anything
 
 	SetStandardMouseCursor();					// restore standard cursor
-#endif
 }
+#endif
 
 static void NavigatePick(const MenuItem* entry)
 {

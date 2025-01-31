@@ -20,7 +20,6 @@ static void MovePlayer_Submarine(ObjNode *theNode);
 static void MovePlayer_Sub_Multipass(ObjNode *theNode);
 static void DoSubmarineMotion(ObjNode *theNode);
 static void UpdatePlayer_Submarine(ObjNode *theNode);
-static void RotateSubmarine(ObjNode *theNode);
 static Boolean DoSubCollisionDetect(ObjNode *vehicle);
 static void SubHitSub(ObjNode *car1, ObjNode *car2);
 static void DoCPUControl_Sub(ObjNode *theNode);

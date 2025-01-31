@@ -16,9 +16,6 @@
 /*    PROTOTYPES            */
 /****************************/
 
-static void MakeHierarchialJointGroups(SkeletonObjDataType *skeleton);
-static void MakeJointTransforms(SkeletonObjDataType *skeleton);
-
 
 /****************************/
 /*    CONSTANTS             */

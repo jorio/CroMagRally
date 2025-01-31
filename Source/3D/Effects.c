@@ -15,17 +15,11 @@
 /*    PROTOTYPES            */
 /****************************/
 
-
-static void MoveBlast(ObjNode *theNode);
-static void MoveDustPuff(ObjNode *theNode);
-
-static void MoveRipple(ObjNode *theNode);
 static void DeleteParticleGroup(long groupNum);
 
 static void MoveShockwave(ObjNode *theNode);
 static void MoveConeBlast(ObjNode *theNode);
 
-static void MakeSnowParticleGroup(void);
 static void DrawParticleGroup(ObjNode *theNode);
 static void MoveSnowShockwave(ObjNode *theNode);
 
@@ -34,6 +28,7 @@ static void MakeLava(ObjNode *theNode, const OGLPoint3D *coord);
 
 
 static void MoveBubbleGenerator(ObjNode *theNode);
+
 
 /****************************/
 /*    CONSTANTS             */

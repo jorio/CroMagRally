@@ -30,7 +30,6 @@ static void MoveWinGuy(ObjNode *theNode);
 
 static void SetupCreditsScreen(void);
 static void MoveCredit(ObjNode *theNode);
-static void MoveCreditFadePane(ObjNode *theNode);
 
 
 /****************************/
