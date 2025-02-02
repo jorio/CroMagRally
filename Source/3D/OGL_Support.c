@@ -1017,8 +1017,7 @@ Ptr						imageFileData = nil;
 
 			/* CLEAN UP */
 
-	//DisposePtr((Ptr) pixelData);
-	free(pixelData);  // TODO: define STBI_MALLOC/STBI_REALLOC/STBI_FREE in stb_image.c?
+	SafeDisposePtr(pixelData);
 
 	if (outWidth)
 		*outWidth = width;
