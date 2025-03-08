@@ -12,7 +12,6 @@
 
 
 #include "game.h"
-#include <string.h>
 
 
 /****************************/
@@ -37,7 +36,7 @@ Atlas* gAtlases[MAX_SPRITE_GROUPS];
 
 void InitSpriteManager(void)
 {
-	memset(gAtlases, 0, sizeof(gAtlases));
+	SDL_memset(gAtlases, 0, sizeof(gAtlases));
 }
 
 /******************* DISPOSE ALL SPRITE GROUPS ****************/

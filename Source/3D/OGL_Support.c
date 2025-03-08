@@ -13,8 +13,7 @@
 #include "game.h"
 #include "stb_image.h"
 #include "pillarbox.h"
-#include <SDL.h>
-#include <SDL_opengl.h>
+#include <SDL3/SDL_opengl.h>
 #include <math.h>
 
 extern SDL_Window*		gSDLWindow;
@@ -167,7 +166,7 @@ static OGLVector3D			fillDirection2 = { -1, -.3, -.3 };
 	OGLVector3D_Normalize(&fillDirection1, &fillDirection1);
 	OGLVector3D_Normalize(&fillDirection2, &fillDirection2);
 
-	memset(viewDef, 0, sizeof(*viewDef));
+	SDL_memset(viewDef, 0, sizeof(*viewDef));
 
 	viewDef->view.clearColor 		= clearColor;
 	viewDef->view.clip.left 	= 0;
@@ -252,7 +251,7 @@ void OGL_SetupGameView(OGLSetupInputType *setupDefPtr)
 
 				/* UPDATE WINDOW SIZE */
 
-	SDL_GL_GetDrawableSize(gSDLWindow, &gGameWindowWidth, &gGameWindowHeight);
+	SDL_GetWindowSizeInPixels(gSDLWindow, &gGameWindowWidth, &gGameWindowHeight);
 
 
 				/* SETUP */
@@ -359,8 +358,8 @@ static void OGL_CreateDrawContext(void)
 
 			/* ACTIVATE CONTEXT */
 
-	int mkc = SDL_GL_MakeCurrent(gSDLWindow, gAGLContext);
-	GAME_ASSERT_MESSAGE(mkc == 0, SDL_GetError());
+	bool didMakeCurrent = SDL_GL_MakeCurrent(gSDLWindow, gAGLContext);
+	GAME_ASSERT_MESSAGE(didMakeCurrent, SDL_GetError());
 
 
 #if 0
@@ -383,7 +382,7 @@ static void OGL_DisposeDrawContext(void)
 		return;
 
 	SDL_GL_MakeCurrent(gSDLWindow, NULL);		// make context not current
-	SDL_GL_DeleteContext(gAGLContext);			// nuke context
+	SDL_GL_DestroyContext(gAGLContext);			// nuke context
 
 	gAGLContext = nil;
 }
@@ -540,9 +539,8 @@ void OGL_DrawScene(void (*drawRoutine)(void))
 {
 	GAME_ASSERT(gGameView);										// make sure it's legit
 
-	int makeCurrentRC = SDL_GL_MakeCurrent(gSDLWindow, gAGLContext);		// make context active
-	if (makeCurrentRC != 0)
-		DoFatalAlert(SDL_GetError());
+	bool didMakeCurrent = SDL_GL_MakeCurrent(gSDLWindow, gAGLContext);		// make context active
+	GAME_ASSERT_MESSAGE(didMakeCurrent, SDL_GetError());
 
 
 #if 0
@@ -558,7 +556,7 @@ void OGL_DrawScene(void (*drawRoutine)(void))
 
 			/* UPDATE WINDOW SIZE ONCE PER FRAME */
 
-	SDL_GL_GetDrawableSize(gSDLWindow, &gGameWindowWidth, &gGameWindowHeight);
+	SDL_GetWindowSizeInPixels(gSDLWindow, &gGameWindowWidth, &gGameWindowHeight);
 
 
 			/* INIT SOME STUFF */
@@ -909,7 +907,7 @@ static void OGL_FixTextureGamma(uint8_t* imageMemory, int width, int height, GLi
 			break;
 	}
 
-	printf("Gamma correction not supported for srcFormat $%x / dataType $%x\n", srcFormat, dataType);
+	SDL_Log("Gamma correction not supported for srcFormat $%x / dataType $%x", srcFormat, dataType);
 }
 
 
@@ -1324,7 +1322,7 @@ static char* UpdateDebugText(void)
 	extern short gNumFreeSupertiles;
 	extern int gFreeTwitches;
 
-	snprintf(debugTextBuffer, sizeof(debugTextBuffer),
+	SDL_snprintf(debugTextBuffer, sizeof(debugTextBuffer),
 		"FPS:\t%d"
 		"\nTRIS:\t%d"
 		"\nOBJS:\t%d"

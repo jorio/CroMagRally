@@ -1,34 +1,22 @@
 // CRO-MAG RALLY ENTRY POINT
-// (C) 2022 Iliyas Jorio
-// This file is part of Cro-MagRally. https://github.com/jorio/cromagrally
+// (C) 2025 Iliyas Jorio
+// This file is part of Cro-Mag Rally. https://github.com/jorio/cromagrally
 
-#include <SDL.h>
+#include <SDL3/SDL.h>
+#include <SDL3/SDL_main.h>
+
 #include "Pomme.h"
 #include "PommeInit.h"
 #include "PommeFiles.h"
 
-#include <iostream>
-#include <cstring>
-
 extern "C"
 {
 	#include "game.h"
-	#include "version.h"
 
 	SDL_Window* gSDLWindow = nullptr;
 	FSSpec gDataSpec;
 	CommandLineOptions gCommandLine;
 	int gCurrentAntialiasingLevel;
-
-/*
-#if _WIN32
-	// Tell Windows graphics driver that we prefer running on a dedicated GPU if available
-	__declspec(dllexport) int AmdPowerXpressRequestHighPerformance = 1;
-	__declspec(dllexport) unsigned long NvOptimusEnablement = 1;
-#endif
-*/
-
-	void GameMain(void);
 }
 
 static fs::path FindGameData(const char* executablePath)
@@ -70,10 +58,10 @@ tryAgain:
 	dataPath = dataPath.lexically_normal();
 
 	// Set data spec -- Lets the game know where to find its asset files
-	gDataSpec = Pomme::Files::HostPathToFSSpec(dataPath / "Skeletons");
+	gDataSpec = Pomme::Files::HostPathToFSSpec(dataPath / "System");
 
 	FSSpec someDataFileSpec;
-	OSErr iErr = FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":Skeletons:Brog.bg3d", &someDataFileSpec);
+	OSErr iErr = FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, ":System:gamecontrollerdb.txt", &someDataFileSpec);
 	if (iErr)
 	{
 		goto tryAgain;
@@ -84,7 +72,7 @@ tryAgain:
 
 static void ParseCommandLine(int argc, char** argv)
 {
-	memset(&gCommandLine, 0, sizeof(gCommandLine));
+	SDL_memset(&gCommandLine, 0, sizeof(gCommandLine));
 	gCommandLine.vsync = 1;
 
 	for (int i = 1; i < argc; i++)
@@ -129,42 +117,30 @@ static void ParseCommandLine(int argc, char** argv)
 	}
 }
 
-static void GetInitialWindowSize(int display, int& width, int& height)
-{
-	const float aspectRatio = 16.0f / 9.0f;
-	const float screenCoverage = 2.0f / 3.0f;
-
-	SDL_Rect displayBounds = { .x = 0, .y = 0, .w = 640, .h = 480 };
-	SDL_GetDisplayUsableBounds(display, &displayBounds);
-
-	if (displayBounds.w > displayBounds.h)
-	{
-		width	= displayBounds.h * screenCoverage * aspectRatio;
-		height	= displayBounds.h * screenCoverage;
-	}
-	else
-	{
-		width	= displayBounds.w * screenCoverage;
-		height	= displayBounds.w * screenCoverage / aspectRatio;
-	}
-}
-
 static void Boot(int argc, char** argv)
 {
-	const char* executablePath = argc > 0 ? argv[0] : NULL;
+	SDL_SetAppMetadata(GAME_FULL_NAME, GAME_VERSION, GAME_IDENTIFIER);
+#if _DEBUG
+	SDL_SetLogPriorities(SDL_LOG_PRIORITY_VERBOSE);
+#else
+	SDL_SetLogPriorities(SDL_LOG_PRIORITY_INFO);
+#endif
 
 	ParseCommandLine(argc, argv);
 
 	// Start our "machine"
 	Pomme::Init();
 
+	// Find path to game data folder
+	const char* executablePath = argc > 0 ? argv[0] : NULL;
+	fs::path dataPath = FindGameData(executablePath);
+
 	// Load game prefs before starting
-	InitDefaultPrefs();
 	LoadPrefs();
 
 retryVideo:
 	// Initialize SDL video subsystem
-	if (0 != SDL_Init(SDL_INIT_VIDEO))
+	if (!SDL_Init(SDL_INIT_VIDEO))
 	{
 		throw std::runtime_error("Couldn't initialize SDL video subsystem.");
 	}
@@ -181,29 +157,15 @@ retryVideo:
 		SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 1 << gCurrentAntialiasingLevel);
 	}
 
-	int display = gGamePrefs.monitorNum;
-	if (display >= SDL_GetNumVideoDisplays())
-	{
-		display = 0;
-	}
-
-	int initialWidth = 640;
-	int initialHeight = 480;
-	GetInitialWindowSize(display, initialWidth, initialHeight);
-
 	gSDLWindow = SDL_CreateWindow(
-			"Cro-Mag Rally " PROJECT_VERSION,
-			SDL_WINDOWPOS_UNDEFINED_DISPLAY(display),
-			SDL_WINDOWPOS_UNDEFINED_DISPLAY(display),
-			initialWidth,
-			initialHeight,
-			SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_SHOWN | SDL_WINDOW_ALLOW_HIGHDPI);
+		GAME_FULL_NAME " " GAME_VERSION, 640, 480,
+		SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIGH_PIXEL_DENSITY);
 
 	if (!gSDLWindow)
 	{
 		if (gCurrentAntialiasingLevel != 0)
 		{
-			printf("Couldn't create SDL window with the requested MSAA level. Retrying without MSAA...\n");
+			SDL_Log("Couldn't create SDL window with the requested MSAA level. Retrying without MSAA...");
 
 			// retry without MSAA
 			gGamePrefs.antialiasingLevel = 0;
@@ -216,25 +178,20 @@ retryVideo:
 		}
 	}
 
-	// Find path to game data folder
-	fs::path dataPath = FindGameData(executablePath);
-
-	// Init joystick subsystem
+	// Init gamepad subsystem
+	SDL_Init(SDL_INIT_GAMEPAD);
+	auto gamecontrollerdbPath8 = (dataPath / "System" / "gamecontrollerdb.txt").u8string();
+	if (-1 == SDL_AddGamepadMappingsFromFile((const char*)gamecontrollerdbPath8.c_str()))
 	{
-		SDL_Init(SDL_INIT_GAMECONTROLLER);
-		auto gamecontrollerdbPath8 = (dataPath / "System" / "gamecontrollerdb.txt").u8string();
-		if (-1 == SDL_GameControllerAddMappingsFromFile((const char*)gamecontrollerdbPath8.c_str()))
-		{
-			SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_WARNING, "Cro-Mag Rally", "Couldn't load gamecontrollerdb.txt!", gSDLWindow);
-		}
+		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_WARNING, GAME_FULL_NAME, "Couldn't load gamecontrollerdb.txt!", gSDLWindow);
 	}
-
-	// Set fullscreen mode from prefs
-	SetFullscreenMode(true);
 }
 
 static void Shutdown()
 {
+	// Always restore the user's mouse acceleration before exiting.
+	// SetMacLinearMouse(false);
+
 	Pomme::Shutdown();
 
 	if (gSDLWindow)
@@ -248,9 +205,8 @@ static void Shutdown()
 
 int main(int argc, char** argv)
 {
-	int				returnCode				= 0;
-	std::string		finalErrorMessage		= "";
-	bool			showFinalErrorMessage	= false;
+	bool success = true;
+	std::string uncaught = "";
 
 	try
 	{
@@ -266,25 +222,23 @@ int main(int argc, char** argv)
 	// so we can show an error dialog to the user.
 	catch (std::exception& ex)		// Last-resort catch
 	{
-		returnCode = 1;
-		finalErrorMessage = ex.what();
-		showFinalErrorMessage = true;
+		success = false;
+		uncaught = ex.what();
 	}
 	catch (...)						// Last-resort catch
 	{
-		returnCode = 1;
-		finalErrorMessage = "unknown";
-		showFinalErrorMessage = true;
+		success = false;
+		uncaught = "unknown";
 	}
 #endif
 
 	Shutdown();
 
-	if (showFinalErrorMessage)
+	if (!success)
 	{
-		SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Uncaught exception: %s\n", finalErrorMessage.c_str());
-		SDL_ShowSimpleMessageBox(0, "Cro-Mag Rally: Uncaught exception", finalErrorMessage.c_str(), nullptr);
+		SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Uncaught exception: %s", uncaught.c_str());
+		SDL_ShowSimpleMessageBox(0, GAME_FULL_NAME, uncaught.c_str(), nullptr);
 	}
 
-	return returnCode;
+	return success ? 0 : 1;
 }

@@ -466,7 +466,7 @@ static const char* GetBoneString(int statID)
 	if (n < 1 || n > 7)
 	{
 		// Show percentage for crazy values (most likely tweaked by user in physics sandbox)
-		snprintf(boneString, sizeof(boneString), "%d%%", (int) roundf(100.0f * n / 7.0f));
+		SDL_snprintf(boneString, sizeof(boneString), "%d%%", (int) roundf(100.0f * n / 7.0f));
 		return boneString;
 	}
 

@@ -2,7 +2,6 @@
 // (c)2022 Iliyas Jorio
 // This file is part of Cro-Mag Rally. https://github.com/jorio/cromagrally
 
-#include <stdlib.h>
 #include "game.h"
 
 #define MAX_TWITCH_CHAIN_LENGTH 4
@@ -153,7 +152,7 @@ static int FindEnumString(const char* prefix, const char* column)
 		return -1;
 	}
 
-	size_t prefixLength = (prefix==NULL) ? 0 : strlen(prefix);
+	size_t prefixLength = (prefix==NULL) ? 0 : SDL_strlen(prefix);
 
 	const int numNames = sizeof(kTwitchEnumNames) / sizeof(kTwitchEnumNames[0]);
 
@@ -187,7 +186,7 @@ static void LoadTwitchPresets(void)
 		kCSVColumn_Delay,
 	};
 
-	memset(gTwitchPresets, 0, sizeof(gTwitchPresets));
+	SDL_memset(gTwitchPresets, 0, sizeof(gTwitchPresets));
 
 	char* csv = LoadTextFile(":System:twitch.csv", NULL);
 
@@ -264,23 +263,23 @@ static void LoadTwitchPresets(void)
 				break;
 
 			case kCSVColumn_Duration:
-				preset->duration = atof(cell);
+				preset->duration = SDL_atof(cell);
 				break;
 
 			case kCSVColumn_Amplitude:
-				preset->amplitude = atof(cell);
+				preset->amplitude = SDL_atof(cell);
 				break;
 
 			case kCSVColumn_Period:
-				preset->period = PI * atof(cell);
+				preset->period = PI * SDL_atof(cell);
 				break;
 
 			case kCSVColumn_Phase:
-				preset->phase = PI * atof(cell);
+				preset->phase = PI * SDL_atof(cell);
 				break;
 
 			case kCSVColumn_Delay:
-				preset->delay = atof(cell);
+				preset->delay = SDL_atof(cell);
 				break;
 
 			default:
@@ -380,7 +379,7 @@ static bool ApplyTwitch(ObjNode* puppet, const Twitch* fx, float timer)
 	if (duration == 0)
 	{
 #if _DEBUG
-		printf("Twitch effect is missing duration\n");
+		SDL_Log("Twitch effect is missing duration");
 #endif
 		duration = 1;
 	}
@@ -452,7 +451,7 @@ static bool ApplyTwitch(ObjNode* puppet, const Twitch* fx, float timer)
 			break;
 
 		default:
-			printf("Unknown effect class %d\n", fx->fxClass);
+			SDL_Log("Unknown effect class %d", fx->fxClass);
 			break;
 	}
 

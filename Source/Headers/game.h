@@ -1,8 +1,10 @@
 #pragma once
 
+#include <SDL3/SDL.h>
 #include <stddef.h>
 #include <stdbool.h>
 
+#include "version.h"
 #include "globals.h"
 #include "3dmath.h"
 #include "objects.h"
@@ -39,6 +41,7 @@
 #include "pillarbox.h"
 #include "racetimes.h"
 #include "uieffects.h"
+#include "window.h"
 
 extern Atlas*					gAtlases[MAX_SPRITE_GROUPS];
 extern BG3DFileContainer		*gBG3DContainerList[MAX_BG3D_GROUPS];

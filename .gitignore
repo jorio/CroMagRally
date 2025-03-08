@@ -1,8 +1,7 @@
 build*/
 cmake-build-*/
 cache/
-extern/SDL2-*
-extern/SDL2.framework
+extern/SDL*
 dist/
 
 # IDEs and OS-specific stuff

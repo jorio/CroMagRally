@@ -335,7 +335,7 @@ static void MakeTrackName(void)
 		def.slot++;
 
 		char bestTimeStr[64];
-		snprintf(bestTimeStr, sizeof(bestTimeStr), "%s: %s", Localize(STR_BEST_TIME), FormatRaceTime(record));
+		SDL_snprintf(bestTimeStr, sizeof(bestTimeStr), "%s: %s", Localize(STR_BEST_TIME), FormatRaceTime(record));
 
 		ObjNode* bestTime = TextMesh_New(bestTimeStr, 0, &def);
 		AppendNodeToChain(gTrackName, bestTime);

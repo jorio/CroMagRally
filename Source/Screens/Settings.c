@@ -5,7 +5,6 @@
 
 #include "game.h"
 #include "menu.h"
-#include <SDL.h>
 
 static void OnPickLanguage(const MenuItem* mi)
 {
@@ -44,15 +43,10 @@ static void OnPickResetGamepadBindings(const MenuItem* mi)
 	LayoutCurrentMenuAgain();
 }
 
-static int GetNumDisplays(void)
-{
-	return SDL_GetNumVideoDisplays();
-}
-
 static const char* GetDisplayName(Byte value)
 {
 	static char textBuf[8];
-	snprintf(textBuf, sizeof(textBuf), "%d", value+1);
+	SDL_snprintf(textBuf, sizeof(textBuf), "%d", value+1);
 	return textBuf;
 }
 
@@ -166,7 +160,7 @@ const MenuItem gSettingsMenuTree[] =
 		.getLayoutFlags = ShouldDisplayMonitorCycler,
 		.cycler =
 		{
-			.valuePtr = &gGamePrefs.monitorNum,
+			.valuePtr = &gGamePrefs.displayNumMinus1,
 			.isDynamicallyGenerated = true,
 			.generator =
 			{

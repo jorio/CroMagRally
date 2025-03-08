@@ -12,7 +12,7 @@
 #include "game.h"
 #include "miscscreens.h"
 #include "network.h"
-#include <SDL.h>
+#include <SDL3/SDL.h>
 
 
 /****************************/
@@ -132,14 +132,11 @@ OSErr		iErr;
 
 	InitDefaultPrefs();
 	LoadPrefs();										// attempt to read from prefs file
+	SetFullscreenMode(true);
 
 	LoadLocalizedStrings(gGamePrefs.language);
 
 	LoadScoreboardFile();
-
-			/* DO BOOT CHECK FOR SCREEN MODE */
-
-	SetFullscreenMode(true);
 
 	SetDefaultPhysics();								// set all physics to defaults
 }
@@ -149,7 +146,7 @@ OSErr		iErr;
 
 void InitDefaultPrefs(void)
 {
-	memset(&gGamePrefs, 0, sizeof(gGamePrefs));
+	SDL_memset(&gGamePrefs, 0, sizeof(gGamePrefs));
 
 	SetDefaultPlayerSaveData();
 
@@ -157,13 +154,13 @@ void InitDefaultPrefs(void)
 	gGamePrefs.difficulty			= DIFFICULTY_MEDIUM;
 	gGamePrefs.splitScreenMode2P	= SPLITSCREEN_MODE_2P_TALL;
 	gGamePrefs.splitScreenMode3P	= SPLITSCREEN_MODE_3P_TALL;
-	gGamePrefs.monitorNum			= 0;			// main monitor by default
+	gGamePrefs.displayNumMinus1		= 0;			// main monitor by default
 	gGamePrefs.fullscreen			= true;
 	gGamePrefs.tagDuration 			= 3;
 	gGamePrefs.musicVolumePercent	= 60;			// careful to set these two volumes to one of the
 	gGamePrefs.sfxVolumePercent		= 60;			// the predefined values allowed in the settings menu
 
-	memcpy(&gGamePrefs.bindings, kDefaultInputBindings, sizeof(kDefaultInputBindings));
+	SDL_memcpy(&gGamePrefs.bindings, kDefaultInputBindings, sizeof(kDefaultInputBindings));
 }
 
 
@@ -182,7 +179,7 @@ void InitDefaultPrefs(void)
 
 static Boolean PlayGame(void)
 {
-	UnlockPlayerControllerMapping();
+	UnlockPlayerGamepadMapping();
 
 	if (gNetGameInProgress)
 		SetDefaultPhysics();								// set all physics to defaults for net game
@@ -191,7 +188,7 @@ static Boolean PlayGame(void)
 	{
 		if (DoLocalGatherScreen())
 			return true;
-		LockPlayerControllerMapping();
+		LockPlayerGamepadMapping();
 	}
 
 	bool bailed = false;
@@ -228,7 +225,7 @@ static Boolean PlayGame(void)
 	}
 
 
-	UnlockPlayerControllerMapping();
+	UnlockPlayerGamepadMapping();
 
 
 	if (bailed)
@@ -465,7 +462,7 @@ short	placeToWin,startStage;
 				&& !gGameOver														// dont do anything if we failed or bailed
 				&& gTrackNum+1 > GetNumTracksCompletedTotal())						// only if it's better than current progress
 			{
-				memcpy(gGamePrefs.tournamentProgression.tournamentLapTimes[gTrackNum],
+				SDL_memcpy(gGamePrefs.tournamentProgression.tournamentLapTimes[gTrackNum],
 					   gPlayerInfo->lapTimes,
 					   sizeof(gPlayerInfo->lapTimes));
 
@@ -820,7 +817,7 @@ ObjNode* bigArrowhead = NULL;
 
 						tokensTallied++;
 
-						snprintf(s, sizeof(s), "%d", tokensTallied);
+						SDL_snprintf(s, sizeof(s), "%d", tokensTallied);
 
 						TextMesh_Update(s, kTextMeshAlignCenter, counterText);
 

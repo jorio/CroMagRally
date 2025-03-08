@@ -11,8 +11,6 @@
 
 #include "game.h"
 #include "miscscreens.h"
-#include "version.h"
-#include <SDL.h>
 
 
 /****************************/
@@ -585,7 +583,7 @@ OGLSetupInputType	viewDef;
 		};
 
 		char totalTimeStr[64];
-		snprintf(totalTimeStr, sizeof(totalTimeStr), "%s: %s", Localize(STR_TOTAL_TIME), FormatRaceTime(GetTotalTournamentTime()));
+		SDL_snprintf(totalTimeStr, sizeof(totalTimeStr), "%s: %s", Localize(STR_TOTAL_TIME), FormatRaceTime(GetTotalTournamentTime()));
 		ObjNode* totalTimeObj = TextMesh_New(totalTimeStr, 0, &def);
 		totalTimeObj->ColorFilter.a = -11;
 	}
@@ -1027,8 +1025,8 @@ OGLVector3D			fillDirection1 = { .9, -.3, -1 };
 
 
 	char systemInfo[512];
-	snprintf(systemInfo, sizeof(systemInfo), "CRO-MAG RALLY V%s / %s [%s]\nOPENGL %s [%s]",
-				 PROJECT_VERSION,
+	SDL_snprintf(systemInfo, sizeof(systemInfo), "CRO-MAG RALLY V%s / SDL %s [%s]\nOPENGL %s [%s]",
+				 GAME_VERSION,
 				 SDL_GetRevision(),
 				 SDL_GetCurrentVideoDriver(),
 				 (const char*)glGetString(GL_VERSION),

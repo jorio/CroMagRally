@@ -9,10 +9,8 @@
 #include "game.h"
 #include "menu.h"
 
-#include <SDL.h>
-#include <SDL_opengl.h>
+#include <SDL3/SDL_opengl.h>
 #include <math.h>
-#include <string.h>
 
 #define DECLARE_WORKBUF(buf, bufSize) char (buf)[256]; const int (bufSize) = 256
 #define DECLARE_STATIC_WORKBUF(buf, bufSize) static char (buf)[256]; static const int (bufSize) = 256
@@ -192,13 +190,13 @@ static void InitMenuNavigation(void)
 	nav = (MenuNavigation*) AllocPtrClear(sizeof(MenuNavigation));
 	gNav = nav;
 
-	memcpy(&nav->style, &kDefaultMenuStyle, sizeof(MenuStyle));
+	SDL_memcpy(&nav->style, &kDefaultMenuStyle, sizeof(MenuStyle));
 	nav->menuPick = -1;
 	nav->menuState = kMenuStateOff;
 //	nav->mouseHoverColumn = -1;
 
-	nav->standardCursor = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_ARROW);
-	nav->handCursor = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_HAND);
+	nav->standardCursor = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_DEFAULT);
+	nav->handCursor = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_POINTER);
 
 	NewObjectDefinitionType arrowDef =
 	{
@@ -228,13 +226,13 @@ static void DisposeMenuNavigation(void)
 
 	if (nav->standardCursor != NULL)
 	{
-		SDL_FreeCursor(nav->standardCursor);
+		SDL_DestroyCursor(nav->standardCursor);
 		nav->standardCursor = NULL;
 	}
 
 	if (nav->handCursor != NULL)
 	{
-		SDL_FreeCursor(nav->handCursor);
+		SDL_DestroyCursor(nav->handCursor);
 		nav->handCursor = NULL;
 	}
 
@@ -353,51 +351,51 @@ static const char* GetPadBindingName(int row, int col)
 		case kInputTypeButton:
 			switch (pb->id)
 			{
-				case SDL_CONTROLLER_BUTTON_INVALID:			return Localize(STR_UNBOUND_PLACEHOLDER);
-				case SDL_CONTROLLER_BUTTON_A:				return Localize(STR_CONTROLLER_BUTTON_A);
-				case SDL_CONTROLLER_BUTTON_B:				return Localize(STR_CONTROLLER_BUTTON_B);
-				case SDL_CONTROLLER_BUTTON_X:				return Localize(STR_CONTROLLER_BUTTON_X);
-				case SDL_CONTROLLER_BUTTON_Y:				return Localize(STR_CONTROLLER_BUTTON_Y);
-				case SDL_CONTROLLER_BUTTON_LEFTSHOULDER:	return Localize(STR_CONTROLLER_BUTTON_LEFTSHOULDER);
-				case SDL_CONTROLLER_BUTTON_RIGHTSHOULDER:	return Localize(STR_CONTROLLER_BUTTON_RIGHTSHOULDER);
-				case SDL_CONTROLLER_BUTTON_LEFTSTICK:		return Localize(STR_CONTROLLER_BUTTON_LEFTSTICK);
-				case SDL_CONTROLLER_BUTTON_RIGHTSTICK:		return Localize(STR_CONTROLLER_BUTTON_RIGHTSTICK);
-				case SDL_CONTROLLER_BUTTON_DPAD_UP:			return Localize(STR_CONTROLLER_BUTTON_DPAD_UP);
-				case SDL_CONTROLLER_BUTTON_DPAD_DOWN:		return Localize(STR_CONTROLLER_BUTTON_DPAD_DOWN);
-				case SDL_CONTROLLER_BUTTON_DPAD_LEFT:		return Localize(STR_CONTROLLER_BUTTON_DPAD_LEFT);
-				case SDL_CONTROLLER_BUTTON_DPAD_RIGHT:		return Localize(STR_CONTROLLER_BUTTON_DPAD_RIGHT);
+				case SDL_GAMEPAD_BUTTON_INVALID:		return Localize(STR_UNBOUND_PLACEHOLDER);
+				case SDL_GAMEPAD_BUTTON_SOUTH:			return Localize(STR_CONTROLLER_BUTTON_A);
+				case SDL_GAMEPAD_BUTTON_EAST:			return Localize(STR_CONTROLLER_BUTTON_B);
+				case SDL_GAMEPAD_BUTTON_WEST:			return Localize(STR_CONTROLLER_BUTTON_X);
+				case SDL_GAMEPAD_BUTTON_NORTH:			return Localize(STR_CONTROLLER_BUTTON_Y);
+				case SDL_GAMEPAD_BUTTON_LEFT_SHOULDER:	return Localize(STR_CONTROLLER_BUTTON_LEFTSHOULDER);
+				case SDL_GAMEPAD_BUTTON_RIGHT_SHOULDER:	return Localize(STR_CONTROLLER_BUTTON_RIGHTSHOULDER);
+				case SDL_GAMEPAD_BUTTON_LEFT_STICK:		return Localize(STR_CONTROLLER_BUTTON_LEFTSTICK);
+				case SDL_GAMEPAD_BUTTON_RIGHT_STICK:	return Localize(STR_CONTROLLER_BUTTON_RIGHTSTICK);
+				case SDL_GAMEPAD_BUTTON_DPAD_UP:		return Localize(STR_CONTROLLER_BUTTON_DPAD_UP);
+				case SDL_GAMEPAD_BUTTON_DPAD_DOWN:		return Localize(STR_CONTROLLER_BUTTON_DPAD_DOWN);
+				case SDL_GAMEPAD_BUTTON_DPAD_LEFT:		return Localize(STR_CONTROLLER_BUTTON_DPAD_LEFT);
+				case SDL_GAMEPAD_BUTTON_DPAD_RIGHT:		return Localize(STR_CONTROLLER_BUTTON_DPAD_RIGHT);
 				default:
-					return SDL_GameControllerGetStringForButton(pb->id);
+					return SDL_GetGamepadStringForButton(pb->id);
 			}
 			break;
 
 		case kInputTypeAxisPlus:
 			switch (pb->id)
 			{
-				case SDL_CONTROLLER_AXIS_INVALID:			return Localize(STR_UNBOUND_PLACEHOLDER);
-				case SDL_CONTROLLER_AXIS_LEFTX:				return Localize(STR_CONTROLLER_AXIS_LEFTSTICK_RIGHT);
-				case SDL_CONTROLLER_AXIS_LEFTY:				return Localize(STR_CONTROLLER_AXIS_LEFTSTICK_DOWN);
-				case SDL_CONTROLLER_AXIS_RIGHTX:			return Localize(STR_CONTROLLER_AXIS_RIGHTSTICK_RIGHT);
-				case SDL_CONTROLLER_AXIS_RIGHTY:			return Localize(STR_CONTROLLER_AXIS_RIGHTSTICK_DOWN);
-				case SDL_CONTROLLER_AXIS_TRIGGERLEFT:		return Localize(STR_CONTROLLER_AXIS_LEFTTRIGGER);
-				case SDL_CONTROLLER_AXIS_TRIGGERRIGHT:		return Localize(STR_CONTROLLER_AXIS_RIGHTTRIGGER);
+				case SDL_GAMEPAD_AXIS_INVALID:			return Localize(STR_UNBOUND_PLACEHOLDER);
+				case SDL_GAMEPAD_AXIS_LEFTX:			return Localize(STR_CONTROLLER_AXIS_LEFTSTICK_RIGHT);
+				case SDL_GAMEPAD_AXIS_LEFTY:			return Localize(STR_CONTROLLER_AXIS_LEFTSTICK_DOWN);
+				case SDL_GAMEPAD_AXIS_RIGHTX:			return Localize(STR_CONTROLLER_AXIS_RIGHTSTICK_RIGHT);
+				case SDL_GAMEPAD_AXIS_RIGHTY:			return Localize(STR_CONTROLLER_AXIS_RIGHTSTICK_DOWN);
+				case SDL_GAMEPAD_AXIS_LEFT_TRIGGER:		return Localize(STR_CONTROLLER_AXIS_LEFTTRIGGER);
+				case SDL_GAMEPAD_AXIS_RIGHT_TRIGGER:	return Localize(STR_CONTROLLER_AXIS_RIGHTTRIGGER);
 				default:
-					return SDL_GameControllerGetStringForAxis(pb->id);
+					return SDL_GetGamepadStringForAxis(pb->id);
 			}
 			break;
 
 		case kInputTypeAxisMinus:
 			switch (pb->id)
 			{
-				case SDL_CONTROLLER_AXIS_INVALID:			return Localize(STR_UNBOUND_PLACEHOLDER);
-				case SDL_CONTROLLER_AXIS_LEFTX:				return Localize(STR_CONTROLLER_AXIS_LEFTSTICK_LEFT);
-				case SDL_CONTROLLER_AXIS_LEFTY:				return Localize(STR_CONTROLLER_AXIS_LEFTSTICK_UP);
-				case SDL_CONTROLLER_AXIS_RIGHTX:			return Localize(STR_CONTROLLER_AXIS_RIGHTSTICK_LEFT);
-				case SDL_CONTROLLER_AXIS_RIGHTY:			return Localize(STR_CONTROLLER_AXIS_RIGHTSTICK_UP);
-				case SDL_CONTROLLER_AXIS_TRIGGERLEFT:		return Localize(STR_CONTROLLER_AXIS_LEFTTRIGGER);
-				case SDL_CONTROLLER_AXIS_TRIGGERRIGHT:		return Localize(STR_CONTROLLER_AXIS_RIGHTTRIGGER);
+				case SDL_GAMEPAD_AXIS_INVALID:			return Localize(STR_UNBOUND_PLACEHOLDER);
+				case SDL_GAMEPAD_AXIS_LEFTX:			return Localize(STR_CONTROLLER_AXIS_LEFTSTICK_LEFT);
+				case SDL_GAMEPAD_AXIS_LEFTY:			return Localize(STR_CONTROLLER_AXIS_LEFTSTICK_UP);
+				case SDL_GAMEPAD_AXIS_RIGHTX:			return Localize(STR_CONTROLLER_AXIS_RIGHTSTICK_LEFT);
+				case SDL_GAMEPAD_AXIS_RIGHTY:			return Localize(STR_CONTROLLER_AXIS_RIGHTSTICK_UP);
+				case SDL_GAMEPAD_AXIS_LEFT_TRIGGER:		return Localize(STR_CONTROLLER_AXIS_LEFTTRIGGER);
+				case SDL_GAMEPAD_AXIS_RIGHT_TRIGGER:	return Localize(STR_CONTROLLER_AXIS_RIGHTTRIGGER);
 				default:
-					return SDL_GameControllerGetStringForAxis(pb->id);
+					return SDL_GetGamepadStringForAxis(pb->id);
 			}
 			break;
 
@@ -421,7 +419,7 @@ static const char* GetMouseBindingName(int row)
 		case SDL_BUTTON_WHEELUP:		return Localize(STR_MOUSE_WHEEL_UP);
 		case SDL_BUTTON_WHEELDOWN:		return Localize(STR_MOUSE_WHEEL_DOWN);
 		default:
-			snprintf(buf, bufSize, "%s %d", Localize(STR_BUTTON), binding->mouseButton);
+			SDL_snprintf(buf, bufSize, "%s %d", Localize(STR_BUTTON), binding->mouseButton);
 			return buf;
 	}
 }
@@ -1451,7 +1449,7 @@ static void AwaitKeyPress(void)
 		goto updateText;
 	}
 
-	for (int16_t scancode = 0; scancode < SDL_NUM_SCANCODES; scancode++)
+	for (int16_t scancode = 0; scancode < SDL_SCANCODE_COUNT; scancode++)
 	{
 		if (GetNewKeyState(scancode))
 		{
@@ -1472,7 +1470,7 @@ updateText:
 	ReplaceMenuText(STR_CONFIGURE_KEYBOARD_HELP, STR_CONFIGURE_KEYBOARD_HELP);
 }
 
-static bool AwaitGamepadPress(SDL_GameController* controller)
+static bool AwaitGamepadPress(SDL_Gamepad* gamepad)
 {
 	int row = gNav->menuRow;
 	int btnNo = gNav->menuCol;
@@ -1480,7 +1478,7 @@ static bool AwaitGamepadPress(SDL_GameController* controller)
 	GAME_ASSERT(btnNo < MAX_USER_BINDINGS_PER_NEED);
 
 	if (GetNewKeyState(SDL_SCANCODE_ESCAPE)
-		|| SDL_GameControllerGetButton(controller, SDL_CONTROLLER_BUTTON_START))
+		|| SDL_GetGamepadButton(gamepad, SDL_GAMEPAD_BUTTON_START))
 	{
 		PlayEffect(kSfxError);
 		goto updateText;
@@ -1488,9 +1486,9 @@ static bool AwaitGamepadPress(SDL_GameController* controller)
 
 	InputBinding* binding = GetBindingAtRow(gNav->menuRow);
 
-	for (int8_t button = 0; button < SDL_CONTROLLER_BUTTON_MAX; button++)
+	for (int8_t button = 0; button < SDL_GAMEPAD_BUTTON_COUNT; button++)
 	{
-		if (SDL_GameControllerGetButton(controller, button))
+		if (SDL_GetGamepadButton(gamepad, button))
 		{
 			PlayEffect(kSfxCycle);
 			UnbindPadButtonFromAllRemappableInputNeeds(kInputTypeButton, button);
@@ -1500,10 +1498,10 @@ static bool AwaitGamepadPress(SDL_GameController* controller)
 		}
 	}
 
-	for (int8_t axis = 0; axis < SDL_CONTROLLER_AXIS_MAX; axis++)
+	for (int8_t axis = 0; axis < SDL_GAMEPAD_AXIS_COUNT; axis++)
 	{
-		int16_t axisValue = SDL_GameControllerGetAxis(controller, axis);
-		if (abs(axisValue) > kJoystickDeadZone_BindingThreshold)
+		int16_t axisValue = SDL_GetGamepadAxis(gamepad, axis);
+		if (SDL_abs(axisValue) > kJoystickDeadZone_BindingThreshold)
 		{
 			PlayEffect(kSfxCycle);
 			int axisType = axisValue < 0 ? kInputTypeAxisMinus : kInputTypeAxisPlus;
@@ -1537,11 +1535,11 @@ static void AwaitMetaGamepadPress(void)
 
 	for (int i = 0; i < MAX_LOCAL_PLAYERS; i++)
 	{
-		SDL_GameController* controller = GetController(i);
-		if (controller)
+		SDL_Gamepad* gamepad = GetGamepad(i);
+		if (gamepad)
 		{
 			anyGamepadFound = true;
-			if (AwaitGamepadPress(controller))
+			if (AwaitGamepadPress(gamepad))
 			{
 				return;
 			}
@@ -1738,7 +1736,7 @@ static ObjNode* LayOutCycler2(int row)
 
 	const MenuItem* entry = &gNav->menu[row];
 
-	snprintf(buf, bufSize, "%s:", GetMenuItemLabel(entry));
+	SDL_snprintf(buf, bufSize, "%s:", GetMenuItemLabel(entry));
 
 	ObjNode* node1 = MakeText(buf, row, 0, kTextMeshAlignLeft);
 	node1->Coord.x -= 120;
@@ -1757,9 +1755,9 @@ static ObjNode* LayOutCycler1(int row)
 	const MenuItem* entry = &gNav->menu[row];
 
 	if (entry->text == STR_NULL)
-		snprintf(buf, bufSize, "%s", GetCyclerValueText(row));
+		SDL_snprintf(buf, bufSize, "%s", GetCyclerValueText(row));
 	else
-		snprintf(buf, bufSize, "%s: %s", GetMenuItemLabel(entry), GetCyclerValueText(row));
+		SDL_snprintf(buf, bufSize, "%s: %s", GetMenuItemLabel(entry), GetCyclerValueText(row));
 
 	ObjNode* node = MakeText(buf, row, 0, 0);
 	node->MoveCall = MoveAction;
@@ -1775,7 +1773,7 @@ static ObjNode* LayOutFloatRangeValueText(int row)
 	float percent = *entry->floatRange.valuePtr / *entry->floatRange.equilibriumPtr;
 	percent *= 100.0f;
 
-	snprintf(buf, bufSize, "%d%%", (int)roundf(percent));
+	SDL_snprintf(buf, bufSize, "%d%%", (int)roundf(percent));
 	ObjNode* node2 = MakeText(buf, row, 1, kTextMeshAlignRight);
 	node2->MoveCall = MoveAction;
 	return node2;
@@ -1786,7 +1784,7 @@ static ObjNode* LayOutFloatRange(int row)
 	DECLARE_WORKBUF(buf, bufSize);
 	const MenuItem* entry = &gNav->menu[row];
 
-	snprintf(buf, bufSize, "%s:", GetMenuItemLabel(entry));
+	SDL_snprintf(buf, bufSize, "%s:", GetMenuItemLabel(entry));
 	ObjNode* node1 = MakeText(buf, row, 0, kTextMeshAlignLeft);
 	node1->MoveCall = MoveAction;
 	node1->Coord.x -= entry->floatRange.xSpread;
@@ -1803,7 +1801,7 @@ static ObjNode* LayOutKeyBinding(int row)
 	DECLARE_WORKBUF(buf, bufSize);
 	const MenuItem* entry = &gNav->menu[row];
 
-	snprintf(buf, bufSize, "%s:", Localize(STR_KEYBINDING_DESCRIPTION_0 + entry->inputNeed));
+	SDL_snprintf(buf, bufSize, "%s:", Localize(STR_KEYBINDING_DESCRIPTION_0 + entry->inputNeed));
 
 	ObjNode* label = MakeText(buf, row, 0, kTextMeshAlignLeft);
 	label->Coord.x -= 256;
@@ -1826,7 +1824,7 @@ static ObjNode* LayOutPadBinding(int row)
 	DECLARE_WORKBUF(buf, bufSize);
 	const MenuItem* entry = &gNav->menu[row];
 
-	snprintf(buf, bufSize, "%s:", Localize(STR_KEYBINDING_DESCRIPTION_0 + entry->inputNeed));
+	SDL_snprintf(buf, bufSize, "%s:", Localize(STR_KEYBINDING_DESCRIPTION_0 + entry->inputNeed));
 
 	ObjNode* label = MakeText(buf, row, 0, kTextMeshAlignLeft);
 	label->Coord.x -= 256;
@@ -1849,7 +1847,7 @@ static ObjNode* LayOutMouseBinding(int row)
 	DECLARE_WORKBUF(buf, bufSize);
 	const MenuItem* entry = &gNav->menu[row];
 
-	snprintf(buf, bufSize, "%s:", Localize(STR_KEYBINDING_DESCRIPTION_0 + entry->inputNeed));
+	SDL_snprintf(buf, bufSize, "%s:", Localize(STR_KEYBINDING_DESCRIPTION_0 + entry->inputNeed));
 
 	ObjNode* label = MakeText(buf, row, 0, 0);
 	label->ColorFilter = gNav->style.labelColor;
@@ -1979,7 +1977,7 @@ void RegisterMenu(const MenuItem* menuTree)
 			gMenuRegistry[gNumMenusRegistered] = menuItem;
 			gNumMenusRegistered++;
 
-//			printf("Registered menu '%s'\n", FourccToString(menuItem->id));
+//			SDL_Log("Registered menu '%s'", FourccToString(menuItem->id));
 		}
 	}
 }
@@ -2012,7 +2010,7 @@ int StartMenu(
 
 	InitMenuNavigation();
 	if (style)
-		memcpy(&gNav->style, style, sizeof(*style));
+		SDL_memcpy(&gNav->style, style, sizeof(*style));
 	gNav->menuState			= kMenuStateFadeIn;
 	gNav->menuFadeAlpha		= 0;
 	gNav->menuRow			= -1;
@@ -2150,7 +2148,7 @@ int StartMenu(
 			}
 		}
 
-		memset(gNav->menuObjects, 0, sizeof(gNav->menuObjects));
+		SDL_memset(gNav->menuObjects, 0, sizeof(gNav->menuObjects));
 	}
 	else
 	{

@@ -1262,7 +1262,7 @@ OGLMatrix4x4	m1,m2;
 				break;
 
 		default:
-				printf("Incorrect TeamTorch mode: %d\n", theNode->Mode);
+				SDL_Log("Incorrect TeamTorch mode: %d", theNode->Mode);
 				return;
 
 	}

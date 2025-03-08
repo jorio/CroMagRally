@@ -103,12 +103,12 @@ unsigned long flags = newObjDef->flags;
 
 	if (newObjDef->slot <= 0)
 	{
-		printf("%s: Slot is %d, are you sure?\n", __func__, newObjDef->slot);
+		SDL_Log("%s: Slot is %d, are you sure?", __func__, newObjDef->slot);
 	}
 
 	if (newObjDef->scale == 0.0f)
 	{
-		printf("%s: Scale is 0, are you sure?\n", __func__);
+		SDL_Log("%s: Scale is 0, are you sure?", __func__);
 	}
 
 

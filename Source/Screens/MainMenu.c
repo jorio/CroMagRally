@@ -14,9 +14,6 @@
 #include "menu.h"
 #include "miscscreens.h"
 #include "network.h"
-#include "version.h"
-
-#include <SDL.h>
 
 /****************************/
 /*    PROTOTYPES            */
@@ -360,7 +357,7 @@ OGLVector3D			fillDirection2 = { -1, -.2, -.5 };
 		.scale = .25f,
 		.slot = MENU_SLOT
 	};
-	ObjNode* versionText = TextMesh_New(PROJECT_VERSION, kTextMeshAlignLeft, &versionDef);
+	ObjNode* versionText = TextMesh_New(GAME_VERSION, kTextMeshAlignLeft, &versionDef);
 	versionText->ColorFilter = (OGLColorRGBA) {.75f, .75f, .75f, .75f};
 
 

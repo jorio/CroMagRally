@@ -11,8 +11,6 @@
 /***************/
 
 #include "game.h"
-#include <SDL.h>
-#include <stdlib.h>
 
 extern SDL_Window* gSDLWindow;
 
@@ -236,6 +234,7 @@ void OGL_FadeOutScene(void (*drawCall)(void), void (*moveCall)(void))
 
 void Enter2D(Boolean pauseDSp)
 {
+	(void) pauseDSp;
 }
 
 
@@ -249,23 +248,62 @@ void Exit2D(void)
 }
 
 
+/******************** GET DEFAULT WINDOW SIZE *******************/
+
+void GetDefaultWindowSize(SDL_DisplayID display, int* width, int* height)
+{
+	const float aspectRatio = 16.0 / 9.0f;
+	const float screenCoverage = .8f;
+
+	SDL_Rect displayBounds = { .x = 0, .y = 0, .w = 640, .h = 480 };
+	SDL_GetDisplayUsableBounds(display, &displayBounds);
+
+	if (displayBounds.w > displayBounds.h)
+	{
+		*width = displayBounds.h * screenCoverage * aspectRatio;
+		*height = displayBounds.h * screenCoverage;
+	}
+	else
+	{
+		*width = displayBounds.w * screenCoverage;
+		*height = displayBounds.w * screenCoverage / aspectRatio;
+	}
+}
+
+/********************** GET NUM DISPLAYS **********************/
+
+int GetNumDisplays(void)
+{
+	int numDisplays = 0;
+	SDL_DisplayID* displays = SDL_GetDisplays(&numDisplays);
+	SDL_free(displays);
+	return numDisplays;
+}
+
 /******************** MOVE WINDOW TO PREFERRED DISPLAY *******************/
 //
 // This works best in windowed mode.
 // Turn off fullscreen before calling this!
 //
 
-static void MoveToPreferredDisplay(void)
+void MoveToPreferredDisplay(void)
 {
-	int currentDisplay = SDL_GetWindowDisplayIndex(gSDLWindow);
-
-	if (currentDisplay != gGamePrefs.monitorNum)
+	if (gGamePrefs.displayNumMinus1 >= GetNumDisplays())
 	{
-		SDL_SetWindowPosition(
-			gSDLWindow,
-			SDL_WINDOWPOS_CENTERED_DISPLAY(gGamePrefs.monitorNum),
-			SDL_WINDOWPOS_CENTERED_DISPLAY(gGamePrefs.monitorNum));
+		gGamePrefs.displayNumMinus1 = 0;
 	}
+
+	SDL_DisplayID display = gGamePrefs.displayNumMinus1 + 1;
+
+	int w = 640;
+	int h = 480;
+	GetDefaultWindowSize(display, &w, &h);
+	SDL_SetWindowSize(gSDLWindow, w, h);
+	SDL_SyncWindow(gSDLWindow);
+
+	int centered = SDL_WINDOWPOS_CENTERED_DISPLAY(display);
+	SDL_SetWindowPosition(gSDLWindow, centered, centered);
+	SDL_SyncWindow(gSDLWindow);
 }
 
 /*********************** SET FULLSCREEN MODE **********************/
@@ -275,6 +313,7 @@ void SetFullscreenMode(bool enforceDisplayPref)
 	if (!gGamePrefs.fullscreen)
 	{
 		SDL_SetWindowFullscreen(gSDLWindow, 0);
+		SDL_SyncWindow(gSDLWindow);
 
 		if (enforceDisplayPref)
 		{
@@ -285,24 +324,26 @@ void SetFullscreenMode(bool enforceDisplayPref)
 	{
 		if (enforceDisplayPref)
 		{
-			int currentDisplay = SDL_GetWindowDisplayIndex(gSDLWindow);
+			SDL_DisplayID currentDisplay = SDL_GetDisplayForWindow(gSDLWindow);
+			SDL_DisplayID desiredDisplay = gGamePrefs.displayNumMinus1 + 1;
 
-			if (currentDisplay != gGamePrefs.monitorNum)
+			if (currentDisplay != desiredDisplay)
 			{
 				// We must switch back to windowed mode for the preferred monitor to take effect
-				SDL_SetWindowFullscreen(gSDLWindow, 0);
+				SDL_SetWindowFullscreen(gSDLWindow, false);
+				SDL_SyncWindow(gSDLWindow);
 				MoveToPreferredDisplay();
 			}
 		}
 
 		// Enter fullscreen mode
-		SDL_SetWindowFullscreen(gSDLWindow, SDL_WINDOW_FULLSCREEN_DESKTOP);
+		SDL_SetWindowFullscreen(gSDLWindow, true);
+		SDL_SyncWindow(gSDLWindow);
 	}
 
-	// Ensure the clipping pane gets resized properly after switching in or out of fullscreen mode
-//	int width, height;
-//	SDL_GetWindowSize(gSDLWindow, &width, &height);
-//	QD3D_OnWindowResized(width, height);
-
-	SDL_ShowCursor(gGamePrefs.fullscreen ? 0 : 1);
+	if (gGamePrefs.fullscreen)
+		SDL_HideCursor();
+	else
+		SDL_ShowCursor();
+	//SDL_GL_SetSwapInterval(gGamePrefs.vsync);
 }

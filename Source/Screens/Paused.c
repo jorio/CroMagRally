@@ -129,7 +129,7 @@ void OnToggleSplitscreenMode(const MenuItem* mi)
 			break;
 
 		default:
-			printf("%s: what am I supposed to do with %d split-screen panes?\n", __func__, gNumSplitScreenPanes);
+			SDL_Log("%s: what am I supposed to do with %d split-screen panes?", __func__, gNumSplitScreenPanes);
 	}
 
 	SetDefaultCameraModeForAllPlayers();

@@ -4,8 +4,6 @@
 
 #pragma once
 
-#include <stdio.h>
-
 void	DoAlert(const char* format, ...);
 POMME_NORETURN void DoFatalAlert(const char* format, ...);
 POMME_NORETURN void CleanQuit(void);
@@ -32,7 +30,7 @@ size_t snprintfcat(char* buf, size_t bufSize, char const* fmt, ...);
 #define ShowSystemErr_NonFatal(err) DoFatalAlert("System error: %d", err)
 
 #if _DEBUG
-	#define IMPLEMENT_ME_SOFT() printf("IMPLEMENT ME: %s:%d\n", __func__, __LINE__)
+	#define IMPLEMENT_ME_SOFT() SDL_Log("IMPLEMENT ME: %s:%d", __func__, __LINE__)
 #else
 	#define IMPLEMENT_ME_SOFT()
 #endif

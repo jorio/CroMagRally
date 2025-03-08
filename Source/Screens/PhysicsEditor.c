@@ -330,7 +330,7 @@ static void OnTweakPhysicsConst(const MenuItem* mi)
 
 static Boolean RefreshUserTamperedWithPhysicsFlag(void)
 {
-	gUserTamperedWithPhysics = 0 != memcmp(&gUserPhysics, &kDefaultPhysics, sizeof(UserPhysics));
+	gUserTamperedWithPhysics = 0 != SDL_memcmp(&gUserPhysics, &kDefaultPhysics, sizeof(UserPhysics));
 	return gUserTamperedWithPhysics;
 }
 

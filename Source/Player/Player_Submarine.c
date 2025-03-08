@@ -10,7 +10,7 @@
 /****************************/
 
 #include "game.h"
-#include <SDL_scancode.h>
+#include <SDL3/SDL_scancode.h>
 
 /****************************/
 /*    PROTOTYPES            */
@@ -159,7 +159,7 @@ float				oldFPS,oldFPSFrac;
 		&& GetKeyState(SDL_SCANCODE_P)
 		&& GetKeyState(SDL_SCANCODE_U))	//---------- hack to make player a CPU
 	{
-		puts("Engage submarine autopilot");
+		SDL_Log("Engage submarine autopilot");
 		gAutoPilot = true;
 	}
 

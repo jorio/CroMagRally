@@ -5,7 +5,7 @@
 
 #include "game.h"
 #include "menu.h"
-#include <time.h>
+#include <SDL3/SDL_time.h>
 
 #define MAX_RECORDS_PER_SCREEN 5
 #define NODES_PER_RECORD 6
@@ -53,7 +53,7 @@ char* FormatRaceTime(float t)
 	int sec = ((int) t) % 60;
 	int cent = ((int) (t * 100.0f)) % 100;
 
-	snprintf(timeBuf, sizeof(timeBuf), "%d:%02d\v.%02d", min, sec, cent);
+	SDL_snprintf(timeBuf, sizeof(timeBuf), "%d:%02d\v.%02d", min, sec, cent);
 
 	return timeBuf;
 }
@@ -172,14 +172,18 @@ int SaveRaceTime(int playerNum)
 	int numRecordsToMove = MAX_RECORDS_PER_TRACK - rank - 1;
 	if (numRecordsToMove > 0)
 	{
-		memmove(&trackRecords[rank + 1], &trackRecords[rank], numRecordsToMove * sizeof(trackRecords[0]));
+		SDL_memmove(&trackRecords[rank + 1], &trackRecords[rank], numRecordsToMove * sizeof(trackRecords[0]));
 	}
+
+	// Get local time
+	SDL_Time timestampNanoseconds = 0;
+	SDL_GetCurrentTime(&timestampNanoseconds);
 
 	// Fill record struct
 	ScoreboardRecord* myRecord = &trackRecords[rank];
-	memset(myRecord, 0, sizeof(*myRecord));
-	memcpy(myRecord->lapTimes, pi->lapTimes, sizeof(myRecord->lapTimes));
-	myRecord->timestamp		= time(NULL);
+	SDL_memset(myRecord, 0, sizeof(*myRecord));
+	SDL_memcpy(myRecord->lapTimes, pi->lapTimes, sizeof(myRecord->lapTimes));
+	myRecord->timestamp		= timestampNanoseconds / 1e9;
 	myRecord->difficulty	= gGamePrefs.difficulty;
 	myRecord->gameMode		= gGameMode;
 	myRecord->trackNum		= gTrackNum;
@@ -354,7 +358,7 @@ static void LayOutScoreboardForTrack(void)
 	{
 		int n = 0;
 		ObjNode* nodes[NODES_PER_RECORD];
-		memset(nodes, 0, sizeof(nodes));
+		SDL_memset(nodes, 0, sizeof(nodes));
 
 		const ScoreboardRecord* record = &gScoreboard.records[gScoreboardTrack][row];
 
@@ -370,7 +374,7 @@ static void LayOutScoreboardForTrack(void)
 		else
 		{
 			defRank.slot = slot++;
-			snprintf(text, sizeof(text), "#%d", row + 1);
+			SDL_snprintf(text, sizeof(text), "#%d", row + 1);
 			nodes[n++] = TextMesh_New(text, 0, &defRank);
 		}
 
@@ -392,13 +396,13 @@ static void LayOutScoreboardForTrack(void)
 			defLaps.slot = slot++;
 			nodes[n++] = TextMesh_New(text, kTextMeshAlignLeft, &defLaps);
 
-			time_t timestamp = (time_t) record->timestamp;
-			struct tm *timeinfo = localtime(&timestamp);
-			int day = timeinfo->tm_mday;
-			const char* month = Localize(timeinfo->tm_mon + STR_MONTH_1);
-			int year = 1900 + timeinfo->tm_year;
+			SDL_DateTime dt = {0};
+			SDL_TimeToDateTime(record->timestamp * 1e9, &dt, true);
+			const char* month = Localize(dt.month - 1 + STR_MONTH_1);
+			int day = dt.day;
+			int year = dt.year;
 
-			snprintf(text, sizeof(text), "%s %s", Localize(STR_DIFFICULTY_1 + record->difficulty), Localize(STR_SIMPLISTIC + record->difficulty));
+			SDL_snprintf(text, sizeof(text), "%s %s", Localize(STR_DIFFICULTY_1 + record->difficulty), Localize(STR_SIMPLISTIC + record->difficulty));
 			if (gGamePrefs.language == LANGUAGE_ENGLISH)
 				snprintfcat(text, sizeof(text), "\n%s %d, %d", month, day, year);
 			else

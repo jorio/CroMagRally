@@ -8,7 +8,6 @@
 /***************/
 
 #include "game.h"
-#include <stdlib.h>
 
 extern	Byte					**gMapSplitMode;
 extern	SuperTileItemIndexType	**gSuperTileItemIndexGrid;
@@ -1257,8 +1256,8 @@ static const Byte gridMask[(SUPERTILE_ACTIVE_RANGE+SUPERTILE_ITEMRING_MARGIN)*2]
 
 					/* SEE IF ROW/COLUMN HAVE CHANGED */
 
-		deltaRow = labs(gCurrentSuperTileRow[playerNum] - gPreviousSuperTileRow[playerNum]);
-		deltaCol = labs(gCurrentSuperTileCol[playerNum] - gPreviousSuperTileCol[playerNum]);
+		deltaRow = SDL_abs(gCurrentSuperTileRow[playerNum] - gPreviousSuperTileRow[playerNum]);
+		deltaCol = SDL_abs(gCurrentSuperTileCol[playerNum] - gPreviousSuperTileCol[playerNum]);
 
 		if (deltaRow || deltaCol)
 		{

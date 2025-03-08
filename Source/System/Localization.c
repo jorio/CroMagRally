@@ -3,8 +3,6 @@
 // This file is part of Cro-Mag Rally. https://github.com/jorio/cromagrally
 
 #include "game.h"
-#include <string.h>
-#include <SDL.h>
 
 #define CSV_PATH ":System:strings.csv"
 
@@ -92,20 +90,18 @@ GameLanguageID GetBestLanguageIDFromSystemLocale(void)
 {
 	GameLanguageID languageID = LANGUAGE_ENGLISH;
 
-#if !(SDL_VERSION_ATLEAST(2,0,14))
-	#warning Please upgrade to SDL 2.0.14 or later for SDL_GetPreferredLocales. Will default to English for now.
-#else
-	SDL_Locale* localeList = SDL_GetPreferredLocales();
-	if (!localeList)
-		return languageID;
+	int numLocales = 0;
+	SDL_Locale** localeList = SDL_GetPreferredLocales(&numLocales);
 
-	for (SDL_Locale* locale = localeList; locale->language; locale++)
+	for (int locale = 0; locale < numLocales; locale++)
 	{
-		for (int i = 0; i < NUM_LANGUAGES; i++)
+		const char* localeLanguage = localeList[locale]->language;
+
+		for (int language = 0; language < NUM_LANGUAGES; language++)
 		{
-			if (0 == strncmp(locale->language, kLanguageCodesISO639_1[i], 2))
+			if (0 == SDL_strncmp(localeLanguage, kLanguageCodesISO639_1[language], 2))
 			{
-				languageID = i;
+				languageID = language;
 				goto foundLocale;
 			}
 		}
@@ -113,7 +109,6 @@ GameLanguageID GetBestLanguageIDFromSystemLocale(void)
 
 foundLocale:
 	SDL_free(localeList);
-#endif
 
 	return languageID;
 }

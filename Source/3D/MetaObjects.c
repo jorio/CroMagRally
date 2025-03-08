@@ -11,8 +11,6 @@
 
 #include "game.h"
 #include "stb_image.h"
-#include <math.h>
-#include <string.h>
 
 extern	Boolean			gMyState_Lighting;
 
@@ -1328,7 +1326,7 @@ Ptr 			pictMapAddr;
 uint32_t		pictRowBytes;
 
 #if _DEBUG
-	printf("MO_GetTextureFromFile: %s\n", path);
+	SDL_Log("MO_GetTextureFromFile: %s", path);
 #endif
 
 		/*******************************/
@@ -1380,7 +1378,7 @@ uint32_t		pictRowBytes;
 
 		for (int y = 0; y < height; y++)
 		{
-			memcpy(dest, src, width*4);
+			SDL_memcpy(dest, src, width*4);
 			dest += width;
 			src -= pictRowBytes/4;
 		}

@@ -487,7 +487,7 @@ void DisposeInfobar(void)
 		gInfobarMasterObj = nil;
 	}
 
-	memset(gInfobarIconObjs, 0, sizeof(gInfobarIconObjs));
+	SDL_memset(gInfobarIconObjs, 0, sizeof(gInfobarIconObjs));
 }
 
 static void Infobar_MakeIcon(uint8_t type, uint8_t flags)
@@ -987,7 +987,7 @@ enum
 			if (special->displayedValue != pi->powQuantity)
 			{
 				char s[8];
-				snprintf(s, sizeof(s), "%d", pi->powQuantity);
+				SDL_snprintf(s, sizeof(s), "%d", pi->powQuantity);
 				TextMesh_Update(s, kTextMeshAlignLeft, node);
 
 				bool gain = pi->powQuantity > special->displayedValue;		// gain if qty++
@@ -1127,12 +1127,12 @@ static void MakeLapDiff(ObjNode* parent)
 	if (diff <= 0.0f)
 	{
 		color = (OGLColorRGBA) {0.2, 1.0, 0.2, 1.0};
-		snprintf(buf, sizeof(buf), "  -%s", FormatRaceTime(fabsf(diff)));
+		SDL_snprintf(buf, sizeof(buf), "  -%s", FormatRaceTime(fabsf(diff)));
 	}
 	else
 	{
 		color = (OGLColorRGBA) {1.0, 0.2, 0.2, 1.0};
-		snprintf(buf, sizeof(buf), "  +%s", FormatRaceTime(fabsf(diff)));
+		SDL_snprintf(buf, sizeof(buf), "  +%s", FormatRaceTime(fabsf(diff)));
 	}
 
 	NewObjectDefinitionType def =
@@ -1180,13 +1180,13 @@ static void Infobar_MoveLapTimer(ObjNode* node)
 	{
 		if (timeHash <= 0)
 		{
-			snprintf(buf, sizeof(buf), "%s%d: -",
+			SDL_snprintf(buf, sizeof(buf), "%s%d: -",
 					 Localize(STR_LAP_ABBREV),
 					 objLap + 1);
 		}
 		else
 		{
-			snprintf(buf, sizeof(buf), "%s%d: %s",
+			SDL_snprintf(buf, sizeof(buf), "%s%d: %s",
 					 Localize(STR_LAP_ABBREV),
 					 objLap + 1,
 					 FormatRaceTime(lapTime));
@@ -1321,7 +1321,7 @@ static void FreeRowTakenByPOWTimer(int playerNum, int powTimerID)
 
 		if (numToMove != 0)
 		{
-			memmove(&rowAllocation[row],
+			SDL_memmove(&rowAllocation[row],
 					&rowAllocation[row+1],
 					numToMove * sizeof(rowAllocation[0]));
 
@@ -1441,7 +1441,7 @@ enum
 			if (special->displayedValue != q)
 			{
 				char s[8];
-				snprintf(s, sizeof(s), "%d", q);
+				SDL_snprintf(s, sizeof(s), "%d", q);
 				TextMesh_Update(s, kTextMeshAlignLeft, objNode);
 				special->displayedValue = q;
 
@@ -1856,8 +1856,8 @@ void ShowWinLose(short playerNum, Byte mode, short winner)
 					char s[64];
 					char safePlayerName[32];
 
-					memset(s, 0, sizeof(s));
-					memset(safePlayerName, 0, sizeof(safePlayerName));
+					SDL_memset(s, 0, sizeof(s));
+					SDL_memset(safePlayerName, 0, sizeof(safePlayerName));
 
 					int j = 0;
 					for (int i = 0; i < 20; i++)									// copy name
@@ -1867,11 +1867,11 @@ void ShowWinLose(short playerNum, Byte mode, short winner)
 						if ((c >= 'a') && (c <= 'z'))								// convert to UPPER CASE
 							c = 'A' + (c - 'a');
 
-						if (strchr(PLAYER_NAME_SAFE_CHARSET, c))					// safe characters
+						if (SDL_strchr(PLAYER_NAME_SAFE_CHARSET, c))				// safe characters
 							safePlayerName[j++] = c;
 					}
 
-					snprintf(s, sizeof(s), "%s %s", safePlayerName, Localize(STR_3RDPERSON_WINS));	// insert "WINS"
+					SDL_snprintf(s, sizeof(s), "%s %s", safePlayerName, Localize(STR_3RDPERSON_WINS));	// insert "WINS"
 
 					gWinLoseString[playerNum] = TextMesh_New(s, 0, &def);
 				}

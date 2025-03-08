@@ -8,8 +8,6 @@
 
 #include "game.h"
 #include <ctype.h>
-#include <string.h>
-#include <stdio.h>
 
 /****************************/
 /*    CONSTANTS             */
@@ -136,7 +134,7 @@ static void Atlas_SetGlyph(Atlas* atlas, uint32_t codepoint, AtlasGlyph* src)
 	uint32_t page = codepoint >> 8;
 	if (page >= atlas->maxPages)
 	{
-		printf("WARNING: codepoint 0x%x exceeds supported maximum (0x%x)\n", codepoint, atlas->maxPages * 256 - 1);
+		SDL_Log("WARNING: codepoint 0x%x exceeds supported maximum (0x%x)", codepoint, atlas->maxPages * 256 - 1);
 		return;
 	}
 
@@ -176,19 +174,19 @@ static void ParseAtlasMetrics(Atlas* atlas, const char* data, int imageWidth, in
 	int nArgs = 0;
 	int nGlyphs = 0;
 
-	nArgs = sscanf(data, "%d %f", &nGlyphs, &atlas->lineHeight);
+	nArgs = SDL_sscanf(data, "%d %f", &nGlyphs, &atlas->lineHeight);
 	GAME_ASSERT(nArgs == 2);
 	ParseAtlasMetrics_SkipLine(&data);  // Skip rest of line (name)
 
 	for (int i = 0; i < nGlyphs; i++)
 	{
 		AtlasGlyph newGlyph;
-		memset(&newGlyph, 0, sizeof(newGlyph));
+		SDL_memset(&newGlyph, 0, sizeof(newGlyph));
 
 		uint32_t codepoint = 0;
 		float x, y;
 
-		nArgs = sscanf(
+		nArgs = SDL_sscanf(
 				data,
 				"%d %f %f %f %f %f %f %f %f",
 				&codepoint,
@@ -231,7 +229,7 @@ static void ParseAtlasMetrics(Atlas* atlas, const char* data, int imageWidth, in
 
 static void SkipWhitespace(const char** data)
 {
-	while (**data && strchr("\t\r\n ", **data))
+	while (**data && SDL_strchr("\t\r\n ", **data))
 	{
 		(*data)++;
 	}
@@ -254,7 +252,7 @@ static void ParseKerningFile(Atlas* atlas, const char* data)
 
 		int tracking = 0;
 		int scannedChars = 0;
-		int scannedTokens = sscanf(data, "%d%n", &tracking, &scannedChars);
+		int scannedTokens = SDL_sscanf(data, "%d%n", &tracking, &scannedChars);
 		GAME_ASSERT(scannedTokens == 1);
 		data += scannedChars;
 
@@ -308,12 +306,12 @@ Atlas* Atlas_Load(const char* fontName, int flags)
 		atlas->kernTracking = nil;
 	}
 
-	snprintf(atlas->name, sizeof(atlas->name), "%s", fontName);
+	SDL_snprintf(atlas->name, sizeof(atlas->name), "%s", fontName);
 
 	char pathBuf[256];
-	snprintf(pathBuf, sizeof(pathBuf), ":Sprites:%s.png", fontName);
+	SDL_snprintf(pathBuf, sizeof(pathBuf), ":Sprites:%s.png", fontName);
 #if _DEBUG
-	printf("Atlas_Load: %s\n", pathBuf);
+	SDL_Log("Atlas_Load: %s", pathBuf);
 #endif
 
 	{
@@ -327,7 +325,7 @@ Atlas* Atlas_Load(const char* fontName, int flags)
 
 		GAME_ASSERT_MESSAGE(!atlas->material, "atlas material already created");
 		MOMaterialData matData;
-		memset(&matData, 0, sizeof(matData));
+		SDL_memset(&matData, 0, sizeof(matData));
 //		matData.setupInfo		= setupInfo;
 		matData.flags			= BG3D_MATERIALFLAG_ALWAYSBLEND | BG3D_MATERIALFLAG_TEXTURED | BG3D_MATERIALFLAG_CLAMP_U | BG3D_MATERIALFLAG_CLAMP_V;
 		matData.diffuseColor	= (OGLColorRGBA) {1, 1, 1, 1};
@@ -340,7 +338,7 @@ Atlas* Atlas_Load(const char* fontName, int flags)
 
 	if (!(flags & kAtlasLoadAsSingleSprite))
 	{
-		snprintf(pathBuf, sizeof(pathBuf), ":Sprites:%s.txt", fontName);
+		SDL_snprintf(pathBuf, sizeof(pathBuf), ":Sprites:%s.txt", fontName);
 		// Parse metrics from SFL file
 		const char* sflPath = pathBuf;
 		char* data = LoadTextFile(sflPath, NULL);
@@ -520,7 +518,7 @@ static void ComputeMetrics(const Atlas* atlas, const char* text, int flags, Text
 	switch (flags & (kTextMeshAlignCenter | kTextMeshAlignLeft | kTextMeshAlignRight))
 	{
 		case kTextMeshAlignLeft:
-			memset(m->lineOffsetX, 0, sizeof(m->lineOffsetX));
+			SDL_memset(m->lineOffsetX, 0, sizeof(m->lineOffsetX));
 			break;
 
 		case kTextMeshAlignRight:

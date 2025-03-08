@@ -2,7 +2,6 @@
 // Object.h
 //
 #include "ogl_support.h"
-#include <string.h>
 
 #define INVALID_NODE_FLAG	0xdeadbeef			// put into CType when node is deleted
 

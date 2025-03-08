@@ -67,7 +67,7 @@ typedef struct
 	Byte	tagDuration;		// legal values: 2,3,4
 	Byte	antialiasingLevel;
 	Boolean	fullscreen;
-	Byte	monitorNum;
+	Byte	displayNumMinus1;
 	Byte	musicVolumePercent;
 	Byte	sfxVolumePercent;
 	Byte	raceTimer;

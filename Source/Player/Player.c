@@ -48,7 +48,7 @@ void InitPlayerInfo_Game(void)
 {
 short	i;
 
-	memset(gPlayerInfo, 0, sizeof(gPlayerInfo));		// init everything to 0
+	SDL_memset(gPlayerInfo, 0, sizeof(gPlayerInfo));		// init everything to 0
 
 	for (i = 0; i < MAX_PLAYERS; i++)
 	{
@@ -346,7 +346,7 @@ Boolean	taken[NUM_LAND_CAR_TYPES];
 
 			/* SCORING */
 
-		memset(gPlayerInfo[i].lapTimes, 0, sizeof(gPlayerInfo[i].lapTimes));
+		SDL_memset(gPlayerInfo[i].lapTimes, 0, sizeof(gPlayerInfo[i].lapTimes));
 
 
 			/* RESET CAR PHYSICS INFO */

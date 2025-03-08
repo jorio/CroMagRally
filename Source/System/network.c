@@ -15,7 +15,6 @@ typedef void* NSpPlayerLeftMessage;
 #include "game.h"
 #include "network.h"
 #include "window.h"
-#include <stdlib.h>
 
 /**********************/
 /*     PROTOTYPES     */

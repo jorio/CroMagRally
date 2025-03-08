@@ -179,7 +179,7 @@ Boolean			gUserTamperedWithPhysics = false;
 
 void SetDefaultPhysics(void)
 {
-	memcpy(&gUserPhysics, &kDefaultPhysics, sizeof(UserPhysics));
+	SDL_memcpy(&gUserPhysics, &kDefaultPhysics, sizeof(UserPhysics));
 	gUserTamperedWithPhysics = false;
 }
 

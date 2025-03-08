@@ -9,7 +9,6 @@
 /****************************/
 
 #include "game.h"
-#include <SDL.h>
 
 
 /****************************/
@@ -30,16 +29,16 @@ static int DoLocalGatherControls(void);
 /*********************/
 
 static ObjNode* gGatherPrompt = NULL;
-static int gNumControllersMissing = 4;
+static int gNumGamepadsMissing = 4;
 
 
 
 
-static void UpdateGatherPrompt(int numControllersMissing)
+static void UpdateGatherPrompt(int numGamepadsMissing)
 {
 	char message[256];
 
-	if (numControllersMissing <= 0)
+	if (numGamepadsMissing <= 0)
 	{
 		TextMesh_Update("OK", 0, gGatherPrompt);
 		gGatherPrompt->Scale.x = 1;
@@ -49,17 +48,16 @@ static void UpdateGatherPrompt(int numControllersMissing)
 	}
 	else
 	{
-		snprintf(
+		SDL_snprintf(
 			message,
 			sizeof(message),
 			"%s %s\n%s",
 			Localize(STR_CONNECT_CONTROLLERS_PREFIX),
-			Localize(STR_CONNECT_1_CONTROLLER + numControllersMissing - 1),
-			Localize(numControllersMissing==1? STR_CONNECT_CONTROLLERS_SUFFIX_KBD: STR_CONNECT_CONTROLLERS_SUFFIX));
+			Localize(STR_CONNECT_1_CONTROLLER + numGamepadsMissing - 1),
+			Localize(numGamepadsMissing==1? STR_CONNECT_CONTROLLERS_SUFFIX_KBD: STR_CONNECT_CONTROLLERS_SUFFIX));
 
 		TextMesh_Update(message, 0, gGatherPrompt);
 	}
-
 }
 
 
@@ -72,12 +70,12 @@ static void UpdateGatherPrompt(int numControllersMissing)
 
 Boolean DoLocalGatherScreen(void)
 {
-	gNumControllersMissing = gNumLocalPlayers;
-	UnlockPlayerControllerMapping();
+	gNumGamepadsMissing = gNumLocalPlayers;
+	UnlockPlayerGamepadMapping();
 
-	if (GetNumControllers() >= gNumLocalPlayers)
+	if (GetNumGamepads() >= gNumLocalPlayers)
 	{
-		// Skip gather screen if we already have enough controllers
+		// Skip gather screen if we already have enough gamepads
 		return false;
 	}
 
@@ -101,13 +99,13 @@ Boolean DoLocalGatherScreen(void)
 		outcome = DoLocalGatherControls();
 
 
-		int numControllers = GetNumControllers();
+		int numGamepads = GetNumGamepads();
 		
-		gNumControllersMissing = gNumLocalPlayers - numControllers;
-		if (gNumControllersMissing < 0)
-			gNumControllersMissing = 0;
+		gNumGamepadsMissing = gNumLocalPlayers - numGamepads;
+		if (gNumGamepadsMissing < 0)
+			gNumGamepadsMissing = 0;
 
-		UpdateGatherPrompt(gNumControllersMissing);
+		UpdateGatherPrompt(gNumGamepadsMissing);
 
 
 			/**************/
@@ -217,7 +215,7 @@ OGLVector3D			fillDirection1 = { .9, -.3, -1 };
 
 static int DoLocalGatherControls(void)
 {
-	if (gNumControllersMissing == 0)
+	if (gNumGamepadsMissing == 0)
 		return 1;
 
 	if (GetNewNeedStateAnyP(kNeed_UIBack))
@@ -230,7 +228,7 @@ static int DoLocalGatherControls(void)
 	if (GetNewKeyState(SDL_SCANCODE_RETURN) || GetNewKeyState(SDL_SCANCODE_KP_ENTER))
 	{
 		// User pressed [ENTER] on keyboard
-		if (gNumControllersMissing == 1)
+		if (gNumGamepadsMissing == 1)
 		{
 			PlayEffect_Parms(EFFECT_SELECTCLICK, FULL_CHANNEL_VOLUME, FULL_CHANNEL_VOLUME, NORMAL_CHANNEL_RATE * 2/3);
 			return 1;
@@ -244,13 +242,13 @@ static int DoLocalGatherControls(void)
 	else if (GetNewNeedStateAnyP(kNeed_UIConfirm))
 	{
 		// User pressed [A] on gamepad
-		if (gNumControllersMissing > 0)
+		if (gNumGamepadsMissing > 0)
 		{
 			PlayEffect(EFFECT_BADSELECT);
 			MakeTwitch(gGatherPrompt, kTwitchPreset_PadlockWiggle);
 		}
 	}
-	else if (IsCheatKeyComboDown())		// useful to test local multiplayer without having all controllers plugged in
+	else if (IsCheatKeyComboDown())		// useful to test local multiplayer without having all gamepads plugged in
 	{
 		PlayEffect(EFFECT_ROMANCANDLE_LAUNCH);
 		return 1;

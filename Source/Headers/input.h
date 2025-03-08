@@ -32,7 +32,7 @@ typedef struct
 	// SDL scancodes
 	int16_t			key[MAX_BINDINGS_PER_NEED];
 
-	// Controller buttons
+	// Gamepad buttons
 	PadBinding		pad[MAX_BINDINGS_PER_NEED];
 
 	int8_t			mouseButton;
@@ -126,12 +126,12 @@ void PopKeys(void);
 
 void DoSDLMaintenance(void);
 
-int GetNumControllers(void);
-struct _SDL_GameController* GetController(int n);
+int GetNumGamepads(void);
+SDL_Gamepad* GetGamepad(int n);
 void Rumble(float strength, uint32_t ms);
 
-void LockPlayerControllerMapping(void);
-void UnlockPlayerControllerMapping(void);
+void LockPlayerGamepadMapping(void);
+void UnlockPlayerGamepadMapping(void);
 const char* GetPlayerName(int whichPlayer);
 const char* GetPlayerNameWithInputDeviceHint(int whichPlayer);
 

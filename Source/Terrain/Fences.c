@@ -158,7 +158,7 @@ static float	gSeaweedFrameTimer;
 static void LoadFenceMaterial(int type)
 {
 	char fencePath[256];
-	snprintf(fencePath, sizeof(fencePath), ":Sprites:Fences:%s.png", kFenceNames[type]);
+	SDL_snprintf(fencePath, sizeof(fencePath), ":Sprites:Fences:%s.png", kFenceNames[type]);
 
 	gFenceMaterials[type] = MO_GetTextureFromFile(fencePath, /*GL_RGB5_A1*/ GL_RGBA);
 
@@ -235,7 +235,7 @@ OGLPoint3D				*nubs;
 			/* LOAD FENCE TEXTURES */
 			/***********************/
 
-	memset(gFenceMaterials, 0, sizeof(gFenceMaterials));
+	SDL_memset(gFenceMaterials, 0, sizeof(gFenceMaterials));
 
 	for (int f = 0; f < gNumFences; f++)
 	{

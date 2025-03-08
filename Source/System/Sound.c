@@ -11,7 +11,7 @@
 /***************/
 
 #include "game.h"
-#include <string.h>
+
 
 /****************************/
 /*    PROTOTYPES            */
@@ -188,7 +188,7 @@ OSErr			iErr;
 
 			/* INIT BANK INFO */
 
-	memset(gLoadedEffects, 0, sizeof(gLoadedEffects));
+	SDL_memset(gLoadedEffects, 0, sizeof(gLoadedEffects));
 
 			/******************/
 			/* ALLOC CHANNELS */
@@ -265,7 +265,7 @@ OSErr err;
 		return;
 	}
 
-	snprintf(path, sizeof(path), ":Audio:%s:%s.aiff", kSoundBankNames[effectDef->bank], effectDef->filename);
+	SDL_snprintf(path, sizeof(path), ":Audio:%s:%s.aiff", kSoundBankNames[effectDef->bank], effectDef->filename);
 
 	err = FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, path, &spec);
 	if (err != noErr)
@@ -300,7 +300,7 @@ void DisposeSoundEffect(int effectNum)
 	if (loadedSound->sndHandle)
 	{
 		DisposeHandle((Handle) loadedSound->sndHandle);
-		memset(loadedSound, 0, sizeof(LoadedEffect));
+		SDL_memset(loadedSound, 0, sizeof(LoadedEffect));
 	}
 }
 
