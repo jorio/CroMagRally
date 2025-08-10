@@ -2888,6 +2888,9 @@ float			fps = gFramesPerSecondFrac;
 
 	if (gPlayerInfo[playerNum].nitroTimer > 0.0f)
 	{
+		// Prevents phantom driving if nitro is used when reversing
+		gPlayerInfo[playerNum].accelBackwards = false; 
+
 		gPlayerInfo[playerNum].braking = false;
 		gPlayerInfo[playerNum].gasPedalDown = true;
 		thrust = NITRO_ACCELERATION;
