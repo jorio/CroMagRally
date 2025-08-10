@@ -434,7 +434,8 @@ short	placeToWin,startStage;
 			bool hasAllTokens = (gTotalTokens >= MAX_TOKENS);
 			bool objectiveCompleted = hasGoodPosition && hasAllTokens;
 
-			if (hasGoodPosition) {
+			if (hasGoodPosition)
+			{
 				TallyTokens(); // Only tally if finished in high enough race position!
 			}
 
