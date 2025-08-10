@@ -428,12 +428,14 @@ short	placeToWin,startStage;
 			InitArea();
 			PlayArea();
 
-			bool objectiveCompleted = (gPlayerInfo[0].place <= placeToWin) && (gTotalTokens >= MAX_TOKENS);
+			// Added variables to keep track of separate objectives.
+			// (Allows us to fix bug whereby game returns to main menu if player collects all arrowheads but fails race)
+			bool hasGoodPosition = (gPlayerInfo[0].place <= placeToWin);
+			bool hasAllTokens = (gTotalTokens >= MAX_TOKENS);
+			bool objectiveCompleted = hasGoodPosition && hasAllTokens;
 
-			if (gPlayerInfo[0].place <= placeToWin)									// if came in 1st place then tally tokens
-			{
-				TallyTokens();
-				objectiveCompleted = (gTotalTokens >= MAX_TOKENS);
+			if (hasGoodPosition) {
+				TallyTokens(); // Only tally if finished in high enough race position!
 			}
 
 					/* SEE IF DIDNT COME IN 1ST PLACE OR DIDNT GET ALL THE TOKENS */
