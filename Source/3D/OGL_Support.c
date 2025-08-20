@@ -271,7 +271,7 @@ void OGL_SetupGameView(OGLSetupInputType *setupDefPtr)
 	OGL_CreateLights(&setupDefPtr->lights);
 	OGL_CheckError();
 
-	SDL_GL_SetSwapInterval(1);//gCommandLine.vsync);
+	SDL_GL_SetSwapInterval(0);//gCommandLine.vsync);
 
 
 

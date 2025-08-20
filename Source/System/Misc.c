@@ -387,26 +387,64 @@ long createdDirID;
 
 void CalcFramesPerSecond(void)
 {
-static UnsignedWide time;
-UnsignedWide currTime;
-unsigned long deltaTime;
+	static uint64_t performanceFrequency = 0;
+	static uint64_t prevTime = 0;
+	uint64_t currTime;
 
-	Microseconds(&currTime);
-	deltaTime = currTime.lo - time.lo;
+	static float minFps = 10;
+	static float maxFps = 60;
 
-	gFramesPerSecond = 1000000.0f / deltaTime;
 
-	if (gFramesPerSecond < DEFAULT_FPS)			// (avoid divide by 0's later)
-		gFramesPerSecond = DEFAULT_FPS;
+
+	if (performanceFrequency == 0)
+	{
+		performanceFrequency = SDL_GetPerformanceFrequency();
+	}
+
+slow_down:
+	currTime = SDL_GetPerformanceCounter();
+	uint64_t deltaTime = currTime - prevTime;
+
+	if (deltaTime <= 0)
+	{
+		gFramesPerSecond = minFps;						// avoid divide by 0
+	}
+	else
+	{
+		gFramesPerSecond = performanceFrequency / (float)(deltaTime);
+
+		if (gFramesPerSecond > maxFps)					// keep from going over 100fps (there were problems in 2.0 of frame rate precision loss)
+		{
+			if (gFramesPerSecond - maxFps > 1000)		// try to sneak in some sleep if we have 1 ms to spare
+			{
+				SDL_Delay(1);
+			}
+			goto slow_down;
+		}
+
+		if (gFramesPerSecond < minFps)					// (avoid divide by 0's later)
+		{
+			gFramesPerSecond = minFps;
+		}
+	}
 
 #if _DEBUG
-	if (GetKeyState(SDL_SCANCODE_KP_PLUS))		// debug speed-up with KP_PLUS
-		gFramesPerSecond = 10;
+	// Fast-forward with grave key
+	if (GetKeyState(SDL_SCANCODE_GRAVE))
+	{
+		gFramesPerSecond = minFps;
+	}
+
+	// Toggle between 60 and 300 fps with tab key
+	if (GetNewKeyState(SDL_SCANCODE_TAB))
+	{
+		maxFps = maxFps > 60 ? 60 : 300;
+	}
 #endif
 
-	gFramesPerSecondFrac = 1.0f/gFramesPerSecond;		// calc fractional for multiplication
+	gFramesPerSecondFrac = 1.0f / gFramesPerSecond;		// calc fractional for multiplication
 
-	time = currTime;	// reset for next time interval
+	prevTime = currTime;								// reset for next time interval
 }
 
 
